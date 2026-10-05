@@ -1,0 +1,195 @@
+{
+  "entities": {
+    "AppUser": {
+      "title": "AppUser",
+      "description": "Akun pengguna resmi terautentikasi sistem HARA",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "nama": { "type": "string" },
+        "role": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "status_aktif": { "type": "string" },
+        "created_at": { "type": "string" },
+        "last_login": { "type": "string" }
+      },
+      "required": ["id", "email", "nama", "role"]
+    },
+    "OnlinePresence": {
+      "title": "OnlinePresence",
+      "description": "Pelacak kehadiran real-time pengguna yang sedang membuka web",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "nama": { "type": "string" },
+        "role": { "type": "string" },
+        "outlet": { "type": "string" },
+        "device": { "type": "string" },
+        "last_seen": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "nama", "role", "last_seen", "status"]
+    },
+    "Outlet": {
+      "title": "Outlet",
+      "description": "Cabang gerai resmi Hara Chicken Indonesia",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_outlet": { "type": "string" },
+        "alamat": { "type": "string" },
+        "kepala_outlet": { "type": "string" },
+        "area_supervisor": { "type": "string" },
+        "jumlah_kru": { "type": "number" },
+        "status_operasional": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "nama_outlet"]
+    },
+    "Kru": {
+      "title": "Kru",
+      "description": "Profil kru operasional cabang",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_kru": { "type": "string" },
+        "divisi": { "type": "string" },
+        "posisi": { "type": "string" },
+        "status_aktif": { "type": "string" },
+        "tanggal_bergabung": { "type": "string" },
+        "level_kompetensi": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "nama_kru", "divisi"]
+    },
+    "PenilaianTeori": {
+      "title": "PenilaianTeori",
+      "description": "Catatan hasil ujian teori SOP stasiun kru",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_kru": { "type": "string" },
+        "divisi": { "type": "string" },
+        "topik": { "type": "string" },
+        "skor": { "type": "number" },
+        "total_soal": { "type": "number" },
+        "jawaban_benar": { "type": "number" },
+        "tanggal": { "type": "string" },
+        "penguji": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "nama_kru", "skor", "tanggal"]
+    },
+    "PenilaianPraktik": {
+      "title": "PenilaianPraktik",
+      "description": "Uji praktik stasiun Speed-of-Service dan suhu minyak 170C",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_kru": { "type": "string" },
+        "divisi": { "type": "string" },
+        "sop_terkait": { "type": "string" },
+        "durasi_detik": { "type": "number" },
+        "suhu_minyak_c": { "type": "number" },
+        "gramasi_ayam_g": { "type": "number" },
+        "skor_akhir": { "type": "number" },
+        "status_kelulusan": { "type": "string" },
+        "penguji": { "type": "string" },
+        "tanggal": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "nama_kru", "skor_akhir", "tanggal"]
+    },
+    "PenilaianLisan": {
+      "title": "PenilaianLisan",
+      "description": "Uji lisan pemahaman kritis HACCP dan alasan di balik SOP",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_kru": { "type": "string" },
+        "divisi": { "type": "string" },
+        "sop_terkait": { "type": "string" },
+        "skor": { "type": "number" },
+        "catatan_evaluasi": { "type": "string" },
+        "penguji": { "type": "string" },
+        "tanggal": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "nama_kru", "skor", "tanggal"]
+    },
+    "ObservasiLapangan": {
+      "title": "ObservasiLapangan",
+      "description": "Inspeksi kepatuhan kebersihan, sanitasi K3, dan alur kerja di jam sibuk",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "nama_kru": { "type": "string" },
+        "divisi": { "type": "string" },
+        "sop_terkait": { "type": "string" },
+        "hasil": { "type": "string" },
+        "catatan": { "type": "string" },
+        "auditor": { "type": "string" },
+        "tanggal": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "hasil", "tanggal"]
+    },
+    "KartuKeluhan": {
+      "title": "KartuKeluhan",
+      "description": "Pencatatan keluhan pelanggan gerai dan investigasi RCA 5M",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kode_outlet": { "type": "string" },
+        "divisi": { "type": "string" },
+        "jenis_keluhan": { "type": "string" },
+        "deskripsi": { "type": "string" },
+        "status": { "type": "string" },
+        "faktor_penyebab": { "type": "string" },
+        "tindakan_perbaikan": { "type": "string" },
+        "tanggal": { "type": "string" }
+      },
+      "required": ["id", "kode_outlet", "jenis_keluhan", "status", "tanggal"]
+    }
+  },
+  "firestore": {
+    "/online_presence/{presenceId}": {
+      "schema": { "$ref": "#/entities/OnlinePresence" },
+      "description": "Daftar pengguna yang sedang aktif membuka sistem saat ini"
+    },
+    "/app_users/{userId}": {
+      "schema": { "$ref": "#/entities/AppUser" },
+      "description": "Daftar pengguna akun terverifikasi dan hak akses role"
+    },
+    "/outlets/{outletId}": {
+      "schema": { "$ref": "#/entities/Outlet" },
+      "description": "Daftar cabang restoran Hara Chicken"
+    },
+    "/kru/{kruId}": {
+      "schema": { "$ref": "#/entities/Kru" },
+      "description": "Data kru terdaftar pada setiap cabang gerai"
+    },
+    "/penilaian_teori/{teoriId}": {
+      "schema": { "$ref": "#/entities/PenilaianTeori" },
+      "description": "Hasil tes teori mandiri maupun terpandu"
+    },
+    "/penilaian_praktik/{praktikId}": {
+      "schema": { "$ref": "#/entities/PenilaianPraktik" },
+      "description": "Hasil ujian praktik lapangan Speed-of-Service"
+    },
+    "/penilaian_lisan/{lisanId}": {
+      "schema": { "$ref": "#/entities/PenilaianLisan" },
+      "description": "Hasil ujian lisan HACCP dan logika SOP"
+    },
+    "/observasi_lapangan/{observasiId}": {
+      "schema": { "$ref": "#/entities/ObservasiLapangan" },
+      "description": "Observasi sanitasi dan audit kepatuhan lapangan"
+    },
+    "/kartu_keluhan/{keluhanId}": {
+      "schema": { "$ref": "#/entities/KartuKeluhan" },
+      "description": "Keluhan pelanggan dan analisis akar masalah"
+    }
+  }
+}

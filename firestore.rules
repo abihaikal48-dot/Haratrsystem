@@ -1,0 +1,133 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Live online presence tracking (who is currently browsing)
+    match /online_presence/{presenceId} {
+      allow read, write: if isValidId(presenceId);
+    }
+
+    // Authenticated application users & verified roles
+    match /app_users/{userId} {
+      allow read, write: if isValidId(userId);
+    }
+
+    // Outlets: Master cabang restoran
+    match /outlets/{outletId} {
+      allow read, write: if isValidId(outletId);
+    }
+
+    // Kru: Personil gerai
+    match /kru/{kruId} {
+      allow read, write: if isValidId(kruId);
+    }
+
+    // Penilaian Teori
+    match /penilaian_teori/{teoriId} {
+      allow read, write: if isValidId(teoriId);
+    }
+
+    // Penilaian Praktik
+    match /penilaian_praktik/{praktikId} {
+      allow read, write: if isValidId(praktikId);
+    }
+
+    // Penilaian Lisan
+    match /penilaian_lisan/{lisanId} {
+      allow read, write: if isValidId(lisanId);
+    }
+
+    // Observasi Lapangan
+    match /observasi_lapangan/{observasiId} {
+      allow read, write: if isValidId(observasiId);
+    }
+
+    // Kartu Keluhan
+    match /kartu_keluhan/{keluhanId} {
+      allow read, write: if isValidId(keluhanId);
+    }
+
+    // Rencana Training & TNA
+    match /rencana_training/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /tna/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    // Coaching Log & Gap Analysis
+    match /coaching_log/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /gap_analysis/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /talent_tracker/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    // Penugasan & Laporan Trainer
+    match /penugasan_trainer/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /trainee_outlet/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /laporan_trainer/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    // Bank SOP & Bank Soal
+    match /bank_sop/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /bank_soal/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /onboarding_progress/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /official_audits/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /official_rapor_kru/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /trainer_financial_reports/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /settings/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    match /logs/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    // Healthcheck / Connection test rule
+    match /test/{id} {
+      allow read, write: if isValidId(id);
+    }
+
+    // Default deny for unhandled paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

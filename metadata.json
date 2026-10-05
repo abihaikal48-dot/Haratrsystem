@@ -1,0 +1,6 @@
+{
+  "name": "HARA Chicken Trainer & Ops",
+  "description": "Enterprise Multi-Outlet Field Trainer & Operational Competency Management System for Hara Chicken",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
