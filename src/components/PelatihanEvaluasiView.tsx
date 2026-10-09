@@ -6,7 +6,7 @@ import {
   Download, Edit3, Trash2, Check, X, ShieldAlert, FileText,
   HelpCircle, ChevronDown, Flame, Thermometer, Info,
   Lightbulb, RefreshCw, Layers, ArrowUpRight, BarChart3,
-  UserCheck, ExternalLink, Printer
+  UserCheck, ExternalLink, Printer, Target
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
@@ -23,8 +23,10 @@ import { PenilaianLisanView } from './PenilaianLisanView';
 import { KompetensiView } from './KompetensiView';
 import { ModernOptionSelector } from './ModernOptionSelector';
 import { PageHeaderBanner } from './PageHeaderBanner';
+import { CrewExamResultsViewer } from './trainer/CrewExamResultsViewer';
 
 export type PelatihanSubTab =
+  | 'hasil-ujian'
   | 'bank-sop'
   | 'bank-soal'
   | 'penilaian-teori'
@@ -334,6 +336,13 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
   // Sub Tab Navigation Config
   const TABS_CONFIG = [
     {
+      id: 'hasil-ujian' as PelatihanSubTab,
+      label: 'Hasil Ujian & Karakter Kru',
+      icon: Award,
+      count: db.getHasilUjianMingguan().length,
+      desc: 'Otomatisasi Paket SOP & Radar Psikologis Kru',
+    },
+    {
       id: 'kompetensi' as PelatihanSubTab,
       label: 'Matriks 360° & Data Science',
       icon: Shield,
@@ -493,6 +502,13 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
       </div>
 
       {/* 3. ACTIVE SUB-TAB CONTENT */}
+      {/* ========================================================================= */}
+      {/* 0. HASIL UJIAN MANDIRI KRU & KONTROL PAKET UJIAN */}
+      {/* ========================================================================= */}
+      {activeTab === 'hasil-ujian' && (
+        <CrewExamResultsViewer selectedOutletCode={selectedOutletCode} />
+      )}
+
       {/* ========================================================================= */}
       {/* A. BANK SOP RESMI (INTERACTIVE VIEWER & GENERATOR) */}
       {/* ========================================================================= */}

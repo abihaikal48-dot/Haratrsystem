@@ -429,8 +429,9 @@ Trainer Operasional: ${formData.trainer_nama || 'Haikal Abi'}`;
                     </span>
                     <div className="flex flex-wrap gap-1.5">
                       {formData.alasan_diagnostik.map((tag, i) => (
-                        <span key={i} className="text-[10.5px] bg-white border border-slate-300 text-slate-800 px-2 py-0.5 rounded-md font-medium">
-                          ✓ {tag}
+                        <span key={i} className="text-[10.5px] bg-white border border-slate-300 text-slate-800 px-2 py-0.5 rounded-md font-medium inline-flex items-center gap-1">
+                          <Check size={11} className="text-emerald-700" />
+                          <span>{tag}</span>
                         </span>
                       ))}
                     </div>

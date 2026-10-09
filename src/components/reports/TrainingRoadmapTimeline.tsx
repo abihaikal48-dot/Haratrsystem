@@ -180,7 +180,7 @@ export const TrainingRoadmapTimeline: React.FC<TrainingRoadmapTimelineProps> = (
                           : 'bg-purple-100 text-purple-800'
                       }`}
                     >
-                      {isDone ? '✓ TELAH SELESAI' : '⚡ RENCANA MENDATANG'}
+                      {isDone ? 'TELAH SELESAI' : 'RENCANA MENDATANG'}
                     </span>
                     <span className="text-xs font-bold text-slate-500">
                       {item.tanggal}

@@ -7,7 +7,7 @@ import {
   TraineeRecord, LaporanTrainerOutlet, CrewOnboardingProgress,
   OfficialAuditReport, OfficialRaporKru, LaporanTrainerKeuanganAtasan,
   OJTCrewMonitoringRecord, GateEvaluationRecord, UserRole,
-  AuditAttitudeHara
+  AuditAttitudeHara, HasilUjianKruMingguan, TrainerExamConfig
 } from '../types';
 import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
 import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
@@ -17,12 +17,15 @@ import {
   OFFICIAL_HARA_CREW_REPORTS,
   OFFICIAL_HARA_TRAINER_FINANCIAL_REPORTS
 } from './officialAuditData';
+import { INITIAL_HASIL_UJIAN_MINGGUAN } from '../data/bankSoalMingguan';
 
 const STORAGE_KEYS = {
   OUTLETS: 'hara_pd_outlets_v2',
   KRU: 'hara_pd_kru_v2',
   TNA: 'hara_pd_tna_v2',
   RENCANA_TRAINING: 'hara_pd_rencana_training_v2',
+  HASIL_UJIAN_MINGGUAN: 'hara_pd_hasil_ujian_mingguan_v1',
+  EXAM_CONFIG: 'hara_pd_exam_config_v1',
   OBSERVASI: 'hara_pd_observasi_v2',
   COACHING: 'hara_pd_coaching_v2',
   GAP_ANALYSIS: 'hara_pd_gap_analysis_v2',
@@ -2164,6 +2167,38 @@ class StorageDatabase {
       verifiedUser: match.nama,
       role: match.role
     };
+  }
+
+  public getHasilUjianMingguan(): HasilUjianKruMingguan[] {
+    return this.get<HasilUjianKruMingguan[]>(STORAGE_KEYS.HASIL_UJIAN_MINGGUAN, []);
+  }
+
+  public saveHasilUjianMingguan(result: HasilUjianKruMingguan): void {
+    const list = this.getHasilUjianMingguan();
+    const existingIdx = list.findIndex(r => r.id === result.id);
+    if (existingIdx >= 0) {
+      list[existingIdx] = result;
+    } else {
+      list.unshift(result);
+    }
+    this.set(STORAGE_KEYS.HASIL_UJIAN_MINGGUAN, list);
+    this.addLog('TAMBAH', 'Hasil Ujian Mingguan', `Ujian ${result.minggu} untuk ${result.nama_kru} (${result.divisi}) tersimpan (Skor: ${result.skor_akhir_komposit})`);
+  }
+
+  public getExamConfig(): TrainerExamConfig {
+    return this.get<TrainerExamConfig>(STORAGE_KEYS.EXAM_CONFIG, {
+      mode: 'otomatis_ojt',
+      paket_terkunci: 'MINGGU_2',
+      durasi_menit: 20,
+      durasi_per_soal_detik: 90,
+      passing_grade: 75,
+      pesan_trainer: 'Kerjakan secara mandiri dan teliti sesuai standar SOP HARA Chicken yang telah dipelajari.',
+    });
+  }
+
+  public saveExamConfig(cfg: TrainerExamConfig): void {
+    this.set(STORAGE_KEYS.EXAM_CONFIG, cfg);
+    this.addLog('UBAH', 'Pengaturan Ujian', `Konfigurasi paket ujian diubah ke mode: ${cfg.mode} ${cfg.paket_terkunci ? `(${cfg.paket_terkunci})` : ''}`);
   }
 
   private friendlyTableName(name: string): string {

@@ -787,9 +787,9 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
       : 'kepatuhan standar suhu, penepungan krispi, dan pemakaian APD lengkap';
 
     const narrative = `Berdasarkan evaluasi objektif ${target === 'awal' ? 'Pre-Test' : 'Post-Test'} jabatan ${editJabatan} divisi ${editDivisi}, ${crewName} memperoleh Skor Akhir Komposit ${finalCompositeScore}/100 (Teori: ${calculatedTeoriScore}, Praktik: ${calculatedPraktikScore}, RESPECT: ${calculatedAttitudeScore}, Ketahanan: ${calculatedKetahananScore}).\n\n` +
-      `📌 BUKTI OBSERVASI LAPANGAN: ${buktiObservasi || `Ditemukan bahwa ${crewName} menunjukkan: ${tagListStr}.`}\n\n` +
-      `🔍 DIAGNOSA AKAR MASALAH: "${akarMasalah}". ${finalCompositeScore < 80 ? 'Diperlukan penguatan repetisi agar deviasi tidak berulang pada jam sibuk.' : 'Kru telah menunjukkan pemahaman stabil dan siap bertugas mandiri.'}\n\n` +
-      `⚖️ JUSTIFIKASI STATUS (${statusText}): ${alasanKelulusan}`;
+      `BUKTI OBSERVASI LAPANGAN: ${buktiObservasi || `Ditemukan bahwa ${crewName} menunjukkan: ${tagListStr}.`}\n\n` +
+      `DIAGNOSA AKAR MASALAH: "${akarMasalah}". ${finalCompositeScore < 80 ? 'Diperlukan penguatan repetisi agar deviasi tidak berulang pada jam sibuk.' : 'Kru telah menunjukkan pemahaman stabil dan siap bertugas mandiri.'}\n\n` +
+      `JUSTIFIKASI STATUS (${statusText}): ${alasanKelulusan}`;
 
     setNoteSummary(narrative);
   };
@@ -1405,7 +1405,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
                 {/* Mathematical Formula Footnote */}
                 <div className="p-3 bg-slate-100 text-[11px] text-slate-700 flex flex-col sm:flex-row items-center justify-between gap-1 border-t border-slate-200 font-medium">
                   <div>
-                    📐 <b>Rumus Komposit:</b> ({calculatedTeoriScore}×0.25) + ({calculatedPraktikScore}×0.35) + ({calculatedAttitudeScore}×0.25) + ({calculatedKetahananScore}×0.15) = <b>{autoCalculatedCompositeScore} Poin</b>
+                    <b>Rumus Komposit:</b> ({calculatedTeoriScore}×0.25) + ({calculatedPraktikScore}×0.35) + ({calculatedAttitudeScore}×0.25) + ({calculatedKetahananScore}×0.15) = <b>{autoCalculatedCompositeScore} Poin</b>
                   </div>
                   <div className="font-bold text-slate-900">
                     Ambang Batas Kelulusan: <span className="text-emerald-700">≥ 80 pt (Lulus Mandiri)</span>

@@ -591,8 +591,9 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                           <span className="text-[10px] text-stone-400">({p.total_ulasan.toLocaleString()} ulasan)</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-amber-600 flex items-center gap-0.5">
-                            ★ {p.rating.toFixed(1)}
+                          <span className="text-xs font-black text-amber-600 flex items-center gap-1">
+                            <Star size={11} className="fill-amber-500 text-amber-500" />
+                            {p.rating.toFixed(1)}
                           </span>
                           <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                             {p.ulasan_positif_pct}% Positif

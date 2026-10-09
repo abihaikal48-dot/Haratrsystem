@@ -1,0 +1,1729 @@
+[
+  {
+    "id": "M1-PROD-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Menanak Nasi Pulen (HC-SOP-KIT-01)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Sesuai SOP HC-SOP-KIT-01 menanak nasi di rice cooker gas, berapa perbandingan baku takaran beras dan air untuk 6 cup beras Miyako serta perlakuan setelah tombol COOK kembali (jegleg)?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "6 cup beras : 6 cup air; langsung dipindahkan seketika ke magicom begitu jegleg"
+      },
+      {
+        "label": "B",
+        "teks": "6 cup beras : 8 cup air; biarkan sekitar 15 menit agar tanak sempurna sebelum dipindahkan ke magicom"
+      },
+      {
+        "label": "C",
+        "teks": "6 cup beras : 10 cup air; dibiarkan di rice cooker gas selama 1 jam penuh"
+      },
+      {
+        "label": "D",
+        "teks": "6 cup beras : 5 cup air; aduk saat masih mendidih di rice cooker gas"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Perbandingan baku: 3 cup:4 cup air, 4:5, 5:6, 6:8. Setelah tombol jegleg berbunyi, wajib didiamkan 15 menit agar tanak sempurna, dan tidak boleh dibiarkan di rice cooker gas lebih dari 30 menit.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Penggorengan Ayam Krispi (HC-SOP-KIT-02)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Berdasarkan SOP HC-SOP-KIT-02, parameter baku suhu kompor deep fryer, suhu minyak, dan durasi penggorengan ayam krispi HARA Chicken adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Suhu kompor 150°C, suhu minyak 140°C, waktu 8 menit"
+      },
+      {
+        "label": "B",
+        "teks": "Suhu kompor 175°C, suhu minyak 160°C, waktu 12 menit tepat (goyang keranjang tiap 3 menit)"
+      },
+      {
+        "label": "C",
+        "teks": "Suhu kompor 200°C, suhu minyak 180°C, waktu 15 menit"
+      },
+      {
+        "label": "D",
+        "teks": "Suhu kompor 160°C, suhu minyak 150°C, waktu 10 menit tanpa digoyang"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Menggoreng Ayam: Kompor 175°C, suhu minyak saat ayam masuk wajib 160°C, durasi 12 menit tepat, kapasitas 2-3 kg/batch, dan keranjang digoyang setiap 3 menit agar matang merata.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-03",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Goreng Kulit Krispi (HC-SOP-KIT-03)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Pada SOP Goreng Kulit HC-SOP-KIT-03, berapakah gramatur standar 1 porsi kulit mentah dibandingkan hasil matangnya, serta pengaturan suhu minyak fryer?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Mentah 30 gr menjadi matang 40 gr, suhu 175°C selama 5 menit"
+      },
+      {
+        "label": "B",
+        "teks": "Mentah 50 gr menghasilkan matang 60 gr, suhu minyak 150°C, digoreng selama 12 menit dengan 2x penepungan"
+      },
+      {
+        "label": "C",
+        "teks": "Mentah 100 gr menjadi matang 80 gr, suhu 160°C selama 10 menit"
+      },
+      {
+        "label": "D",
+        "teks": "Mentah bebas takaran, digoreng suhu 180°C sampai kering"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Standar Kulit: 1 porsi mentah 50 gr -> matang 60 gr. Suhu kompor & minyak 150°C, waktu goreng 12 menit, melalui 2x penepungan (dusting - celup - dusting).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-04",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Goreng Ayam Utuh / AU (HC-SOP-KIT-04)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat menggoreng Ayam Utuh (AU) krispi sesuai SOP HC-SOP-KIT-04, teknik krusial apa yang wajib dilakukan kru saat memasukkan ayam ke deep fryer?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Langsung dilempar cepat ke tengah wajan"
+      },
+      {
+        "label": "B",
+        "teks": "Posisi ayam dimekarkan secara pelan-pelan ke minyak suhu 150°C, dan dibolak-balik tiap 3 menit selama 12 menit"
+      },
+      {
+        "label": "C",
+        "teks": "Ayam diikat kencang agar bentuknya bulat padat"
+      },
+      {
+        "label": "D",
+        "teks": "Digoreng di minyak mendidih 190°C selama 7 menit saja"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Ayam Utuh wajib dimekarkan perlahan saat dimasukkan ke minyak suhu stabil 150°C agar rongga dalam matang merata tanpa darah tulang, dibolak-balik tiap 3 menit selama 12 menit.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-05",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Nasi Goreng HARA (HC-SOP-KIT-05)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Formulasi baku bumbu dan bahan untuk memasak 1 porsi Nasi Goreng HARA sesuai SOP HC-SOP-KIT-05 adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Nasi 2 cup, minyak 50ml, kecap manis botol 3 sdm, cabai rawit 5 biji"
+      },
+      {
+        "label": "B",
+        "teks": "Nasi 1 cup, minyak 15 ml, bawang putih geprek, mix veg 30 gr, bumbu Eco 20 gr, saos ricebowl 15 gr, dan 2 tetes minyak wijen"
+      },
+      {
+        "label": "C",
+        "teks": "Nasi panas 1 piring, margarin 1 sdm, bumbu instan sachet"
+      },
+      {
+        "label": "D",
+        "teks": "Nasi goreng bebas takaran asalkan warnanya cokelat gelap"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Formula baku: Nasi 1 cup, minyak 15 ml, 1/2-1 siung bawang putih geprek, mix veg 30 gr, bumbu Eco 20 gr, saos ricebowl 15 gr, dan 2 tetes minyak wijen disajikan bersama telur.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-06",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Telur Dadar Krispi (HC-SOP-KIT-06)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Berdasarkan SOP HC-SOP-KIT-06, berapa takaran mix garam dan volume minyak untuk menggoreng 1 butir Telur Dadar pelengkap menu?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Garam dapur 1 sdt dan minyak 10 ml"
+      },
+      {
+        "label": "B",
+        "teks": "Mix garam 1/2 sendok takar (1 gram) dan minyak goreng 50 ml api sedang"
+      },
+      {
+        "label": "C",
+        "teks": "Royco 1 bungkus dan minyak 100 ml"
+      },
+      {
+        "label": "D",
+        "teks": "Tanpa garam, minyak 25 ml api besar"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Resep baku: 1 butir telur ayam + mix garam 1/2 sendok takar (1 gram), dikocok rata berbusa halus, digoreng dengan 50 ml minyak api sedang hingga kuning keemasan.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-07",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Ayam Krisbar / Krispi Bakar (HC-SOP-KIT-07)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Prosedur baku pembuatan Ayam Krisbar (Krispi Bakar) pada SOP HC-SOP-KIT-07 mewajibkan tahap penting apa agar bumbu meresap berkaramel gurih?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Ayam mentah langsung dibakar tanpa digoreng tepung terlebih dahulu"
+      },
+      {
+        "label": "B",
+        "teks": "Ayam krispi matang dicelup bumbu krisbar, dipanggang di grill pan, lalu dicelup kembali ke-2x (wajib 2x pencelupan) sebelum dibakar kembali"
+      },
+      {
+        "label": "C",
+        "teks": "Ayam krispi diolesi kecap manis di atas piring saji"
+      },
+      {
+        "label": "D",
+        "teks": "Ayam dicelup bumbu krisbar lalu digoreng kembali ke deep fryer"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Krisbar: Menggunakan ayam krispi matang, celup ke wadah bumbu krisbar, bakar di grill pan hingga harum kecokelatan, celup kembali ke-2x (2x pencelupan), dan bakar ulang sebentar. Bumbu wajib disaring tiap pergantian shift.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-08",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Kentang Goreng (HC-SOP-KIT-08)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "SOP Kentang Goreng HC-SOP-KIT-08 menetapkan berat 1 porsi, durasi penggorengan, dan takaran bumbu tabur kentang sebesar:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Porsi 200 gr, digoreng 10 menit, bumbu tabur 10 gr"
+      },
+      {
+        "label": "B",
+        "teks": "Porsi 100 gr, digoreng 5 menit (minyak 500 ml), ditaburi bumbu kentang 2,5 gr (1/2 sdt takar)"
+      },
+      {
+        "label": "C",
+        "teks": "Porsi 50 gr, digoreng 2 menit, tanpa bumbu tabur"
+      },
+      {
+        "label": "D",
+        "teks": "Porsi 150 gr, digoreng 8 menit, ditaburi garam biasa"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "1 pack kentang 2kg dibagi 20 porsi @100 gr. Digoreng 5 menit di minyak panas hingga keemasan, ditiriskan, lalu ditaburi 2,5 gr (1/2 sdt) bumbu kentang.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-09",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Sayur SOP Hara Extra (HC-SOP-KIT-09)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Dalam memasak Sup Sayur Hara Extra 1 resep (6 liter air) sesuai SOP HC-SOP-KIT-09, bagaimana urutan baku memasukkan sayuran agar wortel empuk dan kol tidak overcooked?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Semua sayuran (wortel, kol, daun bawang, seledri) dimasukkan bersamaan sejak air masih dingin"
+      },
+      {
+        "label": "B",
+        "teks": "Bumbu tumis mendidih -> masukkan wortel tunggu 2 menit -> masukkan kol tunggu 2 menit -> matikan api -> masukkan seledri & daun loncang"
+      },
+      {
+        "label": "C",
+        "teks": "Kol dimasukkan pertama kali selama 10 menit baru wortel di akhir"
+      },
+      {
+        "label": "D",
+        "teks": "Sayuran digoreng dulu di wajan deep fryer baru disiram kuah"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Urutan baku: Bumbu tumis (bawang putih 30g + kapulaga 6 butir) masuk kuah mendidih + garam mix 4.5 sdm & 2 Royco -> wortel 2 menit -> kol 2 menit -> matikan api -> seledri & daun loncang.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-10",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Marinasi Extra Terong & Jamur (HC-SOP-KIT-10)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Komposisi bumbu rendaman air Marinasi Extra (HC-SOP-KIT-10) untuk sayuran side-dish (terong dan jamur) serta waktu perendamannya adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Kecap asin 1 botol dan air 2 liter direndam semalaman"
+      },
+      {
+        "label": "B",
+        "teks": "2 siung bawang putih uleg + mix garam 5 sdm (75 gr) + 1 liter air bersih, didiamkan tepat 10 menit"
+      },
+      {
+        "label": "C",
+        "teks": "Tepung bumbu dilarutkan kental tanpa bawang putih selama 1 jam"
+      },
+      {
+        "label": "D",
+        "teks": "Cukup air keran biasa selama 30 detik"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Marinasi Extra: 2 siung bawang putih + garam mix 75 gr diuleg halus, larutkan dalam 1L air, rendam terong/jamur selama 10 menit sebelum penepungan 2x.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-11",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Terong Crispy & Jamur Crispy (HC-SOP-KIT-11 & 12)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Berapa kali proses penepungan (dusting) yang wajib dilakukan pada Terong dan Jamur tiram setelah ditiriskan dari air marinasi extra?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "1 kali penepungan kering saja"
+      },
+      {
+        "label": "B",
+        "teks": "2 kali penepungan (dusting tepung - celup air 1 detik - dusting kembali) agar mekar keriting kriuk"
+      },
+      {
+        "label": "C",
+        "teks": "4 kali penepungan tebal seperti donat"
+      },
+      {
+        "label": "D",
+        "teks": "Langsung digoreng tanpa tepung"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Terong & Jamur Crispy mewajibkan 2x penepungan (dusting - celup air - dusting) agar menghasilkan tekstur renyah keriting mekar khas HARA Chicken.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-12",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Sambal Bawang Uleg Cobek (HC-SOP-GEP-03)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Pada stasiun Geprek, bagaimana standar baku pembuatan Sambal Bawang segar khas HARA (HC-SOP-GEP-03) terkait alat uleg, minyak, dan berat porsinya?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Diblender halus dalam jumlah 5 kg sekaligus, lalu disiram air mendidih"
+      },
+      {
+        "label": "B",
+        "teks": "Diuleg kasar menggunakan cobek batu asli, disiram minyak panas fryer 160°C mendidih, dengan berat standar 30 gram per porsi"
+      },
+      {
+        "label": "C",
+        "teks": "Menggunakan sambal kemasan botolan yang dipanaskan di microwave"
+      },
+      {
+        "label": "D",
+        "teks": "Diuleg halus dengan cobek kayu dan disiram minyak dingin"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Sambal Bawang: Wajib uleg manual cobek batu asli (otentik), disiram minyak panas 160°C dari deep fryer, takaran porsi baku 30 gr ditimbang digital.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-13",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Sambal Matah & Daun Jeruk (HC-SOP-GEP-01 & 02)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Karakteristik penting dalam peracikan Sambal Matah dan Sambal Daun Jeruk HARA agar aroma segar maksimal dan tidak pahit adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Daun jeruk diuleg bersama batang kayunya dan digoreng gosong"
+      },
+      {
+        "label": "B",
+        "teks": "Tulang daun jeruk dibuang sebelum diiris sangat halus; bahan sambal matah dirajang segar lalu disiram minyak panas dan diperas jeruk limau"
+      },
+      {
+        "label": "C",
+        "teks": "Menggunakan perisa daun jeruk sintetis"
+      },
+      {
+        "label": "D",
+        "teks": "Bahan ditumis di atas wajan hingga layu kecokelatan"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Daun jeruk wajib dibuang tulang tengahnya agar tidak pahit lalu diiris tipis. Sambal matah disiram minyak panas dan diberi perasan jeruk limau segar.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-14",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Produk - Ayam Nashville Potong & Utuh (HC-SOP-GEP-06 & 07)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Prosedur baku saat menyajikan menu Ayam Nashville (HC-SOP-GEP-06 & 07) meliputi tahap apa setelah ayam krispi matang?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Dicelup saus tomat lalu ditaburi gula pasir"
+      },
+      {
+        "label": "B",
+        "teks": "Dicelupkan ke dalam oil blend Nashville hangat secara merata, ditaburi bubuk bumbu Nashville sesuai level kepedasan, dan ditempeli stiker label Nashville pada kemasan"
+      },
+      {
+        "label": "C",
+        "teks": "Direndam air cabai selama 15 menit di panci"
+      },
+      {
+        "label": "D",
+        "teks": "Ayam digeprek hancur lalu diaduk dengan kecap asin"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Nashville: Celup oil blend Nashville hangat, tabur bubuk seasoning Nashville sesuai level (Level 1-3), pasang stiker label level pada box kemasan.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-15",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Minuman - Es Teh, Lemon Tea & Orange (HC-SOP-KIT-16 s.d 19)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Dalam penyajian minuman dingin (Es Teh Manis, Lemon Tea, Orange) sesuai SOP, aturan baku takaran manis dan penutupan cup adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Kru boleh mengira-ngira takaran gula dan menutup cup dengan plastik kresek"
+      },
+      {
+        "label": "B",
+        "teks": "Menggunakan takaran sirup/gula baku per cup atau per batch teko, es batu sesuai garis standar cup, dan diseal rapat menggunakan mesin Cup Sealer yang higienis"
+      },
+      {
+        "label": "C",
+        "teks": "Diberikan es batu penuh tanpa air teh"
+      },
+      {
+        "label": "D",
+        "teks": "Gula pasir dimasukkan langsung ke cup dingin tanpa dilarutkan"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Standar Minuman HARA: Larutan gula/konsentrat wajib terukur standar, es batu sesuai takaran, dan cup diseal menggunakan Cup Sealer higienis anti-bocor.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PROD-16",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOP Penyimpanan - Holding Time Warmer & Thawing Daging (HC-SOP-KIT-23)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Berapa batas waktu maksimal penyimpanan (holding time) ayam krispi matang di etalase showcase warmer pada suhu 60-70°C, serta metode thawing ayam mentah yang benar?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Maksimal 8 jam di warmer; thawing ayam direndam air panas mendidih"
+      },
+      {
+        "label": "B",
+        "teks": "Maksimal 2 jam di warmer (jika lewat tekstur menurun & wajib ditarik); thawing dipindahkan dari freezer ke chiller 12-24 jam sebelumnya (dilarang air hangat)"
+      },
+      {
+        "label": "C",
+        "teks": "Bebas disimpan sampai besok pagi asalkan lampu warmer menyala"
+      },
+      {
+        "label": "D",
+        "teks": "Maksimal 30 menit; ayam beku langsung dicelup ke minyak panas"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Holding time warmer: Maksimal 2 jam suhu 60-70°C untuk menjaga kerenyahan dan juiciness. Thawing wajib gradual di chiller 12-24 jam (dilarang air hangat karena memicu bakteri).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-KIT-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Kitchen",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kitchen - Perawatan Deep Fryer & Kuras Minyak (HC-SOP-KIT-21)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Kapan stasiun Kitchen DIWAJIBKAN melakukan penyaringan (filtering) dan pengurasan minyak goreng pada deep fryer sesuai SOP HC-SOP-KIT-21?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Hanya jika minyak sudah berwarna hitam pekat berbau gosong"
+      },
+      {
+        "label": "B",
+        "teks": "Penyaringan remahan tiap batch gorengan; kuras minyak setiap selesai menggoreng 16 - 20 kg ayam atau setiap pergantian shift"
+      },
+      {
+        "label": "C",
+        "teks": "Cukup sebulan sekali saat pergantian spv"
+      },
+      {
+        "label": "D",
+        "teks": "Minyak tidak perlu dikuras, cukup ditambah minyak baru terus menerus"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Kuras dan filter minyak wajib dilakukan tiap 16-20 kg ayam atau saat pergantian shift untuk menjaga kualitas warna golden brown dan nilai FFA minyak tetap sehat.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-KAS-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Kasir",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kasir - Standar Greeting 5S & Speed of Service (HC-SOP-KAS-01)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "SOP Greeting kasir HARA Chicken mewajibkan front-liner menyapa pelanggan dengan standar waktu dan kalimat baku seperti apa saat pelanggan mendekati counter?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Menunggu pembeli memanggil kasir terlebih dahulu"
+      },
+      {
+        "label": "B",
+        "teks": "Menyapa dalam waktu < 5 detik dengan senyum hangat: \"Selamat datang di HARA Chicken, ada yang bisa kami bantu kak?\""
+      },
+      {
+        "label": "C",
+        "teks": "Cukup menganggukkan kepala tanpa bersuara karena sedang menghitung uang"
+      },
+      {
+        "label": "D",
+        "teks": "Menanyakan langsung apakah pelanggan membawa uang pas"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP Pelayanan Kasir: Greeting wajib dilakukan < 5 detik saat pelanggan mendekat dengan senyum ramah, kontak mata, dan kalimat greeting resmi HARA.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-KAS-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Kasir",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kasir - Repeat Order & Konfirmasi Pesanan (HC-SOP-KAS-03)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Mengapa tahap Repeat Order (konfirmasi ulang pesanan) di kasir wajib dilakukan sebelum menerima pembayaran pelanggan?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Agar kasir memiliki waktu untuk beristirahat sejenak"
+      },
+      {
+        "label": "B",
+        "teks": "Mencegah salah input menu, varian sambal, level pedas, jenis makan ditempat (dine-in)/bawa pulang (takeaway), serta memastikan total nominal tagihan akurat"
+      },
+      {
+        "label": "C",
+        "teks": "Agar pelanggan membatalkan pesanan jika terlalu mahal"
+      },
+      {
+        "label": "D",
+        "teks": "Hanya formalitas saat supervisor sedang mengawasi"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Repeat Order adalah benteng akurasi kasir: membacakan ulang menu, potongan ayam, varian sambal, dine in / take away untuk menjamin kepuasan pelanggan.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-GEP-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Geprek",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Geprek - Teknik Penimbangan Gramatur Sambal & Penyajian (HC-SOP-GEP-08)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Pada stasiun Geprek, standar penimbangan sambal adalah 30 gram. Bagaimana cara memastikan sambal yang disajikan tidak kurang atau berlebih?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Diperkirakan menggunakan perasaan tanpa bantuan timbangan"
+      },
+      {
+        "label": "B",
+        "teks": "Menggunakan sendok takar khusus atau menimbang berkala dengan timbangan digital yang telah dikalibrasi (tare) di stasiun kerja"
+      },
+      {
+        "label": "C",
+        "teks": "Diberikan sebanyak mungkin agar pelanggan senang"
+      },
+      {
+        "label": "D",
+        "teks": "Diberikan sedikit saja agar hemat bahan baku"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Standar gramatur 30 gr wajib diukur akurat menggunakan sendok takar terstandar atau timbangan digital demi menjaga konsistensi rasa dan food cost gerai.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-HLP-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Helper",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Helper - Standar 4 Kode Warna Lap Pembersih (HC-SOP-HLP-01)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Sesuai SOP Sanitasi HARA HC-SOP-HLP-01, pembagian fungsi 4 kode warna lap pembersih microfiber yang benar untuk mencegah kontaminasi silang adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Semua warna lap bebas digunakan untuk meja makan dan toilet"
+      },
+      {
+        "label": "B",
+        "teks": "Lap Merah: Toilet & lantai kotor; Lap Biru: Meja makan & dining area; Lap Kuning: Meja counter & kasir; Lap Hijau: Area persiapan makanan & kitchen food-contact"
+      },
+      {
+        "label": "C",
+        "teks": "Lap Hijau untuk toilet, Lap Merah untuk meja makan pelanggan"
+      },
+      {
+        "label": "D",
+        "teks": "Lap Kuning untuk lantai basah, Lap Biru untuk membersihkan deep fryer"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Standar HACCP 4 Warna Lap: Merah (toilet/lantai risiko tinggi), Biru (dining table), Kuning (counter/kasir/service), Hijau (dapur/food contact area). Dilarang tertukar!",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-HLP-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Helper",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Helper - Prosedur Cuci Alat Makan 3 Bak (HC-SOP-HLP-06)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Urutan baku proses pencucian peralatan makan dan masak (piring, mangkok, baskom) pada metode 3 Sink System di wastafel dapur adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Bak 1: Air dingin, Bak 2: Sabun, Bak 3: Dilap tisu"
+      },
+      {
+        "label": "B",
+        "teks": "Bak 1: Cuci dengan air sabun pembersih lemak; Bak 2: Bilas dengan air mengalir bersih; Bak 3: Sanitasi air panas / larutan sanitasi dan tiriskan di rak stainless"
+      },
+      {
+        "label": "C",
+        "teks": "Cukup disiram air keran sekali lalu ditumpuk"
+      },
+      {
+        "label": "D",
+        "teks": "Direndam cairan pemutih pakaian semalaman"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "3 Sink System: Wash (sabun pengangkat lemak), Rinse (bilas air mengalir), Sanitize (sanitasi air panas / food-grade sanitizer), lalu air-dry (tiriskan tanpa lap kain kotor).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-REG-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Peraturan Perusahaan - Disiplin Jam Hadir Shift",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Berapa menit sebelum jadwal shift dimulai seorang kru HARA Chicken wajib hadir di outlet untuk melakukan persiapan briefing dan grooming?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Tepat pada jam shift dimulai"
+      },
+      {
+        "label": "B",
+        "teks": "Minimal 15-30 menit sebelum shift untuk ganti seragam, cuci tangan, dan briefing operasional"
+      },
+      {
+        "label": "C",
+        "teks": "Boleh terlambat 15 menit asalkan mengirim pesan di grup WhatsApp"
+      },
+      {
+        "label": "D",
+        "teks": "1 jam sebelum shift untuk semua kru"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Peraturan Disiplin Kerja HARA: Kru wajib hadir 15-30 menit sebelum jam kerja untuk memastikan persiapan fisik, seragam rapi, sanitasi tangan, dan briefing serah terima shift.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-REG-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Peraturan Perusahaan - Larangan Handphone saat Bertugas",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Bagaimana ketentuan peraturan perusahaan HARA terkait penggunaan telepon genggam (smartphone/gadget) saat jam tugas shift berlangsung di gerai?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Boleh ditaruh di saku celana dan dibalas saat antrean sedang sepi"
+      },
+      {
+        "label": "B",
+        "teks": "Wajib disimpan di locker/tas selama bertugas; dilarang digunakan di stasiun kerja kecuali untuk komunikasi resmi operasional gerai oleh PIC"
+      },
+      {
+        "label": "C",
+        "teks": "Boleh menonton video dengan earphone asalkan tangan tetap bekerja"
+      },
+      {
+        "label": "D",
+        "teks": "Bebas digunakan asalkan layar tidak dilihat pelanggan"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Peraturan Tata Tertib Kerja: Gadget pribadi dilarang digunakan di stasiun kerja karena mengganggu fokus layanan, higienitas tangan (layar HP sarang bakteri), dan keselamatan kerja.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-REG-03",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Peraturan Perusahaan - Prosedur Kas Kecil SOP/FAT/44 di POS ESB",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Sesuai regulasi SOP/FAT/44, jika outlet perlu membeli barang darurat (misal: gas LPG atau es batu) menggunakan uang kas kecil outlet, prosedur apa yang WAJIB dipenuhi kasir?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Langsung ambil uang di laci tanpa izin dan tanpa bukti nota"
+      },
+      {
+        "label": "B",
+        "teks": "Mendapat izin Kepala Outlet, simpan nota fisik asli, catat pengeluaran di menu POS ESB Lite sesuai kategori resmi (13 kategori beban), foto struk, dan lampirkan di buku rekapan closing"
+      },
+      {
+        "label": "C",
+        "teks": "Mencatat pengeluaran di secarik kertas tanpa input ke sistem kasir"
+      },
+      {
+        "label": "D",
+        "teks": "Membebankan biaya tersebut kepada kasir shift berikutnya"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP/FAT/44 mewajibkan seluruh pengeluaran kas kecil terotorisasi Kepala Outlet, ada bukti nota fisik asli bertanggal, diinput ke POS ESB pada kategori yang sesuai, dan saldo fisik kas dicocokkan saat closing (selisih wajib Rp 0).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-REG-04",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Peraturan Perusahaan - Zero Tolerance Kecurangan & Gratifikasi",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Perusahaan menerapkan prinsip Zero Tolerance terhadap tindak kecurangan. Manakah tindakan di bawah ini yang dikategorikan pelanggaran berat bertaraf SP3 / Pemutusan Hubungan Kerja?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Lupa mematikan lampu toilet saat jam operasional"
+      },
+      {
+        "label": "B",
+        "teks": "Memanipulasi transaksi kasir (tidak mencetak struk), mengambil uang modal/kas kecil, atau membawa pulang bahan baku tanpa izin resmi"
+      },
+      {
+        "label": "C",
+        "teks": "Salah menakar sambal selisih 2 gram saat pertama kali belajar"
+      },
+      {
+        "label": "D",
+        "teks": "Meminta izin tukar shift kerja kepada rekan 2 hari sebelumnya"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Kebijakan Integritas HARA: Penggelapan uang kasir, void fiktif, pencurian bahan baku, atau manipulasi rekap keuangan adalah pelanggaran berat zero-tolerance yang langsung berujung sanksi tegas.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-REG-05",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Keselamatan Kerja (K3) - Penanganan Api Minyak & APAR",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Jika terjadi percikan api minyak pada penggorengan (grease fire), apa tindakan PERTAMA yang PALING TEPAT dan dilarang keras dilakukan?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Segera siram minyak yang terbakar dengan satu ember air keran dingin"
+      },
+      {
+        "label": "B",
+        "teks": "Dilarang keras menyiram air karena akan memicu ledakan uap api; segera matikan katup gas LPG, tutup wajan dengan kain basah/tutup metal, dan gunakan APAR jenis Dry Chemical/Wet Chemical"
+      },
+      {
+        "label": "C",
+        "teks": "Tinggalkan dapur dan kunci pintu rapat-rapat"
+      },
+      {
+        "label": "D",
+        "teks": "Tiup api dengan kipas angin berdaya tinggi"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Prosedur K3 Darurat Kebakaran Minyak: Air + minyak panas memicu fireball ledakan hebat. Prosedur: Putus suplai gas LPG, tutup sumber oksigen dengan kain basah/tutup wajan, dan semprot APAR.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-VISI-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Visi & Misi Budaya H.A.R.A",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Dalam budaya kerja HARA Chicken, akronim H.A.R.A merupakan komitmen nilai operasional yang wajib dipraktikkan seluruh kru. Manakah penjabaran prinsip yang paling tepat?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Hemat biaya operasional, Andal saat menggoreng, Rapi berseragam, dan Antusias bekerja"
+      },
+      {
+        "label": "B",
+        "teks": "Halal & Higienis (JPH & Sanitasi), Amanah & Akurasi (Gramatur & Kas), Responsif (SOS <120s & 5S), dan Adaptif (Belajar SOP & siap rotasi)"
+      },
+      {
+        "label": "C",
+        "teks": "Hebat rasanya, Aman modalnya, Rutin promosi media sosial, dan Aktif berjualan di counter"
+      },
+      {
+        "label": "D",
+        "teks": "Higienis produknya, Amanah keuangannya, Ramah senyumnya, dan Andal di dapur"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "H.A.R.A melambangkan 4 pilar utama: Halal & Higienis (Jaminan Produk Halal & Sanitasi 5S), Amanah & Akurasi (Gramatur & Kasir POS ESB), Responsif (Speed of Service <120 detik & 5S), dan Adaptif (Belajar SOP & siap rotasi tugas).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-VISI-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Nilai Responsif - Standar Speed of Service (SOS) & 5S",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Standar budaya pelayanan HARA Chicken mewajibkan praktik 5S dan target Speed of Service (SOS). Apa target waktu penyajian paket reguler sejak transaksi selesai di kasir?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Maksimal 120 detik (< 2 menit) untuk menu reguler siap saji"
+      },
+      {
+        "label": "B",
+        "teks": "Maksimal 10 menit untuk semua pesanan"
+      },
+      {
+        "label": "C",
+        "teks": "Tidak ada batas waktu asalkan makanannya enak"
+      },
+      {
+        "label": "D",
+        "teks": "Maksimal 5 menit khusus untuk pembeli ojek online"
+      }
+    ],
+    "jawaban_benar": "A",
+    "pembahasan_sop": "Speed of Service (SOS) HARA untuk produk reguler (ayam krispi / geprek standar) ditargetkan <120 detik, disertai senyum, salam, sapa, sopan, dan santun (5S).",
+    "bobot": 5
+  },
+  {
+    "id": "M1-VISI-03",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Nilai Adaptif - Kesiapan Multi-Station Cross-Training",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Seorang kru yang berjiwa \"Adaptif\" dalam budaya H.A.R.A ditunjukkan dengan sikap:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Menolak dipindahkan ke stasiun dapur karena merasa hanya mendaftar sebagai kasir"
+      },
+      {
+        "label": "B",
+        "teks": "Terbuka mempelajari seluruh modul SOP lintas stasiun (Kitchen, Geprek, Kasir, Helper) dan siap sedia mengisi kekosongan saat jam sibuk"
+      },
+      {
+        "label": "C",
+        "teks": "Bekerja lambat agar tidak diberikan tanggung jawab tambahan oleh Kepala Outlet"
+      },
+      {
+        "label": "D",
+        "teks": "Hanya mau belajar jika dijanjikan bonus harian"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Nilai Adaptif HARA: Kru yang kompeten memiliki keterampilan multi-station (cross-functional skills) dan proaktif mendukung kelancaran operasional gerai secara menyeluruh.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-VISI-04",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Nilai Halal & Higienis - Zero Cross-Contamination",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Untuk menjamin produk tetap Halal, Higienis, dan Aman Santap, apa aturan baku mengenai peralatan kerja (penjepit/tong, talenan, baskom) antara bahan baku mentah dan produk matang?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Peralatan boleh digunakan bergantian asalkan dilap dengan kain kanebo bersih"
+      },
+      {
+        "label": "B",
+        "teks": "Wajib dipisahkan secara ketat dengan kode warna dan posisi berbeda: alat kontak mentah dilarang keras menyentuh ayam matang di warmer"
+      },
+      {
+        "label": "C",
+        "teks": "Boleh menggunakan penjepit yang sama jika ayam baru saja diangkat dari minyak fryer yang mendidih"
+      },
+      {
+        "label": "D",
+        "teks": "Pemisahan alat hanya berlaku jika sedang ada audit inspeksi dari manajemen"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Prinsip Zero Cross-Contamination: Peralatan kontak mentah (penjepit mentah, baskom marinasi) tidak boleh sekali pun kontak dengan produk siap saji atau area warmer.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-PSI-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "KARAKTERISTIK_PSIKOLOGIS",
+    "topik": "Integritas & Kejujuran Finansial Kasir",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat proses closing kas di akhir shift malam, Anda menghitung uang fisik di laci kasir dan mendapati ada kelebihan uang tunai sebesar Rp25.000 yang tidak tercatat di struk POS. Teman shift Anda berkata: \"Sudah masukkan ke kantong saja buat beli kopi, kan uangnya tidak minus\". Sikap spontan Anda:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Mengikuti saran teman dan membagi dua uang tersebut agar tidak ada iri hati.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 1,
+          "deskripsi": "Rentan kompromi etika, mudah terpengaruh ajakan kecurangan rekan kerja."
+        }
+      },
+      {
+        "label": "B",
+        "teks": "Mendiamkan uang tersebut di laci tanpa dicatat, menunggu apakah besok ada pelanggan yang datang mencari uang kembalian.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 2,
+          "deskripsi": "Pasif dan ragu-ragu dalam mengambil keputusan kepatuhan akuntansi."
+        }
+      },
+      {
+        "label": "C",
+        "teks": "Menolak ajakan rekan, tetap mencatat selisih lebih Rp25.000 di lembar rekap tutup shift, dan melaporkannya secara transparan kepada Kepala Outlet.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 5,
+          "deskripsi": "Integritas prima, berprinsip amanah, tahan godaan kecurangan."
+        }
+      },
+      {
+        "label": "D",
+        "teks": "Memasukkan uang tersebut ke kotak sedekah umum tanpa memberitahu siapa pun karena niatnya baik.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 3,
+          "deskripsi": "Niat baik namun melanggar prosedur akuntansi baku per kasiran."
+        }
+      }
+    ],
+    "bobot": 10
+  },
+  {
+    "id": "M1-PSI-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "KARAKTERISTIK_PSIKOLOGIS",
+    "topik": "Ketahanan Emosi & Respon Komplain (Stress Tolerance)",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat antrean kasir sedang ramai 8 orang, seorang pelanggan tiba-tiba memotong antrean dan memarahi Anda dengan nada tinggi karena merasa pesanan takeaway-nya keliru jenis potongan ayam. Bagaimana Anda mengendalikan situasi tersebut?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Membalas dengan nada tegas bahwa pelanggan harus tertib mengantre seperti pembeli lainnya.",
+        "profil_trait": {
+          "dimensi": "ketahanan_stres",
+          "poin": 1,
+          "deskripsi": "Emosional, mudah terpancing konfrontasi di depan umum."
+        }
+      },
+      {
+        "label": "B",
+        "teks": "Tetap tenang, tersenyum tulus, meminta maaf dengan sopan atas ketidaknyamanan, meminta izin meninjau struk, lalu segera berkoordinasi dengan stasiun kitchen untuk menukar potongan ayam tanpa memperpanjang perdebatan.",
+        "profil_trait": {
+          "dimensi": "ketahanan_stres",
+          "poin": 5,
+          "deskripsi": "Kematangan emosi tinggi, fokus pada solusi (customer-centric), tenang di bawah tekanan."
+        }
+      },
+      {
+        "label": "C",
+        "teks": "Langsung memanggil Kepala Outlet atau rekan lain dan meninggalkan meja kasir karena merasa terintimidasi.",
+        "profil_trait": {
+          "dimensi": "ketahanan_stres",
+          "poin": 2,
+          "deskripsi": "Cenderung menghindar dari tekanan atau konflik layanan."
+        }
+      },
+      {
+        "label": "D",
+        "teks": "Mengganti potongan ayam sambil menunjukkan raut wajah cemberut agar pelanggan mengerti Anda sedang repot.",
+        "profil_trait": {
+          "dimensi": "ketahanan_stres",
+          "poin": 2,
+          "deskripsi": "Ekspresi pasif-agresif, berpotensi menurunkan citra gerai."
+        }
+      }
+    ],
+    "bobot": 10
+  },
+  {
+    "id": "M1-PSI-03",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "KARAKTERISTIK_PSIKOLOGIS",
+    "topik": "Inisiatif Kerjasama Tim & Cross-Training (Teamwork)",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Stasiun Anda (Geprek) sedang tidak ada pesanan masuk, namun Anda melihat rekan di stasiun Kitchen sedang kewalahan menepungi dan menggoreng ayam untuk pesanan katering 50 kotak. Apa yang akan Anda lakukan?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Duduk beristirahat dan bermain handphone karena stasiun geprek sudah beres dan bukan jobdesk saya menepungi ayam.",
+        "profil_trait": {
+          "dimensi": "kerjasama_tim",
+          "poin": 1,
+          "deskripsi": "Individualis, ego sektoral tinggi, minim kepedulian tim."
+        }
+      },
+      {
+        "label": "B",
+        "teks": "Mencuci tangan sesuai SOP 6 langkah, memakai sarung tangan bersih, dan langsung berinisiatif membantu rekan kitchen menyiapkan baskom tepung atau mengemas ayam matang.",
+        "profil_trait": {
+          "dimensi": "kerjasama_tim",
+          "poin": 5,
+          "deskripsi": "Jiwa kepemimpinan & kolaborasi tinggi, proaktif lintas fungsi."
+        }
+      },
+      {
+        "label": "C",
+        "teks": "Menunggu sampai trainer atau kepala outlet datang dan memerintahkan saya untuk membantu stasiun kitchen.",
+        "profil_trait": {
+          "dimensi": "kerjasama_tim",
+          "poin": 3,
+          "deskripsi": "Pekerja instruksional, taat perintah namun kurang inisiatif mandiri."
+        }
+      },
+      {
+        "label": "D",
+        "teks": "Menyemangati rekan kerja dari kejauhan tanpa ikut menyentuh stasiun kerjanya.",
+        "profil_trait": {
+          "dimensi": "kerjasama_tim",
+          "poin": 2,
+          "deskripsi": "Hanya simpatik lisan tanpa aksi nyata di lapangan."
+        }
+      }
+    ],
+    "bobot": 10
+  },
+  {
+    "id": "M1-PSI-04",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "KARAKTERISTIK_PSIKOLOGIS",
+    "topik": "Tanggung Jawab Higienitas Tanpa Kompromi",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat memindahkan 1 potong ayam krispi matang ke etalase warmer, ayam tersebut terlepas dari penjepit dan jatuh ke lantai keramik dapur yang baru saja dipel bersih. Tidak ada kru lain atau pelanggan yang melihat kejadian tersebut. Tindakan Anda:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Langsung mengambil ayam, mengelapnya dengan tisu kering, lalu menaruhnya ke warmer paling bawah karena lantainya baru dipel.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 1,
+          "deskripsi": "Berani mengambil risiko kontaminasi mikroba demi menutupi kesalahan."
+        }
+      },
+      {
+        "label": "B",
+        "teks": "Membuang ayam tersebut ke tempat sampah limbah/reject, mencatatnya ke lembar pencatatan waste produk secara jujur, dan mencuci penjepit yang terjatuh.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 5,
+          "deskripsi": "Integritas moral & higienitas tanpa kompromi, mengutamakan keselamatan konsumen di atas segalanya."
+        }
+      },
+      {
+        "label": "C",
+        "teks": "Mencelupkan ayam kembali ke minyak panas selama 5 detik untuk mematikan kuman lalu menyajikannya.",
+        "profil_trait": {
+          "dimensi": "disiplin_sop",
+          "poin": 2,
+          "deskripsi": "Menciptakan prosedur ilegal yang melanggar standar food safety."
+        }
+      },
+      {
+        "label": "D",
+        "teks": "Menyembunyikan ayam tersebut di bawah meja agar tidak dimarahi kepala outlet saat shift berakhir.",
+        "profil_trait": {
+          "dimensi": "integritas",
+          "poin": 1,
+          "deskripsi": "Menghindar dari tanggung jawab, takut konsekuensi kejujuran."
+        }
+      }
+    ],
+    "bobot": 10
+  },
+  {
+    "id": "M1-ES-01",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "ESSAY_HOTS",
+    "topik": "Penerapan Nilai Amanah & Responsif di Jam Sibuk",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Jelaskan bagaimana Anda menerapkan nilai \"Amanah\" dan \"Responsif\" secara nyata saat gerai mengalami lonjakan pesanan (rush hour) di jam makan siang, terutama terkait kepatuhan SOP produk dan gramatur!",
+    "kata_kunci_essay": [
+      "amanah",
+      "gramatur",
+      "kejujuran",
+      "responsif",
+      "senyum",
+      "kecepatan",
+      "standar mutu",
+      "tidak jalan pintas",
+      "suhu",
+      "30g",
+      "160"
+    ],
+    "pembahasan_sop": "Amanah: Menjaga takaran gramatur sambal 30g, suhu minyak tetap 160°C, tidak memotong waktu goreng demi mempercepat antrean. Responsif: Melayani pesanan dengan cepat (<120 detik), 5S senyum salam sapa, dan sigap mengarahkan pelanggan.",
+    "bobot": 10
+  },
+  {
+    "id": "M1-ES-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Semua",
+    "tipe": "ESSAY_HOTS",
+    "topik": "Studi Kasus Integritas & Kepatuhan SOP/FAT/44",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Seorang teman kerja satu shift mengajak Anda untuk tidak mencetak struk transaksi kasir kepada pelanggan yang membayar uang pas, dengan alasan uangnya dapat dikumpulkan untuk membeli camilan bersama. Uraikan argumen penolakan Anda yang santun namun tegas dengan mengacu pada peraturan perusahaan dan nilai integritas HARA!",
+    "kata_kunci_essay": [
+      "menolak",
+      "struk",
+      "pos esb",
+      "peraturan perusahaan",
+      "integritas",
+      "sp3",
+      "keberkahan",
+      "audit",
+      "amanah",
+      "sop fat 44"
+    ],
+    "pembahasan_sop": "Penolakan harus tegas: Seluruh transaksi wajib tercetak struk di POS ESB untuk mencegah fraud, menjaga audit stok bahan baku, dan menjunjung nilai amanah. Pelanggaran transaksi tanpa struk merupakan pelanggaran berat sanksi SP3/PHK.",
+    "bobot": 10
+  },
+  {
+    "id": "M2-PG-01",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Kasir",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Regulasi Kasir - 13 Kategori Beban SOP/FAT/44 di POS ESB",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Dalam pedoman resmi SOP/FAT/44, seluruh biaya operasional gerai yang dicairkan dari kas kecil wajib diklasifikasikan ke dalam 13 kategori beban akun resmi di POS ESB. Manakah contoh pencatatan yang benar?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Beli tabung gas dimasukkan ke akun Beban Entertainment"
+      },
+      {
+        "label": "B",
+        "teks": "Beli sabun cuci piring dimasukkan ke Beban Perlengkapan Gerai; beli es batu darurat dimasukkan ke Beban Bahan Baku Tambahan; fotokopi dokumen ke Beban ATK"
+      },
+      {
+        "label": "C",
+        "teks": "Semua pengeluaran dicatat ke akun \"Lain-lain Tak Terduga\""
+      },
+      {
+        "label": "D",
+        "teks": "Pembelian gas LPG tidak perlu dicatat karena akan dibayar oleh atasan"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP/FAT/44 mewajibkan akurasi akun: Beban Perlengkapan (sanitasi/sabun), Beban Bahan Baku (es batu/bumbu darurat), Beban Utilitas/Energi (LPG), ATK, dll.",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-02",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Kasir",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kasir - Stock Opname & Pengelolaan Sisa Bahan Matang",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Berdasarkan SOP Stock Opname & Sisa Bahan Matang, produk apa yang TIDAK BOLEH dijual kembali esok hari dan harus ditarik saat closing malam?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Semua minuman seal cup"
+      },
+      {
+        "label": "B",
+        "teks": "Ayam goreng sisa warmer, terong goreng, jamur goreng, dan sayur sup (wajib ditarik/retur, tidak boleh dijual lagi)"
+      },
+      {
+        "label": "C",
+        "teks": "Nasi dingin boleh disimpan di suhu ruang hingga 3 hari"
+      },
+      {
+        "label": "D",
+        "teks": "Beras mentah wajib dibuang jika sisa 1 karung"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Ayam goreng matang sisa, terong/jamur krispi, dan sayur sop dilarang keras dijual esok hari untuk mencegah risiko keracunan makanan dan menjaga standar mutu prima.",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-03",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Kitchen",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kitchen - Kalibrasi Core Temperature Ayam Matang (HACCP)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Berapa suhu internal daging (core temperature) minimal yang wajib dicapai di dekat tulang ayam bagian paha/dada saat matang sempurna diukur dengan termometer jarum?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Minimal 50°C"
+      },
+      {
+        "label": "B",
+        "teks": "Minimal 74°C (165°F) untuk membunuh bakteri Salmonella & Campylobacter secara tuntas"
+      },
+      {
+        "label": "C",
+        "teks": "Cukup 60°C asalkan kulitnya sudah renyah"
+      },
+      {
+        "label": "D",
+        "teks": "100°C di seluruh bagian daging"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Standar Food Safety HACCP: Core temperature unggas matang aman santap wajib mencapai minimal 74°C pada bagian terdalam dekat tulang.",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-04",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Kitchen",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Kitchen - Teknik Dusting Keriting Tanpa Bantat",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Kesalahan teknik penepungan (dusting) apa yang menyebabkan kulit ayam menjadi keras/bantat dan tidak keriting kriuk?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Menepungi dengan cubitan lembut memutar"
+      },
+      {
+        "label": "B",
+        "teks": "Menekan/meremas daging ayam terlalu kuat ke dalam tepung dan membiarkan ayam bertepung terlalu lama sebelum masuk minyak"
+      },
+      {
+        "label": "C",
+        "teks": "Mencelupkan ayam ke air es selama 1 detik"
+      },
+      {
+        "label": "D",
+        "teks": "Mengayak tepung secara teratur"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Ayam dilarang diperas/ditekan keras saat dusting karena akan memadatkan adonan menjadi keras/bantat, serta dilarang mendiamkan ayam bertepung (harus langsung goreng).",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-05",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Geprek",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Geprek - Sanitasi Cobek Batu & Penanganan Suhu Minyak Siraman",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Bagaimana prosedur sanitasi cobek batu di stasiun Geprek saat jam pergantian shift agar sisa cabai tidak berjamur?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Cukup dilap tisu kering tanpa dicuci air"
+      },
+      {
+        "label": "B",
+        "teks": "Dicuci bersih dengan sabun, disikat pori-pori batunya, disiram air panas, dan dikeringkan di tempat bersirkulasi udara baik"
+      },
+      {
+        "label": "C",
+        "teks": "Direndam cairan pemutih beraroma parfum"
+      },
+      {
+        "label": "D",
+        "teks": "Dibiarkan kotor karena besok pagi akan dipakai kembali"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Cobek batu memiliki pori-pori yang rentan menyimpan jamur dan bakteri. Wajib disikat bersih, dibilas air panas sanitasi, dan dikeringkan tegak.",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-06",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Helper",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Helper - Pembersihan Saluran Grease Trap & Wastafel",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Kapan perangkap lemak (grease trap) di bawah wastafel cuci piring wajib dibersihkan keranjang saringannya oleh kru Helper?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Hanya jika air limbah sudah meluap ke ruang makan"
+      },
+      {
+        "label": "B",
+        "teks": "Setiap hari saat closing malam (buang endapan lemak ke kantong sampah, cuci saringan dengan sabun) agar tidak memicu bau busuk dan kecoak"
+      },
+      {
+        "label": "C",
+        "teks": "Tiga bulan sekali oleh vendor luar"
+      },
+      {
+        "label": "D",
+        "teks": "Grease trap tidak boleh dibuka sama sekali"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Pembersihan grease trap harian saat closing adalah kunci mencegah penyumbatan pipa, bau tak sedap di dapur, dan serangan hama (pest control).",
+    "bobot": 5
+  },
+  {
+    "id": "M2-PG-07",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Regulasi - Protokol Serah Terima Shift (Shift Handover)",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Protokol wajib saat pergantian shift (Shift Handover) antara Shift 1 dan Shift 2 di gerai meliputi:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Kru shift 1 langsung pulang tanpa berbicara dengan kru shift 2"
+      },
+      {
+        "label": "B",
+        "teks": "Kroscek fisik kas laci, serah terima stok bahan baku kritis, cek kebersihan stasiun kerja, dan mencatat catatan khusus di log book"
+      },
+      {
+        "label": "C",
+        "teks": "Hanya bersalaman di pintu masuk"
+      },
+      {
+        "label": "D",
+        "teks": "Meninggalkan piring kotor untuk dicuci shift 2"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Serah terima shift wajib transparan: hitung kas bersama, cek stok ayam thawing & bumbu, pastikan stasiun bersih rapi (Clean as you go), dan paraf buku serah terima.",
+    "bobot": 5
+  },
+  {
+    "id": "M2-ES-01",
+    "minggu": "MINGGU_2",
+    "mingguNomor": 2,
+    "divisi": "Semua",
+    "tipe": "ESSAY_HOTS",
+    "topik": "Studi Kasus Pembelian Barang Darurat SOP/FAT/44",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Gas LPG habis di tengah jam sibuk malam dan Kepala Outlet sedang keluar gerai. Bagaimana prosedur yang benar bagi Anda untuk membeli tabung gas baru menggunakan kas kecil sesuai regulasi SOP/FAT/44?",
+    "kata_kunci_essay": [
+      "izin",
+      "telepon kepala outlet",
+      "nota fisik",
+      "pos esb",
+      "kategori utilitas",
+      "foto bukti",
+      "closing",
+      "selisih rp 0"
+    ],
+    "pembahasan_sop": "Hubungi Kepala Outlet via telepon untuk konfirmasi izin, ambil kas kecil sesuai harga pasar, minta nota fisik bermaterai/cap toko, input di POS ESB pada kategori Beban Gas/Utilitas, foto nota, dan rekonsiliasi saat closing.",
+    "bobot": 10
+  },
+  {
+    "id": "M3-PG-01",
+    "minggu": "MINGGU_3",
+    "mingguNomor": 3,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "SOS - Optimalisasi Bottle-Neck Stasiun Kerja saat Jam Sibuk",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat jam makan siang antrean mencapai 15 orang, stasiun Geprek menjadi titik hambatan (bottleneck) sehingga SOS melonjak ke >240 detik. Tindakan kolaboratif terbaik kru adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Menyuruh kru geprek bekerja lebih cepat sambil dimarahi"
+      },
+      {
+        "label": "B",
+        "teks": "Kru Helper atau Kasir 2 yang luang segera membantu menyiapkan wadah mika/kertas nasi dan mengambil ayam dari warmer, sehingga kru geprek fokus menguleg sambal"
+      },
+      {
+        "label": "C",
+        "teks": "Menolak pembeli baru agar antrean berkurang"
+      },
+      {
+        "label": "D",
+        "teks": "Mengurangi takaran sambal menjadi 10 gram agar cepat selesai"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Penyelesaian bottleneck SOS: Pembagian peran pendukung (support station). Membantu persiapan kemasan & transfer ayam mempercepat output tanpa mengurangi mutu.",
+    "bobot": 5
+  },
+  {
+    "id": "M3-PG-02",
+    "minggu": "MINGGU_3",
+    "mingguNomor": 3,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Penanganan Komplain - Metode L.A.S.T (Listen, Apologize, Solve, Thank)",
+    "pilar_kompetensi": "karakter_integritas",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Seorang pelanggan komplain bahwa ayam goreng yang diterimanya berdarah di bagian tulang dalam. Penerapan metode L.A.S.T yang tepat adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Membantah bahwa ayam sudah digoreng 12 menit dan menyalahkan supplier ayam"
+      },
+      {
+        "label": "B",
+        "teks": "Dengarkan komplain dengan tenang (Listen), minta maaf atas ketidaknyamanan (Apologize), segera ganti dengan ayam baru yang matang sempurna & catat reject (Solve), serta ucapkan terima kasih atas masukan berharga (Thank)"
+      },
+      {
+        "label": "C",
+        "teks": "Mengembalikan uang pelanggan lalu memintanya tidak datang lagi"
+      },
+      {
+        "label": "D",
+        "teks": "Memanaskan kembali ayam berdarah tersebut ke microwave lalu memberikannya lagi"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Metode L.A.S.T adalah standar baku penanganan komplain QSR: Listen aktif, Apologize tulus, Solve solutif & cepat, Thank apresiasi masukan konsumen.",
+    "bobot": 5
+  },
+  {
+    "id": "M3-PG-03",
+    "minggu": "MINGGU_3",
+    "mingguNomor": 3,
+    "divisi": "Kitchen",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Analisis Mutu - Fishbone Ayam Kurang Matang Dekat Tulang",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Akar masalah utama (root cause) penyebab ayam goreng masih berdarah dekat tulang meskipun waktu penggorengan sudah 12 menit adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Tepung terlalu tebal"
+      },
+      {
+        "label": "B",
+        "teks": "Ayam belum thawing sempurna (bagian dalam masih beku kristal es saat masuk minyak) atau suhu minyak drop akibat kapasitas ayam melebihi 3 kg/batch"
+      },
+      {
+        "label": "C",
+        "teks": "Minyak goreng terlalu baru"
+      },
+      {
+        "label": "D",
+        "teks": "Potongan ayam terlalu kecil"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Dua penyebab klasik ayam berdarah: Thawing tidak tuntas (inti daging beku) dan overload kapasitas fryer (>3kg) yang membuat suhu minyak anjlok drastis.",
+    "bobot": 5
+  },
+  {
+    "id": "M3-ES-01",
+    "minggu": "MINGGU_3",
+    "mingguNomor": 3,
+    "divisi": "Semua",
+    "tipe": "ESSAY_HOTS",
+    "topik": "Analisis Investigasi Fishbone & Tindakan Korektif Cepat",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Dua pelanggan dalam satu hari mengeluhkan rasa sambal bawang yang cenderung hambar dan tekstur minyak yang berbau apek. Sebagai kru bertugas, bagaimana Anda menginvestigasi sumber masalah dan tindakan perbaikan langsung yang Anda ambil?",
+    "kata_kunci_essay": [
+      "investigasi",
+      "timbangan gramatur garam",
+      "kualitas cabai",
+      "kuras minyak fryer",
+      "uji rasa",
+      "koordinasi kitchen",
+      "sop sambal bawang"
+    ],
+    "pembahasan_sop": "Cek kalibrasi timbangan garam mix, cek tanggal kadaluarsa dan kualitas minyak fryer (ganti minyak jika FFA tinggi/apek), latih ulang takaran cabai vs bawang, dan lakukan sensory test sebelum melayani.",
+    "bobot": 10
+  },
+  {
+    "id": "M4-PG-01",
+    "minggu": "MINGGU_4",
+    "mingguNomor": 4,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Tanggap Darurat - Mati Listrik & Pengoperasian Genset (HC-SOP-HLP-08)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Saat gerai sedang beroperasi penuh dan terjadi pemadaman listrik PLN mendadak, langkah tanggap darurat yang benar dalam menyalakan genset adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Langsung menyalakan genset tanpa menurunkan MCB utama PLN"
+      },
+      {
+        "label": "B",
+        "teks": "Turunkan tuas MCB PLN gerai terlebih dahulu, cek oli & bahan bakar genset, nyalakan genset hingga stabil, baru naikkan handle COS (Change Over Switch) ke posisi genset"
+      },
+      {
+        "label": "C",
+        "teks": "Menyiram genset dengan air dingin sebelum dinyalakan"
+      },
+      {
+        "label": "D",
+        "teks": "Menutup outlet dan menyuruh seluruh pelanggan pulang"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Prosedur COS Genset: Wajib pisahkan aliran PLN (turunkan MCB) sebelum menyalakan genset untuk mencegah korsleting arus balik yang berbahaya saat PLN menyala kembali.",
+    "bobot": 5
+  },
+  {
+    "id": "M4-PG-02",
+    "minggu": "MINGGU_4",
+    "mingguNomor": 4,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Solo Shift Readiness - Manajemen Prioritas Mandiri",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Seorang kru yang dinyatakan lulus Solo Shift (mandiri bertugas sendiri saat shift sepi) harus mampu mengatur ritme kerja dengan urutan prioritas:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Fokus bermain handphone dan melayani hanya jika dipanggil"
+      },
+      {
+        "label": "B",
+        "teks": "Pelayanan pelanggan datang (Greeting & Taking Order) -> Produksi cepat pesanan -> Jaga kebersihan stasiun (Clean as you go) -> Monitoring stok display warmer & nasi"
+      },
+      {
+        "label": "C",
+        "teks": "Memasak sebanyak-banyaknya di awal lalu tidur siang"
+      },
+      {
+        "label": "D",
+        "teks": "Mengunci pintu kasir agar tidak ada pembeli masuk"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Solo shift mandiri menguji time management: Customer first, SOS cepat, continuous clean-up, dan menjaga ketersediaan produk display tanpa over-cooking.",
+    "bobot": 5
+  },
+  {
+    "id": "M4-PG-03",
+    "minggu": "MINGGU_4",
+    "mingguNomor": 4,
+    "divisi": "Semua",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Audit Mutu - Persiapan Inspeksi Mendadak Area SPV & Trainer",
+    "pilar_kompetensi": "peraturan_perusahaan",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Sikap terbaik kru HARA Chicken dalam menghadapi audit mendadak (mystery inspection) dari Area Supervisor atau Trainer adalah:",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Panik dan menyembunyikan semua catatan kekurangan di bawah meja"
+      },
+      {
+        "label": "B",
+        "teks": "Bekerja dengan tenang dan konsisten sesuai standar harian (karena standar SOP dijalankan setiap hari, bukan hanya saat ada audit), bersikap kooperatif, dan mencatat masukan untuk continuous improvement"
+      },
+      {
+        "label": "C",
+        "teks": "Berdebat dengan auditor jika ditemukan ketidaksesuaian"
+      },
+      {
+        "label": "D",
+        "teks": "Meminta auditor datang kembali lain hari saat gerai sepi"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Budaya Kualitas HARA: Standar mutu dipraktikkan sebagai kebiasaan harian (habits). Kru yang matang menyambut audit sebagai sarana belajar dan verifikasi kompetensi.",
+    "bobot": 5
+  },
+  {
+    "id": "M4-ES-01",
+    "minggu": "MINGGU_4",
+    "mingguNomor": 4,
+    "divisi": "Semua",
+    "tipe": "ESSAY_HOTS",
+    "topik": "Komitmen Budaya H.A.R.A Tanpa Supervisi (Self-Leadership)",
+    "pilar_kompetensi": "visi_misi_hara",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Ketika Anda bertugas tanpa pengawasan langsung dari Trainer atau Kepala Outlet, godaan untuk memotong jalan pintas SOP (seperti tidak menimbang sambal atau tidak mencuci tangan) sering muncul. Jelaskan komitmen pribadi Anda dalam menjaga nilai Halal, Amanah, Responsif, dan Adaptif saat bekerja mandiri!",
+    "kata_kunci_essay": [
+      "integritas",
+      "pengawasan diri",
+      "tanggung jawab moral",
+      "amanah",
+      "konsistensi rasa",
+      "keselamatan konsumen",
+      "kebanggaan profesi",
+      "halal"
+    ],
+    "pembahasan_sop": "Integritas adalah melakukan hal yang benar bahkan ketika tidak ada orang yang melihat. Kru berpegang teguh pada nilai Halal & Amanah demi keselamatan konsumen, keberkahan rezeki, dan menjaga reputasi gerai yang dibangun bersama.",
+    "bobot": 10
+  }
+]

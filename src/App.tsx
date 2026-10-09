@@ -42,6 +42,7 @@ import {
   subscribeToOnlineUsers,
   ActiveUserPresence
 } from './lib/firestoreSync';
+import { testFirestoreConnection } from './lib/firebase';
 import { AppUser, Outlet, Kru, BankSOP, Division } from './types';
 import {
   Sparkles, Calendar, Store, Users, BookOpen, Search,
@@ -111,7 +112,8 @@ export function App() {
     refreshAppData();
     const unsub = db.subscribe('*', refreshAppData);
 
-    // Initialize and seed Firestore collections if empty
+    // Test connection and seed Firestore collections
+    testFirestoreConnection();
     seedFirestoreIfEmpty();
     const unsubFirestore = setupFirestoreRealtimeSync();
 
@@ -731,10 +733,10 @@ export function App() {
             currentTab === 'penilaian-lisan' ||
             currentTab === 'kompetensi') && (
             <PelatihanEvaluasiView
-              allowedSubTabs={['penilaian-teori', 'penilaian-praktik', 'penilaian-lisan', 'kompetensi']}
+              allowedSubTabs={['hasil-ujian', 'penilaian-teori', 'penilaian-praktik', 'penilaian-lisan', 'kompetensi']}
               initialSubTab={
                 currentTab === 'evaluasi-kompetensi' || currentTab === 'evaluasi-kru'
-                  ? 'penilaian-teori'
+                  ? 'hasil-ujian'
                   : (currentTab as PelatihanSubTab)
               }
               customCategory="EVALUASI KOMPETENSI"

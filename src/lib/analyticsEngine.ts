@@ -346,9 +346,13 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     skorSpeed = targetKru.divisi === 'Kasir' ? 88 : targetKru.divisi === 'Geprek' ? 82 : 78;
   }
 
-  // 2. Rumus Komposit Terbobot: Teori 25%, Praktik 35%, Sikap 20%, Speed 20%
+  // 2. Integrasi KSA Terpadu:
+  // - Knowledge (30%): Uji Teori SOP (15%) + Uji Lisan HACCP Reasoning (15%)
+  // - Skill (45%): Praktik Lapangan (35%) + Speed Jam Sibuk (10%)
+  // - Attitude (25%): Visi-Misi H.A.R.A (Halal, Amanah, Responsif, Adaptif)
+  const skorKnowledgeTerpadu = Math.round((skorTeori * 0.5 + skorLisan * 0.5) * 10) / 10;
   const totalComposite = Math.round(
-    (skorTeori * 0.25 + skorPraktik * 0.35 + skorSikap * 0.20 + skorSpeed * 0.20) * 10
+    (skorKnowledgeTerpadu * 0.30 + skorPraktik * 0.35 + skorSpeed * 0.10 + skorSikap * 0.25) * 10
   ) / 10;
 
   // Cek apakah ada pelanggaran poin kritis SOP (misal suhu minyak, penepungan padat, atau core temp)
@@ -598,6 +602,68 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     },
   ];
 
+  const isKitchen = targetKru.divisi === 'Kitchen';
+  const isKasir = targetKru.divisi === 'Kasir';
+  const isGeprek = targetKru.divisi === 'Geprek';
+
+  const sopStepAuditData: {
+    sop_code: string;
+    judul: string;
+    langkah_no: number;
+    instruksi: string;
+    status: '100% Sesuai SOP' | 'Ada Koreksi' | 'Deviasi Kritis';
+    catatan: string;
+  }[] = isKitchen ? [
+    { sop_code: 'SOP-KTC-01', judul: 'Thawing Ayam & Chiller', langkah_no: 1, instruksi: 'Thawing bertahap suhu chiller 2-4°C, pastikan bebas kristal es & darah beku.', status: '100% Sesuai SOP', catatan: 'Suhu daging 3.2°C sebelum penepungan.' },
+    { sop_code: 'SOP-KTC-01', judul: 'Sanitasi Baskom Penepungan', langkah_no: 2, instruksi: 'Sanitasi baskom penepungan & siapkan air es steril suhu < 5°C.', status: '100% Sesuai SOP', catatan: 'Baskom stainless bersih, air es bersertifikasi.' },
+    { sop_code: 'SOP-KTC-02', judul: 'Teknik Kibas Keriting Emas', langkah_no: 3, instruksi: 'Penepungan pertama: 10x aduk cubit melingkar tanpa meremas daging agar tidak bantat.', status: skorPraktik >= 80 ? '100% Sesuai SOP' : 'Ada Koreksi', catatan: skorPraktik >= 80 ? 'Keriting mekar merata.' : 'Tekanan cubit agak keras, perlu lebih lembut.' },
+    { sop_code: 'SOP-KTC-02', judul: 'Pencelupan Air Es', langkah_no: 4, instruksi: 'Celup keranjang ke air es selama 3 detik hingga seluruh tepung basah merata.', status: '100% Sesuai SOP', catatan: 'Waktu celup tepat 3 detik.' },
+    { sop_code: 'SOP-KTC-02', judul: 'Penepungan Kedua & Ayak', langkah_no: 5, instruksi: 'Penepungan kedua: 10x aduk ringan dan ayak rontokkan kelebihan tepung.', status: '100% Sesuai SOP', catatan: 'Remah tepung ayak bersih sebelum masuk minyak.' },
+    { sop_code: 'SOP-KTC-03', judul: 'Kalibrasi Suhu Fryer', langkah_no: 6, instruksi: 'Pengecekan suhu minyak deep fryer tepat 160°C (toleransi ±2°C) sebelum ayam dijatuhkan.', status: criticalViolationDetected ? 'Deviasi Kritis' : '100% Sesuai SOP', catatan: criticalViolationDetected ? 'Suhu anjlok di bawah 155°C saat drop ayam.' : 'Suhu stabil di 162°C.' },
+    { sop_code: 'SOP-KTC-03', judul: 'Peletakan Ayam Bertahap', langkah_no: 7, instruksi: 'Masukkan ayam satu per satu dari sisi pinggir basket, maksimal 12 potong per batch.', status: '100% Sesuai SOP', catatan: 'Batch isi 10 potong, tidak menempel.' },
+    { sop_code: 'SOP-KTC-03', judul: 'Timer Penggorengan Baku', langkah_no: 8, instruksi: 'Pasang timer digital tepat 12-13 menit, goyang basket di menit ke-6 agar tidak gosong lokal.', status: '100% Sesuai SOP', catatan: 'Basket digoyang di menit ke-6.' },
+    { sop_code: 'SOP-KTC-04', judul: 'Verifikasi Core Temp', langkah_no: 9, instruksi: 'Ukur suhu bagian terdalam daging paha/dada dengan termometer jarum (Wajib ≥ 74°C).', status: '100% Sesuai SOP', catatan: 'Core temp terbaca 78.5°C aman dari bakteri.' },
+    { sop_code: 'SOP-KTC-05', judul: 'Tiris & Display Warmer', langkah_no: 10, instruksi: 'Tiriskan minyak di rak drainer 2 menit, lalu pindah ke warmer suhu ≥ 60°C (Max display 90 mnt).', status: '100% Sesuai SOP', catatan: 'Label jam masak tercatat rapi pada warmer.' },
+  ] : isKasir ? [
+    { sop_code: 'SOP-CSR-01', judul: 'Kesiapan Modal & Login POS', langkah_no: 1, instruksi: 'Hitung modal kembalian Rp 200.000, login sistem POS, pastikan printer struk ready.', status: '100% Sesuai SOP', catatan: 'Modal hitung klop dan kertas struk terpasang.' },
+    { sop_code: 'SOP-CSR-02', judul: 'Standar 3S & Greeting', langkah_no: 2, instruksi: 'Berdiri tegak, berikan Senyum, Salam, Sapa hangat dengan pandangan mata fokus ke pelanggan.', status: '100% Sesuai SOP', catatan: 'Greeting ramah dan antusias.' },
+    { sop_code: 'SOP-CSR-02', judul: 'Konfirmasi Pesanan & Upsell', langkah_no: 3, instruksi: 'Tawarkan menu paket combo/minum, konfirmasi level pedas sambal dan pilihan nasi.', status: '100% Sesuai SOP', catatan: 'Upselling paket hemat ditawarkan aktif.' },
+    { sop_code: 'SOP-CSR-03', judul: 'Kecepatan Transaksi (SOS)', langkah_no: 4, instruksi: 'Selesaikan pesanan di layar POS dalam waktu ≤ 60 detik sejak pelanggan selesai bicara.', status: skorSpeed >= 80 ? '100% Sesuai SOP' : 'Ada Koreksi', catatan: `Waktu layanan rata-rata ${skorSpeed >= 80 ? '48' : '75'} detik.` },
+    { sop_code: 'SOP-CSR-03', judul: 'Pembayaran Tunai & QRIS', langkah_no: 5, instruksi: 'Sebutkan jumlah uang diterima, hitung kembalian di depan pelanggan atau verifikasi notif QRIS.', status: '100% Sesuai SOP', catatan: 'Selisih kasir harian Rp 0 (akurat).' },
+    { sop_code: 'SOP-CSR-04', judul: 'Penyerahan Struk & Ucapan', langkah_no: 6, instruksi: 'Serahkan struk bersama nomor antrean, ucapkan "Terima kasih, selamat menikmati #BeneranDiGeprek".', status: '100% Sesuai SOP', catatan: 'Nomor antrean dan struk diberikan runtut.' },
+  ] : isGeprek ? [
+    { sop_code: 'SOP-GPK-01', judul: 'Sanitasi Cobek & Ulekan', langkah_no: 1, instruksi: 'Pastikan cobek kayu dan ulekan dicuci bersih bebas bau tengik dan dilap kering.', status: '100% Sesuai SOP', catatan: 'Cobek bersih higienis.' },
+    { sop_code: 'SOP-GPK-02', judul: 'Gramatur Bahan Sambal', langkah_no: 2, instruksi: 'Takar cabai rawit merah, bawang putih, garam, dan penyedap dengan sendok takar baku 25 gram.', status: skorPraktik >= 80 ? '100% Sesuai SOP' : 'Ada Koreksi', catatan: skorPraktik >= 80 ? 'Timbangan gramatur tepat 25g.' : 'Kelebihan takar cabai 5g.' },
+    { sop_code: 'SOP-GPK-02', judul: 'Tekstur Ulekan Kasar', langkah_no: 3, instruksi: 'Ulek sambal dengan tekstur pecah kasar (tidak terlalu halus seperti blender) agar sari minyak keluar.', status: '100% Sesuai SOP', catatan: 'Tekstur sambal pecah kasar harum.' },
+    { sop_code: 'SOP-GPK-03', judul: 'Siraman Minyak Panas 160°C', langkah_no: 4, instruksi: 'Siram 1 sendok sayur minyak mendidih 160°C langsung ke atas sambal segar di cobek.', status: '100% Sesuai SOP', catatan: 'Minyak mendesis sempurna.' },
+    { sop_code: 'SOP-GPK-03', judul: 'Teknik Geprek Ayam', langkah_no: 5, instruksi: 'Geprek ayam krispi 2-3 ketukan hingga pipih merekah tanpa meremukkan tulang belulang.', status: '100% Sesuai SOP', catatan: 'Daging merekah, tulang tidak patah hancur.' },
+    { sop_code: 'SOP-GPK-04', judul: 'Pelumuran Sambal & Packaging', langkah_no: 6, instruksi: 'Lumur sambal merata menutupi permukaan ayam, tata di atas kertas nasi food-grade.', status: '100% Sesuai SOP', catatan: 'Penyajian menarik dan higienis.' },
+  ] : [
+    { sop_code: 'SOP-HLP-01', judul: 'Sanitasi Larutan Chlorine', langkah_no: 1, instruksi: 'Siapkan larutan sanitasi chlorine 50-100 ppm teruji strip pH untuk pembersihan.', status: '100% Sesuai SOP', catatan: 'Kadar klorin teruji aman.' },
+    { sop_code: 'SOP-HLP-01', judul: 'Pembersihan Meja Dua Warna', langkah_no: 2, instruksi: 'Gunakan lap biru untuk meja pelanggan dan lap merah untuk lantai (Clean As You Go).', status: '100% Sesuai SOP', catatan: 'Lap terpisah tidak tercampur.' },
+    { sop_code: 'SOP-HLP-02', judul: '3 Bak Cuci HACCP', langkah_no: 3, instruksi: 'Lakukan 3 tahap: Cuci sabun 45°C, Bilas air mengalir, Sanitasi air hangat disinfektan.', status: '100% Sesuai SOP', catatan: 'Urutan 3 bak dipatuhi ketat.' },
+    { sop_code: 'SOP-HLP-02', judul: 'Pengeringan Air-Dry', langkah_no: 4, instruksi: 'Tiriskan peralatan pada rak stainless hingga kering alami tanpa dilap kain basah.', status: '100% Sesuai SOP', catatan: 'Peralatan kering dan higienis.' },
+    { sop_code: 'SOP-HLP-03', judul: 'Pengelolaan Sampah', langkah_no: 5, instruksi: 'Ikat dan buang sampah jika terisi 3/4 penuh, ganti kantong plastik baru dan cuci tangan.', status: '100% Sesuai SOP', catatan: 'Area tempat sampah bebas lalat.' },
+    { sop_code: 'SOP-HLP-04', judul: 'Restocking Kemasan & Saus', langkah_no: 6, instruksi: 'Pastikan baki, cup sambal, dan sedotan terisi penuh sebelum jam sibuk makan siang.', status: '100% Sesuai SOP', catatan: 'Stok kemasan selalu aman.' },
+  ];
+
+  const attitudeHaraAuditData: {
+    pilar: 'H' | 'A1' | 'R' | 'A2';
+    judul: string;
+    kriteria: string;
+    kode_sop: string;
+    terpenuhi: boolean;
+  }[] = [
+    { pilar: 'H', judul: 'Halal & Higienis', kriteria: 'Memakai APD lengkap (hairnet, masker, apron) & mencuci tangan 6 langkah WHO.', kode_sop: 'SOP-JPH-01', terpenuhi: true },
+    { pilar: 'H', judul: 'Halal & Higienis', kriteria: 'Menjaga kebersihan stasiun kerja (5S) & memastikan tidak ada kontaminasi silang.', kode_sop: 'SOP-SAN-02', terpenuhi: true },
+    { pilar: 'A1', judul: 'Amanah & Akurasi', kriteria: 'Akurasi takaran bahan baku / gramatur sesuai resep baku tanpa manipulasi.', kode_sop: 'SOP-KTC-02', terpenuhi: skorPraktik >= 75 },
+    { pilar: 'A1', judul: 'Amanah & Akurasi', kriteria: 'Integritas transaksi kasir POS, tidak meloloskan produk tanpa struk resmi.', kode_sop: 'SOP-CSR-01', terpenuhi: true },
+    { pilar: 'R', judul: 'Responsif Layanan', kriteria: 'Kecepatan layanan jam sibuk (Speed of Service) sesuai SLA stasiun.', kode_sop: 'SOP-SVC-01', terpenuhi: skorSpeed >= 75 },
+    { pilar: 'R', judul: 'Responsif Layanan', kriteria: 'Menerapkan 3S (Senyum, Salam, Sapa) dan sigap membantu antrean panjang.', kode_sop: 'SOP-CSR-02', terpenuhi: true },
+    { pilar: 'A2', judul: 'Adaptif Belajar', kriteria: 'Cepat menyesuaikan diri dengan revisi SOP dan instruksi kerja baru trainer.', kode_sop: 'SOP-TRN-01', terpenuhi: true },
+    { pilar: 'A2', judul: 'Adaptif Belajar', kriteria: 'Menerima masukan evaluasi shift secara terbuka dan menindaklanjuti perbaikan.', kode_sop: 'SOP-OPS-04', terpenuhi: true },
+  ];
+
   const report: OfficialRaporKru = {
     id: 'dyn-rapor-' + targetKru.id,
     nomor_rapor: `RPK-HARA/2026/08/${targetKru.kode_outlet.replace('HC-', '')}-${targetKru.id.replace('kru-', '0')}`,
@@ -618,11 +684,15 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     status_sertifikasi: statusSertifikasi,
 
     skor_teori_sop: skorTeori,
+    skor_lisan_haccp: skorLisan,
+    skor_knowledge_terpadu: skorKnowledgeTerpadu,
     skor_praktik_lapangan: skorPraktik,
-    skor_sikap_budaya_hara: skorSikap,
     skor_speed_rush_hour: skorSpeed,
+    skor_sikap_budaya_hara: skorSikap,
 
     evaluasi_stasiun: evaluasiStasiun,
+    sop_step_audit: sopStepAuditData,
+    attitude_hara_audit: attitudeHaraAuditData,
     aspek_unggul: aspekUnggul,
     rekomendasi_pengembangan: rekomendasiPengembangan,
     jenjang_karir_rekomendasi: jenjangKarirRekomendasi,

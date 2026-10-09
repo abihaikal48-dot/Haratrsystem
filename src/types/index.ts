@@ -710,13 +710,34 @@ export interface OfficialRaporKru {
   status_sertifikasi: 'Tersertifikasi Penuh' | 'Sertifikasi Bersyarat' | 'Belum Lulus';
 
   // 4 Core Competency Dimensions
-  skor_teori_sop: number; // 25%
+  skor_teori_sop: number; // 15%
+  skor_lisan_haccp?: number; // 15%
+  skor_knowledge_terpadu?: number; // 30% = (Teori 15% + Lisan HACCP 15%)
   skor_praktik_lapangan: number; // 35%
-  skor_sikap_budaya_hara: number; // 20%
-  skor_speed_rush_hour: number; // 20%
+  skor_speed_rush_hour: number; // 10%
+  skor_sikap_budaya_hara: number; // 25% (Halal & Higienis, Amanah, Responsif, Adaptif)
 
   // Multi-Station Breakdown
   evaluasi_stasiun: StationCompetencyDetail[];
+
+  // Detailed Step-by-Step SOP Audit (Per Langkah Kerja)
+  sop_step_audit?: {
+    sop_code: string;
+    judul: string;
+    langkah_no: number;
+    instruksi: string;
+    status: '100% Sesuai SOP' | 'Ada Koreksi' | 'Deviasi Kritis';
+    catatan: string;
+  }[];
+
+  // Objective Visi-Misi H.A.R.A Compliance Audit
+  attitude_hara_audit?: {
+    pilar: 'H' | 'A1' | 'R' | 'A2';
+    judul: string;
+    kriteria: string;
+    kode_sop: string;
+    terpenuhi: boolean;
+  }[];
 
   // Feedback & Development Plan
   aspek_unggul: string[];
@@ -872,3 +893,83 @@ export interface SecurityPINVerification {
   deskripsi: string;
 }
 
+export type ExamWeek = 'MINGGU_1' | 'MINGGU_2' | 'MINGGU_3' | 'MINGGU_4';
+export type QuestionType = 'PILIHAN_GANDA' | 'ESSAY_HOTS' | 'KARAKTERISTIK_PSIKOLOGIS';
+
+export type PilarKompetensi = 'sop_jobdesk' | 'peraturan_perusahaan' | 'karakter_integritas' | 'visi_misi_hara';
+
+export interface SoalUjianMingguan {
+  id: string;
+  minggu: ExamWeek;
+  mingguNomor: 1 | 2 | 3 | 4;
+  divisi: Division | 'Semua';
+  tipe: QuestionType;
+  topik: string;
+  pilar_kompetensi?: PilarKompetensi;
+  tingkat_kesulitan?: 'Mudah' | 'Sedang' | 'Sulit';
+  kode_sop?: string;
+  pertanyaan: string;
+  skenario_konteks?: string;
+  opsi?: {
+    label: 'A' | 'B' | 'C' | 'D';
+    teks: string;
+    profil_trait?: {
+      dimensi: 'integritas' | 'ketahanan_stres' | 'fokus_pelanggan' | 'disiplin_sop' | 'kerjasama_tim';
+      poin: number; // 1 s.d. 5
+      deskripsi: string;
+    };
+  }[];
+  jawaban_benar?: 'A' | 'B' | 'C' | 'D';
+  kata_kunci_essay?: string[];
+  pembahasan_sop?: string;
+  bobot: number;
+}
+
+export interface HasilUjianKruMingguan {
+  id: string;
+  tanggal: string;
+  nama_kru: string;
+  kode_outlet: string;
+  nama_outlet?: string;
+  trainer_penilai?: string;
+  divisi: Division;
+  minggu: ExamWeek;
+  mingguNomor: 1 | 2 | 3 | 4;
+  skor_pilihan_ganda: number; // 0-100
+  skor_essay: number; // 0-100
+  skor_akhir_komposit: number; // 0-100
+  status_kelulusan: 'Lulus Kompeten' | 'Remedial Terbimbing';
+  jawaban_kru: Record<string, string>; // questionId -> answer
+  profil_psikologis?: {
+    integritas: number; // 0 - 100
+    ketahanan_stres: number; // 0 - 100
+    fokus_pelanggan: number; // 0 - 100
+    disiplin_sop: number; // 0 - 100
+    kerjasama_tim: number; // 0 - 100
+    tipe_kepribadian_kerja: string;
+    kesimpulan_trainer: string;
+    rekomendasi_pendampingan: string;
+  };
+  analisis_pilar?: {
+    sop_jobdesk: number; // 0 - 100
+    peraturan_perusahaan: number; // 0 - 100
+    karakter_integritas: number; // 0 - 100
+    visi_misi_hara: number; // 0 - 100
+    pilar_terendah: string;
+    rekomendasi_coaching: string;
+    materi_rekomendasi: string[];
+  };
+  penilaian_essay?: Record<string, { skor: number; komentar?: string }>;
+  sudah_dinilai_trainer?: boolean;
+  catatan_trainer?: string;
+  created_at: string;
+}
+
+export interface TrainerExamConfig {
+  mode: 'otomatis_ojt' | 'kunci_paket' | 'bebas';
+  paket_terkunci?: ExamWeek;
+  durasi_menit: number;
+  durasi_per_soal_detik?: number;
+  passing_grade: number;
+  pesan_trainer?: string;
+}

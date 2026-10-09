@@ -4,7 +4,8 @@ import {
   BarChart2, AlertCircle, Award, BookOpen, FileCheck, Brain,
   Wrench, Mic, Shield, FileText, Settings, Users, HelpCircle,
   ChevronLeft, ChevronRight, Sparkles, LogOut, UserCheck, Briefcase,
-  GraduationCap, Target, UtensilsCrossed, BarChart3, CalendarCheck
+  GraduationCap, Target, UtensilsCrossed, BarChart3, CalendarCheck,
+  CheckCircle2, Flame, Layers, ChevronsUpDown
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { HaraLogo } from './HaraLogo';
@@ -69,7 +70,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'bank-sop', 'bank-soal', 'tna', 'gap', 'rencana', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-red-500/20 text-red-300 border-red-500/30',
+    badgeColor: 'bg-red-50 text-red-700 border-red-200',
   },
   'Trainer': {
     label: 'Lead Trainer & People Dev',
@@ -85,7 +86,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'tna', 'gap', 'rencana', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
   },
   'Kepala Outlet': {
     label: 'Kepala Outlet (Store Manager)',
@@ -97,7 +98,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'jadwal-kunjungan', 'observasi', 'keluhan', 'bank-sop', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
   },
   'Area Supervisor': {
     label: 'Area Supervisor (Pengawas Wilayah)',
@@ -110,7 +111,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'kompetensi', 'laporan', 'bank-sop'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
   },
   'SPV Rekrutmen': {
     label: 'SPV Rekrutmen & Talent Acquisition',
@@ -122,7 +123,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'talent', 'bank-sop', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
+    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
   },
 };
 
@@ -136,6 +137,7 @@ interface SidebarProps {
   currentUser: AppUser;
   onOpenAICoach: () => void;
   onOpenPublicExam?: () => void;
+  onOpenCommandPalette?: () => void;
   onLogout?: () => void;
 }
 
@@ -151,34 +153,30 @@ interface NavGroup {
 
 const GROUPS: NavGroup[] = [
   {
-    label: 'Dashboard & Monitoring',
+    label: 'MAIN NAVIGATION',
     items: [
-      { id: 'dashboard', label: 'Dashboard Eksekutif', icon: LayoutDashboard },
-      { id: 'monitoring-training', label: 'Monitoring Kru (OJT 30 Hari)', icon: CalendarCheck, badge: 'Gate 1-4' },
+      { id: 'dashboard', label: 'Overview / Dashboard', icon: LayoutDashboard },
+      { id: 'operasional-sop', label: 'Katalog & Bank SOP', icon: BookOpen },
+      { id: 'monitoring-training', label: 'Monitoring Kru OJT 30 Hari', icon: CalendarCheck, badge: 'Gate 1-4' },
+      { id: 'laporan-resmi', label: 'Pusat Rapor Resmi Kru', icon: FileCheck, badge: 'A4 & PDF' },
     ],
   },
   {
-    label: 'Standar & Kompetensi HARA',
+    label: 'ANALYTICS & EVALUASI',
     items: [
-      { id: 'evaluasi-kompetensi', label: 'Pusat Evaluasi Kru (360°)', icon: Award, badge: 'SOP Ujian' },
-      { id: 'budaya-hara', label: 'Visi, Misi & Budaya H.A.R.A', icon: Target, badge: 'H.A.R.A' },
-      { id: 'stasiun-kerja', label: '4 Stasiun Kerja (SOP)', icon: UtensilsCrossed, badge: 'Kitchen-Kasir' },
-      { id: 'analitik-radar', label: 'Radar Kompetensi 5-Axis', icon: BarChart3, badge: 'Analytics' },
+      { id: 'evaluasi-kompetensi', label: 'Pusat Evaluasi Kru (KSA)', icon: Award, badge: '360°' },
+      { id: 'budaya-hara', label: 'Visi, Misi & Budaya H.A.R.A', icon: Target },
+      { id: 'stasiun-kerja', label: '4 Stasiun Kerja SOP', icon: UtensilsCrossed },
+      { id: 'analitik-radar', label: 'Radar Kompetensi 8-Axis', icon: BarChart3 },
+      { id: 'supervisi-lapangan', label: 'Supervisi Lapangan & Gerai', icon: Eye },
     ],
   },
   {
-    label: 'Supervisi & Laporan Resmi',
+    label: 'SUPPORT & PENGATURAN',
     items: [
-      { id: 'laporan-resmi', label: 'Pusat Rapor & Laporan Resmi', icon: FileCheck, badge: 'A4 & PDF' },
-      { id: 'supervisi-lapangan', label: 'Supervisi Lapangan & Coaching', icon: Eye, badge: '5S & GROW' },
-    ],
-  },
-  {
-    label: 'Sistem & Administrasi',
-    items: [
-      { id: 'master', label: 'Master Data Outlet & Kru', icon: Store },
+      { id: 'master', label: 'Master Data Gerai & Kru', icon: Store },
       { id: 'users', label: 'Kelola Pengguna & Akses', icon: Users },
-      { id: 'settings', label: 'Pengaturan & Backup', icon: Settings },
+      { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
       { id: 'bantuan', label: 'Bantuan & Panduan SOP', icon: HelpCircle },
     ],
   },
@@ -194,6 +192,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   currentUser,
   onOpenAICoach,
   onOpenPublicExam,
+  onOpenCommandPalette,
   onLogout,
 }) => {
   const userRole = currentUser?.role || 'Trainer';
@@ -206,70 +205,78 @@ export const Sidebar: React.FC<SidebarProps> = ({
     items: group.items.filter((item) => allowedTabs.includes(item.id)),
   })).filter((group) => group.items.length > 0);
 
+  // User initials
+  const initials = currentUser?.nama
+    ? currentUser.nama.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
+    : 'HA';
+
   return (
     <>
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity"
           onClick={onCloseMobile}
         />
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-[#141210] text-slate-200 flex flex-col z-50 transition-all duration-300 border-r border-white/5 shadow-2xl shrink-0 select-none ${
-          collapsed ? 'w-[72px]' : 'w-[250px]'
+        className={`fixed md:sticky top-0 left-0 h-screen bg-[#FAFAFA] text-slate-700 flex flex-col z-50 transition-all duration-300 border-r border-slate-200/90 shadow-xs shrink-0 select-none ${
+          collapsed ? 'w-[74px]' : 'w-[260px]'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        {/* Header with Official Logo */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-white/10 h-14 shrink-0">
+        {/* Header with Official Logo & Brand (Nuvio Layout) */}
+        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 h-16 shrink-0 bg-white">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            {collapsed ? (
-              <HaraLogo variant="icon" size="sm" />
-            ) : (
-              <HaraLogo variant="white" size="sm" />
+            <div className="w-8 h-8 rounded-xl bg-[#8B1418] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+              H
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col min-w-0">
+                <span className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+                  HARA Chicken
+                </span>
+                <span className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
+                  Operations & People Dev
+                </span>
+              </div>
             )}
           </div>
 
           <button
             onClick={onToggleCollapse}
-            className="hidden md:flex w-6 h-6 bg-white/5 hover:bg-white/15 rounded-lg items-center justify-center text-white/70 hover:text-white transition-colors cursor-pointer"
+            className="hidden md:flex w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-lg items-center justify-center transition-colors cursor-pointer"
             title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
           >
-            {collapsed ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
+            {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
-        {/* Role Authority Indicator */}
+        {/* Search input with ⌘K shortcut trigger (Nuvio style) */}
         {!collapsed && (
-          <div className="px-3 pt-2.5 pb-1 shrink-0">
-            <div className={`px-2.5 py-1.5 rounded-xl border text-[10.5px] font-bold flex items-center justify-between ${roleConfig.badgeColor}`}>
-              <span className="opacity-75 uppercase tracking-wider text-[9px]">Otoritas:</span>
-              <span className="truncate max-w-[130px] font-black">{roleConfig.label.split(' ')[0]} {roleConfig.label.split(' ')[1] || ''}</span>
-            </div>
+          <div className="px-3 pt-3 pb-1 shrink-0">
+            <button
+              type="button"
+              onClick={onOpenCommandPalette}
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600 transition-all shadow-2xs cursor-pointer group"
+            >
+              <div className="flex items-center gap-2 text-xs">
+                <Search size={14} className="text-slate-400 group-hover:text-slate-600" />
+                <span className="text-slate-500">Search anything...</span>
+              </div>
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-slate-100 text-slate-500 rounded border border-slate-200">
+                ⌘K
+              </kbd>
+            </button>
           </div>
         )}
 
-        {/* AI Advisor Button */}
-        <div className="p-2.5 pb-1 shrink-0">
-          <button
-            onClick={onOpenAICoach}
-            className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 bg-white/5 hover:bg-white/10 border border-white/10 text-stone-200 hover:text-white shadow-xs cursor-pointer ${
-              collapsed ? 'justify-center' : ''
-            }`}
-            title="Hara Trainer AI Advisor"
-          >
-            <Sparkles size={14} className="text-[#D48B1E]" />
-            {!collapsed && <span className="text-xs truncate">AI Trainer Advisor</span>}
-          </button>
-        </div>
-
-        {/* Navigation List (Filtered Strictly by Role Authority) */}
-        <nav className="flex-1 overflow-y-auto p-2.5 space-y-3.5">
+        {/* Navigation List (Nuvio Clean SaaS Grouping) */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
           {authorizedGroups.map((group) => (
-            <div key={group.label}>
+            <div key={group.label} className="space-y-1">
               {!collapsed && (
-                <div className="text-[9.5px] uppercase tracking-wider font-extrabold text-slate-400 px-2.5 mb-1.5">
+                <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-2.5 mb-1.5">
                   {group.label}
                 </div>
               )}
@@ -285,21 +292,32 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onCloseMobile();
                       }}
                       title={collapsed ? item.label : undefined}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-medium transition-all duration-150 text-left cursor-pointer ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 text-left cursor-pointer group relative ${
                         active
-                          ? 'bg-[#96171B] text-white font-bold shadow-sm shadow-red-950/40'
-                          : 'text-slate-300 hover:bg-white/8 hover:text-white'
-                      } ${collapsed ? 'justify-center' : ''}`}
+                          ? 'bg-white text-slate-900 font-bold shadow-xs border border-slate-200/90'
+                          : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900'
+                      } ${collapsed ? 'justify-center px-2' : ''}`}
                     >
+                      {active && (
+                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#8B1418] rounded-r-full" />
+                      )}
                       <Icon
-                        size={15}
-                        className={`shrink-0 ${active ? 'text-white' : 'text-slate-400'}`}
+                        size={16}
+                        className={`shrink-0 transition-colors ${
+                          active
+                            ? 'text-[#8B1418]'
+                            : 'text-slate-400 group-hover:text-slate-700'
+                        }`}
                       />
                       {!collapsed && (
                         <div className="flex items-center justify-between flex-1 min-w-0">
-                          <span className="truncate text-xs">{item.label}</span>
+                          <span className="truncate">{item.label}</span>
                           {item.badge && (
-                            <span className="text-[10px] font-medium text-stone-400">
+                            <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
+                              active
+                                ? 'bg-rose-50 text-[#8B1418]'
+                                : 'bg-slate-100 text-slate-500'
+                            }`}>
                               {item.badge}
                             </span>
                           )}
@@ -311,56 +329,83 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </div>
           ))}
+
+          {/* Quick AI & Exam Actions */}
+          <div className="pt-2 border-t border-slate-200/60 space-y-1">
+            <button
+              onClick={onOpenAICoach}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/15 hover:to-orange-500/15 border border-amber-200/60 text-amber-900 cursor-pointer ${
+                collapsed ? 'justify-center px-2' : ''
+              }`}
+              title="AI Trainer Advisor"
+            >
+              <Sparkles size={15} className="text-amber-600 shrink-0" />
+              {!collapsed && <span className="truncate">AI Trainer Advisor</span>}
+            </button>
+
+            {onOpenPublicExam && (
+              <button
+                onClick={onOpenPublicExam}
+                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer ${
+                  collapsed ? 'justify-center px-2' : ''
+                }`}
+                title="Portal Ujian Mandiri Kru"
+              >
+                <Brain size={15} className="text-slate-400 shrink-0" />
+                {!collapsed && <span className="truncate">Portal Ujian Kru</span>}
+              </button>
+            )}
+          </div>
         </nav>
 
-        {/* Portal Ujian Kru & User Footer */}
-        <div className="p-2.5 border-t border-white/10 bg-black/20 shrink-0 space-y-2">
-          {onOpenPublicExam && (
-            <button
-              onClick={onOpenPublicExam}
-              className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white/5 hover:bg-white/10 text-stone-300 hover:text-white border border-white/5 cursor-pointer ${
-                collapsed ? 'justify-center' : ''
-              }`}
-              title="Portal Ujian Mandiri Kru (Bebas Akses)"
-            >
-              <Brain size={14} className="text-[#D48B1E] shrink-0" />
-              {!collapsed && <span className="text-xs truncate">Portal Ujian Kru</span>}
-            </button>
-          )}
-
+        {/* User Profile Card at Bottom (Nuvio UI Style) */}
+        <div className="p-3 border-t border-slate-200/80 bg-white shrink-0">
           <div
-            className={`flex items-center ${
+            className={`p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center ${
               collapsed ? 'justify-center' : 'justify-between'
-            } gap-2 px-1`}
+            } gap-2.5 transition-all`}
           >
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <div className="text-xs font-bold text-white truncate">
-                  {currentUser.nama}
+            <div className="flex items-center gap-2.5 min-w-0">
+              {/* Avatar circle with online status dot */}
+              <div className="relative shrink-0">
+                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center border border-slate-300">
+                  {initials}
                 </div>
-                <div className="text-[9.5px] text-[#D9A027] font-extrabold uppercase tracking-wider">
-                  {currentUser.role}
-                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
               </div>
-            )}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() => onSelectTab('users')}
-                className="p-1.5 hover:bg-white/10 text-white/70 hover:text-white rounded-lg transition-colors cursor-pointer"
-                title="Kelola Akun & Hak Akses"
-              >
-                <Users size={14} />
-              </button>
-              {onLogout && (
-                <button
-                  onClick={onLogout}
-                  className="p-1.5 hover:bg-red-500/20 text-rose-300 hover:text-rose-200 rounded-lg transition-colors cursor-pointer"
-                  title="Logout / Keluar"
-                >
-                  <LogOut size={14} />
-                </button>
+
+              {!collapsed && (
+                <div className="min-w-0">
+                  <div className="text-xs font-bold text-slate-900 truncate">
+                    {currentUser.nama || 'Haikal Abi'}
+                  </div>
+                  <div className="text-[10.5px] text-slate-500 truncate">
+                    {currentUser.email || 'trainer@harachicken.com'}
+                  </div>
+                </div>
               )}
             </div>
+
+            {!collapsed && (
+              <div className="flex items-center gap-1 shrink-0">
+                <button
+                  onClick={() => onSelectTab('settings')}
+                  className="p-1 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
+                  title="Pengaturan Akun"
+                >
+                  <Settings size={14} />
+                </button>
+                {onLogout && (
+                  <button
+                    onClick={onLogout}
+                    className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
+                    title="Logout / Keluar"
+                  >
+                    <LogOut size={14} />
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </aside>

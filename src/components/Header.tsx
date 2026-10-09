@@ -130,23 +130,11 @@ export const Header: React.FC<HeaderProps> = ({
           <Menu size={18} />
         </button>
 
-        {/* Brandmark & Status Indicator */}
-        <div className="flex items-center gap-2.5">
-          <div className="md:hidden">
-            <HaraLogo variant="icon" size="xs" />
-          </div>
-          <div className="hidden md:flex items-center gap-2.5 pl-1">
-            <HaraLogo variant="icon" size="xs" />
-            <div className="flex flex-col">
-              <span className="text-[10.5px] font-bold text-slate-900 uppercase tracking-widest leading-none">
-                HARA TRAINER PRO
-              </span>
-              <span className="text-[9px] text-emerald-600 font-bold flex items-center gap-1 mt-0.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Sistem Operasional Trainer
-              </span>
-            </div>
-          </div>
+        {/* Contextual Breadcrumb Trail (Nuvio Layout) */}
+        <div className="hidden sm:flex items-center gap-2 text-xs">
+          <span className="text-slate-400 font-medium hover:text-slate-600 transition-colors">Overview</span>
+          <span className="text-slate-300">/</span>
+          <span className="text-slate-800 font-bold">Dashboard & Operasional</span>
         </div>
 
         {/* Clean Outlet Scope Selector Pill */}

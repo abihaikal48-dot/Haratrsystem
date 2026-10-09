@@ -8,7 +8,7 @@ import {
   query,
   where
 } from 'firebase/firestore';
-import { firestore } from './firebase';
+import { firestore, handleFirestoreError, OperationType } from './firebase';
 import { db } from './storage';
 import { AppUser } from '../types';
 
@@ -192,7 +192,11 @@ export function setupFirestoreRealtimeSync(): () => void {
           }
         },
         (err) => {
-          console.warn(`Firestore sync listener for ${colName}:`, err.message);
+          if (err && (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions'))) {
+            handleFirestoreError(err, OperationType.LIST, colName);
+          } else {
+            console.warn(`Firestore sync listener for ${colName}:`, err?.message || err);
+          }
         }
       );
       activeSyncUnsubscribers.push(unsub);
@@ -367,7 +371,11 @@ export function subscribeToOnlineUsers(
         callback(activeList);
       },
       (err) => {
-        console.warn('Presence listener notice:', err.message);
+        if (err && (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions'))) {
+          handleFirestoreError(err, OperationType.LIST, 'online_presence');
+        } else {
+          console.warn('Presence listener notice:', err?.message || err);
+        }
         callback([]);
       }
     );
