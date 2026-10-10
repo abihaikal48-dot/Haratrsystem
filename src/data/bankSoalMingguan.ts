@@ -32,53 +32,78 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
     kerjasama_tim: { totalPoin: 0, maxPoin: 0 },
   };
 
-  const soalPsikologis = BANK_SOAL_MINGGUAN.filter(s => s.tipe === 'KARAKTERISTIK_PSIKOLOGIS');
+  // 1. Soal dengan profil_trait eksplisit pada opsi
+  const soalPsikologis = BANK_SOAL_MINGGUAN.filter(s => s.opsi?.some(o => o.profil_trait));
 
   soalPsikologis.forEach(soal => {
     const jawabanPilihan = jawabanKru[soal.id];
+    if (!jawabanPilihan) return;
     const opsiTerpilih = soal.opsi?.find(o => o.label === jawabanPilihan);
 
+    const dimsInSoal = new Set<string>();
     soal.opsi?.forEach(o => {
-      if (o.profil_trait) {
-        const dim = o.profil_trait.dimensi;
-        if (dimensiSkor[dim]) {
-          dimensiSkor[dim].maxPoin = Math.max(dimensiSkor[dim].maxPoin, o.profil_trait.poin);
-        }
-      }
+      if (o.profil_trait) dimsInSoal.add(o.profil_trait.dimensi);
     });
 
-    if (opsiTerpilih?.profil_trait) {
-      const dim = opsiTerpilih.profil_trait.dimensi;
-      if (dimensiSkor[dim]) {
+    dimsInSoal.forEach(dim => {
+      const maxPoin = Math.max(...(soal.opsi?.filter(o => o.profil_trait?.dimensi === dim).map(o => o.profil_trait!.poin) || [5]));
+      dimensiSkor[dim].maxPoin += maxPoin;
+      if (opsiTerpilih?.profil_trait && opsiTerpilih.profil_trait.dimensi === dim) {
         dimensiSkor[dim].totalPoin += opsiTerpilih.profil_trait.poin;
+      } else if (opsiTerpilih) {
+        dimensiSkor[dim].totalPoin += 3;
+      }
+    });
+  });
+
+  // 2. Pemetaan Soal Skenario Situasional 5 Dimensi Budaya HARA (UMUM 03, 05, 06, 08)
+  const mappingSituasional: Record<string, keyof typeof dimensiSkor> = {
+    'UMUM-03': 'disiplin_sop',
+    'UMUM-04': 'disiplin_sop',
+    'UMUM-05': 'integritas',
+    'UMUM-06': 'fokus_pelanggan',
+    'UMUM-08': 'kerjasama_tim',
+  };
+
+  Object.entries(mappingSituasional).forEach(([suffix, dim]) => {
+    const matchedQId = Object.keys(jawabanKru).find(id => id.includes(suffix));
+    if (matchedQId) {
+      const soal = BANK_SOAL_MINGGUAN.find(s => s.id === matchedQId);
+      if (soal && soal.jawaban_benar) {
+        dimensiSkor[dim].maxPoin += 5;
+        if (jawabanKru[matchedQId] === soal.jawaban_benar) {
+          dimensiSkor[dim].totalPoin += 5;
+        } else {
+          dimensiSkor[dim].totalPoin += 2;
+        }
       }
     }
   });
 
-  const integritas = dimensiSkor.integritas.maxPoin > 0 ? Math.round((dimensiSkor.integritas.totalPoin / dimensiSkor.integritas.maxPoin) * 100) : 90;
-  const ketahanan_stres = dimensiSkor.ketahanan_stres.maxPoin > 0 ? Math.round((dimensiSkor.ketahanan_stres.totalPoin / dimensiSkor.ketahanan_stres.maxPoin) * 100) : 85;
-  const fokus_pelanggan = dimensiSkor.fokus_pelanggan.maxPoin > 0 ? Math.round((dimensiSkor.fokus_pelanggan.totalPoin / dimensiSkor.fokus_pelanggan.maxPoin) * 100) : 90;
-  const disiplin_sop = dimensiSkor.disiplin_sop.maxPoin > 0 ? Math.round((dimensiSkor.disiplin_sop.totalPoin / dimensiSkor.disiplin_sop.maxPoin) * 100) : 92;
-  const kerjasama_tim = dimensiSkor.kerjasama_tim.maxPoin > 0 ? Math.round((dimensiSkor.kerjasama_tim.totalPoin / dimensiSkor.kerjasama_tim.maxPoin) * 100) : 88;
+  const integritas = dimensiSkor.integritas.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.integritas.totalPoin / dimensiSkor.integritas.maxPoin) * 100)) : 88;
+  const ketahanan_stres = dimensiSkor.ketahanan_stres.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.ketahanan_stres.totalPoin / dimensiSkor.ketahanan_stres.maxPoin) * 100)) : 84;
+  const fokus_pelanggan = dimensiSkor.fokus_pelanggan.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.fokus_pelanggan.totalPoin / dimensiSkor.fokus_pelanggan.maxPoin) * 100)) : 86;
+  const disiplin_sop = dimensiSkor.disiplin_sop.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.disiplin_sop.totalPoin / dimensiSkor.disiplin_sop.maxPoin) * 100)) : 90;
+  const kerjasama_tim = dimensiSkor.kerjasama_tim.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.kerjasama_tim.totalPoin / dimensiSkor.kerjasama_tim.maxPoin) * 100)) : 85;
 
   const skor_rata_rata = Math.round((integritas + ketahanan_stres + fokus_pelanggan + disiplin_sop + kerjasama_tim) / 5);
 
   let tipe_kepribadian_kerja = 'Prajurit Standar Mutu Berdedikasi';
-  let kesimpulan_trainer = 'Memiliki etos kerja seimbang, patuh pada arahan dasar SOP.';
-  let rekomendasi_pendampingan = 'Lanjutkan pendampingan shift rutin dengan pengawasan berkala.';
+  let kesimpulan_trainer = 'Memiliki etos kerja seimbang, patuh pada arahan dasar SOP gerai.';
+  let rekomendasi_pendampingan = 'Lanjutkan pendampingan shift rutin dengan evaluasi berkala.';
 
-  if (integritas >= 90 && disiplin_sop >= 90) {
+  if (integritas >= 90 && disiplin_sop >= 88) {
     tipe_kepribadian_kerja = 'Ksatria Amanah & Penjaga Standar Baku';
-    kesimpulan_trainer = 'Sangat jujur, teguh pada regulasi mutu, dan tidak mudah berkompromi terhadap kecurangan atau jalan pintas.';
-    rekomendasi_pendampingan = 'Sangat cocok diproyeksikan sebagai Kasir Utama atau Person In Charge (PIC) inventori kas kecil.';
-  } else if (fokus_pelanggan >= 90 && ketahanan_stres >= 85) {
+    kesimpulan_trainer = 'Sangat jujur, teguh pada regulasi kas & mutu, dan menolak kompromi jalan pintas.';
+    rekomendasi_pendampingan = 'Sangat cocok dipercaya sebagai PIC Kasir Utama, penerimaan stok chiller, atau juru timbang bumbu.';
+  } else if (fokus_pelanggan >= 88 && ketahanan_stres >= 82) {
     tipe_kepribadian_kerja = 'Front-Liner Responsif & Duta Pelayanan';
-    kesimpulan_trainer = 'Ramah 5S tulus, tenang menghadapi komplain jam sibuk, dan berorientasi pada kepuasan pelanggan.';
-    rekomendasi_pendampingan = 'Optimalkan di stasiun Kasir dan Front House untuk meningkatkan retensi pembeli.';
-  } else if (kerjasama_tim >= 90 && ketahanan_stres >= 85) {
+    kesimpulan_trainer = 'Ramah 5S tulus, tenang menghadapi komplain di jam sibuk, dan berorientasi pada kepuasan pelanggan.';
+    rekomendasi_pendampingan = 'Sangat kuat ditempatkan di kasir depan, customer greetings, dan handling tamu dine-in/takeaway.';
+  } else if (kerjasama_tim >= 88 && ketahanan_stres >= 82) {
     tipe_kepribadian_kerja = 'Penggerak Tim & Kolaborator Lintas Stasiun';
-    kesimpulan_trainer = 'Memiliki kepekaan tim tinggi, proaktif membantu stasiun yang kewalahan tanpa menunggu instruksi.';
-    rekomendasi_pendampingan = 'Potensial dikembangkan menjadi Shift Leader Trainee dalam bimbingan operasional.';
+    kesimpulan_trainer = 'Memiliki kepekaan tim tinggi, proaktif membantu rekan stasiun lain saat antrean membludak.';
+    rekomendasi_pendampingan = 'Potensial dipersiapkan sebagai calon Shift Leader atau Koordinator Station.';
   }
 
   return {

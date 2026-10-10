@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import {
   Brain, Shield, Award, CheckCircle2, Clock, Search, Filter,
-  ChevronRight, ArrowRight, UserCheck, BarChart3, AlertCircle,
+  ChevronRight, ArrowRight, UserCheck, BarChart3, AlertCircle, AlertTriangle, ShieldCheck,
   Settings, Sliders, Check, Copy, Printer, Eye, MessageSquare,
   FileText, Sparkles, RefreshCw, X, ShieldAlert, Award as AwardIcon,
   Flame, UtensilsCrossed, Scale, Star, ThumbsUp, Send, CheckSquare,
-  Target, Compass, HelpCircle, ListChecks, ArrowUpRight
+  Target, Compass, HelpCircle, ListChecks, ArrowUpRight, Download
 } from 'lucide-react';
 import { db } from '../../lib/storage';
 import {
@@ -126,6 +126,49 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
     setSelectedRecord(updated);
     reloadData();
     showToast('Penilaian, koreksi essay, dan catatan trainer berhasil disimpan!');
+  };
+
+  // Ekspor Data Ujian & Karakter Kru ke CSV
+  const handleExportCSV = () => {
+    if (examResults.length === 0) {
+      showToast('Belum ada data hasil ujian untuk diekspor.');
+      return;
+    }
+    const headers = [
+      'ID Sesi', 'Tanggal', 'Nama Kru', 'Kode Outlet', 'Stasiun / Divisi', 'Paket Minggu',
+      'Skor PG (60%)', 'Skor Essay (40%)', 'Skor Komposit', 'Status Kelulusan', 'Frekuensi Pindah Tab',
+      'Integritas (%)', 'Ketahanan Stres (%)', 'Fokus Layanan (%)', 'Disiplin SOP (%)', 'Kerjasama Tim (%)',
+      'Tipe Karakter Kerja', 'Pilar Kritis Terendah'
+    ];
+    const rows = examResults.map((r) => [
+      r.id,
+      new Date(r.tanggal).toLocaleDateString('id-ID'),
+      `"${r.nama_kru.replace(/"/g, '""')}"`,
+      r.kode_outlet,
+      r.divisi,
+      `Minggu ke-${r.mingguNomor}`,
+      r.skor_pilihan_ganda,
+      r.skor_essay,
+      r.skor_akhir_komposit,
+      r.status_kelulusan,
+      r.jumlah_pindah_tab || 0,
+      r.profil_psikologis?.integritas ?? '-',
+      r.profil_psikologis?.ketahanan_stres ?? '-',
+      r.profil_psikologis?.fokus_pelanggan ?? '-',
+      r.profil_psikologis?.disiplin_sop ?? '-',
+      r.profil_psikologis?.kerjasama_tim ?? '-',
+      `"${(r.profil_psikologis?.tipe_kepribadian_kerja || '').replace(/"/g, '""')}"`,
+      `"${(r.analisis_pilar?.pilar_terendah || '').replace(/"/g, '""')}"`,
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Hasil_Evaluasi_Kru_HARA_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    showToast('File CSV data evaluasi & karakter ujian berhasil diunduh!');
   };
 
   // Copy Detail to WhatsApp
@@ -281,6 +324,16 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
           >
             <Sliders size={14} className="text-slate-600" />
             <span>Atur Paket Ujian</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleExportCSV}
+            className="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+            title="Unduh seluruh rekap nilai, pelanggaran tab, dan profil kepribadian kru"
+          >
+            <Download size={14} className="text-emerald-700" />
+            <span>Ekspor CSV</span>
           </button>
 
           {onOpenExamPublicView && (
@@ -455,7 +508,14 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
                     <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
                       {/* Kru & Gerai */}
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-900 text-xs">{r.nama_kru}</div>
+                        <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
+                          <span>{r.nama_kru}</span>
+                          {r.jumlah_pindah_tab !== undefined && r.jumlah_pindah_tab > 0 && (
+                            <span className="text-[9.5px] font-bold text-amber-900 bg-amber-100 border border-amber-300 px-1.5 py-0.2 rounded font-mono" title={`${r.jumlah_pindah_tab}x berpindah tab/layar saat ujian`}>
+                              ⚠️ {r.jumlah_pindah_tab}x Tab
+                            </span>
+                          )}
+                        </div>
                         <div className="text-[10.5px] text-slate-500 font-mono">
                           {r.nama_outlet || r.kode_outlet} • {new Date(r.tanggal).toLocaleDateString('id-ID')}
                         </div>
@@ -779,9 +839,22 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
                   <h3 className="text-lg font-bold text-slate-900 mt-1">
                     {selectedRecord.nama_kru} — <span className="text-[#8B1418]">{selectedRecord.divisi}</span>
                   </h3>
-                  <p className="text-xs text-slate-500 font-mono">
-                    {selectedRecord.nama_outlet || selectedRecord.kode_outlet} • Tanggal: {new Date(selectedRecord.tanggal).toLocaleString('id-ID')}
-                  </p>
+                  <div className="flex items-center gap-2 flex-wrap mt-1">
+                    <p className="text-xs text-slate-500 font-mono">
+                      {selectedRecord.nama_outlet || selectedRecord.kode_outlet} • Tanggal: {new Date(selectedRecord.tanggal).toLocaleString('id-ID')}
+                    </p>
+                    {selectedRecord.jumlah_pindah_tab !== undefined && selectedRecord.jumlah_pindah_tab > 0 ? (
+                      <span className="text-[10px] font-bold text-red-800 bg-red-50 border border-red-200 px-2 py-0.5 rounded-md font-mono flex items-center gap-1">
+                        <AlertTriangle size={11} className="text-red-700" />
+                        Terdeteksi {selectedRecord.jumlah_pindah_tab}x Pindah Tab/Layar
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md font-mono flex items-center gap-1">
+                        <ShieldCheck size={11} className="text-emerald-700" />
+                        Integritas Layar 100% Bersih
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">

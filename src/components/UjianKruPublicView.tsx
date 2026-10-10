@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import {
   Brain, Award, Clock, Shield, ShieldCheck, ArrowLeft, Check, Sparkles, User, Store,
   CheckCircle2, ChevronRight, ChevronLeft, Copy, Printer, AlertTriangle, AlertCircle,
-  HelpCircle, ChevronDown, CheckSquare, MessageSquare, Info
+  HelpCircle, ChevronDown, CheckSquare, MessageSquare, Info, Flag, Bookmark, ShieldAlert,
+  X, Lock
 } from 'lucide-react';
 import { db } from '../lib/storage';
 import {
@@ -125,6 +126,13 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
   const [totalTimeLeft, setTotalTimeLeft] = useState<number>(30 * 60);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
 
+  // Fitur Keamanan, Anti-Cheat & Integritas Ujian
+  const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
+  const [showCheatWarning, setShowCheatWarning] = useState<boolean>(false);
+  const [flaggedQuestions, setFlaggedQuestions] = useState<Record<string, boolean>>({});
+  const [showConfirmSubmit, setShowConfirmSubmit] = useState<boolean>(false);
+  const [sessionToken] = useState<string>(() => 'SESI-' + Math.random().toString(36).substring(2, 8).toUpperCase());
+
   // Hasil Ujian Terkirim (Tersimpan di DB, tapi skor dirahasiakan dari Kru)
   const [submittedReceipt, setSubmittedReceipt] = useState<{
     id: string;
@@ -170,6 +178,37 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
 
     return () => clearInterval(timer);
   }, [stage, totalTimeLeft]);
+
+  // Anti-Cheat: Deteksi Pergantian Tab Browser & Window Blur
+  useEffect(() => {
+    if (stage !== 'exam') return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setTabSwitchCount((prev) => {
+          const next = prev + 1;
+          setShowCheatWarning(true);
+          return next;
+        });
+      }
+    };
+
+    const handleWindowBlur = () => {
+      setTabSwitchCount((prev) => {
+        const next = prev + 1;
+        setShowCheatWarning(true);
+        return next;
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('blur', handleWindowBlur);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [stage]);
 
   // Auto-fill crew division if existing crew name selected
   const handleSelectExistingKru = (kruName: string) => {
@@ -303,6 +342,7 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
         materi_rekomendasi: analisisPilar.materi_rekomendasi,
       },
       catatan_trainer: `Ujian ${selectedMinggu} diselesaikan oleh ${namaKru}. Trainer penilai: ${selectedTrainer}. Karakter: ${profilKarakter.tipe_kepribadian_kerja}. Pilar Kritis: ${analisisPilar.pilar_terendah}.`,
+      jumlah_pindah_tab: tabSwitchCount,
       created_at: timestampStr,
     };
 
@@ -672,7 +712,16 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
             TAHAP 2: LEMBAR PENGERJAAN SOAL DENGAN TIMER SOAL PER BUTIR
             ======================================================================= */}
         {stage === 'exam' && currentQ && (
-          <div className="space-y-4 animate-in fade-in">
+          <div className="space-y-4 animate-in fade-in relative">
+            {/* Dynamic Security Watermark Canvas */}
+            <div className="fixed inset-0 pointer-events-none z-0 opacity-[0.035] overflow-hidden select-none flex flex-wrap gap-12 p-8 items-center justify-around">
+              {Array.from({ length: 24 }).map((_, i) => (
+                <div key={i} className="transform -rotate-25 text-xs font-mono font-black text-stone-900 tracking-widest whitespace-nowrap">
+                  {namaKru.toUpperCase()} · {currentOutletObj?.nama_outlet || selectedOutlet} · {selectedDivisi} · {sessionToken}
+                </div>
+              ))}
+            </div>
+
             {/* Top Bar Status Soal & Timer Soal */}
             <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -764,7 +813,10 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
             )}
 
             {/* Card Soal */}
-            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-6">
+            <div
+              onContextMenu={(e) => e.preventDefault()}
+              className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200 shadow-xs space-y-6 select-none relative z-10"
+            >
               <div>
                 <div className="text-[11px] font-bold text-stone-500 uppercase tracking-wider mb-1">
                   Topik: {currentQ.topik}
@@ -825,17 +877,40 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
                 </div>
               )}
 
-              {/* Bottom Navigasi Soal */}
-              <div className="pt-4 border-t border-stone-100 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  disabled={currentIndex === 0}
-                  onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-                  className="px-4 py-2 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-stone-700 flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <ChevronLeft size={14} />
-                  <span>Sebelumnya</span>
-                </button>
+              {/* Bottom Navigasi Soal & Tandai Ragu-ragu */}
+              <div className="pt-4 border-t border-stone-100 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    disabled={currentIndex === 0}
+                    onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+                    className="px-4 py-2 rounded-xl border border-stone-200 hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed text-xs font-semibold text-stone-700 flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <ChevronLeft size={14} />
+                    <span>Sebelumnya</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFlaggedQuestions((prev) => ({
+                        ...prev,
+                        [currentQ.id]: !prev[currentQ.id],
+                      }));
+                    }}
+                    className={`px-3 py-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                      flaggedQuestions[currentQ.id]
+                        ? 'bg-amber-100 text-amber-900 border-amber-300 ring-1 ring-amber-300'
+                        : 'border-stone-200 text-stone-600 hover:bg-stone-50'
+                    }`}
+                  >
+                    <Flag
+                      size={13}
+                      className={flaggedQuestions[currentQ.id] ? 'text-amber-800 fill-amber-700' : 'text-stone-400'}
+                    />
+                    <span>{flaggedQuestions[currentQ.id] ? 'Ragu-ragu (Ditandai)' : 'Tandai Ragu-ragu'}</span>
+                  </button>
+                </div>
 
                 <div className="flex items-center gap-2">
                   {currentIndex < questions.length - 1 ? (
@@ -850,7 +925,7 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
                   ) : (
                     <button
                       type="button"
-                      onClick={handleFinishExam}
+                      onClick={() => setShowConfirmSubmit(true)}
                       className="px-5 py-2 rounded-xl bg-[#96171B] hover:bg-[#7a1215] text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
                     >
                       <CheckCircle2 size={14} />
@@ -861,34 +936,160 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
               </div>
             </div>
 
-            {/* Quick Grid Navigasi Nomor Soal */}
-            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
-              <div className="text-xs font-bold text-stone-700 mb-2">
-                Daftar Nomor Soal:
+            {/* Quick Grid Navigasi Nomor Soal dengan Status Terinci */}
+            <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="text-xs font-bold text-stone-700">
+                  Daftar Kisi Nomor Soal ({questions.length} Butir):
+                </div>
+                <div className="flex items-center gap-3 text-[10.5px] font-medium text-stone-500">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded bg-emerald-500 inline-block" />
+                    Terjawab ({Object.keys(answers).length})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded bg-amber-400 inline-block" />
+                    Ragu-ragu ({Object.values(flaggedQuestions).filter(Boolean).length})
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded bg-stone-300 inline-block" />
+                    Belum ({Math.max(0, questions.length - Object.keys(answers).length)})
+                  </span>
+                </div>
               </div>
+
               <div className="flex flex-wrap gap-1.5">
                 {questions.map((q, idx) => {
                   const hasAnswer = !!answers[q.id];
+                  const isFlagged = !!flaggedQuestions[q.id];
                   const isCurrent = idx === currentIndex;
                   return (
                     <button
                       key={q.id}
                       type="button"
                       onClick={() => setCurrentIndex(idx)}
-                      className={`w-8 h-8 rounded-lg font-mono text-xs font-bold flex items-center justify-center transition-all cursor-pointer ${
+                      className={`w-8 h-8 rounded-lg font-mono text-xs font-bold flex items-center justify-center transition-all cursor-pointer relative ${
                         isCurrent
-                          ? 'bg-[#96171B] text-white ring-2 ring-[#96171B]/20'
+                          ? 'bg-[#96171B] text-white ring-2 ring-[#96171B]/30 shadow-xs'
+                          : isFlagged
+                          ? 'bg-amber-100 text-amber-900 border-2 border-amber-400'
                           : hasAnswer
                           ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                           : 'bg-stone-100 hover:bg-stone-200 text-stone-600 border border-stone-200'
                       }`}
                     >
                       {idx + 1}
+                      {isFlagged && (
+                        <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-amber-500" />
+                      )}
                     </button>
                   );
                 })}
               </div>
             </div>
+
+            {/* Peringatan Integritas / Cheat Modal */}
+            {showCheatWarning && (
+              <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 border-2 border-amber-400 shadow-2xl text-center space-y-4 animate-in zoom-in-95">
+                  <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-800 flex items-center justify-center mx-auto">
+                    <ShieldAlert size={26} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-stone-900">
+                      Peringatan Integritas & Keamanan Ujian
+                    </h3>
+                    <p className="text-xs text-stone-600 mt-1 leading-relaxed">
+                      Sistem mendeteksi bahwa layar lembar ujian ditinggalkan atau Anda beralih ke aplikasi/tab lain sebanyak <b className="text-red-700 font-mono text-sm">{tabSwitchCount} kali</b>.
+                    </p>
+                  </div>
+                  <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 text-left space-y-1">
+                    <p className="font-bold">Ketentuan Integritas HARA Chicken:</p>
+                    <p className="text-stone-700">
+                      Seluruh rekam jejak perpindahan layar tercatat otomatis dalam audit log Trainer penilai. Mohon tetap berada di lembar soal hingga selesai.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowCheatWarning(false)}
+                    className="w-full py-2.5 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer shadow-xs"
+                  >
+                    Saya Mengerti & Lanjutkan Ujian
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Modal Konfirmasi Pengumpulan Ujian */}
+            {showConfirmSubmit && (
+              <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in">
+                <div className="bg-white rounded-2xl max-w-md w-full p-6 border border-stone-200 shadow-2xl space-y-4 animate-in zoom-in-95">
+                  <div className="flex items-center gap-2.5 border-b border-stone-100 pb-3">
+                    <div className="w-9 h-9 rounded-xl bg-red-50 text-[#96171B] flex items-center justify-center font-bold">
+                      <HelpCircle size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-stone-900">
+                        Konfirmasi Pengumpulan Lembar Ujian
+                      </h3>
+                      <p className="text-[11px] text-stone-500">
+                        Periksa rekap jawaban Anda sebelum finalisasi
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 text-center">
+                    <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <div className="text-[10px] font-bold text-emerald-800 uppercase font-mono">TERJAWAB</div>
+                      <div className="text-lg font-black font-mono text-emerald-700">
+                        {Object.keys(answers).length} <span className="text-[10px] text-emerald-600">/ {questions.length}</span>
+                      </div>
+                    </div>
+                    <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                      <div className="text-[10px] font-bold text-amber-800 uppercase font-mono">RAGU-RAGU</div>
+                      <div className="text-lg font-black font-mono text-amber-700">
+                        {Object.values(flaggedQuestions).filter(Boolean).length}
+                      </div>
+                    </div>
+                    <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200">
+                      <div className="text-[10px] font-bold text-stone-600 uppercase font-mono">BELUM DIISI</div>
+                      <div className="text-lg font-black font-mono text-stone-700">
+                        {Math.max(0, questions.length - Object.keys(answers).length)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {questions.length - Object.keys(answers).length > 0 && (
+                    <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-xs text-red-800 flex items-start gap-2">
+                      <AlertCircle size={15} className="shrink-0 mt-0.5 text-red-600" />
+                      <span>
+                        Masih ada <b>{questions.length - Object.keys(answers).length} butir soal</b> yang belum diisi. Anda masih memiliki sisa waktu <b>{Math.floor(totalTimeLeft / 60)} menit</b>.
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmSubmit(false)}
+                      className="flex-1 py-2.5 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      Periksa Kembali Soal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowConfirmSubmit(false);
+                        handleFinishExam();
+                      }}
+                      className="flex-1 py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7a1215] text-white text-xs font-bold transition-colors cursor-pointer shadow-sm"
+                    >
+                      Kumpulkan Jawaban
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

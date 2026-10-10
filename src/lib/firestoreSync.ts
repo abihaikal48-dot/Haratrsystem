@@ -11,6 +11,8 @@ import {
 import { firestore, handleFirestoreError, OperationType } from './firebase';
 import { db } from './storage';
 import { AppUser } from '../types';
+import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
+import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
 
 export interface ActiveUserPresence {
   id: string;
@@ -191,12 +193,31 @@ export function setupFirestoreRealtimeSync(): () => void {
                   !docsData.some((d) => d.divisi === 'Helper') ||
                   !docsData.some((d) => d.divisi === 'Kitchen');
 
-                if (missingDivsInRemote && currentLocal.length > docsData.length) {
+                if (missingDivsInRemote || docsData.length < OFFICIAL_HARA_SOP_DATABASE.length) {
                   const remoteIds = new Set(docsData.map((d) => d.id));
                   const merged = [...docsData];
-                  currentLocal.forEach((loc) => {
-                    if (!remoteIds.has(loc.id)) {
-                      merged.push(loc);
+                  OFFICIAL_HARA_SOP_DATABASE.forEach((seed) => {
+                    if (!remoteIds.has(seed.id)) {
+                      merged.push(seed);
+                    }
+                  });
+                  finalDocs = merged;
+                }
+              }
+
+              if (colName === 'bank_soal') {
+                const missingDivsInRemote =
+                  !docsData.some((d) => d.divisi === 'Kasir') ||
+                  !docsData.some((d) => d.divisi === 'Geprek') ||
+                  !docsData.some((d) => d.divisi === 'Helper') ||
+                  !docsData.some((d) => d.divisi === 'Kitchen');
+
+                if (missingDivsInRemote || docsData.length < OFFICIAL_HARA_BANK_SOAL.length) {
+                  const remoteIds = new Set(docsData.map((d) => d.id));
+                  const merged = [...docsData];
+                  OFFICIAL_HARA_BANK_SOAL.forEach((seed) => {
+                    if (!remoteIds.has(seed.id)) {
+                      merged.push(seed);
                     }
                   });
                   finalDocs = merged;

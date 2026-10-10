@@ -962,6 +962,7 @@ export interface HasilUjianKruMingguan {
   penilaian_essay?: Record<string, { skor: number; komentar?: string }>;
   sudah_dinilai_trainer?: boolean;
   catatan_trainer?: string;
+  jumlah_pindah_tab?: number;
   created_at: string;
 }
 

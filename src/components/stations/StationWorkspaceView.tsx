@@ -13,7 +13,12 @@ import {
   Play,
   FileCheck,
   ChevronRight,
+  Eye,
+  X,
+  FileText,
 } from 'lucide-react';
+
+import { OFFICIAL_HARA_SOP_DATABASE } from '../../lib/sopData';
 
 interface StationWorkspaceViewProps {
   onStartStationAudit?: (station: Division) => void;
@@ -24,11 +29,26 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
   onStartStationAudit,
   onOpenStationExam,
 }) => {
-  const [selectedStation, setSelectedStation] = useState<Division>('Geprek');
+  const [selectedStation, setSelectedStation] = useState<Division>('Kitchen');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewingSop, setViewingSop] = useState<any | null>(null);
+
+  const [allSops, setAllSops] = useState<any[]>(() => {
+    const fromDb = db.getTable<any>('bank_sop');
+    return fromDb && fromDb.length > 0 ? fromDb : OFFICIAL_HARA_SOP_DATABASE;
+  });
+
+  React.useEffect(() => {
+    const sync = () => {
+      const fromDb = db.getTable<any>('bank_sop');
+      setAllSops(fromDb && fromDb.length > 0 ? fromDb : OFFICIAL_HARA_SOP_DATABASE);
+    };
+    sync();
+    const unsub = db.subscribe('*', sync);
+    return () => unsub();
+  }, []);
 
   const stationDetail = HARA_OFFICIAL_JOBDESKS[selectedStation];
-  const allSops = db.getTable<any>('bank_sop') || [];
 
   // Filter SOP sesuai divisi stasiun terpilih
   const stationSops = allSops.filter(
@@ -289,6 +309,21 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
                         </div>
                       </div>
                     )}
+
+                    {/* Tombol Buka Lengkap */}
+                    <div className="pt-2 border-t border-stone-200/60 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => setViewingSop(sop)}
+                        className="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-[#8B1418] rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <Eye size={13} />
+                        <span>Buka Detail SOP Lengkap</span>
+                      </button>
+                      <span className="text-[10px] text-stone-400 font-mono">
+                        {sop.sumber || 'Dokumen Standar CV. Ultima Rasa'}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
@@ -298,6 +333,115 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
         </div>
 
       </div>
+
+      {/* Modal Detail SOP Lengkap */}
+      {viewingSop && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
+          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col shadow-2xl border border-stone-200 overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-stone-200 flex items-start justify-between bg-stone-50">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-[#8B1418] text-white">
+                    {viewingSop.kode_sop}
+                  </span>
+                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900">
+                    Stasiun {viewingSop.divisi}
+                  </span>
+                  {viewingSop.standar_waktu && (
+                    <span className="text-[10px] font-mono text-stone-500 bg-white px-2 py-0.5 rounded border border-stone-200">
+                      ⏱️ {viewingSop.standar_waktu}
+                    </span>
+                  )}
+                </div>
+                <h3 className="text-base font-black text-stone-900 leading-snug">
+                  {viewingSop.judul_sop}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingSop(null)}
+                className="p-1.5 rounded-lg hover:bg-stone-200 text-stone-500 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 overflow-y-auto space-y-4 text-xs text-stone-700 leading-relaxed">
+              {/* Tujuan */}
+              {viewingSop.tujuan && (
+                <div className="p-3.5 bg-stone-50 rounded-xl border border-stone-200">
+                  <h4 className="font-bold text-stone-900 mb-1 flex items-center gap-1.5 text-xs">
+                    <FileText size={14} className="text-[#8B1418]" />
+                    <span>Tujuan Prosedur:</span>
+                  </h4>
+                  <p>{viewingSop.tujuan}</p>
+                </div>
+              )}
+
+              {/* Peralatan & Bahan */}
+              {viewingSop.alat_bahan && (
+                <div className="p-3.5 bg-rose-50/50 rounded-xl border border-rose-200/80">
+                  <h4 className="font-bold text-[#8B1418] mb-1 flex items-center gap-1.5 text-xs">
+                    <Award size={14} />
+                    <span>Peralatan & Bahan Baku Standar:</span>
+                  </h4>
+                  <p className="text-stone-800">{viewingSop.alat_bahan}</p>
+                </div>
+              )}
+
+              {/* Tahapan Langkah Kerja Lengkap */}
+              {viewingSop.langkah && viewingSop.langkah.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-bold text-stone-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckCircle2 size={14} className="text-emerald-600" />
+                    <span>Tahapan Langkah Kerja ({viewingSop.langkah.length} Langkah):</span>
+                  </h4>
+                  <div className="space-y-2">
+                    {viewingSop.langkah.map((step: string, sIdx: number) => (
+                      <div
+                        key={sIdx}
+                        className="flex items-start gap-2.5 p-3 rounded-xl bg-stone-50 border border-stone-200/80"
+                      >
+                        <span className="w-5 h-5 rounded-full bg-[#8B1418] text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                          {sIdx + 1}
+                        </span>
+                        <span className="leading-relaxed text-stone-800">{step}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Titik Kritis HACCP */}
+              {viewingSop.poin_kritis && (
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-amber-900">
+                  <h4 className="font-bold mb-1 flex items-center gap-1.5 text-xs">
+                    <AlertTriangle size={14} className="text-amber-700" />
+                    <span>Titik Kritis Mutu & Keamanan Pangan (HACCP):</span>
+                  </h4>
+                  <p>{viewingSop.poin_kritis}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between">
+              <span className="text-[10px] font-mono text-stone-500">
+                {viewingSop.sumber || 'Dokumen Resmi Departemen RnD & Operasional'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setViewingSop(null)}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer"
+              >
+                Tutup Dokumen
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

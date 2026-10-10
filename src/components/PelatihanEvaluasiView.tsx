@@ -24,6 +24,8 @@ import { KompetensiView } from './KompetensiView';
 import { ModernOptionSelector } from './ModernOptionSelector';
 import { PageHeaderBanner } from './PageHeaderBanner';
 import { CrewExamResultsViewer } from './trainer/CrewExamResultsViewer';
+import { OFFICIAL_HARA_SOP_DATABASE } from '../lib/sopData';
+import { OFFICIAL_HARA_BANK_SOAL } from '../lib/soalData';
 
 export type PelatihanSubTab =
   | 'hasil-ujian'
@@ -549,15 +551,22 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
 
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => {
+                    localStorage.removeItem('hara_pd_bank_sop_v6');
                     localStorage.removeItem('hara_pd_bank_sop_v5');
                     localStorage.removeItem('hara_pd_bank_sop_v4');
                     localStorage.removeItem('hara_pd_bank_sop_v3');
                     localStorage.removeItem('hara_pd_bank_sop_v2');
                     localStorage.removeItem('hara_pd_bank_sop');
+                    localStorage.removeItem('hara_pd_bank_soal_v3');
                     localStorage.removeItem('hara_pd_bank_soal_v2');
                     localStorage.removeItem('hara_pd_bank_soal');
-                    window.location.reload();
+                    db.setDirect('bank_sop', OFFICIAL_HARA_SOP_DATABASE);
+                    db.setDirect('bank_soal', OFFICIAL_HARA_BANK_SOAL);
+                    setSopList(OFFICIAL_HARA_SOP_DATABASE);
+                    setSoalList(OFFICIAL_HARA_BANK_SOAL);
+                    showToast('Berhasil memuat 82 SOP Resmi lengkap untuk seluruh 4 Jobdesk!');
                   }}
                   className="btn-secondary-enterprise !py-1.5 !px-3 text-xs flex items-center gap-1.5 font-bold cursor-pointer text-slate-700 hover:text-[#8C161B]"
                   title="Sinkronkan seluruh Bank SOP & Bank Soal ke edisi dokumen resmi CV. Ultima Rasa Indonesia"

@@ -585,8 +585,12 @@ export function App() {
             <PelatihanEvaluasiView
               allowedSubTabs={['bank-sop', 'bank-soal']}
               initialSubTab="bank-sop"
+              customCategory="STANDAR OPERASIONAL BAKU (SOP)"
+              customTitle="Katalog Master Bank SOP & Bank Soal Resmi (4 Jobdesk)"
+              customDescription="Koleksi lengkap 82 instruksi kerja baku dan bank soal objektif untuk 4 Jobdesk gerai: Kitchen & Fryer (26 SOP), Geprek & Saus (24 SOP), Kasir & POS (16 SOP), dan Helper & Sanitasi (16 SOP)."
               selectedOutletCode={selectedOutletCode}
               onOpenAIAction={handleOpenAIAction}
+              onSelectOutletCode={setSelectedOutletCode}
             />
           )}
 
