@@ -119,12 +119,10 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   
-  // Timer Soal (Hitung Mundur per Butir Soal)
-  const defaultQuestionDuration = examConfig.durasi_per_soal_detik || 90;
-  const [questionTimeLeft, setQuestionTimeLeft] = useState<number>(defaultQuestionDuration);
-  
-  // Timer Total Ujian Keseluruhan
-  const [totalTimeLeft, setTotalTimeLeft] = useState<number>((examConfig.durasi_menit || 20) * 60);
+  // Timer Sesi Ujian (Menyeluruh per Sesi, Bukan per Butir Soal)
+  // Menyesuaikan jumlah soal dengan rekomendasi terbaik (misal 26 butir soal = 26 - 30 menit)
+  const [totalSessionSeconds, setTotalSessionSeconds] = useState<number>(30 * 60);
+  const [totalTimeLeft, setTotalTimeLeft] = useState<number>(30 * 60);
   const [copiedReceipt, setCopiedReceipt] = useState(false);
 
   // Hasil Ujian Terkirim (Tersimpan di DB, tapi skor dirahasiakan dari Kru)
@@ -155,39 +153,13 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
   // Active question in exam stage
   const currentQ = questions[currentIndex] || questions[0];
 
-  // Reset timer soal setiap kali berpindah nomor soal
-  useEffect(() => {
-    if (stage === 'exam') {
-      setQuestionTimeLeft(defaultQuestionDuration);
-    }
-  }, [currentIndex, stage, defaultQuestionDuration]);
-
-  // Dedicated TIMER SOAL (Countdown per Butir Soal)
-  useEffect(() => {
-    if (stage !== 'exam') return;
-
-    if (questionTimeLeft <= 0) {
-      // Waktu soal habis! Otomatis lanjut ke soal berikutnya atau selesaikan jika soal terakhir
-      if (currentIndex < questions.length - 1) {
-        setCurrentIndex((prev) => prev + 1);
-      } else {
-        handleFinishExam();
-      }
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setQuestionTimeLeft((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [stage, questionTimeLeft, currentIndex, questions.length]);
-
-  // Total Exam Timer (Batas Keseluruhan)
+  // Dedicated TIMER SESI (Hitung Mundur Total Sesi Ujian)
+  // Kru leluasa berpindah antar nomor soal tanpa dipotong timer per soal
   useEffect(() => {
     if (stage !== 'exam') return;
 
     if (totalTimeLeft <= 0) {
+      // Waktu sesi ujian habis! Otomatis kumpulkan jawaban
       handleFinishExam();
       return;
     }
@@ -216,18 +188,22 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
       return;
     }
 
-    // Load questions based on chosen week and station
+    // Load questions based on chosen week and station with strict jobdesk isolation
     const pool = getSoalUjianByMinggu(selectedMinggu, selectedDivisi);
-    if (pool.length === 0) {
-      setQuestions(BANK_SOAL_MINGGUAN.slice(0, 10));
-    } else {
-      setQuestions(pool);
-    }
+    const examQuestions = pool.length > 0 ? pool : BANK_SOAL_MINGGUAN.slice(0, 26);
+    setQuestions(examQuestions);
 
     setCurrentIndex(0);
     setAnswers({});
-    setQuestionTimeLeft(defaultQuestionDuration);
-    setTotalTimeLeft((examConfig.durasi_menit || 20) * 60);
+    
+    // Durasi timer per sesi terbaik menyesuaikan jumlah soal (1 menit per soal, minimal 25 menit)
+    const durationMinutes = examConfig.durasi_menit && examConfig.durasi_menit >= 15
+      ? examConfig.durasi_menit
+      : Math.max(25, examQuestions.length);
+    const sessionSeconds = durationMinutes * 60;
+    
+    setTotalSessionSeconds(sessionSeconds);
+    setTotalTimeLeft(sessionSeconds);
     setStage('exam');
   };
 
@@ -446,33 +422,27 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
           <div className="flex items-center gap-2">
             {stage === 'exam' && (
               <div className="flex items-center gap-2">
-                {/* Total Waktu Sisa Ujian */}
-                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 border border-stone-200 text-stone-700 text-xs font-mono font-medium">
-                  <Clock size={13} className="text-stone-500" />
-                  <span>Total: {formatMinutesSeconds(totalTimeLeft)}</span>
-                </div>
-
-                {/* Sisa Waktu Soal Aktif */}
+                {/* Waktu Sesi Ujian */}
                 <div
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all ${
-                    questionTimeLeft <= 15
+                    totalTimeLeft <= 180
                       ? 'bg-red-50 text-[#96171B] border-red-300 ring-2 ring-red-200 animate-pulse'
-                      : questionTimeLeft <= 30
+                      : totalTimeLeft <= 600
                       ? 'bg-amber-50 text-amber-800 border-amber-300'
-                      : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                      : 'bg-stone-50 text-stone-800 border-stone-200'
                   }`}
                 >
                   <Clock
                     size={14}
                     className={
-                      questionTimeLeft <= 15
-                        ? 'text-[#96171B] animate-spin'
-                        : questionTimeLeft <= 30
+                      totalTimeLeft <= 180
+                        ? 'text-[#96171B]'
+                        : totalTimeLeft <= 600
                         ? 'text-amber-700'
-                        : 'text-emerald-700'
+                        : 'text-stone-600'
                     }
                   />
-                  <span>Timer Soal: {questionTimeLeft}s</span>
+                  <span>Sisa Sesi: {formatMinutesSeconds(totalTimeLeft)}</span>
                 </div>
               </div>
             )}
@@ -658,11 +628,11 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-amber-200/60 text-[11px]">
                     <div className="flex items-center gap-1.5 text-stone-700">
                       <Clock size={13} className="text-amber-800" />
-                      <span>Timer Soal: <b>{defaultQuestionDuration}s / butir</b></span>
+                      <span>Timer: <b>Per Sesi (25 - 30 Menit)</b></span>
                     </div>
                     <div className="flex items-center gap-1.5 text-stone-700">
                       <ShieldCheck size={13} className="text-emerald-700" />
-                      <span>Format: <b>Pilihan Ganda & HOTS</b></span>
+                      <span>Format: <b>Bebas Navigasi Soal</b></span>
                     </div>
                     <div className="flex items-center gap-1.5 text-stone-700 col-span-2 sm:col-span-1">
                       <Sparkles size={13} className="text-purple-700" />
@@ -732,12 +702,12 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
                   )}
                 </div>
 
-                {/* TIMER SOAL BADGE */}
+                {/* TIMER SESI UJIAN BADGE */}
                 <div
-                  className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border font-mono font-bold text-xs transition-all ${
-                    questionTimeLeft <= 15
+                  className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl border font-mono font-bold text-xs transition-all ${
+                    totalTimeLeft <= 180
                       ? 'bg-red-50 text-[#96171B] border-red-300 ring-2 ring-red-200 animate-pulse'
-                      : questionTimeLeft <= 30
+                      : totalTimeLeft <= 600
                       ? 'bg-amber-50 text-amber-800 border-amber-300'
                       : 'bg-stone-50 text-stone-800 border-stone-200'
                   }`}
@@ -745,46 +715,50 @@ export const UjianKruPublicView: React.FC<UjianKruPublicViewProps> = ({
                   <Clock
                     size={14}
                     className={
-                      questionTimeLeft <= 15
+                      totalTimeLeft <= 180
                         ? 'text-[#96171B]'
-                        : questionTimeLeft <= 30
+                        : totalTimeLeft <= 600
                         ? 'text-amber-700'
                         : 'text-stone-600'
                     }
                   />
-                  <span>Sisa Waktu Soal: {questionTimeLeft}s</span>
+                  <span>
+                    Sisa Waktu Sesi: {Math.floor(totalTimeLeft / 60).toString().padStart(2, '0')}:{(totalTimeLeft % 60).toString().padStart(2, '0')}
+                  </span>
                 </div>
               </div>
 
-              {/* Progress Bar Timer Soal */}
+              {/* Progress Bar Timer Sesi Ujian */}
               <div>
                 <div className="flex items-center justify-between text-[10px] text-stone-500 mb-1 font-mono">
-                  <span>Waktu Berjalan Butir Soal Ini:</span>
-                  <span>{questionTimeLeft} / {defaultQuestionDuration} detik</span>
+                  <span>Progres Sesi Ujian (Bebas Berpindah & Meninjau Soal):</span>
+                  <span>
+                    {Math.floor(totalTimeLeft / 60)}m {totalTimeLeft % 60}s tersisa ({Math.max(0, Math.round(((totalSessionSeconds - totalTimeLeft) / totalSessionSeconds) * 100))}% selesai)
+                  </span>
                 </div>
                 <div className="w-full bg-stone-100 h-1.5 rounded-full overflow-hidden">
                   <div
                     className={`h-full transition-all duration-1000 ${
-                      questionTimeLeft <= 15
+                      totalTimeLeft <= 180
                         ? 'bg-[#96171B]'
-                        : questionTimeLeft <= 30
+                        : totalTimeLeft <= 600
                         ? 'bg-amber-500'
                         : 'bg-emerald-600'
                     }`}
                     style={{
-                      width: `${Math.max(0, Math.round((questionTimeLeft / defaultQuestionDuration) * 100))}%`,
+                      width: `${Math.min(100, Math.max(0, Math.round(((totalSessionSeconds - totalTimeLeft) / totalSessionSeconds) * 100)))}%`,
                     }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Peringatan jika sisa waktu soal menipis */}
-            {questionTimeLeft <= 15 && (
+            {/* Peringatan jika sisa waktu sesi menipis */}
+            {totalTimeLeft <= 180 && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-[#96171B] flex items-center gap-2 animate-pulse">
                 <AlertCircle size={15} className="shrink-0 text-[#96171B]" />
                 <span>
-                  Waktu butir soal ini tersisa {questionTimeLeft} detik! Segera tentukan jawaban Anda sebelum otomatis berpindah.
+                  Waktu sesi ujian tersisa kurang dari 3 menit ({Math.floor(totalTimeLeft / 60)}:{((totalTimeLeft % 60)).toString().padStart(2, '0')})! Pastikan seluruh jawaban telah diperiksa sebelum waktu habis.
                 </span>
               </div>
             )}
