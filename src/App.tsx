@@ -567,7 +567,7 @@ export function App() {
             <HaraCultureView />
           )}
 
-          {(currentTab === 'stasiun-kerja' || currentTab === 'operasional-sop') && (
+          {currentTab === 'stasiun-kerja' && (
             <StationWorkspaceView
               onOpenStationExam={(station) => {
                 setDirectExamParams({
@@ -578,6 +578,15 @@ export function App() {
                 setPublicMode('public_ujian');
                 window.location.hash = '#ujian';
               }}
+            />
+          )}
+
+          {currentTab === 'operasional-sop' && (
+            <PelatihanEvaluasiView
+              allowedSubTabs={['bank-sop', 'bank-soal']}
+              initialSubTab="bank-sop"
+              selectedOutletCode={selectedOutletCode}
+              onOpenAIAction={handleOpenAIAction}
             />
           )}
 

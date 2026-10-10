@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi isolasi ketat soal ujian per jobdesk (15-20 soal spesifik jobdesk + 10 soal umum SOP/Karakter/Visi Misi), pembaruan timer per sesi ujian (30 menit), dan pengembangan bank soal HOTS & Essay mendalam berbasis SOP baku Hara Chicken (termasuk SOP Nasi Goreng terbaru).",
-  "updatedAt":  "2026-10-09T03:17:20.227995983Z",
+  "summary":  "Blueprint komprehensif pembangunan ulang sistem ujian kru (keamanan anti-cheat, watermark, single attempt), sistem asesmen karakter terpadu 5 dimensi (SJT), integrasi 4 SOP R&D resmi terbaru (Mentai, Ayoli, Rendang, Nasi Goreng Rev 02), dan pemulihan katalog Bank SOP 4 jobdesk lengkap.",
+  "updatedAt":  "2026-10-10T05:10:47.441276231Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

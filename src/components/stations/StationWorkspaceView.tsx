@@ -99,7 +99,12 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
                   >
                     {div}
                   </span>
-                  {isSelected && <span className="w-2 h-2 rounded-full bg-[#8B1418] animate-pulse" />}
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-bold text-stone-500 font-mono bg-stone-100/80 px-1.5 py-0.5 rounded border border-stone-200/60">
+                      {allSops.filter((s: any) => s.divisi === div).length} SOP
+                    </span>
+                    {isSelected && <span className="w-2 h-2 rounded-full bg-[#8B1418] animate-pulse" />}
+                  </div>
                 </div>
 
                 <div>

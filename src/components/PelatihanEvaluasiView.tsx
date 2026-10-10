@@ -550,6 +550,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
+                    localStorage.removeItem('hara_pd_bank_sop_v4');
                     localStorage.removeItem('hara_pd_bank_sop_v3');
                     localStorage.removeItem('hara_pd_bank_sop_v2');
                     localStorage.removeItem('hara_pd_bank_sop');
@@ -561,7 +562,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                   title="Sinkronkan seluruh Bank SOP & Bank Soal ke edisi dokumen resmi CV. Ultima Rasa Indonesia"
                 >
                   <RefreshCw size={13} className="text-[#8C161B]" />
-                  <span>Sinkronkan 71 SOP Resmi</span>
+                  <span>Sinkronkan 75 SOP Resmi (4 Jobdesk)</span>
                 </button>
 
                 <button

@@ -31,7 +31,7 @@ const STORAGE_KEYS = {
   GAP_ANALYSIS: 'hara_pd_gap_analysis_v2',
   KARTU_KELUHAN: 'hara_pd_kartu_keluhan_v2',
   TALENT: 'hara_pd_talent_v2',
-  BANK_SOP: 'hara_pd_bank_sop_v3',
+  BANK_SOP: 'hara_pd_bank_sop_v4',
   BANK_SOAL: 'hara_pd_bank_soal_v2',
   PENILAIAN_TEORI: 'hara_pd_penilaian_teori_v2',
   PENILAIAN_PRAKTIK: 'hara_pd_penilaian_praktik_v2',
