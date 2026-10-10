@@ -181,12 +181,34 @@ export function setupFirestoreRealtimeSync(): () => void {
 
             if (docsData.length > 0) {
               const currentLocal = db.getTable<any>(colName);
+              let finalDocs = docsData;
+
+              // Safeguard: Ensure bank_sop never loses any jobdesk divisions (Kitchen, Kasir, Geprek, Helper)
+              if (colName === 'bank_sop') {
+                const missingDivsInRemote =
+                  !docsData.some((d) => d.divisi === 'Kasir') ||
+                  !docsData.some((d) => d.divisi === 'Geprek') ||
+                  !docsData.some((d) => d.divisi === 'Helper') ||
+                  !docsData.some((d) => d.divisi === 'Kitchen');
+
+                if (missingDivsInRemote && currentLocal.length > docsData.length) {
+                  const remoteIds = new Set(docsData.map((d) => d.id));
+                  const merged = [...docsData];
+                  currentLocal.forEach((loc) => {
+                    if (!remoteIds.has(loc.id)) {
+                      merged.push(loc);
+                    }
+                  });
+                  finalDocs = merged;
+                }
+              }
+
               // Only update if there is a substantive diff to prevent reactive re-render loops
               if (
-                docsData.length !== currentLocal.length ||
-                JSON.stringify(docsData.map((d) => d.id).sort()) !== JSON.stringify(currentLocal.map((d) => d.id).sort())
+                finalDocs.length !== currentLocal.length ||
+                JSON.stringify(finalDocs.map((d) => d.id).sort()) !== JSON.stringify(currentLocal.map((d) => d.id).sort())
               ) {
-                db.setDirect(colName, docsData);
+                db.setDirect(colName, finalDocs);
               }
             }
           }

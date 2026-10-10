@@ -35,8 +35,9 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
     (sop) =>
       (!sop.divisi || sop.divisi === selectedStation || sop.divisi === 'Semua') &&
       (!searchQuery ||
-        sop.judul_sop.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sop.kategori.toLowerCase().includes(searchQuery.toLowerCase()))
+        (sop.judul_sop && sop.judul_sop.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (sop.kategori && sop.kategori.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (sop.kode_sop && sop.kode_sop.toLowerCase().includes(searchQuery.toLowerCase())))
   );
 
   return (

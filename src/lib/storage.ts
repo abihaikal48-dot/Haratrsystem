@@ -31,7 +31,7 @@ const STORAGE_KEYS = {
   GAP_ANALYSIS: 'hara_pd_gap_analysis_v2',
   KARTU_KELUHAN: 'hara_pd_kartu_keluhan_v2',
   TALENT: 'hara_pd_talent_v2',
-  BANK_SOP: 'hara_pd_bank_sop_v4',
+  BANK_SOP: 'hara_pd_bank_sop_v5',
   BANK_SOAL: 'hara_pd_bank_soal_v2',
   PENILAIAN_TEORI: 'hara_pd_penilaian_teori_v2',
   PENILAIAN_PRAKTIK: 'hara_pd_penilaian_praktik_v2',
@@ -1389,7 +1389,17 @@ class StorageDatabase {
       } else if (autoUpgradeIfFewer && Array.isArray(defaultData)) {
         try {
           const parsed = JSON.parse(existing);
-          if (Array.isArray(parsed) && parsed.length < (defaultData as any[]).length) {
+          const defaultArr = defaultData as any[];
+          const isBankSop = key === STORAGE_KEYS.BANK_SOP;
+          const missingDivisions =
+            isBankSop &&
+            Array.isArray(parsed) &&
+            (!parsed.some((s: any) => s.divisi === 'Kasir') ||
+              !parsed.some((s: any) => s.divisi === 'Geprek') ||
+              !parsed.some((s: any) => s.divisi === 'Helper') ||
+              !parsed.some((s: any) => s.divisi === 'Kitchen'));
+
+          if (Array.isArray(parsed) && (parsed.length < defaultArr.length || missingDivisions)) {
             localStorage.setItem(key, JSON.stringify(defaultData));
           }
         } catch {
@@ -1505,7 +1515,20 @@ class StorageDatabase {
   // Generic CRUD Helper for tables
   public getTable<T>(tableName: string): T[] {
     const key = this.mapKey(tableName);
-    return this.get<T[]>(key, []);
+    const data = this.get<T[]>(key, []);
+    if (tableName === 'bank_sop') {
+      const arr = data as any[];
+      const missingDivisions =
+        !arr.some((s) => s.divisi === 'Kasir') ||
+        !arr.some((s) => s.divisi === 'Geprek') ||
+        !arr.some((s) => s.divisi === 'Helper') ||
+        !arr.some((s) => s.divisi === 'Kitchen');
+      if (arr.length < OFFICIAL_HARA_SOP_DATABASE.length || missingDivisions) {
+        this.set(key, OFFICIAL_HARA_SOP_DATABASE as any);
+        return OFFICIAL_HARA_SOP_DATABASE as any;
+      }
+    }
+    return data;
   }
 
   public setDirect(tableName: string, data: any[]): void {

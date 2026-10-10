@@ -550,6 +550,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => {
+                    localStorage.removeItem('hara_pd_bank_sop_v5');
                     localStorage.removeItem('hara_pd_bank_sop_v4');
                     localStorage.removeItem('hara_pd_bank_sop_v3');
                     localStorage.removeItem('hara_pd_bank_sop_v2');
@@ -562,7 +563,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                   title="Sinkronkan seluruh Bank SOP & Bank Soal ke edisi dokumen resmi CV. Ultima Rasa Indonesia"
                 >
                   <RefreshCw size={13} className="text-[#8C161B]" />
-                  <span>Sinkronkan 75 SOP Resmi (4 Jobdesk)</span>
+                  <span>Sinkronkan 82 SOP Resmi (4 Jobdesk)</span>
                 </button>
 
                 <button
@@ -573,6 +574,43 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                   <span>Tambah SOP</span>
                 </button>
               </div>
+            </div>
+
+            {/* Quick 4 Jobdesk Filter Tabs with Live SOP Counts */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-2 border-t border-slate-100">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+                Filter Jobdesk:
+              </span>
+              {[
+                { id: 'ALL', label: 'Semua Jobdesk', count: sopList.length, color: 'bg-slate-900 text-white' },
+                { id: 'Kitchen', label: 'Kitchen', count: sopList.filter((s) => s.divisi === 'Kitchen').length, color: 'bg-[#96171B] text-white' },
+                { id: 'Kasir', label: 'Kasir', count: sopList.filter((s) => s.divisi === 'Kasir').length, color: 'bg-emerald-700 text-white' },
+                { id: 'Geprek', label: 'Geprek', count: sopList.filter((s) => s.divisi === 'Geprek').length, color: 'bg-amber-700 text-white' },
+                { id: 'Helper', label: 'Helper', count: sopList.filter((s) => s.divisi === 'Helper').length, color: 'bg-blue-700 text-white' },
+              ].map((tab) => {
+                const isActive = filterDivision === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setFilterDivision(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                      isActive
+                        ? `${tab.color} shadow-sm ring-2 ring-slate-400/30`
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold ${
+                        isActive ? 'bg-white/20 text-white' : 'bg-white text-slate-700 border border-slate-200'
+                      }`}
+                    >
+                      {tab.count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Official SOP Manual Info Header */}
