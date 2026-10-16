@@ -76,14 +76,22 @@ function geminiApiDevPlugin(): Plugin {
           return next();
         }
 
-        const ai = new GoogleGenAI({
-          apiKey: process.env.GEMINI_API_KEY,
-          httpOptions: {
-            headers: {
-              'User-Agent': 'aistudio-build',
-            },
-          },
-        });
+        const apiKey = process.env.GEMINI_API_KEY;
+        let ai: GoogleGenAI | null = null;
+        if (apiKey) {
+          try {
+            ai = new GoogleGenAI({
+              apiKey,
+              httpOptions: {
+                headers: {
+                  'User-Agent': 'aistudio-build',
+                },
+              },
+            });
+          } catch (e) {
+            console.warn('Could not initialize GoogleGenAI client:', e);
+          }
+        }
 
         // Read request body
         const chunks: Buffer[] = [];
@@ -116,25 +124,27 @@ Tugas Anda:
                 : prompt;
 
               let generatedText = '';
-              const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash'];
+              if (ai) {
+                const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash'];
 
-              for (const model of modelsToTry) {
-                try {
-                  const response = await ai.models.generateContent({
-                    model,
-                    contents,
-                    config: {
-                      systemInstruction,
-                      temperature: 0.7,
-                    },
-                  });
+                for (const model of modelsToTry) {
+                  try {
+                    const response = await ai.models.generateContent({
+                      model,
+                      contents,
+                      config: {
+                        systemInstruction,
+                        temperature: 0.7,
+                      },
+                    });
 
-                  if (response && response.text) {
-                    generatedText = response.text;
-                    break;
+                    if (response && response.text) {
+                      generatedText = response.text;
+                      break;
+                    }
+                  } catch (mErr: any) {
+                    console.warn(`Dev model ${model} unavailable (status ${mErr?.status || mErr?.code || 'unknown'}). Trying next fallback...`);
                   }
-                } catch (mErr: any) {
-                  console.warn(`Dev model ${model} unavailable (status ${mErr?.status || mErr?.code || 'unknown'}). Trying next fallback...`);
                 }
               }
 
@@ -173,24 +183,26 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
 }`;
 
               let resultObj: any = null;
-              const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash'];
+              if (ai) {
+                const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash'];
 
-              for (const model of modelsToTry) {
-                try {
-                  const response = await ai.models.generateContent({
-                    model,
-                    contents: prompt,
-                    config: {
-                      responseMimeType: 'application/json',
-                    },
-                  });
+                for (const model of modelsToTry) {
+                  try {
+                    const response = await ai.models.generateContent({
+                      model,
+                      contents: prompt,
+                      config: {
+                        responseMimeType: 'application/json',
+                      },
+                    });
 
-                  if (response.text) {
-                    resultObj = JSON.parse(response.text);
-                    break;
+                    if (response.text) {
+                      resultObj = JSON.parse(response.text);
+                      break;
+                    }
+                  } catch (mErr: any) {
+                    console.warn(`Dev model ${model} training plan unavailable (status ${mErr?.status || mErr?.code || 'unknown'}). Trying next fallback...`);
                   }
-                } catch (mErr: any) {
-                  console.warn(`Dev model ${model} training plan unavailable (status ${mErr?.status || mErr?.code || 'unknown'}). Trying next fallback...`);
                 }
               }
 
@@ -199,7 +211,7 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
                 res.end(JSON.stringify(resultObj));
                 return;
               }
-              throw new Error('Empty response');
+              throw new Error('Fallback needed');
             } catch (err: any) {
               console.error('Dev Server Gemini Training Plan Error:', err);
               res.statusCode = 200;
@@ -239,9 +251,17 @@ export default defineConfig(() => {
       },
     },
     server: {
+      port: 3000,
+      host: '0.0.0.0',
+      allowedHosts: true as const,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
+    },
+    preview: {
+      port: 3000,
+      host: '0.0.0.0',
+      allowedHosts: true as const,
     },
   };
 });

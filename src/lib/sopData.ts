@@ -593,23 +593,23 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
   // ==========================================
   {
     id: 'sop-help-01',
-    kode_sop: 'HC-SOP-HLP-01',
+    kode_sop: 'HC-SOP-11-PKP',
     kategori: 'Sanitasi & Kebersihan',
     divisi: 'Helper',
-    judul_sop: 'Jenis Lap & Fungsi',
-    tujuan: 'Menstandarkan peruntukan 4 jenis lap kain outlet untuk mencegah kontaminasi silang.',
+    judul_sop: 'Standar 4 Jenis Lap Pembersih Outlet Resmi HARA Chicken',
+    tujuan: 'Menstandarkan peruntukan 4 jenis lap pembersih outlet resmi untuk mencegah kontaminasi silang dan menjaga higienitas mutlak standar QSR.',
     langkah: [
-      'Pahami 4 jenis lap dan fungsinya:',
-      '  1. Lap Piring (Kanebo): Khusus untuk mengeringkan piring, mangkok, dan gelas bersih.',
-      '  2. Lap Meja (Orange): Lap kain kering yang digunakan bersama cairan pembersih kaca untuk meja makan, kursi, dan kaca.',
-      '  3. Lap Basah (Kotak-kotak): Lap kain dibasahi dan diperas untuk meja dapur, meja geprek, meja minuman, dan menguras deep fryer.',
-      '  4. Lap Tangan (Kotak-kotak Kering): Khusus mengeringkan tangan kru saat proses dusting/penepungan ayam.',
-      'Setiap pergantian shift, cuci semua lap menggunakan air deterjen panas, bilas bersih, peras, dan jemur hingga kering.'
+      'Pahami dan disiplin menggunakan 4 jenis lap resmi HARA Chicken:',
+      '  1. Lap Piring (Kanebo): Khusus mengelap piring makan, mangkok, dan gelas bersih. Wajib selalu higienis dan bersih.',
+      '  2. Lap Meja (Orange): Lap kain kering digunakan bersama cairan pembersih kaca untuk mengelap kaca, meja makan, dan kursi pelanggan.',
+      '  3. Lap Basah (Kotak-kotak): Lap kain dibasahi dan diperas untuk membersihkan meja geprek, meja dapur, meja minuman, peralatan, dan alat bantu menguras minyak deep fryer.',
+      '  4. Lap Tangan (Kotak-kotak Kering): Khusus mengeringkan tangan kru pada saat proses dusting (penepungan ayam).',
+      'Setiap pergantian shift, cuci semua lap menggunakan air deterjen panas, bilas bersih, peras, dan jemur hingga kering terpisah.'
     ],
-    poin_kritis: 'Dilarang mencampur lap meja makan dengan lap meja geprek/dapur. Kanebo hanya boleh untuk alat makan.',
-    standar_waktu: 'Kontrol Harian Shift',
-    alat_bahan: 'Kanebo, Lap Orange, Lap Kotak Basah, Lap Kotak Kering, Deterjen',
-    sumber: 'Dokumen SOP Hara Chicken - Kebersihan Lap',
+    poin_kritis: 'Dilarang keras mencampur lap meja dengan lap meja dapur/geprek. Kanebo khusus piring makan. Lap tangan kotak-kotak kering khusus penepungan ayam.',
+    standar_waktu: 'Kontrol Harian Tiap Shift',
+    alat_bahan: '1. Lap Piring (Kanebo), 2. Lap Meja (Orange), 3. Lap Basah (Kotak-kotak), 4. Lap Tangan (Kotak-kotak Kering), Deterjen',
+    sumber: 'Dokumen SOP Resmi HARA Chicken - HC-SOP-11-PKP Hal. 16',
     status_aktif: 'Aktif',
     created_at: '2026-01-01T08:00:00.000Z',
   },
@@ -1335,7 +1335,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
     judul_sop: 'Packing Nasgor & Indomie',
     tujuan: 'Menstandarkan pembungkusan take away dan penyajian dine in untuk menu Nasi Goreng & Indomie Geprek.',
     langkah: [
-      'Nasi Goreng Take Away: Masukkan ke box besar dengan alas 1 lembar kertas nasi utuh, letakkan telur di atas nasi goreng, tambahkan timun 2 slice di samping jika pesan geprek (nasi goreng telur polos tanpa timun), letakkan sendok di atas kertas nasi.',
+      'Nasi Goreng Take Away: Masukkan ke box besar dengan alas 1 lembar kertas nasi utuh, letakkan telur dadar di atas nasi goreng, wajib berikan 2 slice timun segar di samping untuk setiap pembelian nasi goreng (baik nasgor telur maupun nasgor ayam geprek), letakkan sendok di atas kertas nasi.',
       'Indomie Geprek Take Away: Masukkan ke box besar beralas 1 lembar kertas nasi utuh, tata mie dan ayam geprek bersebelahan, beri 2 slice timun di atas ayam geprek, tutup dengan kertas nasi lalu letakkan sendok di atasnya.',
       'Dine In: Sajikan di piring besar dine in dengan penataan bersebelahan rapi.'
     ],

@@ -115,7 +115,7 @@ export const MasterCrewIntegratedDossier: React.FC<MasterCrewIntegratedDossierPr
 
   const [strengthsList, setStrengthsList] = useState<string[]>([
     `Penguasaan standar teknis operasional Divisi ${crew.divisi} (Skor Praktik: ${scorePraktik}/100)`,
-    'Kedisiplinan kehadiran, sanitasi diri, dan penerapan etika RESPECT di area kerja',
+    'Kedisiplinan kehadiran, sanitasi diri, dan penerapan nilai Budaya H.A.R.A di area kerja',
     'Responsif terhadap arahan kerja dan memiliki inisiatif membantu stasiun kerja lain saat padat',
   ]);
 
@@ -290,7 +290,7 @@ _Dokumen Resmi Terverifikasi Sistem HARA CHICKEN TRAINER PRO_`;
     doc.setFontSize(8);
     doc.setTextColor(50, 50, 50);
     pastActions.forEach((act) => {
-      doc.text(`• ${act}`, 16, currentY);
+      doc.text(`- ${act}`, 16, currentY);
       currentY += 4.5;
     });
 

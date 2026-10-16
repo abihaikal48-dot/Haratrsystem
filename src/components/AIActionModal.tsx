@@ -133,19 +133,19 @@ export const AIActionModal: React.FC<AIActionModalProps> = ({
       onClose();
     } else if (data.type === 'gap_solution' && result.text) {
       db.updateRow('gap_analysis', data.row.id, {
-        rekomendasi: result.text.slice(0, 500),
+        rekomendasi: result.text,
       });
       onSuccess('Rekomendasi solusi berhasil diperbarui pada entri Gap Analysis!');
       onClose();
     } else if (data.type === 'keluhan_action' && result.text) {
       db.updateRow('kartu_keluhan', data.row.id, {
-        tindak_lanjut_training: result.text.slice(0, 500),
+        tindak_lanjut_training: result.text,
       });
       onSuccess('Tindak lanjut pelatihan berhasil disimpan pada Kartu Keluhan!');
       onClose();
     } else if (data.type === 'observasi_followup' && result.text) {
       db.updateRow('observasi_lapangan', data.row.id, {
-        rencana_follow_up: result.text.slice(0, 500),
+        rencana_follow_up: result.text,
       });
       onSuccess('Rencana follow-up berhasil disimpan pada Observasi Lapangan!');
       onClose();
@@ -230,8 +230,8 @@ export const AIActionModal: React.FC<AIActionModalProps> = ({
         <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-4">
           {loading ? (
             <div className="py-12 flex flex-col items-center justify-center gap-3 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-[#D9A027] shadow-sm animate-bounce">
-                <Sparkles size={24} />
+              <div className="w-12 h-12 rounded-2xl bg-[#FAF8F5] border border-[#E6E1DA] flex items-center justify-center text-[#96171B] shadow-sm transition-all duration-300">
+                <Sparkles size={22} className="animate-pulse" />
               </div>
               <div>
                 <h4 className="font-extrabold text-sm text-slate-800">

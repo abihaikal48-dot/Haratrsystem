@@ -44,10 +44,10 @@ export const CrewRadarChart: React.FC<CrewRadarChartProps> = ({
         benchmark: a.benchmark || 80,
       }))
     : [
-        { name: 'Teori SOP', score: Math.min(100, Math.max(0, teoriScore)), weight: 25, benchmark: 80 },
-        { name: 'Praktik & Suhu', score: Math.min(100, Math.max(0, praktikScore)), weight: 35, benchmark: 85 },
-        { name: 'Uji Lisan HACCP', score: Math.min(100, Math.max(0, lisanScore)), weight: 20, benchmark: 75 },
-        { name: 'Audit Visi H.A.R.A', score: Math.min(100, Math.max(0, observasiScore)), weight: 20, benchmark: 80 },
+        { name: 'Teori SOP (25%)', score: Math.min(100, Math.max(0, teoriScore)), weight: 25, benchmark: 80 },
+        { name: 'Praktik & SOS (35%)', score: Math.min(100, Math.max(0, praktikScore)), weight: 35, benchmark: 85 },
+        { name: 'Lisan & HACCP (20%)', score: Math.min(100, Math.max(0, lisanScore)), weight: 20, benchmark: 75 },
+        { name: 'Observasi & Budaya (20%)', score: Math.min(100, Math.max(0, observasiScore)), weight: 20, benchmark: 80 },
       ];
 
   const totalPillars = pillars.length;

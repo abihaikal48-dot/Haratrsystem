@@ -181,7 +181,7 @@ Rata-rata Skor: ${formData.skor_rata_rata ?? 85} / 100
 ==================================================
 ${formData.daftar_trainee.map((t, idx) => `[${idx + 1}] ${t.nama_kru} | Jabatan: ${t.jabatan || 'Crew'} | Divisi: ${t.divisi}
     - SOP Fokus: ${t.sop_fokus}
-    - Matriks 4 Pilar: Teori ${t.skor_teori ?? 85} | Praktik ${t.skor_praktik ?? 88} | RESPECT ${t.skor_attitude ?? 90} | Ketahanan ${t.skor_ketahanan ?? 85}
+    - Matriks 4 Pilar: Teori ${t.skor_teori ?? 85} | Praktik ${t.skor_praktik ?? 88} | Budaya HARA ${t.skor_attitude ?? 90} | Ketahanan ${t.skor_ketahanan ?? 85}
     - Skor Komposit: ${t.skor_akhir ?? '-'}/100 (${t.status_ojt})
     - Akar Masalah: ${t.akar_masalah || '-'}
     - Bukti Observasi: ${t.bukti_observasi || '-'}
@@ -217,7 +217,7 @@ Tanggal Terbit: ${formData.periode_akhir}`;
   const handleExportCSV = () => {
     const headers = [
       'No', 'Nama Kru', 'Jabatan', 'Divisi', 'SOP Fokus', 'Skor Teori (25%)', 'Skor Praktik (35%)',
-      'Skor RESPECT (25%)', 'Skor Ketahanan (15%)', 'Skor Akhir Komposit', 'Status OJT',
+      'Skor Budaya H.A.R.A (25%)', 'Skor Ketahanan (15%)', 'Skor Akhir Komposit', 'Status OJT',
       'Akar Masalah', 'Bukti Observasi Lapangan', 'Justifikasi Kelulusan', 'Catatan Diagnostik'
     ];
     const rows = formData.daftar_trainee.map((t, i) => [
@@ -847,7 +847,7 @@ Tanggal Terbit: ${formData.periode_akhir}`;
                           />
                         </div>
                         <div>
-                          <label className="text-[9.5px] font-bold text-emerald-700 block mb-0.5">RESPECT (25%)</label>
+                          <label className="text-[9.5px] font-bold text-emerald-700 block mb-0.5">Budaya HARA (25%)</label>
                           <input
                             type="number"
                             value={tr.skor_attitude ?? 90}

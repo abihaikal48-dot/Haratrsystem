@@ -5,7 +5,7 @@ import {
   Scale, ShieldAlert, Sparkles, Check, X, Flame, ArrowUpRight
 } from 'lucide-react';
 import { db } from '../lib/storage';
-import { Kru, BankSOP, PenilaianPraktik } from '../types';
+import { Kru, BankSOP, PenilaianPraktik, Division } from '../types';
 
 export const PenilaianPraktikView: React.FC<{ selectedOutletCode: string }> = ({ selectedOutletCode }) => {
   const [kruList, setKruList] = useState<Kru[]>([]);
@@ -145,9 +145,14 @@ export const PenilaianPraktikView: React.FC<{ selectedOutletCode: string }> = ({
     setSubmitted(true);
     setStopwatchRunning(false);
 
+    const kruObj = kruList.find((k) => k.nama_kru === selectedKru);
+    const resolvedOutletCode = kruObj?.kode_outlet || (selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-JTS01');
+
     db.insertRow<PenilaianPraktik>('penilaian_praktik', {
       tanggal: new Date().toISOString(),
       nama_kru: selectedKru,
+      kru_id: kruObj?.id,
+      kode_outlet: resolvedOutletCode,
       sop_terkait: currentSop.judul_sop,
       detail_skor_langkah: scoresArray,
       waktu_detik: stopwatchSeconds || targetSeconds,
@@ -157,6 +162,19 @@ export const PenilaianPraktikView: React.FC<{ selectedOutletCode: string }> = ({
       skor_akhir: finalPercent,
       catatan: catatan || `Uji Praktik SOS: Waktu ${formatTime(stopwatchSeconds || targetSeconds)} (Target ${formatTime(targetSeconds)}), Suhu ${actualTemp}°C. Skor: ${finalPercent}/100`,
     });
+
+    if (finalPercent < 75) {
+      db.triggerAutoRemedialAndTNA({
+        kru_id: kruObj?.id,
+        nama_kru: selectedKru,
+        kode_outlet: resolvedOutletCode,
+        divisi: (currentSop?.divisi as Division) || 'Kitchen',
+        skor: finalPercent,
+        topikSalah: [currentSop.judul_sop],
+        sumberTemuan: `Uji Praktik SOS Lapangan (SOP ${currentSop.kode_sop} - Skor ${finalPercent}/100)`,
+        catatan: `Praktik di bawah KKM 75. Catatan: ${catatan || 'Perlu bimbingan langkah teknis'}`,
+      });
+    }
   };
 
   const resetForm = () => {

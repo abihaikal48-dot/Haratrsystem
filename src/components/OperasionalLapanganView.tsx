@@ -300,6 +300,73 @@ export const OperasionalLapanganView: React.FC<OperasionalLapanganViewProps> = (
     loadData();
   };
 
+  // Eskalasi Observasi Lapangan Kritis / Perlu Perbaikan ke TNA & Coaching
+  const handleEscalateObservasiToTNAAndCoaching = (obs: ObservasiLapangan) => {
+    const tnaCreated = db.insertRow<TNA>('tna', {
+      tanggal: new Date().toISOString().slice(0, 10),
+      kode_outlet: obs.kode_outlet,
+      divisi: obs.divisi,
+      sumber_temuan: `Observasi Lapangan (${obs.hasil}): ${obs.standar_sop_diamati}`,
+      deskripsi_gap: `Temuan kru ${obs.nama_kru}: ${obs.catatan_detail || obs.standar_sop_diamati}`,
+      jenis_gap: obs.hasil === 'Kritis' ? 'Keterampilan' : 'Sikap/Konsistensi',
+      prioritas: obs.hasil === 'Kritis' ? 'Tinggi' : 'Sedang',
+      rencana_tindak_lanjut: `Pendampingan intensif & coaching GROW stasiun ${obs.divisi}. ${obs.rencana_follow_up ? `Follow up: ${obs.rencana_follow_up}` : ''}`,
+      status: 'Belum',
+    });
+
+    db.insertRow<CoachingLog>('coaching_log', {
+      tanggal: new Date().toISOString().slice(0, 10),
+      kode_outlet: obs.kode_outlet,
+      nama_kru: obs.nama_kru,
+      goal: `Standarisasi kepatuhan 100% pada ${obs.standar_sop_diamati}`,
+      reality: `Observasi berstatus "${obs.hasil}": ${obs.catatan_detail || 'Deviasi langkah kerja'}`,
+      options: `1) Bimbingan teknis langsung saat shift; 2) Uji pemahaman SOP; 3) Monitoring 3 hari berturut-turut`,
+      will: `Kru ${obs.nama_kru} berkomitmen menjalankan SOP secara konsisten mulai shift berikutnya`,
+      hasil_follow_up: 'Dieskalasi dari Observasi Lapangan',
+    });
+
+    showToast(`Observasi kru ${obs.nama_kru} berhasil dieskalasi ke TNA & Coaching!`);
+    loadData();
+    onOpenAIAction('tna_to_training', tnaCreated, `Rencana Pelatihan AI: ${obs.nama_kru} (${obs.standar_sop_diamati})`);
+  };
+
+  // Eskalasi Kartu Keluhan ke TNA & Coaching
+  const handleEscalateKeluhanToTNAAndCoaching = (kel: KartuKeluhan) => {
+    const tnaCreated = db.insertRow<TNA>('tna', {
+      tanggal: new Date().toISOString().slice(0, 10),
+      kode_outlet: kel.kode_outlet,
+      divisi: (kel.tipe as any) === 'Rasa' || (kel.tipe as any) === 'Kematangan' ? 'Kitchen' : (kel.tipe as any) === 'Kasir' ? 'Kasir' : 'Helper',
+      sumber_temuan: `Kartu Keluhan Pelanggan: Kategori ${kel.tipe}`,
+      deskripsi_gap: `Komplain pelanggan: "${kel.deskripsi_keluhan}". Kru terkait: ${kel.nama_kru_terkait || 'Tim Shift'}`,
+      jenis_gap: (kel.tipe as any) === 'Rasa' || (kel.tipe as any) === 'Kematangan' ? 'Keterampilan' : 'Pengetahuan',
+      prioritas: 'Tinggi',
+      rencana_tindak_lanjut: `Retraining SOP pencegahan komplain: ${kel.tindak_lanjut_training || kel.tindakan_diambil}`,
+      status: 'Proses',
+    });
+
+    if (kel.nama_kru_terkait) {
+      db.insertRow<CoachingLog>('coaching_log', {
+        tanggal: new Date().toISOString().slice(0, 10),
+        kode_outlet: kel.kode_outlet,
+        nama_kru: kel.nama_kru_terkait,
+        goal: `Zero complaint pada stasiun kerja terkait keluhan "${kel.tipe}"`,
+        reality: `Terdapat komplain pelanggan: ${kel.deskripsi_keluhan}`,
+        options: `1) Refresh SOP penanganan keluhan; 2) Kalibrasi alat dan rasa; 3) Service recovery`,
+        will: `Kru menindaklanjuti prosedur korektif agar komplain tidak berulang`,
+        hasil_follow_up: 'Dieskalasi dari Tiket Keluhan Pelanggan',
+      });
+    }
+
+    db.updateRow('kartu_keluhan', kel.id, {
+      status: 'Eskalasi',
+      tindak_lanjut_training: kel.tindak_lanjut_training || `Dieskalasi ke TNA & Program Coaching Pelatihan`,
+    });
+
+    showToast(`Keluhan kategori ${kel.tipe} berhasil dieskalasi ke TNA & Coaching!`);
+    loadData();
+    onOpenAIAction('keluhan_action', kel, `Solusi Training AI Keluhan: ${kel.tipe}`);
+  };
+
   // Sub Tab Navigation Items
   const TABS_CONFIG = [
     {
@@ -590,6 +657,19 @@ export const OperasionalLapanganView: React.FC<OperasionalLapanganViewProps> = (
                         <div className="text-[10.5px] text-slate-500 flex items-start gap-1">
                           <CornerDownRight size={12} className="text-slate-400 shrink-0 mt-0.5" />
                           <span className="italic">Follow up: {obs.rencana_follow_up}</span>
+                        </div>
+                      )}
+
+                      {(obs.hasil === 'Perlu Perbaikan' || obs.hasil === 'Kritis') && (
+                        <div className="pt-1.5">
+                          <button
+                            type="button"
+                            onClick={() => handleEscalateObservasiToTNAAndCoaching(obs)}
+                            className="w-full py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-[#96171B] border border-amber-300 rounded-lg text-[10.5px] font-bold flex items-center justify-center gap-1.5 cursor-pointer transition-all active:scale-98 shadow-xs"
+                          >
+                            <TrendingUp size={12} className="text-[#96171B]" />
+                            <span>Eskalasi ke TNA & Coaching</span>
+                          </button>
                         </div>
                       )}
                     </div>
@@ -1154,6 +1234,21 @@ export const OperasionalLapanganView: React.FC<OperasionalLapanganViewProps> = (
                         {kel.tindak_lanjut_training || 'Belum ditentukan.'}
                       </p>
                     </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                    <span className="text-[11px] text-slate-400">
+                      ID: <span className="font-mono">{kel.id}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleEscalateKeluhanToTNAAndCoaching(kel)}
+                      className="px-2.5 py-1 bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-300 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all active:scale-95"
+                      title="Eskalasi keluhan ini ke modul TNA & Coaching GROW"
+                    >
+                      <TrendingUp size={13} className="text-[#96171B]" />
+                      <span>Eskalasi ke TNA & Coaching</span>
+                    </button>
                   </div>
                 </div>
               ))}

@@ -36,7 +36,7 @@ Tugas Anda:
     ? `[DATA OPERASIONAL HARA CHICKEN]\n${contextData}\n\n[PERMINTAAN USER]\n${prompt}`
     : prompt;
 
-  const modelsToTry = ['gemini-3.1-flash-lite', 'gemini-flash-latest', 'gemini-3.7-flash'];
+  const modelsToTry = ['gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-2.5-pro'];
 
   for (const model of modelsToTry) {
     try {
@@ -91,31 +91,33 @@ function generateDomainAdvisorFallback(prompt: string): string {
 **Analisis Temuan Kesenjangan:**
 * Teridentifikasi kebutuhan standardisasi proses kerja kru outlet untuk menjaga konsistensi rasa, higienitas, dan kecepatan pelayanan di jam operasional sibuk.
 
-**Struktur Kurikulum Rekomendasi:**
-1. **Pilar 1 - Standar SOP & Sanitasi (Teori 30%):**
-   * Pemahaman suhu penyimpanan bahan baku (chiller 0-4°C, freezer -18°C).
-   * Penanganan silang (cross-contamination) dan 5S area dapur.
-2. **Pilar 2 - Eksekusi Teknis & Gramasi (Praktik 40%):**
+**Struktur Kurikulum Rekomendasi 4 Pilar Terpadu:**
+1. **Pilar 1 — Uji Teori SOP & HOTS (20%):**
+   * Pemahaman suhu penyimpanan (chiller 0-4°C, freezer -18°C), HACCP, dan 5S area dapur.
+2. **Pilar 2 — Uji Praktik & Speed of Service / SOS (40%):**
    * Teknik penepungan 'fluffy-crisp' tanpa pemadatan berlebih.
-   * Kontrol suhu deep fryer 165°C-170°C dengan timer digital akurat.
-3. **Pilar 3 - Komunikasi & Hospitality (Lisan 30%):**
-   * Standar greeting 3S (Senyum, Salam, Sapa) dan teknik upselling menu bundling.
+   * Kontrol suhu deep fryer 160°C (kompor 175°C) selama 12 menit tepat, core temp >= 74°C, dan holding warmer maks 120 menit (60°C–70°C).
+   * Standarisasi gramatur Sambal Bawang 30 gram (#BeneranDiGeprek).
+3. **Pilar 3 — Uji Lisan & Nalar Kritis HACCP (15%):**
+   * Critical control point, respon krisis kontaminasi silang, dan "Why Behind SOP".
+4. **Pilar 4 — Sikap Budaya H.A.R.A (12 Perilaku Utama) & Psikometri SJT (25%):**
+   * Penerapan 12 Perilaku Utama resmi H.A.R.A (Halal, Amanah, Responsif, Adaptif) dan integritas closing kasir POS Rp 0.
 
 **Metrik Keberhasilan:**
-* Kenaikan skor post-test kru ≥ 85% dan penurunan kartu komplain pelanggan terkait kecepatan/kualitas menu di outlet terkait.`;
+* Kenaikan skor post-test kru ≥ 75% (Target Grade A ≥ 85) dan penurunan kartu komplain pelanggan terkait kecepatan/kualitas menu di outlet terkait.`;
   }
 
   return `### 🍗 Rekomendasi Trainer Operasional Hara Chicken
 
 Terkait topik **"${prompt}"**, berikut panduan operasional terstandarisasi untuk tim outlet:
 
-1. **Standarisasi Prosedur Kerja:**
-   * Pastikan setiap kru mematuhi lembar panduan SOP terkini yang telah disahkan divisi Training.
+1. **Standarisasi Prosedur Kerja Baku:**
+   * Pastikan setiap kru mematuhi lembar panduan SOP baku terkini: Deep Fryer 160°C selama 12 menit, Core Temp ≥ 74°C, Holding Warmer maks 120 menit (60-70°C), dan Sambal Bawang 30g.
    * Lakukan briefing 5 menit sebelum shift untuk mengonfirmasi pemahaman titik kendali kritis (CCP).
 
-2. **Evaluasi Berkala 3 Pilar:**
-   * Lakukan pengujian berkala melalui 3 pilar uji (Uji Teori, Uji Praktik Lapangan, dan Uji Lisan Prosedur).
-   * Kru dengan predikat Pemula wajib dijadwalkan retraining bersama Area Trainer.
+2. **Evaluasi Berkala 4 Pilar Terpadu:**
+   * Lakukan pengujian berkala melalui 4 pilar uji: Teori SOP (25%), Praktik SOS (35%), Lisan HACCP (20%), dan Observasi Budaya HARA (20%).
+   * Kru dengan skor < 75 otomatis dijadwalkan TNA dan bimbingan 1-on-1 bersama Area Trainer.
 
 3. **Tindak Lanjut Perbaikan Berkelanjutan:**
    * Catat setiap anomali ke dalam Modul Observasi Lapangan & TNA untuk pemetaan tren performa outlet secara menyeluruh.`;

@@ -6,7 +6,13 @@ export interface ProfilKarakterEvaluasi {
   fokus_pelanggan: number;
   disiplin_sop: number;
   kerjasama_tim: number;
+  inisiatif_kepemimpinan: number; // Dimensi 6: Self-leadership & Kesiapan Solo Shift
   skor_rata_rata: number;
+  archetype_name: string;
+  red_flag_detected: boolean;
+  red_flag_notes: string;
+  rekomendasi_stasiun: string;
+  panduan_bimbingan_sm: string;
   tipe_kepribadian_kerja: string;
   kesimpulan_trainer: string;
   rekomendasi_pendampingan: string;
@@ -30,6 +36,7 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
     fokus_pelanggan: { totalPoin: 0, maxPoin: 0 },
     disiplin_sop: { totalPoin: 0, maxPoin: 0 },
     kerjasama_tim: { totalPoin: 0, maxPoin: 0 },
+    inisiatif_kepemimpinan: { totalPoin: 0, maxPoin: 0 },
   };
 
   // 1. Soal dengan profil_trait eksplisit pada opsi
@@ -46,23 +53,26 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
     });
 
     dimsInSoal.forEach(dim => {
+      const targetDim = dim in dimensiSkor ? dim : 'inisiatif_kepemimpinan';
       const maxPoin = Math.max(...(soal.opsi?.filter(o => o.profil_trait?.dimensi === dim).map(o => o.profil_trait!.poin) || [5]));
-      dimensiSkor[dim].maxPoin += maxPoin;
+      dimensiSkor[targetDim].maxPoin += maxPoin;
       if (opsiTerpilih?.profil_trait && opsiTerpilih.profil_trait.dimensi === dim) {
-        dimensiSkor[dim].totalPoin += opsiTerpilih.profil_trait.poin;
+        dimensiSkor[targetDim].totalPoin += opsiTerpilih.profil_trait.poin;
       } else if (opsiTerpilih) {
-        dimensiSkor[dim].totalPoin += 3;
+        dimensiSkor[targetDim].totalPoin += 3;
       }
     });
   });
 
-  // 2. Pemetaan Soal Skenario Situasional 5 Dimensi Budaya HARA (UMUM 03, 05, 06, 08)
+  // 2. Pemetaan Soal Skenario Situasional 6 Dimensi Budaya HARA
   const mappingSituasional: Record<string, keyof typeof dimensiSkor> = {
     'UMUM-03': 'disiplin_sop',
     'UMUM-04': 'disiplin_sop',
     'UMUM-05': 'integritas',
     'UMUM-06': 'fokus_pelanggan',
     'UMUM-08': 'kerjasama_tim',
+    'UMUM-09': 'inisiatif_kepemimpinan',
+    'UMUM-10': 'ketahanan_stres',
   };
 
   Object.entries(mappingSituasional).forEach(([suffix, dim]) => {
@@ -85,25 +95,57 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
   const fokus_pelanggan = dimensiSkor.fokus_pelanggan.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.fokus_pelanggan.totalPoin / dimensiSkor.fokus_pelanggan.maxPoin) * 100)) : 86;
   const disiplin_sop = dimensiSkor.disiplin_sop.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.disiplin_sop.totalPoin / dimensiSkor.disiplin_sop.maxPoin) * 100)) : 90;
   const kerjasama_tim = dimensiSkor.kerjasama_tim.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.kerjasama_tim.totalPoin / dimensiSkor.kerjasama_tim.maxPoin) * 100)) : 85;
+  const inisiatif_kepemimpinan = dimensiSkor.inisiatif_kepemimpinan.maxPoin > 0 ? Math.min(100, Math.round((dimensiSkor.inisiatif_kepemimpinan.totalPoin / dimensiSkor.inisiatif_kepemimpinan.maxPoin) * 100)) : Math.round((integritas + kerjasama_tim) / 2);
 
-  const skor_rata_rata = Math.round((integritas + ketahanan_stres + fokus_pelanggan + disiplin_sop + kerjasama_tim) / 5);
+  const skor_rata_rata = Math.round((integritas + ketahanan_stres + fokus_pelanggan + disiplin_sop + kerjasama_tim + inisiatif_kepemimpinan) / 6);
 
-  let tipe_kepribadian_kerja = 'Prajurit Standar Mutu Berdedikasi';
+  // Red-Flag Evaluation
+  let red_flag_detected = false;
+  let red_flag_notes = '';
+  if (integritas < 70) {
+    red_flag_detected = true;
+    red_flag_notes = 'Peringatan Integritas: Skor kepatuhan kas/stok di bawah batas toleransi aman. Butuh audit laci kas & pengawasan ganda.';
+  } else if (disiplin_sop < 70) {
+    red_flag_detected = true;
+    red_flag_notes = 'Peringatan Disiplin SOP: Ditemukan potensi kompromi suhu fryer atau sanitasi tanpa supervisi.';
+  }
+
+  // Archetype & Station Placement
+  let archetype_name = 'Guardian of Standard (Jujur & Teliti)';
+  let tipe_kepribadian_kerja = 'Guardian of Standard (Jujur & Teliti)';
   let kesimpulan_trainer = 'Memiliki etos kerja seimbang, patuh pada arahan dasar SOP gerai.';
   let rekomendasi_pendampingan = 'Lanjutkan pendampingan shift rutin dengan evaluasi berkala.';
+  let rekomendasi_stasiun = 'Kitchen & Fryer (Kontrol Mutu & Suhu 160°C/175°C)';
+  let panduan_bimbingan_sm = 'Berikan checklist mandiri dan percayakan verifikasi suhu fryer serta pencatatan holding warmer.';
 
-  if (integritas >= 90 && disiplin_sop >= 88) {
-    tipe_kepribadian_kerja = 'Ksatria Amanah & Penjaga Standar Baku';
+  if (red_flag_detected) {
+    archetype_name = '⚠️ Red Flag: Risiko Kompromi Etika/SOP';
+    tipe_kepribadian_kerja = '⚠️ Red Flag: Risiko Kompromi Etika/SOP';
+    kesimpulan_trainer = red_flag_notes;
+    rekomendasi_pendampingan = 'Wajib didampingi buddy senior (double check), jangan ditugaskan sendirian di kasir atau penerimaan barang.';
+    rekomendasi_stasiun = 'Helper & Sanitasi (Didampingi Shift Leader)';
+    panduan_bimbingan_sm = 'Lakukan daily 1-on-1 coaching GROW, pantau selisih kas, dan tegakkan budaya Amanah H.A.R.A.';
+  } else if (integritas >= 90 && disiplin_sop >= 88) {
+    archetype_name = 'Guardian of Standard (Jujur & Teliti)';
+    tipe_kepribadian_kerja = 'Guardian of Standard (Jujur & Teliti)';
     kesimpulan_trainer = 'Sangat jujur, teguh pada regulasi kas & mutu, dan menolak kompromi jalan pintas.';
     rekomendasi_pendampingan = 'Sangat cocok dipercaya sebagai PIC Kasir Utama, penerimaan stok chiller, atau juru timbang bumbu.';
+    rekomendasi_stasiun = 'Kasir & POS ESB / Penimbangan Bumbu';
+    panduan_bimbingan_sm = 'Percayakan rekonsiliasi kas harian dan jadikan role model kepatuhan SOP bagi kru baru.';
   } else if (fokus_pelanggan >= 88 && ketahanan_stres >= 82) {
+    archetype_name = 'Service Champion (Duta Pelanggan)';
     tipe_kepribadian_kerja = 'Front-Liner Responsif & Duta Pelayanan';
-    kesimpulan_trainer = 'Ramah 5S tulus, tenang menghadapi komplain di jam sibuk, dan berorientasi pada kepuasan pelanggan.';
+    kesimpulan_trainer = 'Ramah 5S tulus, tenang menghadapi antrean jam sibuk, dan cepat menenangkan tamu.';
     rekomendasi_pendampingan = 'Sangat kuat ditempatkan di kasir depan, customer greetings, dan handling tamu dine-in/takeaway.';
-  } else if (kerjasama_tim >= 88 && ketahanan_stres >= 82) {
+    rekomendasi_stasiun = 'Front Counter & Layanan Kasir';
+    panduan_bimbingan_sm = 'Beri tanggung jawab memimpin service excellence briefing dan penanganan keluhan pertama.';
+  } else if (kerjasama_tim >= 88 && ketahanan_stres >= 85) {
+    archetype_name = 'High-Speed Executor (Kolaborator Tanggap)';
     tipe_kepribadian_kerja = 'Penggerak Tim & Kolaborator Lintas Stasiun';
-    kesimpulan_trainer = 'Memiliki kepekaan tim tinggi, proaktif membantu rekan stasiun lain saat antrean membludak.';
+    kesimpulan_trainer = 'Kecepatan tinggi, proaktif membantu rekan stasiun lain yang bottleneck saat rush hour.';
     rekomendasi_pendampingan = 'Potensial dipersiapkan sebagai calon Shift Leader atau Koordinator Station.';
+    rekomendasi_stasiun = 'Geprek & Sambal Bawang (Rush Hour Speed)';
+    panduan_bimbingan_sm = 'Arahkan untuk mengorkestrasi kecepatan sambal 30g cobek dan sinkronisasi antrean pesanan.';
   }
 
   return {
@@ -112,11 +154,35 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
     fokus_pelanggan,
     disiplin_sop,
     kerjasama_tim,
+    inisiatif_kepemimpinan,
     skor_rata_rata,
+    archetype_name,
+    red_flag_detected,
+    red_flag_notes,
+    rekomendasi_stasiun,
+    panduan_bimbingan_sm,
     tipe_kepribadian_kerja,
     kesimpulan_trainer,
     rekomendasi_pendampingan
   };
+}
+
+/**
+ * Cross-Validation Gap Detector:
+ * Membandingkan klaim skor tes psikologis kru saat ujian dengan skor observasi nyata Attitude H.A.R.A dari Trainer di lapangan
+ */
+export function hitungCrossValidationStatus(
+  skorPsikometri: number,
+  skorAttitudeLapangan: number
+): 'Konsisten Unggul' | 'Rendah Hati / Eksekutor Lapangan' | '⚠️ Anomali Fake-Good (Skor Tes Psikologi Tinggi tapi Attitude Harian Rendah)' {
+  const gap = skorPsikometri - skorAttitudeLapangan;
+  if (gap > 18 && skorAttitudeLapangan < 75) {
+    return '⚠️ Anomali Fake-Good (Skor Tes Psikologi Tinggi tapi Attitude Harian Rendah)';
+  }
+  if (skorAttitudeLapangan >= 85 && skorPsikometri < 80) {
+    return 'Rendah Hati / Eksekutor Lapangan';
+  }
+  return 'Konsisten Unggul';
 }
 
 export function hitungAnalisisPilar(
@@ -275,6 +341,7 @@ export const INITIAL_HASIL_UJIAN_MINGGUAN: HasilUjianKruMingguan[] = [
       fokus_pelanggan: 90,
       disiplin_sop: 98,
       kerjasama_tim: 95,
+      inisiatif_kepemimpinan: 92,
       tipe_kepribadian_kerja: 'Ksatria Amanah & Penjaga Standar Baku',
       kesimpulan_trainer: 'Sangat jujur, teguh pada regulasi mutu, dan tidak mudah berkompromi terhadap kecurangan atau jalan pintas.',
       rekomendasi_pendampingan: 'Sangat cocok diproyeksikan sebagai Kasir Utama atau Person In Charge (PIC) inventori kas kecil.',
@@ -320,6 +387,7 @@ export const INITIAL_HASIL_UJIAN_MINGGUAN: HasilUjianKruMingguan[] = [
       fokus_pelanggan: 98,
       disiplin_sop: 96,
       kerjasama_tim: 92,
+      inisiatif_kepemimpinan: 90,
       tipe_kepribadian_kerja: 'Front-Liner Responsif & Duta Pelayanan',
       kesimpulan_trainer: 'Memahami 13 kategori beban SOP/FAT/44 di POS ESB secara presisi dan ramah 5S.',
       rekomendasi_pendampingan: 'Siap mandiri penuh (Solo Shift) pada stasiun kasir & pencatatan biaya kas.',
@@ -365,6 +433,7 @@ export const INITIAL_HASIL_UJIAN_MINGGUAN: HasilUjianKruMingguan[] = [
       fokus_pelanggan: 88,
       disiplin_sop: 92,
       kerjasama_tim: 95,
+      inisiatif_kepemimpinan: 86,
       tipe_kepribadian_kerja: 'Penggerak Tim & Kolaborator Lintas Stasiun',
       kesimpulan_trainer: 'Memiliki kepekaan tim tinggi, proaktif membantu stasiun yang kewalahan tanpa menunggu instruksi.',
       rekomendasi_pendampingan: 'Potensial dikembangkan menjadi Shift Leader Trainee dalam bimbingan operasional.',
@@ -2471,31 +2540,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Semua",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Budaya HARA - Empat Pilar Nilai Perusahaan",
+    "topik": "Budaya HARA - Akronim Harapan Rakyat, Tagline #BeneranDiGeprek & 4 Pilar Nilai",
     "pilar_kompetensi": "visi_misi_hara",
     "tingkat_kesulitan": "Mudah",
     "kode_sop": "HARA-CULTURE-01",
-    "pertanyaan": "Apa kepanjangan dari akronim Budaya H.A.R.A yang menjadi pedoman perilaku seluruh kru outlet?",
+    "pertanyaan": "Apa arti akronim nama 'HARA', tagline resmi, dan 4 pilar nilai budaya kerja HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Hebat, Asyik, Rajin, Andal"
+        "teks": "HARA adalah 'Harapan Rakyat' dengan tagline #BeneranDiGeprek, berlandaskan nilai HALAL, AMANAH, RESPONSIF, dan ADAPTIF."
       },
       {
         "label": "B",
-        "teks": "Halal-Higienis, Amanah, Responsif, Adaptif"
+        "teks": "HARA adalah 'Harga Murah' dengan tagline #PalingMurah, berlandaskan nilai Hemat, Akurat, Rajin, Andal."
       },
       {
         "label": "C",
-        "teks": "Hemat, Akurat, Ramah, Aktif"
+        "teks": "HARA adalah 'Hari Raya' dengan tagline #AyamKrispi, berlandaskan nilai Hebat, Asyik, Ramah, Aman."
       },
       {
         "label": "D",
-        "teks": "Hangat, Asri, Rapi, Aman"
+        "teks": "HARA adalah 'Hadir Rasa' dengan tagline #AyamKremes, berlandaskan nilai Hangat, Asri, Rapi, Aktif."
       }
     ],
-    "jawaban_benar": "B",
-    "pembahasan_sop": "Budaya HARA: Halal-Higienis (standar mutu makanan), Amanah (jujur & integritas), Responsif (sigap melayani), Adaptif (siap belajar berkembang).",
+    "jawaban_benar": "A",
+    "pembahasan_sop": "Hara adalah akronim dari 'Harapan Rakyat' sebagai pelopor geprek modern dengan tagline #BeneranDiGeprek. 4 Nilai Utama H.A.R.A: HALAL (Bekerja Halal), AMANAH (Bertindak Amanah), RESPONSIF (Bergerak Responsif), dan ADAPTIF (Berkembang Adaptif) yang mencakup 12 Perilaku Utama.",
     "bobot": 4
   },
   {
@@ -2504,31 +2573,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Semua",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Visi Perusahaan - Program Keunggulan Hara Extra",
+    "topik": "Visi Resmi Perusahaan HARA Chicken",
     "pilar_kompetensi": "visi_misi_hara",
     "tingkat_kesulitan": "Mudah",
     "kode_sop": "HARA-VISION-01",
-    "pertanyaan": "Apa keunggulan fasilitas \"Hara Extra\" yang dipersembahkan kepada pelanggan saat makan di tempat (Dine In)?",
+    "pertanyaan": "Manakah rumusan Visi resmi terbaru HARA Chicken yang menjadi cita-cita bersama seluruh insan perusahaan?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Free refill nasi, es teh manis, dan sup kaldu sepuasnya tanpa biaya tambahan."
+        "teks": "Menjadi Pelopor Ayam Geprek Tradisional Berkelas Nasional yang dikelola secara Modern dan Profesional dengan Cita Rasa Autentik, Kualitas Terjamin dan Pelayanan Terbaik."
       },
       {
         "label": "B",
-        "teks": "Gratis makan ayam utuh tanpa membayar."
+        "teks": "Menjadi jaringan warung makan kaki lima termurah di seluruh kabupaten dengan mengutamakan omset harian semata."
       },
       {
         "label": "C",
-        "teks": "Diskon 99% setiap hari."
+        "teks": "Menjadi restoran cepat saji franchise asing tanpa menyajikan menu tradisional lokal."
       },
       {
         "label": "D",
-        "teks": "Mendapatkan uang saku tunai dari kasir."
+        "teks": "Membuka 1.000 cabang dalam satu bulan tanpa memperhatikan standar higienitas dan kepuasan pelanggan."
       }
     ],
     "jawaban_benar": "A",
-    "pembahasan_sop": "Hara Extra memberikan pengalaman makan mengenyangkan dan bahagia dengan free refill nasi, es teh, dan sup kaldu hangat.",
+    "pembahasan_sop": "Visi Resmi HARA: 'Menjadi Pelopor Ayam Geprek Tradisional Berkelas Nasional yang dikelola secara Modern dan Profesional dengan Cita Rasa Autentik, Kualitas Terjamin dan Pelayanan Terbaik.'",
     "bobot": 4
   },
   {

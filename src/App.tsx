@@ -32,6 +32,7 @@ import { StationWorkspaceView } from './components/stations/StationWorkspaceView
 import { AnalitikRadarView } from './components/analytics/AnalitikRadarView';
 import { LaporanDiagnostikView } from './components/reports/LaporanDiagnostikView';
 import { UnifiedLaporanEksekutifView } from './components/reports/UnifiedLaporanEksekutifView';
+import { UnifiedTrainingOJTView } from './components/trainer/UnifiedTrainingOJTView';
 import { ProgramOJT30HariView } from './components/trainer/ProgramOJT30HariView';
 import { CrewTrainingMonitoringView } from './components/trainer/CrewTrainingMonitoringView';
 import { db } from './lib/storage';
@@ -46,7 +47,8 @@ import { testFirestoreConnection } from './lib/firebase';
 import { AppUser, Outlet, Kru, BankSOP, Division } from './types';
 import {
   Sparkles, Calendar, Store, Users, BookOpen, Search,
-  Eye, MessageSquare, BarChart3, AlertTriangle, Award, FileText, CheckCircle2
+  Eye, MessageSquare, BarChart3, AlertTriangle, Award, FileText, CheckCircle2,
+  LayoutDashboard, CalendarCheck, UtensilsCrossed, FileCheck
 } from 'lucide-react';
 
 export function App() {
@@ -507,7 +509,7 @@ export function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FBF9F5]">
+    <div className="flex min-h-screen bg-[#FAF8F5] text-[#1F1813]">
       {/* Toast Notification */}
       {globalToast && (
         <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-in fade-in slide-in-from-bottom-3">
@@ -553,7 +555,7 @@ export function App() {
         />
 
         {/* Viewport Router */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6 pb-24 md:pb-8">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigate={setCurrentTab}
@@ -601,24 +603,10 @@ export function App() {
             />
           )}
 
-          {currentTab === 'monitoring-training' && (
-            <CrewTrainingMonitoringView
+          {(currentTab === 'monitoring-training' || currentTab === 'ojt-30hari') && (
+            <UnifiedTrainingOJTView
               selectedOutletCode={selectedOutletCode}
-              onOpenRaporKru={(kruName) => {
-                setCurrentTab('laporan-resmi');
-              }}
-            />
-          )}
-
-          {currentTab === 'kurikulum-onboarding' && (
-            <KurikulumRoadmapView
-              selectedOutletCode={selectedOutletCode}
-            />
-          )}
-
-          {currentTab === 'ojt-30hari' && (
-            <CrewTrainingMonitoringView
-              selectedOutletCode={selectedOutletCode}
+              initialSubTab={currentTab === 'ojt-30hari' ? 'panduan' : 'monitoring'}
               onOpenRaporKru={(kruName) => {
                 setCurrentTab('laporan-resmi');
               }}
@@ -744,17 +732,18 @@ export function App() {
             currentTab === 'penilaian-teori' ||
             currentTab === 'penilaian-praktik' ||
             currentTab === 'penilaian-lisan' ||
+            (currentTab as string) === 'penilaian-sikap' ||
             currentTab === 'kompetensi') && (
             <PelatihanEvaluasiView
-              allowedSubTabs={['hasil-ujian', 'penilaian-teori', 'penilaian-praktik', 'penilaian-lisan', 'kompetensi']}
+              allowedSubTabs={['hasil-ujian', 'penilaian-praktik', 'penilaian-lisan', 'penilaian-sikap', 'kompetensi']}
               initialSubTab={
                 currentTab === 'evaluasi-kompetensi' || currentTab === 'evaluasi-kru'
                   ? 'hasil-ujian'
                   : (currentTab as PelatihanSubTab)
               }
               customCategory="EVALUASI KOMPETENSI"
-              customTitle="Pusat Evaluasi & Sertifikasi Kru"
-              customDescription="Standarisasi mutu baku QSR dengan pengujian terpadu: Teori SOP (25%), Praktik Stopwatch SOS (35%), Lisan HACCP (20%), dan Status Sertifikasi."
+              customTitle="Pusat Evaluasi & Sertifikasi Kru (4 Pilar Baku)"
+              customDescription="Standarisasi mutu baku QSR dengan pengujian terpadu 4 Pilar HARA: Teori SOP (20%), Praktik Stopwatch SOS (40%), Lisan HACCP (15%), dan Sikap Budaya H.A.R.A (25%)."
               selectedOutletCode={selectedOutletCode}
               onOpenAIAction={handleOpenAIAction}
               onSelectOutletCode={setSelectedOutletCode}
@@ -788,7 +777,7 @@ export function App() {
             currentTab === 'laporan-diagnostik') && (
             <UnifiedLaporanEksekutifView
               selectedOutletCode={selectedOutletCode}
-              initialMode={currentTab === 'laporan' ? 'multipage_dossier' : 'rapor_outlet_10hal'}
+              initialMode={currentTab === 'laporan-diagnostik' ? 'dossier_cabang' : 'rapor_kru'}
             />
           )}
 
@@ -805,6 +794,90 @@ export function App() {
 
           {currentTab === 'bantuan' && <BantuanView />}
         </main>
+
+        {/* ===================================================================
+            MOBILE BOTTOM QUICK-NAVIGATION BAR (MD:HIDDEN)
+            Memudahkan Trainer berpindah cepat antar 5 pilar menu operasional
+            =================================================================== */}
+        <nav
+          aria-label="Mobile Navigation"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E6E1DA] px-2 py-1.5 shadow-[0_-4px_20px_rgba(24,20,17,0.06)]"
+        >
+          <div className="grid grid-cols-5 gap-1 items-center max-w-md mx-auto">
+            {/* 1. Dashboard */}
+            <button
+              type="button"
+              onClick={() => setCurrentTab('dashboard')}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                currentTab === 'dashboard'
+                  ? 'text-[#96171B] font-bold'
+                  : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              <LayoutDashboard size={18} className={currentTab === 'dashboard' ? 'stroke-[2.5]' : ''} />
+              <span className="text-[10px] mt-0.5 tracking-tight">Dashboard</span>
+            </button>
+
+            {/* 2. Training & Retraining */}
+            <button
+              type="button"
+              onClick={() => setCurrentTab('monitoring-training')}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                currentTab === 'monitoring-training'
+                  ? 'text-[#96171B] font-bold'
+                  : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              <CalendarCheck size={18} className={currentTab === 'monitoring-training' ? 'stroke-[2.5]' : ''} />
+              <span className="text-[10px] mt-0.5 tracking-tight">Training</span>
+            </button>
+
+            {/* 3. Evaluasi 4 Pilar */}
+            <button
+              type="button"
+              onClick={() => setCurrentTab('evaluasi-kompetensi')}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all relative ${
+                currentTab === 'evaluasi-kompetensi' || currentTab === 'evaluasi-kru'
+                  ? 'text-[#96171B] font-bold'
+                  : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              <div className="relative">
+                <Award size={18} className={currentTab === 'evaluasi-kompetensi' ? 'stroke-[2.5]' : ''} />
+                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#96171B]" />
+              </div>
+              <span className="text-[10px] mt-0.5 tracking-tight">Evaluasi</span>
+            </button>
+
+            {/* 4. Inspeksi & Tools Dapur */}
+            <button
+              type="button"
+              onClick={() => setCurrentTab('stasiun-kerja')}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                currentTab === 'stasiun-kerja'
+                  ? 'text-[#96171B] font-bold'
+                  : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              <UtensilsCrossed size={18} className={currentTab === 'stasiun-kerja' ? 'stroke-[2.5]' : ''} />
+              <span className="text-[10px] mt-0.5 tracking-tight">Tools Dapur</span>
+            </button>
+
+            {/* 5. Laporan PDF */}
+            <button
+              type="button"
+              onClick={() => setCurrentTab('laporan-resmi')}
+              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
+                currentTab === 'laporan-resmi'
+                  ? 'text-[#96171B] font-bold'
+                  : 'text-stone-500 hover:text-stone-800'
+              }`}
+            >
+              <FileCheck size={18} className={currentTab === 'laporan-resmi' ? 'stroke-[2.5]' : ''} />
+              <span className="text-[10px] mt-0.5 tracking-tight">Laporan</span>
+            </button>
+          </div>
+        </nav>
       </div>
 
       {/* Dedicated Interactive AI Action Modal */}

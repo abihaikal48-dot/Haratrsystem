@@ -16,19 +16,25 @@ import {
   Eye,
   X,
   FileText,
+  Wrench,
+  Scale
 } from 'lucide-react';
 
 import { OFFICIAL_HARA_SOP_DATABASE } from '../../lib/sopData';
+import { InteractiveFieldTrainerTools } from './InteractiveFieldTrainerTools';
 
 interface StationWorkspaceViewProps {
   onStartStationAudit?: (station: Division) => void;
   onOpenStationExam?: (station: Division) => void;
+  initialMode?: 'sop' | 'tools';
 }
 
 export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
   onStartStationAudit,
   onOpenStationExam,
+  initialMode = 'sop',
 }) => {
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<'sop' | 'tools'>(initialMode);
   const [selectedStation, setSelectedStation] = useState<Division>('Kitchen');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewingSop, setViewingSop] = useState<any | null>(null);
@@ -81,12 +87,39 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            {onStartStationAudit && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 bg-[#F4F1EC] p-1 rounded-xl border border-[#E6E1DA]">
+              <button
+                type="button"
+                onClick={() => setActiveWorkspaceTab('sop')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeWorkspaceTab === 'sop'
+                    ? 'bg-[#96171B] text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                }`}
+              >
+                <BookOpen size={13} />
+                <span>Katalog 4 Stasiun SOP</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveWorkspaceTab('tools')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  activeWorkspaceTab === 'tools'
+                    ? 'bg-[#96171B] text-white shadow-xs'
+                    : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+                }`}
+              >
+                <Scale size={13} />
+                <span>Field Trainer Tools (HC-SOP-11-PKP)</span>
+              </button>
+            </div>
+
+            {activeWorkspaceTab === 'sop' && onStartStationAudit && (
               <button
                 type="button"
                 onClick={() => onStartStationAudit(selectedStation)}
-                className="px-4 py-2 bg-[#8B1418] hover:bg-[#700f13] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
+                className="px-4 py-2 bg-[#96171B] hover:bg-[#7A1215] text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
               >
                 <FileCheck size={14} />
                 <span>Audit Stasiun {selectedStation}</span>
@@ -95,55 +128,61 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
           </div>
         </div>
 
-        {/* 4 Jobdesk Big Interactive Tabs */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          {(['Kitchen', 'Kasir', 'Geprek', 'Helper'] as Division[]).map((div) => {
-            const isSelected = selectedStation === div;
-            const detail = HARA_OFFICIAL_JOBDESKS[div];
+        {/* 4 Jobdesk Big Interactive Tabs (Hanya saat mode SOP) */}
+        {activeWorkspaceTab === 'sop' && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {(['Kitchen', 'Kasir', 'Geprek', 'Helper'] as Division[]).map((div) => {
+              const isSelected = selectedStation === div;
+              const detail = HARA_OFFICIAL_JOBDESKS[div];
 
-            return (
-              <button
-                key={div}
-                type="button"
-                onClick={() => setSelectedStation(div)}
-                className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                  isSelected
-                    ? 'border-[#8B1418] bg-red-50/50 shadow-xs ring-1 ring-[#8B1418]/20'
-                    : 'border-stone-200 bg-white hover:bg-stone-50/80 hover:border-stone-300'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-1 mb-2">
-                  <span
-                    className={`text-[10px] font-black uppercase font-mono px-2 py-0.5 rounded ${
-                      isSelected ? 'bg-[#8B1418] text-white' : 'bg-stone-100 text-stone-600'
-                    }`}
-                  >
-                    {div}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold text-stone-500 font-mono bg-stone-100/80 px-1.5 py-0.5 rounded border border-stone-200/60">
-                      {allSops.filter((s: any) => s.divisi === div).length} SOP
+              return (
+                <button
+                  key={div}
+                  type="button"
+                  onClick={() => setSelectedStation(div)}
+                  className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
+                    isSelected
+                      ? 'border-[#96171B] bg-red-50/50 shadow-xs ring-1 ring-[#96171B]/20'
+                      : 'border-stone-200 bg-white hover:bg-stone-50/80 hover:border-stone-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1 mb-2">
+                    <span
+                      className={`text-[10px] font-black uppercase font-mono px-2 py-0.5 rounded ${
+                        isSelected ? 'bg-[#96171B] text-white' : 'bg-stone-100 text-stone-600'
+                      }`}
+                    >
+                      {div}
                     </span>
-                    {isSelected && <span className="w-2 h-2 rounded-full bg-[#8B1418] animate-pulse" />}
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-stone-500 font-mono bg-stone-100/80 px-1.5 py-0.5 rounded border border-stone-200/60">
+                        {allSops.filter((s: any) => s.divisi === div).length} SOP
+                      </span>
+                      {isSelected && <span className="w-2 h-2 rounded-full bg-[#96171B] animate-pulse" />}
+                    </div>
                   </div>
-                </div>
 
-                <div>
-                  <h3 className="text-xs sm:text-sm font-black text-stone-900 leading-tight">
-                    {detail.title.split('(')[0]}
-                  </h3>
-                  <span className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
-                    {detail.tagline}
-                  </span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  <div>
+                    <h3 className="text-xs sm:text-sm font-black text-stone-900 leading-tight">
+                      {detail.title.split('(')[0]}
+                    </h3>
+                    <span className="text-[10px] text-stone-500 line-clamp-1 mt-0.5">
+                      {detail.tagline}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {/* Main Station Info & SOP Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      {/* RENDER MODE TOOLS ATAU MODE SOP */}
+      {activeWorkspaceTab === 'tools' ? (
+        <InteractiveFieldTrainerTools />
+      ) : (
+        /* Main Station Info & SOP Grid */
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* Kolom Kiri: Standar Kritis & KPI Stasiun */}
         <div className="lg:col-span-4 space-y-4">
@@ -209,6 +248,79 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
                   <span className="leading-snug">{param}</span>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Standar Spesifikasi Alat, Takaran & 4 Jenis Lap Resmi */}
+          <div className="bg-white rounded-2xl border border-stone-200 p-5 shadow-xs space-y-3.5">
+            <div className="flex items-center gap-2 border-b border-stone-100 pb-2.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500" />
+              <h3 className="text-xs font-black text-stone-900 uppercase tracking-wider">
+                Standar Takaran, Alat & Lap Resmi
+              </h3>
+            </div>
+
+            {/* 5 Sendok Ukur */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-stone-800 flex items-center gap-1.5">
+                <span className="text-[#8B1418]">🥄</span> 5 Ukuran Sendok Ukur Baku:
+              </span>
+              <div className="grid grid-cols-1 gap-1 text-[10.5px] text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                <div>• <strong className="text-stone-900 font-mono">15 ml (1 sdm):</strong> Mix garam, mix sayur, gula pasir, bumbu ricebowl, bubuk knorr lime</div>
+                <div>• <strong className="text-stone-900 font-mono">7.5 ml (1/2 sdm):</strong> Takaran porsi bumbu menengah</div>
+                <div>• <strong className="text-stone-900 font-mono">5 ml (1 sdt):</strong> Minyak wijen standar</div>
+                <div>• <strong className="text-stone-900 font-mono">2.5 ml (1/2 sdt):</strong> Bumbu kentang, spinach, biji wijen, jamur krispi</div>
+                <div>• <strong className="text-stone-900 font-mono">1 ml (1/4 sdt):</strong> Bumbu geprek mix garam & terasi, bubuk boncabe</div>
+              </div>
+            </div>
+
+            {/* 3 Timbangan Digital */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-stone-800 flex items-center gap-1.5">
+                <span className="text-emerald-700">⚖️</span> 3 Timbangan Digital Gerai:
+              </span>
+              <div className="grid grid-cols-1 gap-1 text-[10.5px] text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                <div>• <strong className="text-stone-900 font-mono">Timbangan 5 kg:</strong> Bumbu, sambal 30g, garam, teh, gula</div>
+                <div>• <strong className="text-stone-900 font-mono">Timbangan 40 kg:</strong> Timun, terong, cabai, tomat, tepung sisa, saus jerigen</div>
+                <div>• <strong className="text-stone-900 font-mono">Timbangan 150 kg:</strong> Tabung gas LPG, karung beras</div>
+              </div>
+            </div>
+
+            {/* Standar Tabung Gas LPG */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-stone-800 flex items-center gap-1.5">
+                <span className="text-blue-700">🔥</span> Standar Berat Tabung Gas LPG:
+              </span>
+              <div className="grid grid-cols-1 gap-1 text-[10.5px] text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                <div>• <strong className="text-stone-900 font-mono">3 kg:</strong> Kosong 5 kg | Penuh 8 kg | Min. terima 7.8 kg</div>
+                <div>• <strong className="text-stone-900 font-mono">5.5 kg:</strong> Kosong 7.1 kg | Penuh 12.6 kg | Min. terima 12.4 kg</div>
+                <div>• <strong className="text-stone-900 font-mono">12 kg:</strong> Kosong 15 kg | Penuh 27 kg | Min. terima 26.8 kg</div>
+              </div>
+            </div>
+
+            {/* 4 Jenis Lap Pembersih Resmi HC-SOP-11-PKP */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-bold text-stone-800 flex items-center gap-1.5">
+                <span className="text-purple-700">🧽</span> 4 Jenis Lap Resmi (HC-SOP-11-PKP Hal. 16):
+              </span>
+              <div className="grid grid-cols-1 gap-1.5 text-[10.5px] text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
+                <div className="p-1.5 rounded-lg bg-white border border-stone-200">
+                  <strong className="text-amber-800 block">1. Lap Piring (Kanebo):</strong>
+                  Khusus mengelap piring makan, mangkok, dan gelas bersih. Wajib selalu higienis.
+                </div>
+                <div className="p-1.5 rounded-lg bg-white border border-stone-200">
+                  <strong className="text-orange-700 block">2. Lap Meja (Orange):</strong>
+                  Lap kain kering + cairan pembersih kaca untuk kaca, meja makan, dan kursi tamu.
+                </div>
+                <div className="p-1.5 rounded-lg bg-white border border-stone-200">
+                  <strong className="text-blue-700 block">3. Lap Basah (Kotak-kotak):</strong>
+                  Untuk membersihkan meja geprek, meja dapur, meja minuman, alat & kuras deep fryer.
+                </div>
+                <div className="p-1.5 rounded-lg bg-white border border-stone-200">
+                  <strong className="text-stone-800 block">4. Lap Tangan (Kotak-kotak Kering):</strong>
+                  Khusus mengeringkan tangan kru saat proses penepungan (dusting) ayam.
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -333,6 +445,7 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
         </div>
 
       </div>
+      )}
 
       {/* Modal Detail SOP Lengkap */}
       {viewingSop && (

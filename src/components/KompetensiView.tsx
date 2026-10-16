@@ -10,20 +10,14 @@ import {
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
 import { db } from '../lib/storage';
-import { CrewCompetencySummary, Outlet, SystemSettings, Kru, AuditAttitudeHara, HaraChecklistItem } from '../types';
+import { CrewCompetencySummary, Outlet, SystemSettings, Kru } from '../types';
 import { CrewRadarChart } from './CrewRadarChart';
 import { CrewCertificateModal } from './CrewCertificateModal';
 import { OfficialRaporKruView } from './reports/OfficialRaporKru';
-import {
-  HARA_OBJECTIVE_PILLARS,
-  createDefaultHaraChecklist,
-  calculateObjectiveHaraScores,
-  HaraPillarDefinition
-} from '../data/haraObjectiveRubrics';
 
 interface KompetensiViewProps {
   selectedOutletCode: string;
-  onNavigateToExam?: (type: 'teori' | 'praktik' | 'lisan', crewName: string) => void;
+  onNavigateToExam?: (type: 'teori' | 'praktik' | 'lisan' | 'sikap', crewName?: string) => void;
 }
 
 export const KompetensiView: React.FC<KompetensiViewProps> = ({
@@ -45,15 +39,6 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
   const [selectedCrewDrawer, setSelectedCrewDrawer] = useState<CrewCompetencySummary | null>(null);
   const [raporKruTarget, setRaporKruTarget] = useState<string | null>(null);
   const [isChecklistModalOpen, setIsChecklistModalOpen] = useState(false);
-  const [isAttitudeModalOpen, setIsAttitudeModalOpen] = useState(false);
-  const [attitudeTargetKru, setAttitudeTargetKru] = useState<CrewCompetencySummary | null>(null);
-
-  // Form State for Objective Attitude H.A.R.A Audit (Checklist-based)
-  const [haraChecklist, setHaraChecklist] = useState<HaraChecklistItem[]>(() => createDefaultHaraChecklist());
-  const [activePillarTab, setActivePillarTab] = useState<'H' | 'A1' | 'R' | 'A2'>('H');
-  const [buktiAudit, setBuktiAudit] = useState<string>('');
-  const [catatanPerilaku, setCatatanPerilaku] = useState<string>('');
-  const [rekomendasiCoaching, setRekomendasiCoaching] = useState<string>('');
 
   // Toast feedback
   const [toastMsg, setToastMsg] = useState<string | null>(null);
@@ -118,69 +103,6 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
         // ignore
       }
     }
-  };
-
-  const openAttitudeAudit = (crew: CrewCompetencySummary) => {
-    setAttitudeTargetKru(crew);
-    const existingAudits = db.getTable<AuditAttitudeHara>('attitude_hara').filter(a => a.nama_kru === crew.namaKru);
-    const latest = existingAudits[0];
-    if (latest && latest.checklist_items && latest.checklist_items.length > 0) {
-      setHaraChecklist(latest.checklist_items);
-      setBuktiAudit(latest.bukti_audit || `Inspeksi kepatuhan SOP stasiun ${crew.divisi} - ${crew.kode_outlet}`);
-      setCatatanPerilaku(latest.catatan_perilaku || '');
-      setRekomendasiCoaching(latest.rekomendasi_coaching || '');
-    } else {
-      setHaraChecklist(createDefaultHaraChecklist());
-      setBuktiAudit(`Inspeksi kepatuhan SOP stasiun ${crew.divisi} - ${crew.kode_outlet}`);
-      setCatatanPerilaku(`Observasi kepatuhan operasional ${crew.namaKru} selama shift.`);
-      setRekomendasiCoaching('Tindak lanjuti butir kepatuhan yang belum terpenuhi pada shift berikutnya.');
-    }
-    setActivePillarTab('H');
-    setIsAttitudeModalOpen(true);
-  };
-
-  const objectiveScores = useMemo(() => {
-    return calculateObjectiveHaraScores(haraChecklist);
-  }, [haraChecklist]);
-
-  const handleToggleHaraItem = (itemId: string) => {
-    setHaraChecklist(prev =>
-      prev.map(item => item.id === itemId ? { ...item, terpenuhi: !item.terpenuhi } : item)
-    );
-  };
-
-  const handleSetAllPillarItems = (pilarKey: 'H' | 'A1' | 'R' | 'A2', status: boolean) => {
-    setHaraChecklist(prev =>
-      prev.map(item => item.pilar === pilarKey ? { ...item, terpenuhi: status } : item)
-    );
-  };
-
-  const handleSaveAttitudeAudit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!attitudeTargetKru) return;
-
-    const auditRecord: AuditAttitudeHara = {
-      id: `att-${Date.now()}`,
-      tanggal: new Date().toISOString(),
-      nama_kru: attitudeTargetKru.namaKru,
-      kode_outlet: attitudeTargetKru.kode_outlet,
-      evaluator_nama: 'Haikal Abi (Lead Trainer)',
-      skor_h_higienis: objectiveScores.skor_h,
-      skor_a_antusias: objectiveScores.skor_r,     // R Responsif
-      skor_r_resik: objectiveScores.skor_a2,       // A2 Adaptif
-      skor_a_amanah: objectiveScores.skor_a1,     // A1 Amanah
-      skor_rata_rata: objectiveScores.skor_rata_rata,
-      checklist_items: haraChecklist,
-      bukti_audit: buktiAudit,
-      catatan_perilaku: catatanPerilaku || 'Audit kepatuhan objektif Visi-Misi H.A.R.A.',
-      rekomendasi_coaching: rekomendasiCoaching,
-      created_at: new Date().toISOString(),
-    };
-
-    db.saveAuditAttitudeHara(auditRecord);
-    loadData();
-    setIsAttitudeModalOpen(false);
-    showToast(`Audit Visi-Misi H.A.R.A untuk ${attitudeTargetKru.namaKru} berhasil disimpan (Skor: ${objectiveScores.skor_rata_rata}/100)`);
   };
 
   const downloadCertificatePDF = (crew: CrewCompetencySummary) => {
@@ -338,11 +260,11 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
             </button>
 
             <button
-              onClick={() => openAttitudeAudit(list[0] || null)}
-              className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold flex items-center gap-2 transition-all border border-white/20 active:scale-95 cursor-pointer"
+              onClick={() => onNavigateToExam?.('sikap')}
+              className="px-3.5 py-2.5 bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 rounded-xl text-xs font-bold flex items-center gap-2 transition-all border border-rose-500/30 active:scale-95 cursor-pointer"
             >
               <Heart size={14} className="text-rose-400" />
-              <span>Input Audit Sikap H.A.R.A</span>
+              <span>Pilar 4: Penilaian Budaya HARA</span>
             </button>
           </div>
         </div>
@@ -856,10 +778,10 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                 <tr>
                   <th className="py-3 px-3.5">Nama Kru & Divisi</th>
                   <th className="py-3 px-3">Outlet</th>
-                  <th className="py-3 px-2 text-center">1. Teori SOP (25%)</th>
-                  <th className="py-3 px-2 text-center">2. Praktik SOS (35%)</th>
-                  <th className="py-3 px-2 text-center">3. Lisan HACCP (20%)</th>
-                  <th className="py-3 px-2 text-center">4. Audit K3 (20%)</th>
+                  <th className="py-3 px-2 text-center">1. Teori SOP (20%)</th>
+                  <th className="py-3 px-2 text-center">2. Praktik SOS (40%)</th>
+                  <th className="py-3 px-2 text-center">3. Lisan HACCP (15%)</th>
+                  <th className="py-3 px-2 text-center">4. Sikap H.A.R.A (25%)</th>
                   <th className="py-3 px-3 text-center">Skor Akhir & Z</th>
                   <th className="py-3 px-3 text-center">Predikat</th>
                   <th className="py-3 px-3 text-right">Aksi</th>
@@ -922,9 +844,17 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                         <>
                           {/* 1. Knowledge (30%) */}
                           <td className="py-3 px-3 text-center">
-                            <span className="font-black text-xs text-blue-900 bg-blue-50 px-2 py-0.5 rounded-lg border border-blue-200">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onNavigateToExam?.('teori', item.namaKru);
+                              }}
+                              className="font-black text-xs text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-0.5 rounded-lg border border-blue-200 cursor-pointer transition-colors"
+                              title="Lihat / Uji Teori SOP Kru"
+                            >
                               {item.skorKnowledge ?? item.skorTeori ?? '-'}
-                            </span>
+                            </button>
                             <div className="text-[9px] text-slate-400 mt-0.5">
                               T:{item.skorTeori ?? '-'} • L:{item.skorLisan ?? '-'}
                             </div>
@@ -932,9 +862,17 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
 
                           {/* 2. Skill (45%) */}
                           <td className="py-3 px-3 text-center">
-                            <span className="font-black text-xs text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onNavigateToExam?.('praktik', item.namaKru);
+                              }}
+                              className="font-black text-xs text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-0.5 rounded-lg border border-amber-200 cursor-pointer transition-colors"
+                              title="Lihat / Uji Praktik SOS Kru"
+                            >
                               {item.skorSkill ?? item.skorPraktik ?? '-'}
-                            </span>
+                            </button>
                             <div className="text-[9px] text-slate-400 mt-0.5">
                               SOS Stopwatch
                             </div>
@@ -943,17 +881,18 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                           {/* 3. Attitude H.A.R.A (25%) */}
                           <td className="py-3 px-3 text-center">
                             <button
+                              type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                openAttitudeAudit(item);
+                                onNavigateToExam?.('sikap', item.namaKru);
                               }}
                               className="font-black text-xs text-rose-900 bg-rose-50 hover:bg-rose-100 px-2 py-0.5 rounded-lg border border-rose-200 cursor-pointer transition-colors"
-                              title="Klik untuk audit sikap H.A.R.A"
+                              title="Buka Penilaian Budaya H.A.R.A Kru Ini"
                             >
                               {item.skorAttitude ?? item.skorAudit ?? 82}
                             </button>
                             <div className="text-[9px] text-slate-400 mt-0.5">
-                              H:{item.attitudeHaraDetail?.h_higienis || 85} A:{item.attitudeHaraDetail?.a_antusias || 85}
+                              H:{item.attitudeHaraDetail?.h_higienis || 85} · A1:{item.attitudeHaraDetail?.a_amanah || 85}
                             </div>
                           </td>
 
@@ -1028,9 +967,9 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                         <div className="flex items-center justify-end gap-1.5">
                           <button
                             type="button"
-                            onClick={() => openAttitudeAudit(item)}
+                            onClick={() => onNavigateToExam?.('sikap', item.namaKru)}
                             className="p-1.5 hover:bg-rose-50 text-rose-700 rounded-lg transition-colors cursor-pointer"
-                            title="Audit Sikap H.A.R.A"
+                            title="Penilaian Budaya H.A.R.A Kru Ini"
                           >
                             <Heart size={14} />
                           </button>
@@ -1214,12 +1153,12 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                 onClick={() => {
                   const target = selectedCrewDrawer;
                   setSelectedCrewDrawer(null);
-                  openAttitudeAudit(target);
+                  onNavigateToExam?.('sikap', target.namaKru);
                 }}
                 className="w-full py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all border border-rose-200"
               >
                 <Heart size={14} className="text-rose-600" />
-                <span>Input / Perbarui Audit Sikap H.A.R.A</span>
+                <span>Buka Penilaian Budaya H.A.R.A Kru Ini</span>
               </button>
 
               <button
@@ -1438,232 +1377,6 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                 Tutup Panduan Ceklis
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL 2: INPUT AUDIT SIKAP & BUDAYA H.A.R.A */}
-      {/* ========================================================================= */}
-      {isAttitudeModalOpen && attitudeTargetKru && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto animate-in fade-in">
-          <div className="bg-white rounded-3xl border border-slate-200 max-w-2xl w-full p-6 space-y-4 shadow-2xl overflow-y-auto max-h-[92vh]">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-red-50 text-[#96171B] border border-red-200">
-                  <Target size={18} />
-                </div>
-                <div>
-                  <h3 className="font-black text-sm text-slate-900">
-                    Audit Objektif Visi & Misi H.A.R.A (Behavioral Checklist)
-                  </h3>
-                  <p className="text-xs text-slate-500">
-                    Kru: <strong className="text-slate-800">{attitudeTargetKru.namaKru}</strong> ({attitudeTargetKru.divisi} • {attitudeTargetKru.kode_outlet})
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsAttitudeModalOpen(false)}
-                className="p-1 text-slate-400 hover:text-slate-600 rounded-lg cursor-pointer"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveAttitudeAudit} className="space-y-4 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-600 text-[11px] flex items-center justify-between">
-                <span>Centang butir kepatuhan yang <strong>terbukti secara faktual</strong> saat observasi stasiun kerja:</span>
-                <span className="font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border">
-                  {objectiveScores.fulfilledCount}/{objectiveScores.totalItems} Terpenuhi
-                </span>
-              </div>
-
-              {/* 4 Pilar Navigation Tabs */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200">
-                {HARA_OBJECTIVE_PILLARS.map((p) => {
-                  const pScore = p.key === 'H' ? objectiveScores.skor_h :
-                                 p.key === 'A1' ? objectiveScores.skor_a1 :
-                                 p.key === 'R' ? objectiveScores.skor_r : objectiveScores.skor_a2;
-                  const isSel = activePillarTab === p.key;
-
-                  return (
-                    <button
-                      key={p.key}
-                      type="button"
-                      onClick={() => setActivePillarTab(p.key)}
-                      className={`py-2 px-2 rounded-lg text-left transition-all cursor-pointer ${
-                        isSel
-                          ? 'bg-white text-slate-900 font-black shadow-xs border border-slate-200'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] uppercase tracking-wider font-extrabold">{p.key} - {p.title.split(' ')[0]}</span>
-                        <span className={`text-[10px] font-mono font-black ${pScore >= 80 ? 'text-emerald-700' : 'text-amber-700'}`}>
-                          {pScore}%
-                        </span>
-                      </div>
-                      <div className="text-[9px] text-slate-400 font-medium truncate">{p.tagline}</div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Active Pillar Details & Checklist */}
-              {(() => {
-                const currentPillar = HARA_OBJECTIVE_PILLARS.find(p => p.key === activePillarTab) || HARA_OBJECTIVE_PILLARS[0];
-                const pillarChecklist = haraChecklist.filter(item => item.pilar === currentPillar.key);
-                const pillarScore = currentPillar.key === 'H' ? objectiveScores.skor_h :
-                                    currentPillar.key === 'A1' ? objectiveScores.skor_a1 :
-                                    currentPillar.key === 'R' ? objectiveScores.skor_r : objectiveScores.skor_a2;
-
-                return (
-                  <div className="space-y-3 p-3.5 rounded-2xl bg-white border border-slate-200 shadow-2xs">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-slate-100">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-md bg-[#96171B] text-white flex items-center justify-center text-[10px] font-black font-mono">
-                            {currentPillar.key}
-                          </span>
-                          <h4 className="font-black text-sm text-slate-900">{currentPillar.title}</h4>
-                        </div>
-                        <p className="text-[10.5px] text-slate-500 mt-0.5">{currentPillar.visiMisiRef}</p>
-                      </div>
-
-                      <div className="flex items-center gap-2 self-end sm:self-auto">
-                        <button
-                          type="button"
-                          onClick={() => handleSetAllPillarItems(currentPillar.key, true)}
-                          className="px-2 py-1 text-[10px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg border border-emerald-200 transition-colors"
-                        >
-                          Centang Semua
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSetAllPillarItems(currentPillar.key, false)}
-                          className="px-2 py-1 text-[10px] font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg border border-slate-200 transition-colors"
-                        >
-                          Kosongkan
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Checklist items */}
-                    <div className="space-y-2">
-                      {pillarChecklist.map((item) => (
-                        <div
-                          key={item.id}
-                          onClick={() => handleToggleHaraItem(item.id)}
-                          className={`p-3 rounded-xl border transition-all cursor-pointer flex items-start gap-3 select-none ${
-                            item.terpenuhi
-                              ? 'bg-emerald-50/40 border-emerald-300'
-                              : 'bg-slate-50/70 border-slate-200 hover:border-slate-300'
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={item.terpenuhi}
-                            onChange={() => {}} // Controlled via parent onClick
-                            className="mt-0.5 w-4 h-4 rounded text-[#96171B] focus:ring-[#96171B] cursor-pointer"
-                          />
-                          <div className="flex-1 space-y-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-mono text-[9.5px] font-black px-1.5 py-0.5 rounded bg-white text-[#96171B] border border-red-200 shadow-2xs">
-                                {item.kode_sop}
-                              </span>
-                              <span className="text-[11px] font-bold text-slate-800">
-                                {item.kriteria}
-                              </span>
-                            </div>
-                            <div className="text-[10px] text-slate-500 flex items-center gap-1">
-                              <Search size={10} className="text-slate-400" />
-                              <span>Metode: {item.metode_verifikasi}</span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* Form Input Bukti & Catatan */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-700">Bukti Verifikasi & Nomor Dokumen:</label>
-                  <input
-                    type="text"
-                    value={buktiAudit}
-                    onChange={(e) => setBuktiAudit(e.target.value)}
-                    placeholder="Contoh: Form Audit Shift Pagi No. AUD-2026/08"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-900"
-                    required
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="block font-bold text-slate-700">Rencana Tindak Lanjut Coaching:</label>
-                  <input
-                    type="text"
-                    value={rekomendasiCoaching}
-                    onChange={(e) => setRekomendasiCoaching(e.target.value)}
-                    placeholder="Contoh: Refreshment SOP sanitasi tangan"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="block font-bold text-slate-700">Catatan Observasi Perilaku Lapangan:</label>
-                <textarea
-                  rows={2}
-                  value={catatanPerilaku}
-                  onChange={(e) => setCatatanPerilaku(e.target.value)}
-                  placeholder="Catat fakta konkret yang teramati di lapangan selama shift..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs text-slate-900"
-                />
-              </div>
-
-              {/* Real-Time Total Composite Result Box */}
-              <div className="p-3.5 bg-gradient-to-r from-red-50 to-amber-50 rounded-2xl border border-red-200 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] uppercase font-bold text-red-800">Skor Objektif Visi-Misi H.A.R.A</div>
-                  <div className="text-xs text-slate-600 font-medium mt-0.5">
-                    Rata-rata 4 Pilar: H ({objectiveScores.skor_h}%) • A1 ({objectiveScores.skor_a1}%) • R ({objectiveScores.skor_r}%) • A2 ({objectiveScores.skor_a2}%)
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-black text-[#96171B] font-mono">
-                    {objectiveScores.skor_rata_rata}
-                    <span className="text-xs text-slate-400 font-normal">/100</span>
-                  </div>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    objectiveScores.skor_rata_rata >= 85 ? 'bg-emerald-100 text-emerald-800' :
-                    objectiveScores.skor_rata_rata >= 75 ? 'bg-blue-100 text-blue-800' : 'bg-amber-100 text-amber-800'
-                  }`}>
-                    {objectiveScores.skor_rata_rata >= 85 ? 'Sangat Patuh' :
-                     objectiveScores.skor_rata_rata >= 75 ? 'Sesuai Standar' : 'Butuh Coaching'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setIsAttitudeModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-bold cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-[#96171B] hover:bg-[#801216] text-white font-bold flex items-center gap-1.5 shadow-xs cursor-pointer transition-all active:scale-[0.99]"
-                >
-                  <Send size={13} />
-                  <span>Simpan Hasil Audit Objektif</span>
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

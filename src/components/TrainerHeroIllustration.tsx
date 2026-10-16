@@ -29,7 +29,7 @@ export const TrainerHeroIllustration: React.FC<TrainerHeroIllustrationProps> = (
       roleName: 'Front Kasir & Hospitality',
       mascotName: 'Kru Kasir (Wanita)',
       attire: 'Hijab Kuning + Seragam Kuning + Apron Setengah Badan',
-      badge: 'POS & Kultur RESPECT',
+      badge: 'POS & Budaya H.A.R.A',
       color: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
       sopFocus: 'Greeting Ramah, Transaksi POS Cepat < 90 Detik & Ketelitian Kasir',
     },
@@ -483,7 +483,7 @@ export const TrainerHeroIllustration: React.FC<TrainerHeroIllustrationProps> = (
               <g transform="translate(25, 255)">
                 <rect x="0" y="0" width="130" height="22" rx="11" fill="#D97706" stroke="#FBD66A" strokeWidth="1.5" />
                 <text x="65" y="14.5" textAnchor="middle" fill="#FFFFFF" fontSize="9" fontWeight="900">
-                  FRONT KASIR & RESPECT
+                  FRONT KASIR & H.A.R.A
                 </text>
               </g>
             </g>
@@ -844,7 +844,7 @@ export const TrainerHeroIllustration: React.FC<TrainerHeroIllustrationProps> = (
           <div className="p-2 rounded-xl bg-black/20 border border-white/5">
             <div className="text-[10.5px] font-black text-blue-400 flex items-center justify-center gap-1">
               <HeartHandshake size={12} />
-              <span>Kultur RESPECT</span>
+              <span>Budaya H.A.R.A</span>
             </div>
             <div className="text-[9px] text-slate-400">Integritas Tim</div>
           </div>

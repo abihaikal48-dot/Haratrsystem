@@ -1,0 +1,440 @@
+import { OnboardingSessionDef, OnboardingBatch, Kru } from '../types';
+
+/**
+ * MASTER KURIKULUM RESMI ONBOARDING & RETRAINING 3 HARI
+ * PT HARA CHICKEN INDONESIA (10 Sesi Baku — Total 25 Jam)
+ */
+export const MASTER_KURIKULUM_3HARI: OnboardingSessionDef[] = [
+  // HARI KE-1 (7 Materi — Total 8 Jam)
+  {
+    no: 1,
+    hari: 1,
+    judul: 'Pengenalan Perusahaan & Budaya, ROTG, Pest Control',
+    tujuan: 'Karyawan memahami visi, misi, nilai kerja H.A.R.A, ROTG, dan pest control',
+    durasi_jam: 2,
+    metode: 'Presentasi, diskusi interaktif',
+    trainer_role: 'HR / Direktur',
+    evaluasi: 'Tanya jawab, absensi',
+  },
+  {
+    no: 2,
+    hari: 1,
+    judul: 'SOP Kebersihan & Keselamatan Kerja (K3)',
+    tujuan: 'Menjaga higienitas makanan, sanitasi 4 warna lap, APAR P.A.S.S, dan keselamatan kerja',
+    durasi_jam: 1,
+    metode: 'Video, roleplay, praktik langsung',
+    trainer_role: 'Supervisor Outlet',
+    evaluasi: 'Observasi, checklist sanitasi',
+  },
+  {
+    no: 3,
+    hari: 1,
+    judul: 'SOP Kasir & Layanan Online (POS ESB & Delivery)',
+    tujuan: 'Menguasai penggunaan mesin kasir, rekonsiliasi kas, dan penanganan pesanan online',
+    durasi_jam: 1,
+    metode: 'Simulasi sistem, praktik langsung',
+    trainer_role: 'Senior Kasir / FAT',
+    evaluasi: 'Tes singkat transaksi, observasi kerja',
+  },
+  {
+    no: 4,
+    hari: 1,
+    judul: 'Service Excellence (5S & Hospitality QSR)',
+    tujuan: 'Memberikan layanan ramah, senyum tulus, salam <5 detik, dan kehangatan khas HARA',
+    durasi_jam: 1,
+    metode: 'Roleplay & studi kasus',
+    trainer_role: 'Operasional Manager',
+    evaluasi: 'Penilaian pelayanan pelanggan & roleplay',
+  },
+  {
+    no: 5,
+    hari: 1,
+    judul: 'Manajemen Stok & FIFO (First In First Out)',
+    tujuan: 'Mengurangi food waste, rotasi stok bahan baku ayam & bumbu, pencatatan rapi',
+    durasi_jam: 1,
+    metode: 'Diskusi, praktik lapangan chiller',
+    trainer_role: 'FAT (Finance, Accounting & Tax)',
+    evaluasi: 'Laporan stok harian & uji hitung FIFO',
+  },
+  {
+    no: 6,
+    hari: 1,
+    judul: 'Handling Complaint Customer (Metode L.A.S.T)',
+    tujuan: 'Mampu menghadapi komplain dengan empati, tenang di jam sibuk, dan solusi tepat',
+    durasi_jam: 1,
+    metode: 'Simulasi skenario komplain, studi kasus',
+    trainer_role: 'Operasional Manager / Marketing Manager',
+    evaluasi: 'Simulasi live + feedback trainer',
+  },
+  {
+    no: 7,
+    hari: 1,
+    judul: 'Refreshment & Motivasi Tim Hari 1',
+    tujuan: 'Meningkatkan teamwork, semangat kebersamaan, dan soliditas regu kerja',
+    durasi_jam: 1,
+    metode: 'Workshop, sharing session motivasi',
+    trainer_role: 'HR People Development',
+    evaluasi: 'Survey kepuasan sesi & komitmen kerja',
+  },
+
+  // HARI KE-2 (1 Materi Inti — Total 8 Jam)
+  {
+    no: 8,
+    hari: 2,
+    judul: 'SOP Produk (RnD) — Bagian I: Marinasi, Tepung & Penggorengan',
+    tujuan: 'Menguasai standar racik tepung 2x penepungan, suhu kompor 175°C, minyak masuk 160°C, timer 12 menit, core temp ≥74°C',
+    durasi_jam: 8,
+    metode: 'On the Job Training (OJT Hands-on)',
+    trainer_role: 'RnD Specialist',
+    evaluasi: 'Uji praktik penggorengan batch & organoleptik',
+  },
+
+  // HARI KE-3 (2 Materi — Total 9 Jam)
+  {
+    no: 9,
+    hari: 3,
+    judul: 'SOP Produk (RnD) — Bagian II: Sambal Bawang Otentik, Warmer & Penyajian',
+    tujuan: 'Menguasai uleg cobek 30g sambal bawang panas, holding warmer 120 menit (60-70°C), dan packaging rapi',
+    durasi_jam: 8,
+    metode: 'On the Job Training (OJT Hands-on)',
+    trainer_role: 'RnD Specialist',
+    evaluasi: 'Uji praktik rasa sambal, kecepatan SOS & plating',
+  },
+  {
+    no: 10,
+    hari: 3,
+    judul: 'Refreshment, Komitmen Mutu & Survey Kepuasan Karyawan',
+    tujuan: 'Meningkatkan teamwork jangka panjang, komitmen budaya H.A.R.A, dan evaluasi kepuasan kelas',
+    durasi_jam: 1,
+    metode: 'Workshop interaktif, refleksi, survey kepuasan',
+    trainer_role: 'HR People Development',
+    evaluasi: 'Survey kepuasan karyawan & penandatanganan pakta mutu',
+  },
+];
+
+/**
+ * Deteksi kelayakan kru untuk Onboarding / Retraining
+ * Karyawan Baru: 1 s.d. 45 hari kerja sejak tanggal masuk
+ * Retraining: > 45 hari kerja (penyegaran berkala atau perbaikan gap)
+ */
+export function hitungHariKerja(tanggalMasuk?: string): number {
+  if (!tanggalMasuk) return 15;
+  const tgl = new Date(tanggalMasuk);
+  const now = new Date();
+  const diffTime = Math.abs(now.getTime() - tgl.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays || 1;
+}
+
+export function klasifikasiKruOnboarding(kru: Kru): {
+  tipe: 'Karyawan Baru (1-45 Hari)' | 'Retraining Karyawan Lama';
+  hariKerja: number;
+  wajibOnboarding: boolean;
+  statusBadge: string;
+} {
+  const hariKerja = hitungHariKerja(kru.tanggal_masuk);
+  const isKaryawanBaru = hariKerja >= 1 && hariKerja <= 45;
+
+  return {
+    tipe: isKaryawanBaru ? 'Karyawan Baru (1-45 Hari)' : 'Retraining Karyawan Lama',
+    hariKerja,
+    wajibOnboarding: isKaryawanBaru,
+    statusBadge: isKaryawanBaru ? 'Wajib Onboarding (Kru Baru)' : 'Retraining Penyegaran',
+  };
+}
+
+/**
+ * Validasi kapasitas kuota batch resmi (11 - 17 peserta)
+ */
+export function evaluasiKapasitasBatch(jumlahPeserta: number): {
+  status: 'KUOTA_KURANG' | 'KUOTA_OPTIMAL' | 'KUOTA_PENUH';
+  label: string;
+  pesan: string;
+  colorClass: string;
+} {
+  if (jumlahPeserta < 11) {
+    return {
+      status: 'KUOTA_KURANG',
+      label: `Kurang ${11 - jumlahPeserta} Peserta`,
+      pesan: `Kuota minimal adalah 11 peserta agar dinamika roleplay dan simulasi QSR efektif (Saat ini: ${jumlahPeserta}/17).`,
+      colorClass: 'text-amber-700 bg-amber-50 border-amber-200',
+    };
+  }
+  if (jumlahPeserta > 17) {
+    return {
+      status: 'KUOTA_PENUH',
+      label: 'Kelebihan Kapasitas',
+      pesan: `Maksimal 17 peserta per batch agar pengawasan Uji Praktik RnD 16 jam tetap intensif (Saat ini: ${jumlahPeserta}/17).`,
+      colorClass: 'text-rose-700 bg-rose-50 border-rose-200',
+    };
+  }
+  return {
+    status: 'KUOTA_OPTIMAL',
+    label: 'Kapasitas Ideal (11-17 Kru)',
+    pesan: `Jumlah peserta memenuhi standar baku pelatihan (Saat ini: ${jumlahPeserta} peserta).`,
+    colorClass: 'text-emerald-700 bg-emerald-50 border-emerald-200',
+  };
+}
+
+/**
+ * Seed Batch Pelatihan Resmi HARA Chicken
+ */
+export const INITIAL_ONBOARDING_BATCHES: OnboardingBatch[] = [
+  {
+    id: 'batch-ob-01',
+    nomor_batch: 'OB-HARA/2026/B01',
+    nama_batch: 'Batch Onboarding & RnD Produk Q1 2026',
+    tanggal_mulai: '2026-03-05',
+    tanggal_selesai: '2026-03-07',
+    kode_outlet_lokasi: 'HC-JTS01',
+    status: 'Selesai',
+    kuota_min: 11,
+    kuota_max: 17,
+    lead_trainer: 'Haikal Abi (Lead Trainer & People Dev)',
+    catatan_batch: 'Batch berjalan lancar dengan tingkat kelulusan 100%. Uji praktik RnD suhu 160°C stabil.',
+    created_at: '2026-03-01T08:00:00.000Z',
+    peserta: [
+      {
+        kru_id: 'kru-1',
+        nama_kru: 'Budi Santoso',
+        kode_outlet: 'HC-JTS01',
+        divisi: 'Kitchen',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-15',
+        hari_kerja: 20,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 90, 2: 92, 3: 88, 4: 90, 5: 95, 6: 88, 7: 95, 8: 92, 9: 94, 10: 98 },
+        nilai_praktik_rnd: 93,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Karakter sangat tenang, pemahaman suhu fryer 160C & timer 12 menit tepat.',
+      },
+      {
+        kru_id: 'kru-2',
+        nama_kru: 'Siti Rahma',
+        kode_outlet: 'HC-JTS01',
+        divisi: 'Kasir',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-20',
+        hari_kerja: 15,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 95, 2: 90, 3: 98, 4: 96, 5: 92, 6: 94, 7: 96, 8: 88, 9: 90, 10: 100 },
+        nilai_praktik_rnd: 89,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Pelayanan kasir sangat ramah, kecepatan greeting < 3 detik.',
+      },
+      {
+        kru_id: 'kru-3',
+        nama_kru: 'Ahmad Fauzi',
+        kode_outlet: 'HC-JTS01',
+        divisi: 'Geprek',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-18',
+        hari_kerja: 17,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 88, 2: 90, 3: 85, 4: 86, 5: 90, 6: 88, 7: 92, 8: 94, 9: 96, 10: 95 },
+        nilai_praktik_rnd: 95,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Uleg cobek sambal bawang 30g mantap, tekstur cabai dan minyak panas pas.',
+      },
+      {
+        kru_id: 'kru-4',
+        nama_kru: 'Doni Pratama',
+        kode_outlet: 'HC-JTS01',
+        divisi: 'Helper',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-25',
+        hari_kerja: 10,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 86, 2: 94, 3: 82, 4: 85, 5: 92, 6: 84, 7: 90, 8: 86, 9: 88, 10: 92 },
+        nilai_praktik_rnd: 87,
+        survey_kepuasan: 4,
+        status_kelulusan: 'Lulus',
+        catatan: 'Disiplin 4 warna lap & sanitasi area dining sangat bersih.',
+      },
+      {
+        kru_id: 'kru-5',
+        nama_kru: 'Rina Wulandari',
+        kode_outlet: 'HC-BTL01',
+        divisi: 'Kitchen',
+        tipe: 'Retraining Karyawan Lama',
+        tanggal_masuk: '2025-11-10',
+        hari_kerja: 115,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 94, 2: 96, 3: 90, 4: 92, 5: 96, 6: 90, 7: 94, 8: 96, 9: 95, 10: 96 },
+        nilai_praktik_rnd: 96,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Penyegaran produk sukses besar, siap dipromosikan ke Station Head.',
+      },
+      {
+        kru_id: 'kru-6',
+        nama_kru: 'Agus Setiawan',
+        kode_outlet: 'HC-BTL01',
+        divisi: 'Geprek',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-03-01',
+        hari_kerja: 6,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 88, 2: 86, 3: 85, 4: 84, 5: 86, 6: 85, 7: 90, 8: 90, 9: 92, 10: 95 },
+        nilai_praktik_rnd: 91,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Antusias tinggi, penimbangan sambal 30g presisi.',
+      },
+      {
+        kru_id: 'kru-7',
+        nama_kru: 'Tri Handayani',
+        kode_outlet: 'HC-BTL01',
+        divisi: 'Kasir',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-28',
+        hari_kerja: 7,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 92, 2: 88, 3: 94, 4: 92, 5: 88, 6: 90, 7: 95, 8: 88, 9: 89, 10: 96 },
+        nilai_praktik_rnd: 88,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Penanganan transaksi online & kasir POS lancar.',
+      },
+      {
+        kru_id: 'kru-8',
+        nama_kru: 'Wahyu Hidayat',
+        kode_outlet: 'HC-BTL01',
+        divisi: 'Helper',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-22',
+        hari_kerja: 13,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 85, 2: 92, 3: 82, 4: 86, 5: 88, 6: 82, 7: 88, 8: 86, 9: 87, 10: 90 },
+        nilai_praktik_rnd: 86,
+        survey_kepuasan: 4,
+        status_kelulusan: 'Lulus',
+        catatan: 'Kerapian peralatan cuci dan penyimpanan bahan baku rapi.',
+      },
+      {
+        kru_id: 'kru-9',
+        nama_kru: 'Eko Prasetyo',
+        kode_outlet: 'HC-MLG01',
+        divisi: 'Kitchen',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-12',
+        hari_kerja: 23,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 92, 2: 94, 3: 88, 4: 90, 5: 94, 6: 88, 7: 92, 8: 94, 9: 93, 10: 95 },
+        nilai_praktik_rnd: 94,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Suhu inti daging matang konsisten di atas 74C.',
+      },
+      {
+        kru_id: 'kru-10',
+        nama_kru: 'Maya Indah',
+        kode_outlet: 'HC-MLG01',
+        divisi: 'Kasir',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-14',
+        hari_kerja: 21,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 94, 2: 90, 3: 96, 4: 94, 5: 90, 6: 92, 7: 96, 8: 90, 9: 92, 10: 98 },
+        nilai_praktik_rnd: 91,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Teliti, zero minus pada rekonsiliasi kas shift.',
+      },
+      {
+        kru_id: 'kru-11',
+        nama_kru: 'Rizky Saputra',
+        kode_outlet: 'HC-MLG01',
+        divisi: 'Geprek',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-16',
+        hari_kerja: 19,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 89, 2: 88, 3: 85, 4: 88, 5: 89, 6: 88, 7: 90, 8: 92, 9: 94, 10: 94 },
+        nilai_praktik_rnd: 93,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Kecepatan plating geprek tinggi dan konsisten.',
+      },
+      {
+        kru_id: 'kru-12',
+        nama_kru: 'Dewi Anggraini',
+        kode_outlet: 'HC-MLG01',
+        divisi: 'Helper',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-02-18',
+        hari_kerja: 17,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+        nilai_evaluasi: { 1: 90, 2: 95, 3: 86, 4: 88, 5: 90, 6: 85, 7: 92, 8: 88, 9: 90, 10: 95 },
+        nilai_praktik_rnd: 89,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Lulus',
+        catatan: 'Kerapian dining dan kebersihan dapur teladan.',
+      },
+    ],
+  },
+  {
+    id: 'batch-ob-02',
+    nomor_batch: 'OB-HARA/2026/B02',
+    nama_batch: 'Batch Onboarding & Retraining Kru April 2026',
+    tanggal_mulai: '2026-04-10',
+    tanggal_selesai: '2026-04-12',
+    kode_outlet_lokasi: 'HC-MLG01',
+    status: 'Berjalan',
+    kuota_min: 11,
+    kuota_max: 17,
+    lead_trainer: 'Haikal Abi (Lead Trainer & People Dev)',
+    catatan_batch: 'Sesi hari ke-2 SOP Produk RnD sedang berlangsung. Kuota 13 peserta (Ideal).',
+    created_at: '2026-04-01T08:00:00.000Z',
+    peserta: [
+      {
+        kru_id: 'kru-13',
+        nama_kru: 'Dimas Kurniawan',
+        kode_outlet: 'HC-SBY01',
+        divisi: 'Kitchen',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-03-25',
+        hari_kerja: 16,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: false, 10: false },
+        nilai_evaluasi: { 1: 92, 2: 90, 3: 88, 4: 86, 5: 92, 6: 88, 7: 90, 8: 91 },
+        nilai_praktik_rnd: 91,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Sedang Berjalan',
+        catatan: 'Sedang menyelesaikan uji praktik RnD hari ke-2.',
+      },
+      {
+        kru_id: 'kru-14',
+        nama_kru: 'Nurul Hidayah',
+        kode_outlet: 'HC-SBY01',
+        divisi: 'Kasir',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-03-28',
+        hari_kerja: 13,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: false, 10: false },
+        nilai_evaluasi: { 1: 94, 2: 92, 3: 95, 4: 92, 5: 90, 6: 92, 7: 94, 8: 88 },
+        nilai_praktik_rnd: 88,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Sedang Berjalan',
+        catatan: 'Ramah dan sangat menguasai simulasi handling complaint.',
+      },
+      {
+        kru_id: 'kru-15',
+        nama_kru: 'Fajar Maulana',
+        kode_outlet: 'HC-SBY01',
+        divisi: 'Geprek',
+        tipe: 'Karyawan Baru (1-45 Hari)',
+        tanggal_masuk: '2026-03-26',
+        hari_kerja: 15,
+        absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: false, 10: false },
+        nilai_evaluasi: { 1: 88, 2: 86, 3: 84, 4: 88, 5: 88, 6: 85, 7: 89, 8: 93 },
+        nilai_praktik_rnd: 93,
+        survey_kepuasan: 5,
+        status_kelulusan: 'Sedang Berjalan',
+        catatan: 'Praktik penepungan ayam sangat merata dan keriting krispi.',
+      },
+    ],
+  },
+];

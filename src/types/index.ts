@@ -702,9 +702,16 @@ export interface OfficialRaporKru {
   periode_evaluasi: string;
   tanggal_terbit: string;
   
-  // Executive Score & Ranking
   nilai_akhir_komprehensif: number; // Max 100
-  predikat_kelulusan: 'A+ (Talenta Unggul)' | 'A (Mahir Mandiri)' | 'B (Terampil Berkembang)' | 'C (Butuh Pembinaan)';
+  predikat_kelulusan:
+    | 'A+ (Talenta Unggul)'
+    | 'A (Mahir Mandiri)'
+    | 'B (Terampil Berkembang)'
+    | 'C (Butuh Pembinaan)'
+    | 'Grade A (Mahir)'
+    | 'Grade B (Kompeten)'
+    | 'Grade C (Pembinaan)'
+    | 'Remedial';
   peringkat_cabang: number; // e.g. 2
   total_kru_cabang: number; // e.g. 18
   status_sertifikasi: 'Tersertifikasi Penuh' | 'Sertifikasi Bersyarat' | 'Belum Lulus';
@@ -946,6 +953,14 @@ export interface HasilUjianKruMingguan {
     fokus_pelanggan: number; // 0 - 100
     disiplin_sop: number; // 0 - 100
     kerjasama_tim: number; // 0 - 100
+    inisiatif_kepemimpinan: number; // 0 - 100 (Dimensi ke-6: Self-leadership & Solo Shift)
+    skor_rata_rata?: number;
+    archetype_name?: string;
+    red_flag_detected?: boolean;
+    red_flag_notes?: string;
+    rekomendasi_stasiun?: string;
+    panduan_bimbingan_sm?: string;
+    cross_validation_status?: 'Konsisten Unggul' | 'Rendah Hati / Eksekutor Lapangan' | '⚠️ Anomali Fake-Good (Skor Tes Psikologi Tinggi tapi Attitude Harian Rendah)';
     tipe_kepribadian_kerja: string;
     kesimpulan_trainer: string;
     rekomendasi_pendampingan: string;
@@ -974,3 +989,58 @@ export interface TrainerExamConfig {
   passing_grade: number;
   pesan_trainer?: string;
 }
+
+// ==========================================
+// MODUL ONBOARDING & RETRAINING KRU 3 HARI
+// (10 Sesi Baku - Total 25 Jam)
+// ==========================================
+
+export interface OnboardingSessionDef {
+  no: number;
+  hari: 1 | 2 | 3;
+  judul: string;
+  tujuan: string;
+  durasi_jam: number;
+  metode: string;
+  trainer_role: string;
+  evaluasi: string;
+}
+
+export interface OnboardingParticipant {
+  kru_id: string;
+  nama_kru: string;
+  kode_outlet: string;
+  divisi: Division;
+  tipe: 'Karyawan Baru (1-45 Hari)' | 'Retraining Karyawan Lama';
+  tanggal_masuk: string;
+  hari_kerja: number;
+  absensi: Record<number, boolean>; // sessionNo -> hadir
+  nilai_evaluasi: Record<number, number>; // sessionNo -> skor (0-100)
+  nilai_praktik_rnd: number; // Uji Praktik RnD 16 Jam (Hari 2 & 3)
+  survey_kepuasan: number; // 1-5 bintang atau 0-100
+  status_kelulusan: 'Lulus' | 'Remedial' | 'Sedang Berjalan';
+  catatan?: string;
+}
+
+export interface OnboardingBatch {
+  id: string;
+  nomor_batch: string; // e.g. 'OB-HARA/2026/B04'
+  nama_batch: string;
+  tanggal_mulai: string;
+  tanggal_selesai: string;
+  kode_outlet_lokasi: string;
+  status: 'Direncanakan' | 'Berjalan' | 'Selesai';
+  kuota_min: number; // Default 11
+  kuota_max: number; // Default 17
+  peserta: OnboardingParticipant[];
+  lead_trainer: string;
+  catatan_batch?: string;
+  created_at: string;
+}
+
+// ==========================================
+// KONFIGURASI PDF MULTI-UKURAN & VEKTOR
+// ==========================================
+
+export type PDFPaperSize = 'A4' | 'F4' | 'Letter' | 'A3' | 'A5';
+export type PDFOrientation = 'portrait' | 'landscape';

@@ -6,7 +6,7 @@ import {
   Download, Edit3, Trash2, Check, X, ShieldAlert, FileText,
   HelpCircle, ChevronDown, Flame, Thermometer, Info,
   Lightbulb, RefreshCw, Layers, ArrowUpRight, BarChart3,
-  UserCheck, ExternalLink, Printer, Target
+  UserCheck, ExternalLink, Printer, Target, Heart
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
@@ -20,6 +20,7 @@ import { AIActionType } from './AIActionModal';
 import { PenilaianTeoriView } from './PenilaianTeoriView';
 import { PenilaianPraktikView } from './PenilaianPraktikView';
 import { PenilaianLisanView } from './PenilaianLisanView';
+import { PenilaianSikapHaraView } from './PenilaianSikapHaraView';
 import { KompetensiView } from './KompetensiView';
 import { ModernOptionSelector } from './ModernOptionSelector';
 import { PageHeaderBanner } from './PageHeaderBanner';
@@ -34,6 +35,7 @@ export type PelatihanSubTab =
   | 'penilaian-teori'
   | 'penilaian-praktik'
   | 'penilaian-lisan'
+  | 'penilaian-sikap'
   | 'kompetensi';
 
 interface PelatihanEvaluasiViewProps {
@@ -57,6 +59,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
   customDescription,
 }) => {
   const [activeTab, setActiveTab] = useState<PelatihanSubTab>(initialSubTab);
+  const [targetKruForSikap, setTargetKruForSikap] = useState<string | null>(null);
 
   // Master Data
   const [sopList, setSopList] = useState<BankSOP[]>([]);
@@ -335,42 +338,49 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
     }
   };
 
-  // Sub Tab Navigation Config
+  // Sub Tab Navigation Config: 4 Pilar Evaluasi Sejajar + Matriks & Radar
   const TABS_CONFIG = [
     {
       id: 'hasil-ujian' as PelatihanSubTab,
-      label: 'Hasil Ujian & Karakter Kru',
-      icon: Award,
+      label: '1. Uji Teori SOP (20%)',
+      icon: Brain,
       count: db.getHasilUjianMingguan().length,
-      desc: 'Otomatisasi Paket SOP & Radar Psikologis Kru',
-    },
-    {
-      id: 'kompetensi' as PelatihanSubTab,
-      label: 'Matriks 360° & Data Science',
-      icon: Shield,
-      count: competencyList.length,
-      desc: 'Triangulasi Objektif 4 Pilar & Kurva Gauss',
+      desc: 'Hasil Ujian CBT Otomatis & Review Essay HOTS',
     },
     {
       id: 'penilaian-praktik' as PelatihanSubTab,
-      label: 'Praktik SOS & Suhu (35%)',
+      label: '2. Uji Praktik & SOS (40%)',
       icon: Wrench,
       count: db.getTable('penilaian_praktik').length,
-      desc: 'Stopwatch Detik, Gramatur & Deep Fryer 160°C',
-    },
-    {
-      id: 'penilaian-teori' as PelatihanSubTab,
-      label: 'Uji Teori SOP (25%)',
-      icon: Brain,
-      count: db.getTable('penilaian_teori').length,
-      desc: 'Koreksi Otomatis Zero-Bias Bank Soal',
+      desc: 'Stopwatch Detik, Akurasi Suhu 160°C & Gramatur',
     },
     {
       id: 'penilaian-lisan' as PelatihanSubTab,
-      label: 'Uji Lisan HACCP (20%)',
+      label: '3. Uji Lisan HACCP (15%)',
       icon: Mic,
       count: db.getTable('penilaian_lisan').length,
       desc: 'Pemahaman Titik Kritis & "Why Behind SOP"',
+    },
+    {
+      id: 'penilaian-sikap' as PelatihanSubTab,
+      label: '4. Penilaian Budaya HARA (25%)',
+      icon: Heart,
+      count: db.getTable('attitude_hara').length,
+      desc: 'Input Nilai HARA Objektif 16 Butir SOP Baku (Bebas Subjektivitas Skala 1-5)',
+    },
+    {
+      id: 'kompetensi' as PelatihanSubTab,
+      label: '5. Matriks 360° & Radar',
+      icon: Shield,
+      count: competencyList.length,
+      desc: 'Triangulasi Objektif 4 Pilar, Sertifikasi & Radar',
+    },
+    {
+      id: 'penilaian-teori' as PelatihanSubTab,
+      label: 'Input Manual Teori',
+      icon: Award,
+      count: db.getTable('penilaian_teori').length,
+      desc: 'Input Nilai Teori Tambahan / Ujian Tertulis Khusus',
     },
     {
       id: 'bank-sop' as PelatihanSubTab,
@@ -495,11 +505,11 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
 
         <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] space-y-1.5 hover:border-slate-300 transition-colors">
           <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-            <span>Formula 3-Pilar</span>
-            <Layers size={14} className="text-indigo-600" />
+            <span>Formula 4-Pilar</span>
+            <Layers size={14} className="text-[#96171B]" />
           </div>
-          <div className="text-sm font-bold text-slate-900 pt-1">25% • 50% • 25%</div>
-          <div className="text-[11px] text-slate-500 font-medium truncate">Teori • Praktik • Lisan</div>
+          <div className="text-xs font-bold text-slate-900 pt-1 font-mono">20% • 40% • 15% • 25%</div>
+          <div className="text-[10px] text-slate-500 font-medium truncate">Teori • Praktik • Lisan • Sikap HARA</div>
         </div>
       </div>
 
@@ -636,7 +646,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600">
-                    Mencakup nilai <b>RESPECT</b>, tata tertib, grooming seragam harian, buka/tutup gerai, kasir POS & QRIS, HACCP suhu, thawing ayam, resep sambal gramasi presisi, side dishes, minuman 40 cup, hingga general cleaning.
+                    Mencakup 4 nilai Budaya <b>H.A.R.A</b> (Halal, Amanah, Responsif, Adaptif) & 12 Perilaku Utama, tata tertib, grooming seragam harian, buka/tutup gerai, kasir POS & QRIS, HACCP suhu, thawing ayam, resep sambal gramasi presisi, side dishes, minuman 40 cup, hingga general cleaning.
                   </p>
                 </div>
               </div>
@@ -959,22 +969,36 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* E. UJI LISAN & SITUASI KRITIS (25%) */}
+      {/* E. UJI LISAN & SITUASI KRITIS (15%) */}
       {/* ========================================================================= */}
       {activeTab === 'penilaian-lisan' && (
         <PenilaianLisanView selectedOutletCode={selectedOutletCode} />
       )}
 
       {/* ========================================================================= */}
-      {/* F. MATRIKS KOMPETENSI & SERTIFIKAT DIGITAL */}
+      {/* E2. PILAR 4: SIKAP BUDAYA H.A.R.A 12 PERILAKU UTAMA (25%) */}
+      {/* ========================================================================= */}
+      {activeTab === 'penilaian-sikap' && (
+        <PenilaianSikapHaraView
+          selectedOutletCode={selectedOutletCode}
+          initialTargetKruName={targetKruForSikap}
+        />
+      )}
+
+      {/* ========================================================================= */}
+      {/* F. MATRIKS KOMPETENSI & RADAR 360° */}
       {/* ========================================================================= */}
       {activeTab === 'kompetensi' && (
         <KompetensiView
           selectedOutletCode={selectedOutletCode}
-          onNavigateToExam={(type) => {
-            if (type === 'teori') setActiveTab('penilaian-teori');
+          onNavigateToExam={(type, crewName) => {
+            if (type === 'teori') setActiveTab('hasil-ujian');
             else if (type === 'praktik') setActiveTab('penilaian-praktik');
             else if (type === 'lisan') setActiveTab('penilaian-lisan');
+            else if (type === 'sikap') {
+              setTargetKruForSikap(crewName || null);
+              setActiveTab('penilaian-sikap');
+            }
           }}
         />
       )}

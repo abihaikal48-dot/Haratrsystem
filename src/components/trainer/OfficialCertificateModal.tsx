@@ -107,7 +107,7 @@ export const OfficialCertificateModal: React.FC<OfficialCertificateModalProps> =
 *📊 HASIL EVALUASI 4 FAKTOR OBJEKTIF:*
 • 📘 *Teori SOP (25%):* ${formData.skor_teori ?? 85} / 100
 • 🛠️ *Praktik Jobdesk (35%):* ${formData.skor_praktik ?? 88} / 100
-• 🤝 *Sikap RESPECT (25%):* ${formData.skor_attitude ?? 90} / 100
+• 🤝 *Sikap Budaya H.A.R.A (25%):* ${formData.skor_attitude ?? 90} / 100
 • ⚡ *Ketahanan Jam Sibuk (15%):* ${formData.skor_ketahanan ?? 85} / 100
 ---------------------------------------------
 ⭐ *TOTAL SKOR AKHIR KOMPOSIT:* *${formData.skor_akhir ?? formData.skor_awal ?? 88} / 100*
@@ -262,7 +262,7 @@ Trainer Operasional: ${formData.trainer_nama || 'Haikal Abi'}`;
                   BERITA ACARA EVALUASI KETERAMPILAN & KELULUSAN OJT KRU
                 </h3>
                 <p className="text-xs text-slate-600 font-medium">
-                  Hasil Uji Objektif 4 Dimensi: Teori SOP Baku, Praktik Jobdesk, Sikap RESPECT & Ketahanan Peak Hours
+                  Hasil Uji Objektif 4 Dimensi: Teori SOP Baku, Praktik Jobdesk, Sikap Budaya H.A.R.A & Ketahanan Peak Hours
                 </p>
               </div>
 
@@ -329,7 +329,7 @@ Trainer Operasional: ${formData.trainer_nama || 'Haikal Abi'}`;
                   </div>
 
                   <div className="p-3 rounded-2xl bg-emerald-50/80 border border-emerald-200 space-y-1">
-                    <div className="text-[10px] font-black text-emerald-700 uppercase">3. RESPECT (25%)</div>
+                    <div className="text-[10px] font-black text-emerald-700 uppercase">3. Budaya HARA (25%)</div>
                     <div className="text-2xl font-black text-emerald-900">{formData.skor_attitude ?? 90}</div>
                     <div className="text-[10px] text-emerald-600 font-medium">Budaya & Sikap</div>
                   </div>
@@ -383,8 +383,8 @@ Trainer Operasional: ${formData.trainer_nama || 'Haikal Abi'}`;
                         <td className="p-2 text-center font-black text-amber-900">{((formData.skor_praktik ?? 88) * 0.35).toFixed(1)} pt</td>
                       </tr>
                       <tr>
-                        <td className="p-2 font-bold text-emerald-900 bg-emerald-50/40">3. Sikap RESPECT</td>
-                        <td className="p-2 text-slate-700">Religious, Integritas, Grooming, Efisien & Keramahan 5S</td>
+                        <td className="p-2 font-bold text-emerald-900 bg-emerald-50/40">3. Sikap Budaya H.A.R.A</td>
+                        <td className="p-2 text-slate-700">Halal, Amanah, Responsif, Adaptif (12 Perilaku Utama Resmi)</td>
                         <td className="p-2 text-center font-bold text-slate-600">25%</td>
                         <td className="p-2 text-center font-bold text-emerald-900">{formData.skor_attitude ?? 90}/100</td>
                         <td className="p-2 text-center font-black text-emerald-900">{((formData.skor_attitude ?? 90) * 0.25).toFixed(1)} pt</td>
@@ -682,7 +682,7 @@ Trainer Operasional: ${formData.trainer_nama || 'Haikal Abi'}`;
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-emerald-800 block mb-0.5">3. RESPECT (25%)</label>
+                    <label className="text-[10px] font-bold text-emerald-800 block mb-0.5">3. Budaya H.A.R.A (25%)</label>
                     <input
                       type="number"
                       min="0"

@@ -51,7 +51,7 @@ export const TrainingRoadmapTimeline: React.FC<TrainingRoadmapTimelineProps> = (
       id: 'p-3',
       tanggal: '2026-08-14',
       tipe: 'Ujian Sertifikasi 4-Pilar',
-      judul: 'Uji Teori, Praktik & Karakter RESPECT Kru Baru',
+      judul: 'Uji Teori, Praktik & Karakter Budaya H.A.R.A Kru Baru',
       outlet: selectedOutletCode === 'ALL' ? 'HC-BKS03' : selectedOutletCode,
       status: 'DONE',
       keterangan: 'Sebanyak 92% peserta berhasil lulus uji kompetensi dengan passing grade > 78.',

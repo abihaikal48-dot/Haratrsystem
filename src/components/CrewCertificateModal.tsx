@@ -3,6 +3,8 @@ import { Award, Printer, X, CheckCircle2, ShieldCheck, QrCode, Calendar, MapPin,
 import { Kru, Outlet } from '../types';
 import { HaraLogo } from './HaraLogo';
 
+import { generateCrewCertificatePDF } from '../lib/pdfGenerator';
+
 interface CrewCertificateModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -29,6 +31,10 @@ export const CrewCertificateModal: React.FC<CrewCertificateModalProps> = ({
     year: 'numeric',
   });
 
+  const handleDownloadPDF = () => {
+    generateCrewCertificatePDF(kru, score, outletName, certNumber, todayFormatted);
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -38,11 +44,19 @@ export const CrewCertificateModal: React.FC<CrewCertificateModalProps> = ({
       {/* Control Bar (hidden during print) */}
       <div className="fixed top-4 right-4 z-50 flex items-center gap-2 print:hidden">
         <button
+          onClick={handleDownloadPDF}
+          className="px-4 py-2 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg transition-all cursor-pointer active:scale-95 border border-amber-400/40"
+          title="Unduh file PDF Vektor A4 Landscape Tajam & Presisi"
+        >
+          <Download size={15} />
+          <span>Unduh PDF Resmi (A4 Landscape)</span>
+        </button>
+        <button
           onClick={handlePrint}
-          className="px-4 py-2 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg transition-all cursor-pointer"
+          className="px-3.5 py-2 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
         >
           <Printer size={15} />
-          <span>Cetak Sertifikat / Simpan PDF</span>
+          <span className="hidden sm:inline">Cetak / Print</span>
         </button>
         <button
           onClick={onClose}

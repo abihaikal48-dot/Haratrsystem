@@ -73,16 +73,35 @@ export const PenilaianTeoriView: React.FC<{ selectedOutletCode: string }> = ({ s
     });
     setSubmitted(true);
 
+    const targetKruObj = kruList.find((k) => k.nama_kru === selectedKru);
+    const resolvedOutletCode = selectedOutletCode !== 'ALL' ? selectedOutletCode : (targetKruObj?.kode_outlet || 'HC-JTS01');
+
     // Save to storage
     db.insertRow<PenilaianTeori>('penilaian_teori', {
       tanggal: new Date().toISOString(),
       nama_kru: selectedKru,
+      kru_id: targetKruObj?.id,
+      kode_outlet: resolvedOutletCode,
       topik: selectedTopik === 'ALL' ? 'Standar Umum & SOP' : selectedTopik,
       jumlah_benar: correctCount,
       total_soal: filteredSoal.length,
       skor: finalScore,
       catatan: catatan || `Ujian teori diselesaikan dengan skor ${finalScore}/100`,
     });
+
+    if (finalScore < 75) {
+      const targetKruObj = kruList.find((k) => k.nama_kru === selectedKru);
+      db.triggerAutoRemedialAndTNA({
+        nama_kru: selectedKru,
+        kru_id: targetKruObj?.id,
+        kode_outlet: selectedOutletCode !== 'ALL' ? selectedOutletCode : (targetKruObj?.kode_outlet || 'HC-JTS01'),
+        divisi: (targetKruObj?.divisi as any) || 'Kitchen',
+        skor: finalScore,
+        topikSalah: [selectedTopik === 'ALL' ? 'Uji Teori SOP Umum' : selectedTopik],
+        sumberTemuan: `Uji Teori SOP (${selectedTopik} - Skor ${finalScore}/100)`,
+        catatan: `Hasil kuis teori di bawah KKM 75 (${finalScore}/100)`,
+      });
+    }
   };
 
   const resetExam = () => {

@@ -153,27 +153,35 @@ interface NavGroup {
 
 const GROUPS: NavGroup[] = [
   {
-    label: 'MAIN NAVIGATION',
+    label: 'DASHBOARD & OVERVIEW',
     items: [
-      { id: 'dashboard', label: 'Overview / Dashboard', icon: LayoutDashboard },
-      { id: 'operasional-sop', label: 'Katalog & Bank SOP', icon: BookOpen },
-      { id: 'monitoring-training', label: 'Monitoring Kru OJT 30 Hari', icon: CalendarCheck, badge: 'Gate 1-4' },
-      { id: 'laporan-resmi', label: 'Pusat Rapor Resmi Kru', icon: FileCheck, badge: 'A4 & PDF' },
+      { id: 'dashboard', label: 'Overview & Analitik Gerai', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'ANALYTICS & EVALUASI',
+    label: 'STANDAR & TOOLS DAPUR',
     items: [
-      { id: 'evaluasi-kompetensi', label: 'Pusat Evaluasi Kru (KSA)', icon: Award, badge: '360°' },
-      { id: 'budaya-hara', label: 'Visi, Misi & Budaya H.A.R.A', icon: Target },
-      { id: 'stasiun-kerja', label: '4 Stasiun Kerja SOP', icon: UtensilsCrossed },
-      { id: 'analitik-radar', label: 'Radar Kompetensi 8-Axis', icon: BarChart3 },
-      { id: 'supervisi-lapangan', label: 'Supervisi Lapangan & Gerai', icon: Eye },
+      { id: 'budaya-hara', label: 'Budaya & 12 Perilaku H.A.R.A', icon: Target },
+      { id: 'stasiun-kerja', label: '4 Stasiun Kerja & Tools Dapur', icon: UtensilsCrossed },
     ],
   },
   {
-    label: 'SUPPORT & PENGATURAN',
+    label: 'PELATIHAN & RETRAINING',
     items: [
+      { id: 'monitoring-training', label: 'Training & Retraining OJT', icon: CalendarCheck, badge: 'H1-30' },
+    ],
+  },
+  {
+    label: 'EVALUASI & SUPERVISI',
+    items: [
+      { id: 'evaluasi-kompetensi', label: 'Pusat Evaluasi Kru (4 Pilar)', icon: Award, badge: '4 Pilar' },
+      { id: 'supervisi-lapangan', label: 'Supervisi & Coaching (GROW)', icon: Eye, badge: 'GROW' },
+    ],
+  },
+  {
+    label: 'LAPORAN & SISTEM',
+    items: [
+      { id: 'laporan-resmi', label: 'Pusat Rapor Resmi & PDF', icon: FileCheck, badge: 'Multi-Size' },
       { id: 'master', label: 'Master Data Gerai & Kru', icon: Store },
       { id: 'users', label: 'Kelola Pengguna & Akses', icon: Users },
       { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
@@ -221,14 +229,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-[#FAFAFA] text-slate-700 flex flex-col z-50 transition-all duration-300 border-r border-slate-200/90 shadow-xs shrink-0 select-none ${
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white text-slate-700 flex flex-col z-50 transition-all duration-300 border-r border-slate-200/90 shadow-2xs shrink-0 select-none ${
           collapsed ? 'w-[74px]' : 'w-[260px]'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        {/* Header with Official Logo & Brand (Nuvio Layout) */}
+        {/* Header with Official Logo & Brand */}
         <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 h-16 shrink-0 bg-white">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-xl bg-[#8B1418] text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
               H
             </div>
             {!collapsed && (
@@ -252,26 +260,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
         </div>
 
-        {/* Search input with ⌘K shortcut trigger (Nuvio style) */}
+        {/* Search input with ⌘K shortcut trigger */}
         {!collapsed && (
           <div className="px-3 pt-3 pb-1 shrink-0">
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600 transition-all shadow-2xs cursor-pointer group"
+              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600 transition-all shadow-2xs cursor-pointer group"
             >
               <div className="flex items-center gap-2 text-xs">
                 <Search size={14} className="text-slate-400 group-hover:text-slate-600" />
-                <span className="text-slate-500">Search anything...</span>
+                <span className="text-slate-500">Cari menu & SOP...</span>
               </div>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-slate-100 text-slate-500 rounded border border-slate-200">
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white text-slate-500 rounded border border-slate-200">
                 ⌘K
               </kbd>
             </button>
           </div>
         )}
 
-        {/* Navigation List (Nuvio Clean SaaS Grouping) */}
+        {/* Navigation List */}
         <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
           {authorizedGroups.map((group) => (
             <div key={group.label} className="space-y-1">
@@ -294,18 +302,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       title={collapsed ? item.label : undefined}
                       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 text-left cursor-pointer group relative ${
                         active
-                          ? 'bg-white text-slate-900 font-bold shadow-xs border border-slate-200/90'
-                          : 'text-slate-600 hover:bg-slate-100/70 hover:text-slate-900'
+                          ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200/80 shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                       } ${collapsed ? 'justify-center px-2' : ''}`}
                     >
                       {active && (
-                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#8B1418] rounded-r-full" />
+                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-amber-600 rounded-r-full" />
                       )}
                       <Icon
                         size={16}
                         className={`shrink-0 transition-colors ${
                           active
-                            ? 'text-[#8B1418]'
+                            ? 'text-amber-600'
                             : 'text-slate-400 group-hover:text-slate-700'
                         }`}
                       />
@@ -315,7 +323,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           {item.badge && (
                             <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
                               active
-                                ? 'bg-rose-50 text-[#8B1418]'
+                                ? 'bg-amber-100 text-amber-800'
                                 : 'bg-slate-100 text-slate-500'
                             }`}>
                               {item.badge}

@@ -12,6 +12,7 @@ import { Kru, Outlet } from '../../types';
 import { HaraLogo } from '../HaraLogo';
 import { buildDynamicOfficialCrewReport } from '../../lib/analyticsEngine';
 import { CrewRadarChart } from '../analytics/CrewRadarChart';
+import { generateCrewRaporPDF } from '../../lib/pdfGenerator';
 
 interface OfficialRaporKruProps {
   selectedCrewName?: string;
@@ -110,6 +111,15 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
           <div className="flex flex-wrap items-center gap-2.5">
             <button
               type="button"
+              onClick={() => generateCrewRaporPDF(report)}
+              className="px-4 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 text-white rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md active:scale-98 border border-amber-400/30"
+              title="Unduh file PDF Vektor A4 Resmi (Bukan Screenshot Gambar)"
+            >
+              <Download size={15} />
+              <span>Unduh PDF Resmi (A4 Standar)</span>
+            </button>
+            <button
+              type="button"
               onClick={handleCopySummary}
               className="px-3.5 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-800 rounded-2xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-98"
             >
@@ -119,10 +129,10 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-2.5 bg-[#8B1418] hover:bg-[#720e12] text-white rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-red-900/15 active:scale-98"
+              className="px-3.5 py-2.5 bg-stone-800 hover:bg-stone-900 text-white rounded-2xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-xs active:scale-98"
             >
               <Printer size={15} />
-              <span>Cetak / Simpan PDF (A4)</span>
+              <span className="hidden sm:inline">Cetak / Print</span>
             </button>
           </div>
         </div>
@@ -348,19 +358,19 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   {/* Teori */}
                   <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
-                    <div className="text-[10px] text-stone-500 font-bold uppercase">TEORI SOP RESEP (25%)</div>
+                    <div className="text-[10px] text-stone-500 font-bold uppercase">UJI TEORI SOP (20%)</div>
                     <div className="text-2xl font-black text-stone-900 mt-1">{report.skor_teori_sop}</div>
                     <div className="w-full bg-stone-200 h-1.5 rounded-full mt-2 overflow-hidden">
                       <div className="bg-[#8B1418] h-full" style={{ width: `${report.skor_teori_sop}%` }} />
                     </div>
-                    <div className={`text-[10px] font-bold mt-1.5 ${report.skor_teori_sop >= 80 ? 'text-emerald-700' : 'text-red-700'}`}>
-                      {report.skor_teori_sop >= 80 ? 'Lulus Ambang Standar' : 'Di Bawah Standar'}
+                    <div className={`text-[10px] font-bold mt-1.5 ${report.skor_teori_sop >= 75 ? 'text-emerald-700' : 'text-red-700'}`}>
+                      {report.skor_teori_sop >= 75 ? 'Lulus Ambang Standar' : 'Di Bawah Standar'}
                     </div>
                   </div>
 
-                  {/* Praktik */}
+                  {/* Praktik & SOS */}
                   <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
-                    <div className="text-[10px] text-stone-500 font-bold uppercase">PRAKTIK LAPANGAN (35%)</div>
+                    <div className="text-[10px] text-stone-500 font-bold uppercase">UJI PRAKTIK & SOS (40%)</div>
                     <div className={`text-2xl font-black mt-1 ${report.skor_praktik_lapangan < 75 ? 'text-red-700' : 'text-stone-900'}`}>
                       {report.skor_praktik_lapangan}
                     </div>
@@ -372,24 +382,24 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
                     </div>
                   </div>
 
-                  {/* Sikap HARA */}
+                  {/* Lisan HACCP */}
                   <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
-                    <div className="text-[10px] text-stone-500 font-bold uppercase">BUDAYA H.A.R.A (20%)</div>
+                    <div className="text-[10px] text-stone-500 font-bold uppercase">UJI LISAN HACCP (15%)</div>
+                    <div className="text-2xl font-black text-stone-900 mt-1">{report.skor_lisan_haccp || 80}</div>
+                    <div className="w-full bg-stone-200 h-1.5 rounded-full mt-2 overflow-hidden">
+                      <div className="bg-blue-600 h-full" style={{ width: `${report.skor_lisan_haccp || 80}%` }} />
+                    </div>
+                    <div className="text-[10px] text-blue-700 font-bold mt-1.5">Pemahaman CCP & Why</div>
+                  </div>
+
+                  {/* Sikap & Budaya HARA */}
+                  <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
+                    <div className="text-[10px] text-stone-500 font-bold uppercase">SIKAP BUDAYA H.A.R.A (25%)</div>
                     <div className="text-2xl font-black text-stone-900 mt-1">{report.skor_sikap_budaya_hara}</div>
                     <div className="w-full bg-stone-200 h-1.5 rounded-full mt-2 overflow-hidden">
                       <div className="bg-emerald-600 h-full" style={{ width: `${report.skor_sikap_budaya_hara}%` }} />
                     </div>
-                    <div className="text-[10px] text-emerald-700 font-bold mt-1.5">Amanah & Disiplin</div>
-                  </div>
-
-                  {/* Speed Rush Hour */}
-                  <div className="p-4 rounded-xl border border-stone-200 bg-stone-50/60">
-                    <div className="text-[10px] text-stone-500 font-bold uppercase">SPEED RUSH HOUR (20%)</div>
-                    <div className="text-2xl font-black text-stone-900 mt-1">{report.skor_speed_rush_hour}</div>
-                    <div className="w-full bg-stone-200 h-1.5 rounded-full mt-2 overflow-hidden">
-                      <div className="bg-blue-600 h-full" style={{ width: `${report.skor_speed_rush_hour}%` }} />
-                    </div>
-                    <div className="text-[10px] text-stone-600 font-bold mt-1.5">Toleransi Waktu Teruji</div>
+                    <div className="text-[10px] text-emerald-700 font-bold mt-1.5">12 Perilaku Utama Teruji</div>
                   </div>
                 </div>
               </div>

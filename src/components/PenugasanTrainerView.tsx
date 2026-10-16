@@ -56,34 +56,35 @@ const KRITERIA_TEORI_BAKU = [
   },
 ];
 
-// 5 Aspek Budaya RESPECT (Skala 1 - 5 = Max 25 -> 100 pt)
-const ASPEK_ATTITUDE_RESPECT = [
+// 4 Pilar Budaya H.A.R.A & 12 Perilaku Utama Resmi (Skala 1 - 5 = Max 20 -> 100 pt)
+const ASPEK_ATTITUDE_HARA = [
+  {
+    key: 'H',
+    nama: 'Halal (Bekerja Halal)',
+    tagline: 'Bekerja dengan hati yang tulus dan metode yang tepat',
+    deskripsi: 'Bahan baku halal berkualitas, kebersihan dapur & alat, integritas & keberlanjutan bisnis.',
+  },
+  {
+    key: 'A1',
+    nama: 'Amanah (Bertindak Amanah)',
+    tagline: 'Kepercayaan adalah aset utama kami',
+    deskripsi: 'Menepati janji SOP perusahaan, kejujuran takaran bumbu & kasir Rp 0, menjaga reputasi HARA.',
+  },
   {
     key: 'R',
-    nama: 'Religious & Integritas',
-    deskripsi: 'Amanah, jujur dalam takaran/uang, menjaga etika sopan santun dan menjauhi kecurangan.',
+    nama: 'Responsif (Bergerak Responsif)',
+    tagline: 'Kami responsif, tangkas, dan peduli',
+    deskripsi: 'Pelayanan cepat SOS <90 detik, tanggap masukan pelanggan, kepuasan & keramahan 5S.',
   },
   {
-    key: 'P',
-    nama: 'Professional & Grooming',
-    deskripsi: 'Seragam lengkap sesuai jadwal, rambut/kuku bersih rapi, sepatu hitam, tanpa aksesoris terlarang.',
-  },
-  {
-    key: 'E',
-    nama: 'Effective & Efficient',
-    deskripsi: 'Bekerja cekatan, tidak main HP/bermalas-malasan saat shift, inisiatif menjaga kebersihan area.',
-  },
-  {
-    key: 'C',
-    nama: 'Collaboration & Teamwork',
-    deskripsi: 'Komunikasi santun, sigap membantu rekan saat rush hour, patuh dan tanggap instruksi Kapten.',
-  },
-  {
-    key: 'T',
-    nama: 'To Time, To Team, To System',
-    deskripsi: 'Hadir tepat waktu (10-15 mnt awal), ramah senyum 5S ke pelanggan, taat sistem SOP tanpa potong kompas.',
+    key: 'A2',
+    nama: 'Adaptif (Berkembang Adaptif)',
+    tagline: 'Kami terus belajar dan berani berubah',
+    deskripsi: 'Terbuka ide baru, teknologi & sistem terpadu, siap berubah demi pertumbuhan bersama.',
   },
 ];
+
+const ASPEK_ATTITUDE_RESPECT = ASPEK_ATTITUDE_HARA;
 
 export const PenugasanTrainerView: React.FC<PenugasanTrainerViewProps> = ({
   selectedOutletCode,
@@ -436,8 +437,8 @@ export const PenugasanTrainerView: React.FC<PenugasanTrainerViewProps> = ({
     if (calculatedPraktikScore >= 85) parts.push(`praktik lapangan ${assessingTrainee?.divisi || traineeFormData.divisi} cekatan (${calculatedPraktikScore})`);
     else parts.push(`praktik jobdesk perlu percepatan & ketelitian (${calculatedPraktikScore})`);
 
-    if (calculatedAttitudeScore >= 85) parts.push(`budaya RESPECT unggul (${calculatedAttitudeScore})`);
-    else parts.push(`disiplin grooming & inisiatif perlu ditingkatkan (${calculatedAttitudeScore})`);
+    if (calculatedAttitudeScore >= 85) parts.push(`budaya H.A.R.A unggul (${calculatedAttitudeScore})`);
+    else parts.push(`sikap & disiplin H.A.R.A perlu ditingkatkan (${calculatedAttitudeScore})`);
 
     return `Evaluasi Objektif: ${parts.join(', ')}. Status OJT: ${calculatedStatusOjt}.`;
   }, [calculatedTeoriScore, calculatedPraktikScore, calculatedAttitudeScore, calculatedStatusOjt, assessingTrainee, traineeFormData.divisi]);
@@ -767,7 +768,7 @@ export const PenugasanTrainerView: React.FC<PenugasanTrainerViewProps> = ({
 *📊 HASIL EVALUASI OBJEKTIF 4-FAKTOR:*
 • 📘 *Teori SOP (25%):* ${trainee.skor_teori ?? '-'} / 100
 • 🛠️ *Praktik Jobdesk (35%):* ${trainee.skor_praktik ?? '-'} / 100
-• 🤝 *Sikap RESPECT (25%):* ${trainee.skor_attitude ?? '-'} / 100
+• 🤝 *Sikap Budaya H.A.R.A (25%):* ${trainee.skor_attitude ?? '-'} / 100
 • ⚡ *Ketahanan Jam Sibuk (15%):* ${trainee.skor_ketahanan ?? '-'} / 100
 ---------------------------------------------
 ⭐ *TOTAL SKOR AKHIR KOMPOSIT:* *${trainee.skor_akhir ?? trainee.skor_awal ?? 0} / 100*
@@ -1320,7 +1321,7 @@ _Diterbitkan secara digital oleh Sistem HARA TRAINER Pro_`;
 
                         <div className="bg-emerald-50/70 border border-emerald-200/60 rounded-lg p-1.5 text-center">
                           <div className="text-[8px] font-bold text-emerald-700 uppercase flex items-center justify-center gap-0.5">
-                            <Award size={9} /> RESPECT
+                            <Award size={9} /> H.A.R.A
                           </div>
                           <div className="text-[11px] font-black text-emerald-900 mt-0.5">
                             {item.skor_attitude ? `${item.skor_attitude}` : '-'}
@@ -1860,7 +1861,7 @@ _Diterbitkan secara digital oleh Sistem HARA TRAINER Pro_`;
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-600 leading-tight">
-                  Hindari tebak-tebak skor manual yang subjektif. Gunakan rubrik terstandar: <b>Teori (30%)</b>, <b>Praktik Langkah SOP (40%)</b>, dan <b>Attitude RESPECT (30%)</b>.
+                  Hindari tebak-tebak skor manual yang subjektif. Gunakan rubrik terstandar: <b>Teori (25%)</b>, <b>Praktik Langkah SOP (35%)</b>, <b>Budaya H.A.R.A (25%)</b>, dan <b>Ketahanan (15%)</b>.
                 </p>
                 <div className="flex gap-2 pt-1">
                   <button

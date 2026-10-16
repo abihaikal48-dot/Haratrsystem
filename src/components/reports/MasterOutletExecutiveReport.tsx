@@ -294,7 +294,7 @@ _Diterbitkan Resmi via Sistem HARA CHICKEN TRAINER PRO_`;
     doc.setFontSize(8);
     doc.setTextColor(50, 50, 50);
     managementRecommendations.forEach((rec) => {
-      doc.text(`• ${rec}`, 16, currentY);
+      doc.text(`- ${rec}`, 16, currentY);
       currentY += 4.2;
     });
 

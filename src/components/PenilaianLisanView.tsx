@@ -123,15 +123,33 @@ export const PenilaianLisanView: React.FC<{ selectedOutletCode: string }> = ({ s
     setFinalScore(calculated);
     setSubmitted(true);
 
+    const kruObj = kruList.find((k) => k.nama_kru === selectedKru);
+    const resolvedOutletCode = kruObj?.kode_outlet || (selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-JTS01');
+
     db.insertRow<PenilaianLisan>('penilaian_lisan', {
       tanggal: new Date().toISOString(),
       nama_kru: selectedKru,
+      kru_id: kruObj?.id,
+      kode_outlet: resolvedOutletCode,
       sop_terkait: currentSop.judul_sop,
       butir_benar: totalPoints,
       total_butir: maxPoints,
       skor: calculated,
       catatan: catatan || `Uji Lisan HACCP Reasoning: Skor ${calculated}/100 (${totalPoints}/${maxPoints} parameter terjawab).`,
     });
+
+    if (calculated < 75) {
+      db.triggerAutoRemedialAndTNA({
+        kru_id: kruObj?.id,
+        nama_kru: selectedKru,
+        kode_outlet: resolvedOutletCode,
+        divisi: (currentSop?.divisi as any) || 'Kitchen',
+        skor: calculated,
+        topikSalah: [currentSop.judul_sop],
+        sumberTemuan: `Uji Lisan HACCP & Titik Kritis (${currentSop.kode_sop} - Skor ${calculated}/100)`,
+        catatan: `Uji lisan di bawah KKM 75: ${catatan || 'Perlu pemahaman lebih dalam mengenai Why behind SOP'}`,
+      });
+    }
   };
 
   const reset = () => {

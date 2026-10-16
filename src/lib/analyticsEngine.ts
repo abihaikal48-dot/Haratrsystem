@@ -13,53 +13,61 @@ export interface CompositeScoreBreakdown {
   teori_weighted: number; // 25%
   praktik_score: number;
   praktik_weighted: number; // 35%
-  sikap_score: number;
-  sikap_weighted: number; // 25%
-  rush_score: number;
-  rush_weighted: number; // 15%
+  lisan_score: number;
+  lisan_weighted: number; // 20%
+  observasi_sikap_score: number;
+  observasi_sikap_weighted: number; // 20%
+  sikap_score?: number;
+  sikap_weighted?: number;
+  rush_score?: number;
+  rush_weighted?: number;
   total_composite: number; // 100%
   status: 'Kompeten Mandiri' | 'Butuh Pendampingan' | 'Remedial Kritis';
-  grade: 'A (Master)' | 'B (Standar)' | 'C (Perlu Bimbingan)' | 'D (Remedial)';
+  grade: 'Grade A (Mahir)' | 'Grade B (Kompeten)' | 'Grade C (Pembinaan)' | 'Remedial';
 }
 
 /**
- * 1. Rumus Skor Komposit 4-Faktor Terbobot Resmi HARA Chicken
+ * 1. Rumus Skor Komposit 4 Pilar Terpadu Resmi HARA Chicken
+ * - Uji Teori SOP: 25%
+ * - Uji Praktik & SOS: 35%
+ * - Uji Lisan & Pemahaman Kritis HACCP: 20%
+ * - Observasi Lapangan & Attitude Budaya H.A.R.A: 20%
  */
 export function calculateCompositeScore(
   teori: number,
   praktik: number,
-  sikapHara: number,
-  ketahananRush: number
+  lisanHaccp: number,
+  observasiSikap: number
 ): CompositeScoreBreakdown {
   const t = Math.max(0, Math.min(100, teori));
   const p = Math.max(0, Math.min(100, praktik));
-  const s = Math.max(0, Math.min(100, sikapHara));
-  const r = Math.max(0, Math.min(100, ketahananRush));
+  const l = Math.max(0, Math.min(100, lisanHaccp));
+  const o = Math.max(0, Math.min(100, observasiSikap));
 
-  const teori_weighted = Math.round(t * 0.25 * 10) / 10;
-  const praktik_weighted = Math.round(p * 0.35 * 10) / 10;
-  const sikap_weighted = Math.round(s * 0.25 * 10) / 10;
-  const rush_weighted = Math.round(r * 0.15 * 10) / 10;
+  const teori_weighted = Math.round(t * 0.20 * 10) / 10;
+  const praktik_weighted = Math.round(p * 0.40 * 10) / 10;
+  const lisan_weighted = Math.round(l * 0.15 * 10) / 10;
+  const observasi_sikap_weighted = Math.round(o * 0.25 * 10) / 10;
 
   const total_composite = Math.round(
-    (teori_weighted + praktik_weighted + sikap_weighted + rush_weighted) * 10
+    (teori_weighted + praktik_weighted + lisan_weighted + observasi_sikap_weighted) * 10
   ) / 10;
 
   let status: 'Kompeten Mandiri' | 'Butuh Pendampingan' | 'Remedial Kritis' = 'Butuh Pendampingan';
-  let grade: 'A (Master)' | 'B (Standar)' | 'C (Perlu Bimbingan)' | 'D (Remedial)' = 'B (Standar)';
+  let grade: 'Grade A (Mahir)' | 'Grade B (Kompeten)' | 'Grade C (Pembinaan)' | 'Remedial' = 'Grade B (Kompeten)';
 
   if (total_composite >= 85) {
     status = 'Kompeten Mandiri';
-    grade = 'A (Master)';
-  } else if (total_composite >= 72) {
-    status = 'Butuh Pendampingan';
-    grade = 'B (Standar)';
+    grade = 'Grade A (Mahir)';
+  } else if (total_composite >= 75) {
+    status = 'Kompeten Mandiri';
+    grade = 'Grade B (Kompeten)';
   } else if (total_composite >= 60) {
     status = 'Butuh Pendampingan';
-    grade = 'C (Perlu Bimbingan)';
+    grade = 'Grade C (Pembinaan)';
   } else {
     status = 'Remedial Kritis';
-    grade = 'D (Remedial)';
+    grade = 'Remedial';
   }
 
   return {
@@ -67,10 +75,14 @@ export function calculateCompositeScore(
     teori_weighted,
     praktik_score: p,
     praktik_weighted,
-    sikap_score: s,
-    sikap_weighted,
-    rush_score: r,
-    rush_weighted,
+    lisan_score: l,
+    lisan_weighted,
+    observasi_sikap_score: o,
+    observasi_sikap_weighted,
+    sikap_score: o,
+    sikap_weighted: observasi_sikap_weighted,
+    rush_score: p,
+    rush_weighted: praktik_weighted,
     total_composite,
     status,
     grade,
@@ -331,6 +343,8 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     ? Math.round(kLisan.reduce((acc, c) => acc + c.skor, 0) / kLisan.length)
     : 75;
 
+  const skorKnowledgeTerpadu = Math.round(skorTeori * 0.55 + skorLisan * 0.45);
+
   // Sikap HARA: dihitung dari konsistensi Teori + Lisan + Observasi
   const obsBonus = kObs.some((o) => o.hasil === 'Sesuai Standar') ? 5 : 0;
   const obsPenalty = kObs.some((o) => o.hasil === 'Kritis') ? -10 : 0;
@@ -346,13 +360,13 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     skorSpeed = targetKru.divisi === 'Kasir' ? 88 : targetKru.divisi === 'Geprek' ? 82 : 78;
   }
 
-  // 2. Integrasi KSA Terpadu:
-  // - Knowledge (30%): Uji Teori SOP (15%) + Uji Lisan HACCP Reasoning (15%)
-  // - Skill (45%): Praktik Lapangan (35%) + Speed Jam Sibuk (10%)
-  // - Attitude (25%): Visi-Misi H.A.R.A (Halal, Amanah, Responsif, Adaptif)
-  const skorKnowledgeTerpadu = Math.round((skorTeori * 0.5 + skorLisan * 0.5) * 10) / 10;
+  // 2. 4 Pilar Kompetensi Terpadu Resmi HARA Chicken:
+  // - Uji Teori SOP: 25%
+  // - Uji Praktik & Speed of Service (SOS): 35%
+  // - Uji Lisan & Pemahaman Kritis HACCP: 20%
+  // - Observasi Lapangan & Attitude Budaya H.A.R.A: 20%
   const totalComposite = Math.round(
-    (skorKnowledgeTerpadu * 0.30 + skorPraktik * 0.35 + skorSpeed * 0.10 + skorSikap * 0.25) * 10
+    (skorTeori * 0.25 + skorPraktik * 0.35 + skorLisan * 0.20 + skorSikap * 0.20) * 10
   ) / 10;
 
   // Cek apakah ada pelanggaran poin kritis SOP (misal suhu minyak, penepungan padat, atau core temp)
@@ -405,16 +419,16 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     { x: meanScore + 3 * standardDeviation, y: 0.05, label: '+3σ (Master Benchmark)' },
   ];
 
-  // 4. ATURAN KETAT REKOMENDASI KARIR & PREDIKAT (ANTI-HALUSINASI)
-  let predikatKelulusan: 'A+ (Talenta Unggul)' | 'A (Mahir Mandiri)' | 'B (Terampil Berkembang)' | 'C (Butuh Pembinaan)';
+  // 4. ATURAN KETAT REKOMENDASI KARIR & PREDIKAT (AMBANG BATAS KKM HARA: Grade A: 85-100, Grade B: 75-84, Grade C: 60-74, Remedial: < 60)
+  let predikatKelulusan: 'Grade A (Mahir)' | 'Grade B (Kompeten)' | 'Grade C (Pembinaan)' | 'Remedial';
   let statusSertifikasi: 'Tersertifikasi Penuh' | 'Sertifikasi Bersyarat' | 'Belum Lulus';
   let jenjangKarirRekomendasi: 'Senior Station Specialist' | 'Shift Leader Trainee' | 'Tetap di Posisi Saat Ini' | 'Retraining Wajib';
   let aspekUnggul: string[] = [];
   let rekomendasiPengembangan: string[] = [];
 
-  if (totalComposite < 75 || skorPraktik < 75 || criticalViolationDetected) {
-    // NILAI DI BAWAH STANDAR -> WAJIB REMEDIAL, DILARANG PROMOSI!
-    predikatKelulusan = 'C (Butuh Pembinaan)';
+  if (totalComposite < 60 || criticalViolationDetected) {
+    // REMEDIAL (< 60) ATAU KRITIS -> WAJIB REMEDIAL
+    predikatKelulusan = 'Remedial';
     statusSertifikasi = 'Belum Lulus';
     jenjangKarirRekomendasi = 'Retraining Wajib';
     
@@ -424,14 +438,29 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     ];
 
     rekomendasiPengembangan = [
-      `[KRITIS] Nilai praktik (${skorPraktik}) berada di bawah standar kelulusan minimal (75.0). ${violationReason ? `Catatan: "${violationReason}"` : ''}`,
+      `[KRITIS] Nilai evaluasi (${totalComposite}) di bawah batas kelulusan minimal (75.0). ${violationReason ? `Catatan: "${violationReason}"` : ''}`,
       'DILARANG BERTUGAS SOLO SHIFT: Kru wajib didampingi secara penuh oleh Kru Senior atau Trainer.',
       `Wajib mengikuti Retraining Teknis 1-on-1 pada Stasiun ${targetKru.divisi} selama 7 hari kerja berturut-turut.`,
       'Jadwal Ujian Remedial Praktik Ulang ditetapkan maksimal 10 hari sejak penerbitan rapor ini.',
     ];
+  } else if (totalComposite < 75) {
+    // GRADE C (60 - 74): PEMBINAAN
+    predikatKelulusan = 'Grade C (Pembinaan)';
+    statusSertifikasi = 'Belum Lulus';
+    jenjangKarirRekomendasi = 'Retraining Wajib';
+
+    aspekUnggul = [
+      'Mengetahui urutan alur operasional dasar di gerai.',
+      'Memiliki kedisiplinan waktu kehadiran yang baik.',
+    ];
+
+    rekomendasiPengembangan = [
+      'Tingkatkan pemahaman SOP pada pilar yang belum mencapai target KKM 75.',
+      'Lakukan bimbingan 1-on-1 dengan trainer sebelum bertugas mandiri.',
+    ];
   } else if (totalComposite < 85) {
-    // NILAI MODERAT -> STATUS TERBIMBING
-    predikatKelulusan = 'B (Terampil Berkembang)';
+    // GRADE B (75 - 84): KOMPETEN
+    predikatKelulusan = 'Grade B (Kompeten)';
     statusSertifikasi = 'Sertifikasi Bersyarat';
     jenjangKarirRekomendasi = 'Tetap di Posisi Saat Ini';
 
@@ -445,39 +474,23 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
       'Pertahankan ketelitian takaran resep dan hindari terburu-buru saat antrean panjang.',
       'Lanjutkan masa tandem selama 14 hari sebelum dilepas untuk solo shift penuh.',
     ];
-  } else if (totalComposite < 92) {
-    // NILAI TINGGI -> MAHIR MANDIRI
-    predikatKelulusan = 'A (Mahir Mandiri)';
+  } else {
+    // GRADE A (85 - 100): MAHIR
+    predikatKelulusan = 'Grade A (Mahir)';
     statusSertifikasi = 'Tersertifikasi Penuh';
-    jenjangKarirRekomendasi = 'Senior Station Specialist';
+    jenjangKarirRekomendasi = totalComposite >= 92 ? 'Shift Leader Trainee' : 'Senior Station Specialist';
 
     aspekUnggul = [
       'Kepatuhan terhadap standar rasa, gramasi resep, dan hygiene sanitasi 100% konsisten.',
       'Mampu mengoperasikan stasiun kerja secara mandiri pada seluruh shift.',
-      'Penerapan 4 Nilai Budaya H.A.R.A tercermin nyata dalam interaksi kerja harian.',
     ];
 
     rekomendasiPengembangan = [
-      'Direkomendasikan untuk mengikuti pelatihan cross-station (stasiun silang) guna memperluas keahlian.',
-      'Diberdayakan sebagai Mentor Peer untuk membimbing kru magang baru di gerai.',
-    ];
-  } else {
-    // NILAI SANGAT TINGGI (≥92) -> HANYA INI YANG BOLEH DIAJUKAN PROMOSI SHIFT LEADER!
-    predikatKelulusan = 'A+ (Talenta Unggul)';
-    statusSertifikasi = 'Tersertifikasi Penuh';
-    jenjangKarirRekomendasi = 'Shift Leader Trainee';
-
-    aspekUnggul = [
-      'Skor sempurna pada penguasaan teori SOP dan eksekusi praktik kecepatan tinggi.',
-      'Menunjukkan inisiatif kepemimpinan, pemecahan masalah mandiri, dan zero complaint konsumen.',
-      'Konsisten menjadi teladan kepatuhan standar mutu dan sanitasi 5S bagi seluruh tim.',
-    ];
-
-    rekomendasiPengembangan = [
-      'Lolos kualifikasi untuk diajukan ke dalam seleksi program percepatan "Shift Leader Trainee".',
-      'Pemberian tugas tanggung jawab pembukaan/penutupan gerai (Opening/Closing Checklist) bersama Kepala Outlet.',
+      'Disiapkan sebagai kandidat Senior Crew / Shift Leader Trainee.',
+      'Bantu membimbing kru baru pada program OJT 30 Hari stasiun kerja.',
     ];
   }
+
 
   // 5. Evaluasi 4 Stasiun Kerja Terinci
   const evaluasiStasiun: StationCompetencyDetail[] = [
@@ -623,7 +636,7 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     { sop_code: 'SOP-KTC-03', judul: 'Peletakan Ayam Bertahap', langkah_no: 7, instruksi: 'Masukkan ayam satu per satu dari sisi pinggir basket, maksimal 12 potong per batch.', status: '100% Sesuai SOP', catatan: 'Batch isi 10 potong, tidak menempel.' },
     { sop_code: 'SOP-KTC-03', judul: 'Timer Penggorengan Baku', langkah_no: 8, instruksi: 'Pasang timer digital tepat 12-13 menit, goyang basket di menit ke-6 agar tidak gosong lokal.', status: '100% Sesuai SOP', catatan: 'Basket digoyang di menit ke-6.' },
     { sop_code: 'SOP-KTC-04', judul: 'Verifikasi Core Temp', langkah_no: 9, instruksi: 'Ukur suhu bagian terdalam daging paha/dada dengan termometer jarum (Wajib ≥ 74°C).', status: '100% Sesuai SOP', catatan: 'Core temp terbaca 78.5°C aman dari bakteri.' },
-    { sop_code: 'SOP-KTC-05', judul: 'Tiris & Display Warmer', langkah_no: 10, instruksi: 'Tiriskan minyak di rak drainer 2 menit, lalu pindah ke warmer suhu ≥ 60°C (Max display 90 mnt).', status: '100% Sesuai SOP', catatan: 'Label jam masak tercatat rapi pada warmer.' },
+    { sop_code: 'SOP-KTC-05', judul: 'Tiris & Display Warmer', langkah_no: 10, instruksi: 'Tiriskan minyak di rak drainer 2-3 menit, lalu pindah ke warmer suhu 60°C–70°C (Holding time maksimal 120 menit).', status: '100% Sesuai SOP', catatan: 'Label jam masak tercatat rapi pada warmer.' },
   ] : isKasir ? [
     { sop_code: 'SOP-CSR-01', judul: 'Kesiapan Modal & Login POS', langkah_no: 1, instruksi: 'Hitung modal kembalian Rp 200.000, login sistem POS, pastikan printer struk ready.', status: '100% Sesuai SOP', catatan: 'Modal hitung klop dan kertas struk terpasang.' },
     { sop_code: 'SOP-CSR-02', judul: 'Standar 3S & Greeting', langkah_no: 2, instruksi: 'Berdiri tegak, berikan Senyum, Salam, Sapa hangat dengan pandangan mata fokus ke pelanggan.', status: '100% Sesuai SOP', catatan: 'Greeting ramah dan antusias.' },
@@ -633,7 +646,7 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     { sop_code: 'SOP-CSR-04', judul: 'Penyerahan Struk & Ucapan', langkah_no: 6, instruksi: 'Serahkan struk bersama nomor antrean, ucapkan "Terima kasih, selamat menikmati #BeneranDiGeprek".', status: '100% Sesuai SOP', catatan: 'Nomor antrean dan struk diberikan runtut.' },
   ] : isGeprek ? [
     { sop_code: 'SOP-GPK-01', judul: 'Sanitasi Cobek & Ulekan', langkah_no: 1, instruksi: 'Pastikan cobek kayu dan ulekan dicuci bersih bebas bau tengik dan dilap kering.', status: '100% Sesuai SOP', catatan: 'Cobek bersih higienis.' },
-    { sop_code: 'SOP-GPK-02', judul: 'Gramatur Bahan Sambal', langkah_no: 2, instruksi: 'Takar cabai rawit merah, bawang putih, garam, dan penyedap dengan sendok takar baku 25 gram.', status: skorPraktik >= 80 ? '100% Sesuai SOP' : 'Ada Koreksi', catatan: skorPraktik >= 80 ? 'Timbangan gramatur tepat 25g.' : 'Kelebihan takar cabai 5g.' },
+    { sop_code: 'SOP-GPK-02', judul: 'Gramatur Bahan Sambal', langkah_no: 2, instruksi: 'Takar cabai rawit merah, bawang putih, garam, dan penyedap dengan sendok takar baku 30 gram.', status: skorPraktik >= 80 ? '100% Sesuai SOP' : 'Ada Koreksi', catatan: skorPraktik >= 80 ? 'Timbangan gramatur tepat 30g.' : 'Kelebihan takar cabai.' },
     { sop_code: 'SOP-GPK-02', judul: 'Tekstur Ulekan Kasar', langkah_no: 3, instruksi: 'Ulek sambal dengan tekstur pecah kasar (tidak terlalu halus seperti blender) agar sari minyak keluar.', status: '100% Sesuai SOP', catatan: 'Tekstur sambal pecah kasar harum.' },
     { sop_code: 'SOP-GPK-03', judul: 'Siraman Minyak Panas 160°C', langkah_no: 4, instruksi: 'Siram 1 sendok sayur minyak mendidih 160°C langsung ke atas sambal segar di cobek.', status: '100% Sesuai SOP', catatan: 'Minyak mendesis sempurna.' },
     { sop_code: 'SOP-GPK-03', judul: 'Teknik Geprek Ayam', langkah_no: 5, instruksi: 'Geprek ayam krispi 2-3 ketukan hingga pipih merekah tanpa meremukkan tulang belulang.', status: '100% Sesuai SOP', catatan: 'Daging merekah, tulang tidak patah hancur.' },

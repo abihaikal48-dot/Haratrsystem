@@ -130,7 +130,19 @@ service cloud.firestore {
       allow get, write: if isValidId(id);
     }
 
-    match /trainer_financial_reports/{id} {
+    // Onboarding & Retraining Kru 3 Hari
+    match /onboarding_batches/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    // Retraining & Kunjungan Cepat Trainer
+    match /retraining_records/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    match /rapid_audits/{id} {
       allow list: if true;
       allow get, write: if isValidId(id);
     }
@@ -145,6 +157,35 @@ service cloud.firestore {
       allow get, write: if isValidId(id);
     }
 
+    // Hasil Ujian Kru & Exam Config dengan validasi ketat struktur
+    match /hasil_ujian_mingguan/{id} {
+      allow list: if true;
+      allow get: if isValidId(id);
+      allow create, update: if isValidId(id) &&
+        request.resource.data.nama_kru is string &&
+        request.resource.data.kode_outlet is string &&
+        request.resource.data.skor_akhir_komposit is number &&
+        request.resource.data.skor_akhir_komposit >= 0 &&
+        request.resource.data.skor_akhir_komposit <= 100;
+      allow delete: if isValidId(id);
+    }
+    match /exam_config/{id} {
+      allow list: if true;
+      allow get: if isValidId(id);
+      allow create, update: if isValidId(id) &&
+        request.resource.data.judul is string &&
+        request.resource.data.durasi_menit is number &&
+        request.resource.data.durasi_menit > 0;
+      allow delete: if isValidId(id);
+    }
+    match /ojt_monitoring/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+    match /attitude_hara/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
     // Healthcheck / Connection test rule
     match /test/{id} {
       allow list: if true;

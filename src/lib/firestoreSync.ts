@@ -67,7 +67,11 @@ const ALL_SYNCABLE_TABLES = [
   'onboarding_progress',
   'official_audits',
   'official_rapor_kru',
-  'trainer_financial_reports',
+  'hasil_ujian_mingguan',
+  'exam_config',
+  'ojt_monitoring',
+  'attitude_hara',
+  'onboarding_batches',
   'settings',
   'logs'
 ];

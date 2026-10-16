@@ -1,5 +1,5 @@
 import {
-  Outlet, Kru, TNA, RencanaTraining, ObservasiLapangan,
+  Outlet, Kru, TNA, RencanaTraining, ObservasiLapangan, Division,
   CoachingLog, GapAnalysis, KartuKeluhan, TalentTracker,
   BankSOP, BankSoal, PenilaianTeori, PenilaianPraktik,
   PenilaianLisan, AppUser, LogAktivitas, SystemSettings,
@@ -7,11 +7,13 @@ import {
   TraineeRecord, LaporanTrainerOutlet, CrewOnboardingProgress,
   OfficialAuditReport, OfficialRaporKru, LaporanTrainerKeuanganAtasan,
   OJTCrewMonitoringRecord, GateEvaluationRecord, UserRole,
-  AuditAttitudeHara, HasilUjianKruMingguan, TrainerExamConfig
+  AuditAttitudeHara, HasilUjianKruMingguan, TrainerExamConfig,
+  OnboardingBatch
 } from '../types';
 import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
 import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
 import { INITIAL_ONBOARDING_PROGRESS } from './curriculumData';
+import { INITIAL_ONBOARDING_BATCHES } from '../data/onboardingCurriculumData';
 import {
   OFFICIAL_HARA_AUDIT_BANTUL,
   OFFICIAL_HARA_CREW_REPORTS,
@@ -40,6 +42,7 @@ const STORAGE_KEYS = {
   TRAINEE_OUTLET: 'hara_pd_trainee_outlet_v2',
   LAPORAN_TRAINER: 'hara_pd_laporan_trainer_v2',
   ONBOARDING_PROGRESS: 'hara_trainer_onboarding_progress_v1',
+  ONBOARDING_BATCHES: 'hara_pd_onboarding_batches_v1',
   OFFICIAL_AUDITS: 'hara_pd_official_audits_v1',
   OFFICIAL_RAPOR_KRU: 'hara_pd_official_rapor_kru_v1',
   TRAINER_FINANCIAL_REPORTS: 'hara_pd_trainer_financial_reports_v1',
@@ -1352,7 +1355,7 @@ class StorageDatabase {
     this.ensureSeed(STORAGE_KEYS.ONBOARDING_PROGRESS, INITIAL_ONBOARDING_PROGRESS);
     this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL], true);
     this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS, true);
-    this.ensureSeed(STORAGE_KEYS.TRAINER_FINANCIAL_REPORTS, OFFICIAL_HARA_TRAINER_FINANCIAL_REPORTS, true);
+    this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES, true);
     this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING, true);
     this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA, true);
     this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
@@ -1557,6 +1560,23 @@ class StorageDatabase {
       id,
       created_at: new Date().toISOString(),
     };
+
+    // Relasi Kru & Outlet Normalization: Cari & tautkan kru_id tervalidasi jika nama_kru ada
+    if (newRow.nama_kru && !newRow.kru_id) {
+      const allKru = this.getTable<Kru>('kru');
+      const matchedKru = allKru.find(
+        (k) =>
+          k.nama_kru.toLowerCase().trim() === newRow.nama_kru.toLowerCase().trim() &&
+          (!newRow.kode_outlet || newRow.kode_outlet === 'ALL' || k.kode_outlet === newRow.kode_outlet)
+      ) || allKru.find((k) => k.nama_kru.toLowerCase().trim() === newRow.nama_kru.toLowerCase().trim());
+
+      if (matchedKru) {
+        newRow.kru_id = matchedKru.id;
+        if (!newRow.kode_outlet || newRow.kode_outlet === 'ALL') {
+          newRow.kode_outlet = matchedKru.kode_outlet;
+        }
+      }
+    }
     
     // Auto Gap Calculation if table is gap_analysis
     if (tableName === 'gap_analysis' || tableName === 'gap') {
@@ -1576,6 +1596,78 @@ class StorageDatabase {
     }).catch(() => {});
 
     return newRow as unknown as T;
+  }
+
+  /**
+   * Auto-Trigger Remedial & TNA (Closed-Loop Workflow):
+   * Saat kru menyelesaikan ujian di UjianKruPublicView atau dinilai di PelatihanEvaluasiView
+   * dengan skor < 75, otomatis buat entri di tabel tna, gap_analysis, dan draft di coaching_log.
+   */
+  public triggerAutoRemedialAndTNA(data: {
+    nama_kru: string;
+    kru_id?: string;
+    kode_outlet: string;
+    divisi: Division;
+    skor: number;
+    topikSalah?: string[];
+    sumberTemuan: string;
+    catatan?: string;
+  }) {
+    const allKru = this.getTable<Kru>('kru');
+    const matchedKru = allKru.find(
+      (k) => (data.kru_id && k.id === data.kru_id) || k.nama_kru.toLowerCase().trim() === data.nama_kru.toLowerCase().trim()
+    );
+    const kruId = matchedKru?.id || data.kru_id || ('kru-' + Date.now());
+    const outletCode = data.kode_outlet !== 'ALL' && data.kode_outlet ? data.kode_outlet : (matchedKru?.kode_outlet || 'HC-JTS01');
+    const topTopic = data.topikSalah && data.topikSalah.length > 0
+      ? data.topikSalah.join(', ')
+      : 'SOP Penggorengan 160°C & Pemahaman Titik Kritis Stasiun';
+
+    // 1. Buat entri TNA
+    const tnaEntry: Partial<TNA> = {
+      tanggal: new Date().toISOString().slice(0, 10),
+      kode_outlet: outletCode,
+      divisi: data.divisi || matchedKru?.divisi || 'Kitchen',
+      sumber_temuan: data.sumberTemuan,
+      deskripsi_gap: `Kru ${data.nama_kru} memperoleh skor ${data.skor}/100 (< KKM 75). Perlu remedial pada: ${topTopic}`,
+      jenis_gap: data.skor < 60 ? 'Keterampilan' : 'Pengetahuan',
+      prioritas: data.skor < 60 ? 'Tinggi' : 'Sedang',
+      rencana_tindak_lanjut: `Sesi retraining intensif & coaching 1-on-1 materi ${topTopic}. Target evaluasi remedial 7 hari.`,
+      status: 'Belum',
+    };
+    this.insertRow('tna', tnaEntry);
+
+    // 2. Buat entri Gap Analysis
+    const gapEntry: Partial<GapAnalysis> = {
+      nama_kru: data.nama_kru,
+      divisi: data.divisi || matchedKru?.divisi || 'Kitchen',
+      kode_outlet: outletCode,
+      kompetensi_dinilai: `Standar Kompetensi ${data.divisi || 'Stasiun'} (${topTopic.slice(0, 45)})`,
+      skor_standar: 75,
+      skor_aktual: data.skor,
+      gap_score: Number((75 - data.skor).toFixed(1)),
+      rekomendasi: `Pendampingan fokus pada materi ${topTopic} dan review panduan SOP sebelum shift.`,
+    };
+    this.insertRow('gap_analysis', gapEntry);
+
+    // 3. Buat draft jadwal coaching_log (GROW)
+    const coachingEntry: Partial<CoachingLog> = {
+      tanggal: new Date().toISOString().slice(0, 10),
+      kode_outlet: outletCode,
+      nama_kru: data.nama_kru,
+      goal: `Mencapai standar kelulusan KKM ≥ 75 pada stasiun ${data.divisi || 'Kerja'}`,
+      reality: `Hasil evaluasi saat ini ${data.skor}/100. Kendala pemahaman pada: ${topTopic}`,
+      options: `1) Demonstrasi langsung oleh trainer; 2) Micro-learning SOP 15 menit; 3) Evaluasi remedial`,
+      will: `Kru berkomitmen mendalami SOP dan siap mengikuti ujian remedial ulang dalam 7 hari`,
+      hasil_follow_up: 'Draft Terjadwal Otomatis (Closed-Loop Workflow)',
+    };
+    this.insertRow('coaching_log', coachingEntry);
+
+    this.addLog(
+      'TAMBAH',
+      'Integrasi Closed-Loop',
+      `Auto-trigger Remedial & TNA untuk ${data.nama_kru} (Skor ${data.skor}/100 di ${outletCode})`
+    );
   }
 
   public updateRow<T = any>(tableName: string, id: string, payload: any): boolean {
@@ -1687,13 +1779,17 @@ class StorageDatabase {
         kAudit.map((o) => (o.hasil === 'Sesuai Standar' ? 100 : o.hasil === 'Perlu Perbaikan' ? 70 : 40))
       );
 
-      // Data Science Objective Weighted Index
-      // Teori: 25% | Praktik SOS: 35% | Lisan HACCP: 20% | Audit Lapangan: 20%
+      // Data Science Objective Weighted Index 4 Pilar Baku Resmi
+      // Teori: 20% | Praktik SOS: 40% | Lisan HACCP: 15% | Sikap H.A.R.A: 25%
+      const attList = this.getTable<AuditAttitudeHara>('attitude_hara').filter((a) => a.nama_kru === nama);
+      const latestAtt = attList[0];
+      const sAttitudeHara = latestAtt ? latestAtt.skor_rata_rata : (sAudit !== null ? sAudit : 82);
+
       const bobot: { skor: number; b: number }[] = [];
-      if (sTeori !== null) bobot.push({ skor: sTeori, b: 0.25 });
-      if (sPraktik !== null) bobot.push({ skor: sPraktik, b: 0.35 });
-      if (sLisan !== null) bobot.push({ skor: sLisan, b: 0.20 });
-      if (sAudit !== null) bobot.push({ skor: sAudit, b: 0.20 });
+      if (sTeori !== null) bobot.push({ skor: sTeori, b: 0.20 });
+      if (sPraktik !== null) bobot.push({ skor: sPraktik, b: 0.40 });
+      if (sLisan !== null) bobot.push({ skor: sLisan, b: 0.15 });
+      bobot.push({ skor: sAttitudeHara, b: 0.25 });
 
       let skorAkhir: number | null = null;
       if (bobot.length > 0) {
@@ -1707,19 +1803,14 @@ class StorageDatabase {
         if (skorAkhir >= 85) {
           badge = 'Mahir';
           statusKelulusan = 'LULUS';
-        } else if (skorAkhir >= 65) {
+        } else if (skorAkhir >= 75) {
           badge = 'Terampil';
-          statusKelulusan = skorAkhir >= 75 ? 'LULUS' : 'BELUM LULUS';
+          statusKelulusan = 'LULUS';
         } else {
           badge = 'Pemula';
           statusKelulusan = 'BELUM LULUS';
         }
       }
-
-      // KSA 3-Pillar Triangulation Calculation
-      const attList = this.getTable<AuditAttitudeHara>('attitude_hara').filter((a) => a.nama_kru === nama);
-      const latestAtt = attList[0];
-      const sAttitudeHara = latestAtt ? latestAtt.skor_rata_rata : (sAudit !== null ? sAudit : 82);
 
       const skorKnowledge = (sTeori !== null && sLisan !== null)
         ? Math.round(sTeori * 0.55 + sLisan * 0.45)
@@ -1971,6 +2062,11 @@ class StorageDatabase {
   // Key map helper
   private mapKey(name: string): string {
     switch (name.toLowerCase()) {
+      case 'hasil_ujian_mingguan':
+      case 'hasil_ujian':
+        return STORAGE_KEYS.HASIL_UJIAN_MINGGUAN;
+      case 'exam_config':
+        return STORAGE_KEYS.EXAM_CONFIG;
       case 'outlets':
       case 'outlet':
         return STORAGE_KEYS.OUTLETS;
@@ -2025,7 +2121,10 @@ class StorageDatabase {
         return STORAGE_KEYS.OFFICIAL_AUDITS;
       case 'official_rapor_kru':
       case 'rapor_kru':
-        return STORAGE_KEYS.OFFICIAL_RAPOR_KRU;
+      case 'onboarding_batches':
+      case 'batch_onboarding':
+      case 'onboarding':
+        return STORAGE_KEYS.ONBOARDING_BATCHES;
       case 'trainer_financial_reports':
       case 'laporan_keuangan_trainer':
       case 'rekomendasi_atasan':
@@ -2218,6 +2317,12 @@ class StorageDatabase {
     }
     this.set(STORAGE_KEYS.HASIL_UJIAN_MINGGUAN, list);
     this.addLog('TAMBAH', 'Hasil Ujian Mingguan', `Ujian ${result.minggu} untuk ${result.nama_kru} (${result.divisi}) tersimpan (Skor: ${result.skor_akhir_komposit})`);
+    // Real-time online write to Firestore
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(firestore, 'hasil_ujian_mingguan', result.id), result, { merge: true }).catch(() => {});
+      });
+    }).catch(() => {});
   }
 
   public getExamConfig(): TrainerExamConfig {
@@ -2234,6 +2339,39 @@ class StorageDatabase {
   public saveExamConfig(cfg: TrainerExamConfig): void {
     this.set(STORAGE_KEYS.EXAM_CONFIG, cfg);
     this.addLog('UBAH', 'Pengaturan Ujian', `Konfigurasi paket ujian diubah ke mode: ${cfg.mode} ${cfg.paket_terkunci ? `(${cfg.paket_terkunci})` : ''}`);
+  }
+
+  // ==========================================
+  // MANAJEMEN ONBOARDING & RETRAINING 3 HARI
+  // ==========================================
+  public getOnboardingBatches(): OnboardingBatch[] {
+    return this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+  }
+
+  public saveOnboardingBatch(batch: OnboardingBatch): void {
+    const list = this.getOnboardingBatches();
+    const idx = list.findIndex(b => b.id === batch.id);
+    if (idx >= 0) {
+      list[idx] = batch;
+    } else {
+      list.unshift(batch);
+    }
+    this.set(STORAGE_KEYS.ONBOARDING_BATCHES, list);
+    this.addLog('UBAH', 'Onboarding 3 Hari', `Batch ${batch.nomor_batch} (${batch.nama_batch}) disimpan dengan ${batch.peserta.length} peserta.`);
+
+    // Async write to Firestore
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(firestore, 'onboarding_batches', batch.id), batch, { merge: true }).catch(() => {});
+      });
+    }).catch(() => {});
+  }
+
+  public deleteOnboardingBatch(batchId: string): void {
+    const list = this.getOnboardingBatches();
+    const updated = list.filter(b => b.id !== batchId);
+    this.set(STORAGE_KEYS.ONBOARDING_BATCHES, updated);
+    this.addLog('HAPUS', 'Onboarding 3 Hari', `Batch ID ${batchId} dihapus dari sistem.`);
   }
 
   private friendlyTableName(name: string): string {

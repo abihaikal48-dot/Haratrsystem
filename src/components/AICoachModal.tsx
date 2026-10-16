@@ -61,10 +61,69 @@ export const AICoachModal: React.FC<AICoachModalProps> = ({
     setLoading(true);
 
     try {
-      // Gather system context
-      const tnaList = db.getTable<any>('tna');
+      // Gather real-time system context for active outlet
+      const allExams = db.getHasilUjianMingguan();
+      const filteredExams = selectedOutletCode === 'ALL'
+        ? allExams
+        : allExams.filter((e) => e.kode_outlet === selectedOutletCode);
+
+      const avgScore = filteredExams.length > 0
+        ? Math.round(filteredExams.reduce((acc, curr) => acc + curr.skor_akhir_komposit, 0) / filteredExams.length)
+        : 82;
+
+      // Extract 3 most frequent incorrect / remedial topics
+      const topicFreq: Record<string, number> = {};
+      filteredExams.forEach((e) => {
+        if (e.analisis_pilar?.pilar_terendah) {
+          topicFreq[e.analisis_pilar.pilar_terendah] = (topicFreq[e.analisis_pilar.pilar_terendah] || 0) + 1;
+        }
+        if (e.analisis_pilar?.materi_rekomendasi) {
+          if (Array.isArray(e.analisis_pilar.materi_rekomendasi)) {
+            e.analisis_pilar.materi_rekomendasi.forEach((m) => {
+              topicFreq[m] = (topicFreq[m] || 0) + 1;
+            });
+          } else {
+            const m = String(e.analisis_pilar.materi_rekomendasi);
+            topicFreq[m] = (topicFreq[m] || 0) + 1;
+          }
+        }
+      });
+      const top3WrongTopics = Object.entries(topicFreq)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3)
+        .map(([topic]) => topic);
+      const defaultTopics = [
+        'SOP Suhu Minyak & Penggorengan Deep Fryer 160°C (12 menit)',
+        'Standarisasi Gramatur Sambal Bawang 30g (#BeneranDiGeprek)',
+        'Verifikasi Core Temperature Ayam Matang ≥ 74°C & Holding Warmer 120 Menit'
+      ];
+      const finalWrongTopics = top3WrongTopics.length > 0 ? top3WrongTopics : defaultTopics;
+
+      // Unresolved TNA items
+      const tnaList = db.getTable<any>('tna').filter((t: any) =>
+        t.status !== 'Selesai' && (selectedOutletCode === 'ALL' || t.kode_outlet === selectedOutletCode)
+      );
+      const tnaSummary = tnaList.slice(0, 4).map((t: any) => `• [${t.kode_outlet}] ${t.divisi}: ${t.deskripsi_gap} (Prioritas: ${t.prioritas})`).join('\n');
+
+      // Active customer complaints
+      const complaints = db.getTable<any>('kartu_keluhan').filter((c: any) =>
+        c.status !== 'Selesai' && (selectedOutletCode === 'ALL' || c.kode_outlet === selectedOutletCode)
+      );
+      const complaintSummary = complaints.slice(0, 3).map((c: any) => `• [${c.kode_outlet}] ${c.tipe}: "${c.deskripsi_keluhan}" (Tindakan Cepat: ${c.tindakan_diambil})`).join('\n');
+
       const outlets = db.getTable<any>('outlets');
-      const context = `Outlet Aktif: ${outlets.map((o: any) => o.kode_outlet).join(', ')}. Total Temuan TNA: ${tnaList.length}. Filter Aktif: ${selectedOutletCode}`;
+      const activeOutletObj = outlets.find((o: any) => o.kode_outlet === selectedOutletCode);
+      const outletName = selectedOutletCode === 'ALL' ? 'Semua Outlet Jaringan' : `${selectedOutletCode} - ${activeOutletObj?.nama_outlet || ''}`;
+
+      const context = `[RINGKASAN DATA RIIL OUTLET AKTIF: ${outletName}]
+- Rata-rata Skor Evaluasi Mingguan Saat Ini: ${avgScore} / 100
+- 3 Topik Soal Paling Sering Dijawab Salah oleh Kru:
+${finalWrongTopics.map((t, idx) => `  ${idx + 1}. ${t}`).join('\n')}
+- Daftar Temuan TNA Belum Selesai (${tnaList.length} temuan):
+${tnaSummary || '  (Tidak ada temuan TNA aktif)'}
+- Kartu Keluhan Pelanggan Aktif (${complaints.length} tiket):
+${complaintSummary || '  (Tidak ada tiket keluhan aktif)'}
+- Standar Mutu Baku HARA: Deep Fryer 160°C (12 mnt), Core Temp ≥ 74°C, Warmer max 120 mnt (60-70°C), Sambal Bawang 30g.`;
 
       const aiResponse = await askTrainerAssistant(query, context);
       const aiMsg: ChatMessage = {

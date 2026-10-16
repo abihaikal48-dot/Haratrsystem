@@ -7,6 +7,7 @@ import {
   Search, ShieldAlert, Zap, ShieldCheck
 } from 'lucide-react';
 import { TraineeRecord, BankSOP, StatusOJT, Division } from '../../types';
+import { db } from '../../lib/storage';
 
 // =========================================================================
 // DEFINISI RUBRIK OBJEKTIF & INDIKATOR BEHAVIORAL ANCHOR
@@ -127,112 +128,123 @@ export const RUBRIK_TEORI_DETAIL: RubrikIndikatorTeori[] = [
   },
 ];
 
-// 5 Aspek Budaya RESPECT dengan deskripsi perilaku konkret per level
-export interface AspekRespectDetail {
+// 4 Pilar Budaya H.A.R.A dengan 12 Perilaku Utama Resmi
+export interface AspekHaraDetail {
   key: string;
   nama: string;
+  tagline: string;
   deskripsi: string;
+  perilakuUtama: string[];
   levelKriteria: { bintang: number; label: string; bukti: string }[];
   tagBuktiAlasan: string[];
 }
 
-export const ASPEK_ATTITUDE_RESPECT_DETAIL: AspekRespectDetail[] = [
+export type AspekRespectDetail = AspekHaraDetail;
+
+export const ASPEK_ATTITUDE_HARA_DETAIL: AspekHaraDetail[] = [
+  {
+    key: 'H',
+    nama: 'Halal (Bekerja Halal)',
+    tagline: 'Bekerja dengan hati yang tulus dan metode yang tepat',
+    deskripsi: 'Setiap produk, proses, dan keputusan pasti membawa berkah. Mengutamakan bahan baku halal, kebersihan dapur & keberlanjutan.',
+    perilakuUtama: [
+      '1. Mengutamakan bahan baku halal dan berkualitas.',
+      '2. Menjaga kebersihan dapur, peralatan, dan area pelayanan.',
+      '3. Menjalankan bisnis dengan integritas & berorientasi pada keberlanjutan.',
+    ],
+    levelKriteria: [
+      { bintang: 5, label: 'Sangat Disiplin & Teladan Halal-Higienis', bukti: 'Bahan baku 100% halal terverifikasi, kebersihan dapur & peralatan steril tanpa noda, serta zero cross-contamination.' },
+      { bintang: 4, label: 'Disiplin Standar Mutu Halal', bukti: 'Menjaga kebersihan area stasiun secara teratur dan patuh pada SOP sanitasi HARA.' },
+      { bintang: 3, label: 'Cukup Terjaga (Perlu Pengingat Kecil)', bukti: 'Mengikuti aturan standar kebersihan namun sesekali perlu diingatkan saat pergantian shift.' },
+      { bintang: 2, label: 'Kurang Peduli Kebersihan Alat', bukti: 'Peralatan sering dibiarkan kotor setelah digunakan atau mengabaikan penutup bahan baku.' },
+      { bintang: 1, label: 'Pelanggaran Kritis Sanitasi Pangan', bukti: 'Mengabaikan kebersihan yang berisiko merusak kualitas produk atau mencemari makanan.' },
+    ],
+    tagBuktiAlasan: [
+      'Mengutamakan bahan baku halal dan berkualitas tinggi',
+      'Menjaga kebersihan dapur, peralatan, dan area pelayanan',
+      'Menjalankan bisnis dengan integritas & berorientasi pada keberlanjutan',
+      'Menerapkan sanitasi cuci tangan 20 detik & APD lengkap',
+      'Disiplin membuang sampah stasiun kerja tanpa menumpuk',
+    ],
+  },
+  {
+    key: 'A1',
+    nama: 'Amanah (Bertindak Amanah)',
+    tagline: 'Kepercayaan adalah aset utama kami',
+    deskripsi: 'Apa pun yang kami pegang, kami jaga dengan penuh tanggung jawab dan integritas. Menepati janji, jujur dalam timbangan & kas.',
+    perilakuUtama: [
+      '4. Menepati janji dan komitmen perusahaan.',
+      '5. Bekerja dengan penuh tanggung jawab dan kejujuran.',
+      '6. Menjaga reputasi dan nama baik HARA Chicken di setiap tindakan.',
+    ],
+    levelKriteria: [
+      { bintang: 5, label: 'Sangat Amanah & Berintegritas Tinggi', bukti: 'Pencatatan kasir selisih Rp 0, takaran gramasi bumbu & ayam 100% presisi, menjaga rahasia resep.' },
+      { bintang: 4, label: 'Amanah & Bertanggung Jawab', bukti: 'Menjalankan tugas dengan jujur tanpa ada catatan deviasi integritas selama masa bimbingan.' },
+      { bintang: 3, label: 'Cukup Amanah (Pengawasan Rutin)', bukti: 'Menjalankan tugas sesuai SOP namun masih butuh pengawasan pada akurasi timbang bahan.' },
+      { bintang: 2, label: 'Pernah Terindikasi Deviasi Takaran', bukti: 'Pernah mengurangi porsi atau tidak teliti dalam pencatatan stok dan uang kembalian.' },
+      { bintang: 1, label: 'Pelanggaran Integritas Berat', bukti: 'Terbukti melakukan kecurangan selisih kas / bahan baku yang merugikan operasional.' },
+    ],
+    tagBuktiAlasan: [
+      'Menepati janji dan komitmen perusahaan serta SOP',
+      'Bekerja dengan penuh tanggung jawab dan kejujuran kasir/timbangan',
+      'Menjaga reputasi dan nama baik HARA Chicken di setiap tindakan',
+      'Closing kasir POS selalu klop selisih Rp 0',
+      'Akurasi gramatur sambal uleg 30 gram konsisten',
+    ],
+  },
   {
     key: 'R',
-    nama: 'Religious & Integritas',
-    deskripsi: 'Amanah, jujur dalam takaran bumbu/uang kasir, menjaga etika sopan santun dan menjauhi kecurangan.',
+    nama: 'Responsif (Bergerak Responsif)',
+    tagline: 'Kami responsif, tangkas, dan peduli',
+    deskripsi: 'Merespons kebutuhan pelanggan dan tantangan bisnis dengan tindakan cepat dan solusi nyata. Senyum 5S, SOS <90 detik, tanggap rush hour.',
+    perilakuUtama: [
+      '7. Memberi pelayanan cepat, sopan, dan solutif.',
+      '8. Aktif menanggapi masukan pelanggan.',
+      '9. Berorientasi pada hasil dan kepuasan pelanggan.',
+    ],
     levelKriteria: [
-      { bintang: 5, label: 'Sangat Jujur & Menjadi Teladan', bukti: 'Tidak pernah mengurangi porsi gramasi, setoran kasir 100% klop, etika tutur kata sangat terjaga.' },
-      { bintang: 4, label: 'Jujur & Disiplin Nilai', bukti: 'Amanah menjalankan tugas dan tidak ada catatan deviasi integritas selama masa bimbingan.' },
-      { bintang: 3, label: 'Cukup Terkendali', bukti: 'Mengikuti aturan standar namun sesekali butuh pengawasan pada pencatatan bahan sisa.' },
-      { bintang: 2, label: 'Perlu Pengawasan Ketat', bukti: 'Pernah terindikasi tidak jujur dalam laporan jam kerja atau takaran porsi tanpa izin.' },
-      { bintang: 1, label: 'Pelanggaran Integritas Kritis', bukti: 'Terbukti melakukan kecurangan selisih kas / bahan baku yang merugikan operasional.' },
+      { bintang: 5, label: 'Sangat Cekatan & Customer Champion', bukti: 'Pelayanan cepat SOS <90 detik, senyum salam sapa ramah, sigap membantu pelanggan dan rekan saat jam sibuk.' },
+      { bintang: 4, label: 'Cepat & Ramah Melayani', bukti: 'Tanggap terhadap antrean pelanggan dan aktif membantu menyelesaikan pesanan.' },
+      { bintang: 3, label: 'Standar Memadai', bukti: 'Melayani sesuai alur namun kecepatan melambat saat antrean panjang melebihi 5 transaksi.' },
+      { bintang: 2, label: 'Lambat / Kurang Ramah', bukti: 'Ekspresi wajah datar, kurang responsif saat dipanggil tamu atau dipanggil rekan tim.' },
+      { bintang: 1, label: 'Pasif & Mengabaikan Tamu', bukti: 'Mengabaikan pelanggan yang menunggu atau mengeluh di depan umum saat jam sibuk.' },
     ],
     tagBuktiAlasan: [
-      'Pencatatan kasir dan uang modal selalu klop tanpa selisih',
-      'Konsisten menakar bahan sesuai formula tanpa kurangi porsi',
-      'Menjunjung tinggi etika sopan santun dan rasa hormat tim',
-      'Terkadang kurang teliti menghitung uang kembalian pembeli',
-      'Perlu diingatkan untuk tidak memakan produk tanpa izin SOP',
+      'Memberi pelayanan cepat, sopan, dan solutif (SOS < 90 detik)',
+      'Aktif menanggapi masukan dan kebutuhan pelanggan dengan sigap',
+      'Berorientasi teguh pada hasil terbaik dan kepuasan pelanggan',
+      'Penerapan 5S (Senyum, Salam, Sapa, Sopan, Santun) konsisten',
+      'Inisiatif clearing meja cepat (< 2 menit table turnover)',
     ],
   },
   {
-    key: 'P',
-    nama: 'Professional & Grooming',
-    deskripsi: 'Seragam lengkap sesuai jadwal, rambut/kuku bersih rapi, sepatu hitam, tanpa aksesoris perhiasan terlarang.',
+    key: 'A2',
+    nama: 'Adaptif (Berkembang Adaptif)',
+    tagline: 'Kami terus belajar dan berani berubah',
+    deskripsi: 'Dunia bergerak cepat — dan kami tumbuh seiring setiap perubahan. Terbuka terhadap ide baru, perbaikan berkelanjutan, dan teknologi.',
+    perilakuUtama: [
+      '10. Terbuka terhadap ide baru & perbaikan berkelanjutan.',
+      '11. Menggunakan teknologi & sistem terpadu untuk efisiensi gerai.',
+      '12. Siap berubah demi pertumbuhan perusahaan & kesejahteraan bersama.',
+    ],
     levelKriteria: [
-      { bintang: 5, label: 'Grooming Sempurna & Rapi', bukti: 'Seragam licin bersih, topi terpasang pas, kuku pendek higienis, sepatu bersih tanpa aksesoris perhiasan.' },
-      { bintang: 4, label: 'Rapi Sesuai Standar', bukti: 'Berpakaian sesuai seragam resmi dan menjaga kebersihan tubuh selama bertugas.' },
-      { bintang: 3, label: 'Cukup Rapi (Ada Koreksi Kecil)', bukti: 'Seragam lengkap namun kadang topi miring atau lupa memakai sabuk/kaus kaki hitam.' },
-      { bintang: 2, label: 'Kerap Melanggar Standar Grooming', bukti: 'Sering memakai aksesoris gelang/cincin, kuku panjang, atau seragam kotor berulang kali.' },
-      { bintang: 1, label: 'Tidak Mengindahkan Standar Penampilan', bukti: 'Menolak mengenakan seragam resmi atau berpenampilan kumal yang mengganggu citra brand.' },
+      { bintang: 5, label: 'Sangat Cepat Belajar & Solutif', bukti: 'Cepat menguasai revisi SOP baru, mahir menggunakan aplikasi tablet/POS, terbuka menerima masukan coaching GROW.' },
+      { bintang: 4, label: 'Adaptif & Kooperatif', bukti: 'Menerima masukan dari trainer dengan baik dan mempraktikkan koreksi di shift berikutnya.' },
+      { bintang: 3, label: 'Cukup Adaptif (Perlu Pembiasaan)', bukti: 'Butuh waktu beberapa hari untuk menyesuaikan diri dengan tata cara atau alat baru.' },
+      { bintang: 2, label: 'Resisten Terhadap Perubahan', bukti: 'Sering membantah atau enggan menggunakan sistem/SOP baru yang telah ditetapkan.' },
+      { bintang: 1, label: 'Menolak Belajar / Tidak Kooperatif', bukti: 'Menolak arahan perbaikan dan bersikap apatis terhadap pembaruan sistem kerja.' },
     ],
     tagBuktiAlasan: [
-      'Seragam lengkap, bersih, wangi dan rapi setiap awal shift',
-      'Kuku selalu pendek, bersih tanpa cat kuku, rambut tertutup topi',
-      'Sepatu kerja hitam standar tertutup anti slip',
-      'Terkadang lupa mencukur kumis/jenggot rapi',
-      'Pernah memakai aksesoris cincin/gelang saat meracik makanan',
-    ],
-  },
-  {
-    key: 'E',
-    nama: 'Effective & Efficient',
-    deskripsi: 'Bekerja cekatan, tidak main HP/bermalas-malasan saat shift, inisiatif menjaga kebersihan area stasiun.',
-    levelKriteria: [
-      { bintang: 5, label: 'Sangat Cekatan & Berinisiatif Tinggi', bukti: 'Selalu aktif membersihkan stasiun saat low-hour, tidak pernah membuang waktu, bekerja efisien.' },
-      { bintang: 4, label: 'Cekatan & Produktif', bukti: 'Menyelesaikan porsi tugas harian dengan cepat tanpa menunda-nunda.' },
-      { bintang: 3, label: 'Cukup Baik (Butuh Pemicu)', bukti: 'Bekerja jika diberi instruksi langsung, belum banyak inisiatif mandiri saat stasiun kotor.' },
-      { bintang: 2, label: 'Lambat / Sering Terdistraksi', bukti: 'Sering kedapatan bermain ponsel saat jam kerja atau mengobrol yang menghambat antrean.' },
-      { bintang: 1, label: 'Pasif & Menghindar Dari Pekerjaan', bukti: 'Sering menghilang dari stasiun kerja dan menolak membantu beban kerja stasiun lain.' },
-    ],
-    tagBuktiAlasan: [
-      'Inisiatif ' + 'Clean As You Go' + ' tanpa perlu disuruh',
-      'Gerakan gesit saat menyiapkan bahan dan plating porsi',
-      'Penyimpanan HP di loker selama jam operasional ditaati',
-      'Masih pasif menunggu instruksi saat stasiun kerja berantakan',
-      'Terkadang melamun atau lambat dalam merespon pesanan masuk',
-    ],
-  },
-  {
-    key: 'C',
-    nama: 'Collaboration & Teamwork',
-    deskripsi: 'Komunikasi santun, sigap membantu rekan saat rush hour, patuh dan tanggap arahan Penanggung Jawab Outlet.',
-    levelKriteria: [
-      { bintang: 5, label: 'Kerjasama Luar Biasa & Proaktif', bukti: 'Komunikasi vokal jelas (*call out order* lancar), cepat mem-backup divisi lain saat kewalahan.' },
-      { bintang: 4, label: 'Kooperatif & Menghargai Tim', bukti: 'Mudah diajak bekerjasama, mendengarkan saran rekan, dan patuh pada instruksi trainer.' },
-      { bintang: 3, label: 'Cukup Kooperatif', bukti: 'Bisa bekerjasama dalam tim namun komunikasi vokal masih pelan/canggung.' },
-      { bintang: 2, label: 'Individualis / Enggan Berbagi Tugas', bukti: 'Hanya mau mengerjakan tugasnya sendiri dan mengabaikan rekan yang kewalahan antrean.' },
-      { bintang: 1, label: 'Memicu Konflik Internal', bukti: 'Kerap membantah arahan, memicu pertengkaran antar rekan kerja atau bersikap kasar.' },
-    ],
-    tagBuktiAlasan: [
-      'Komunikasi ' + 'Call Out' + ' pesanan terdengar jelas dan ramah',
-      'Cepat bergerak membantu rekan stasiun lain saat antrean panjang',
-      'Terbuka menerima koreksi dan masukan dari Trainer & Leader',
-      'Komunikasi vokal masih sangat pelan dan malu-malu',
-      'Cenderung menutup diri dan enggan meminta bantuan saat bingung',
-    ],
-  },
-  {
-    key: 'T',
-    nama: 'To Time, To Team, To System',
-    deskripsi: 'Hadir tepat waktu (10-15 mnt awal), ramah senyum 5S ke pelanggan, taat sistem SOP tanpa potong kompas.',
-    levelKriteria: [
-      { bintang: 5, label: 'Kedisiplinan 100% Konsisten', bukti: 'Selalu hadir 15 menit sebelum shift, senyum 5S alami ke setiap pelanggan, taat sistem 100%.' },
-      { bintang: 4, label: 'Disiplin Waktu & Ramah', bukti: 'Tepat waktu, ramah melayani, dan menjalankan prosedur kerja sesuai instruksi.' },
-      { bintang: 3, label: 'Standar Memadai', bukti: 'Hadir pas jam shift, pelayanan ramah standar, namun sesekali ingin potong kompas saat buru-buru.' },
-      { bintang: 2, label: 'Sering Terlambat / Kurang Ramah', bukti: 'Sering datang telat 5-15 menit, ekspresi wajah ketus/datar saat melayani konsumen.' },
-      { bintang: 1, label: 'Sering Absen / Mengabaikan Sistem', bukti: 'Sering bolos tanpa kabar, mengabaikan komplain pembeli, dan mengabaikan SOP.' },
-    ],
-    tagBuktiAlasan: [
-      'Hadir 15 menit sebelum shift untuk persiapan briefing',
-      'Senyum, Salam, Sapa (5S) sangat ramah kepada pembeli',
-      'Taat instruksi checklist sistem tanpa melakukan potong kompas',
-      'Terkadang terlambat 5-10 menit saat shift pembukaan',
-      'Ekspresi wajah masih terlihat tegang/datar saat jam ramai',
+      'Terbuka terhadap ide baru & perbaikan berkelanjutan (continuous improvement)',
+      'Menggunakan teknologi dan sistem terpadu untuk efisiensi gerai',
+      'Siap berubah demi pertumbuhan perusahaan & kesejahteraan bersama',
+      'Tanggap menerima sesi coaching 1-on-1 metode GROW',
+      'Inisiatif usul perbaikan alur stasiun kerja saat briefing',
     ],
   },
 ];
+
+export const ASPEK_ATTITUDE_RESPECT_DETAIL = ASPEK_ATTITUDE_HARA_DETAIL;
 
 // 3 Indikator Ketahanan Jam Sibuk
 export const KRITERIA_KETAHANAN_DETAIL = [
@@ -361,8 +373,8 @@ export const BEHAVIOR_CHANGE_INDICATORS: BehaviorIndicatorDef[] = [
   {
     id: 'bc-5',
     label: 'Penularan Budaya Kerja & Bimbingan Rekan (Role Modeling)',
-    deskripsi: 'Menjadi teladan etika positif bagi kru baru serta menerapkan nilai budaya RESPECT secara nyata.',
-    targetMetric: 'Budaya RESPECT & Solidaritas Tim',
+    deskripsi: 'Menjadi teladan etika positif bagi kru baru serta menerapkan 4 nilai budaya H.A.R.A secara nyata.',
+    targetMetric: 'Budaya H.A.R.A & Solidaritas Tim',
     options: [
       { level: 4, label: 'Level 4: Role Model / Inspirator', desc: 'Aktif mencontohkan SOP benar dan membimbing rekan kru baru dengan sabar dan antusias.', skor: 100 },
       { level: 3, label: 'Level 3: Suportif & Kooperatif', desc: 'Menerima masukan dengan lapang dada dan mendukung keharmonisan kerja tim.', skor: 85 },
@@ -459,10 +471,37 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
   const [hygieneScore, setHygieneScore] = useState<number>(3); // 0-3
   const [wasteControlScore, setWasteControlScore] = useState<number>(3); // 0-3
 
-  // 3. Attitude RESPECT Scores (1-5 star)
-  const [attitudeScores, setAttitudeScores] = useState<Record<string, number>>({
-    R: 4, P: 4, E: 4, C: 4, T: 4
+  // 3. Attitude H.A.R.A: Diambil langsung dari Input Nilai Budaya HARA Objektif 16 SOP (0-100 Poin)
+  const [useObjectiveHara, setUseObjectiveHara] = useState<boolean>(true);
+  const [objectiveHaraScores, setObjectiveHaraScores] = useState<Record<string, number>>({
+    H: 92, A1: 88, R: 85, A2: 90
   });
+
+  // Fallback 1-5 star ratings jika trainer memilih rubrik bintang manual
+  const [attitudeScores, setAttitudeScores] = useState<Record<string, number>>({
+    H: 5, A1: 5, R: 4, A2: 5
+  });
+
+  // Sinkronisasi otomatis nilai HARA objektif saat modal dibuka / kru terpilih
+  useEffect(() => {
+    if (!isOpen) return;
+    const targetName = trainee?.nama_kru || editNamaKru;
+    if (targetName) {
+      const attRecords = db.getTable<any>('attitude_hara').filter(
+        (a) => a.nama_kru && a.nama_kru.toLowerCase() === targetName.toLowerCase()
+      );
+      if (attRecords.length > 0) {
+        const latest = attRecords[0];
+        setObjectiveHaraScores({
+          H: latest.skor_h_higienis ?? 90,
+          A1: latest.skor_a_amanah ?? 85,
+          R: latest.skor_a_antusias ?? 88,
+          A2: latest.skor_r_resik ?? 90,
+        });
+        setUseObjectiveHara(true);
+      }
+    }
+  }, [isOpen, trainee, editNamaKru]);
 
   // 4. Ketahanan & Rush Hour Scores (1-3)
   const [ketahananScores, setKetahananScores] = useState<Record<number, number>>({
@@ -734,12 +773,22 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
     return Math.min(100, Math.max(0, Math.round(base + bonus)));
   }, [divisionSops, topicScores, speedScore, hygieneScore, wasteControlScore]);
 
-  // Faktor 3: Attitude RESPECT (Bobot 25%)
+  // Faktor 3: Attitude Budaya H.A.R.A (Bobot 25%) - Diambil langsung dari Input Nilai HARA Objektif 16 SOP (0-100 pt)
   const calculatedAttitudeScore = useMemo(() => {
-    const { R = 4, P = 4, E = 4, C = 4, T = 4 } = attitudeScores;
-    const total = R + P + E + C + T; // Max 25
-    return Math.round((total / 25) * 100);
-  }, [attitudeScores]);
+    if (useObjectiveHara) {
+      const h = objectiveHaraScores.H ?? 90;
+      const a1 = objectiveHaraScores.A1 ?? 85;
+      const r = objectiveHaraScores.R ?? 88;
+      const a2 = objectiveHaraScores.A2 ?? 90;
+      return Math.round((h + a1 + r + a2) / 4);
+    }
+    const h = attitudeScores.H ?? attitudeScores.P ?? 4;
+    const a1 = attitudeScores.A1 ?? attitudeScores.R ?? 4;
+    const r = attitudeScores.R ?? attitudeScores.E ?? 4;
+    const a2 = attitudeScores.A2 ?? attitudeScores.T ?? 4;
+    const total = h + a1 + r + a2; // Max 20
+    return Math.round((total / 20) * 100);
+  }, [useObjectiveHara, objectiveHaraScores, attitudeScores]);
 
   // Faktor 4: Ketahanan & Jam Sibuk (Bobot 15%)
   const calculatedKetahananScore = useMemo(() => {
@@ -786,7 +835,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
       ? selectedEvidenceTags.slice(0, 4).join(', ')
       : 'kepatuhan standar suhu, penepungan krispi, dan pemakaian APD lengkap';
 
-    const narrative = `Berdasarkan evaluasi objektif ${target === 'awal' ? 'Pre-Test' : 'Post-Test'} jabatan ${editJabatan} divisi ${editDivisi}, ${crewName} memperoleh Skor Akhir Komposit ${finalCompositeScore}/100 (Teori: ${calculatedTeoriScore}, Praktik: ${calculatedPraktikScore}, RESPECT: ${calculatedAttitudeScore}, Ketahanan: ${calculatedKetahananScore}).\n\n` +
+    const narrative = `Berdasarkan evaluasi objektif ${target === 'awal' ? 'Pre-Test' : 'Post-Test'} jabatan ${editJabatan} divisi ${editDivisi}, ${crewName} memperoleh Skor Akhir Komposit ${finalCompositeScore}/100 (Teori: ${calculatedTeoriScore}, Praktik: ${calculatedPraktikScore}, Budaya H.A.R.A: ${calculatedAttitudeScore}, Ketahanan: ${calculatedKetahananScore}).\n\n` +
       `BUKTI OBSERVASI LAPANGAN: ${buktiObservasi || `Ditemukan bahwa ${crewName} menunjukkan: ${tagListStr}.`}\n\n` +
       `DIAGNOSA AKAR MASALAH: "${akarMasalah}". ${finalCompositeScore < 80 ? 'Diperlukan penguatan repetisi agar deviasi tidak berulang pada jam sibuk.' : 'Kru telah menunjukkan pemahaman stabil dan siap bertugas mandiri.'}\n\n` +
       `JUSTIFIKASI STATUS (${statusText}): ${alasanKelulusan}`;
@@ -800,7 +849,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
       skor: topicScores[sop.id] ?? 2,
     }));
 
-    // Compile detailed rubrics
+    // Compile detailed rubrik
     const compiledRubrik = [
       ...RUBRIK_TEORI_DETAIL.map((t, idx) => ({
         kategori: 'Teori Baku',
@@ -810,14 +859,17 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
         alasan: t.levelRubrik.find((l) => l.skor === (teoriScores[idx] ?? 15))?.deskripsiPerilaku || '',
         bukti: selectedEvidenceTags.find((tag) => t.tagBuktiAlasan.includes(tag)) || 'Sesuai indikator kognitif',
       })),
-      ...ASPEK_ATTITUDE_RESPECT_DETAIL.map((a) => ({
-        kategori: 'Budaya RESPECT',
-        kriteria: a.nama,
-        level: `${attitudeScores[a.key] || 4} Bintang`,
-        skor: attitudeScores[a.key] || 4,
-        alasan: a.levelKriteria.find((l) => l.bintang === (attitudeScores[a.key] || 4))?.bukti || '',
-        bukti: selectedEvidenceTags.find((tag) => a.tagBuktiAlasan.includes(tag)) || 'Sikap kerja kondusif',
-      })),
+      ...ASPEK_ATTITUDE_HARA_DETAIL.map((a) => {
+        const rawScore = useObjectiveHara ? (objectiveHaraScores[a.key] ?? 90) : (attitudeScores[a.key] || 4) * 20;
+        return {
+          kategori: 'Budaya H.A.R.A (12 Perilaku Utama)',
+          kriteria: a.nama,
+          level: useObjectiveHara ? `${rawScore} pt (Audit Objektif 16 SOP)` : `${attitudeScores[a.key] || 4} Bintang`,
+          skor: rawScore,
+          alasan: a.levelKriteria.find((l) => l.bintang === Math.max(1, Math.min(5, Math.round(rawScore / 20))))?.bukti || '',
+          bukti: selectedEvidenceTags.find((tag) => a.tagBuktiAlasan.includes(tag)) || 'Sikap kerja kondusif',
+        };
+      }),
       ...BEHAVIOR_CHANGE_INDICATORS.map((b) => {
         const lvl = behaviorLevels[b.id] || 3;
         const opt = b.options.find((o) => o.level === lvl);
@@ -1080,7 +1132,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
               </span>
             </div>
             <div className="text-[10px] text-slate-300">
-              Formula Baku: Teori (25%) + Praktik (35%) + RESPECT (25%) + Ketahanan (15%)
+              Formula Baku: Teori (25%) + Praktik (35%) + Budaya H.A.R.A (25%) + Ketahanan (15%)
             </div>
           </div>
 
@@ -1145,7 +1197,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
             }`}
           >
             <Award size={13} className="mx-auto text-emerald-600 mb-0.5" />
-            <span>RESPECT (25%)</span>
+            <span>Budaya HARA</span>
             <div className="text-[10px] text-emerald-700 font-black">{calculatedAttitudeScore} pt</div>
           </button>
 
@@ -1217,7 +1269,7 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-emerald-50/80 border border-emerald-200 text-center space-y-1">
-                  <span className="text-[10px] font-black uppercase text-emerald-700">Faktor 3: RESPECT (25%)</span>
+                  <span className="text-[10px] font-black uppercase text-emerald-700">Faktor 3: Budaya H.A.R.A (25%)</span>
                   <div className="text-2xl font-black text-emerald-900">{calculatedAttitudeScore}</div>
                   <div className="text-[10px] text-emerald-600 font-bold">Kontribusi: {(calculatedAttitudeScore * 0.25).toFixed(1)} pt</div>
                 </div>
@@ -1359,22 +1411,24 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
                     </div>
                   </div>
 
-                  {/* Category 3: RESPECT */}
+                  {/* Category 3: Budaya H.A.R.A */}
                   <div className="p-3 bg-emerald-50/40 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-black text-emerald-950 flex items-center gap-1.5">
                         <Award size={13} className="text-emerald-600" />
-                        <span>3. Pilar Sikap & Budaya RESPECT (Bobot 25%)</span>
+                        <span>3. Pilar Sikap & Budaya H.A.R.A (Bobot 25%)</span>
                       </span>
                       <span className="font-black text-emerald-900 bg-emerald-100/80 px-2 py-0.5 rounded text-[11px]">
                         {calculatedAttitudeScore} / 100 pt → Poin Komposit: {(calculatedAttitudeScore * 0.25).toFixed(1)}
                       </span>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-1.5 text-[11px]">
-                      {ASPEK_ATTITUDE_RESPECT_DETAIL.map((a) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 text-[11px]">
+                      {ASPEK_ATTITUDE_HARA_DETAIL.map((a) => (
                         <div key={a.key} className="p-1.5 rounded-lg bg-white border border-emerald-100 text-center">
                           <div className="text-[10px] font-bold text-emerald-800">{a.key} - {a.nama.split(' ')[0]}</div>
-                          <div className="text-xs font-black text-emerald-950 mt-0.5">{attitudeScores[a.key] || 4} / 5 pt</div>
+                          <div className="text-xs font-black text-emerald-950 mt-0.5">
+                            {useObjectiveHara ? `${objectiveHaraScores[a.key] ?? 90} pt` : `${attitudeScores[a.key] || 4} / 5 pt`}
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -1866,64 +1920,183 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
             </div>
           )}
 
-          {/* TAB 3: ATTITUDE RESPECT DENGAN DESKRIPSI PERILAKU */}
+          {/* TAB 3: ATTITUDE BUDAYA H.A.R.A & 12 PERILAKU UTAMA RESMI */}
           {activeTab === 'attitude' && (
             <div className="space-y-3">
-              <div className="bg-emerald-50/70 p-3 rounded-2xl border border-emerald-200 flex items-center justify-between">
+              <div className="bg-emerald-50/70 p-3.5 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <span className="text-xs font-black text-emerald-900">5 Pilar Budaya RESPECT CV. Ultima Rasa Indonesia</span>
-                  <p className="text-[11px] text-emerald-700 mt-0.5">Penilaian sikap, integritas kasir/bahan, grooming, dan keramahan 5S</p>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-emerald-900">4 Pilar Budaya H.A.R.A & 12 Perilaku Utama Resmi</span>
+                    <span className="text-[10px] bg-emerald-200 text-emerald-950 font-extrabold px-2 py-0.5 rounded-full">
+                      Bobot Resmi: 25%
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-emerald-700 mt-0.5">Halal (Bekerja Halal) • Amanah (Bertindak Amanah) • Responsif (Bergerak Responsif) • Adaptif (Berkembang Adaptif)</p>
                 </div>
-                <span className="text-xs font-black text-emerald-800 bg-white px-2.5 py-1 rounded-lg border border-emerald-200">
-                  {calculatedAttitudeScore} / 100 pt
-                </span>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-xs font-black text-emerald-800 bg-white px-3 py-1.5 rounded-xl border border-emerald-200 shadow-2xs">
+                    {calculatedAttitudeScore} / 100 pt
+                  </span>
+                </div>
               </div>
 
-              {ASPEK_ATTITUDE_RESPECT_DETAIL.map((aspek) => {
+              {/* Mode Selector & Quick Sync dari Input Nilai Budaya HARA */}
+              <div className="p-3 bg-white rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setUseObjectiveHara(true)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      useObjectiveHara
+                        ? 'bg-emerald-700 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    ✓ Nilai HARA Objektif (0-100 pt)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUseObjectiveHara(false)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      !useObjectiveHara
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    }`}
+                  >
+                    Rubrik Skala Bintang (1-5)
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const targetName = trainee?.nama_kru || editNamaKru;
+                    if (targetName) {
+                      const attRecords = db.getTable<any>('attitude_hara').filter(
+                        (a) => a.nama_kru && a.nama_kru.toLowerCase() === targetName.toLowerCase()
+                      );
+                      if (attRecords.length > 0) {
+                        const latest = attRecords[0];
+                        setObjectiveHaraScores({
+                          H: latest.skor_h_higienis ?? 90,
+                          A1: latest.skor_a_amanah ?? 85,
+                          R: latest.skor_a_antusias ?? 88,
+                          A2: latest.skor_r_resik ?? 90,
+                        });
+                        setUseObjectiveHara(true);
+                      }
+                    }
+                  }}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+                  title="Ambil nilai terbaru dari tabel audit attitude_hara"
+                >
+                  <CheckCircle2 size={13} className="text-emerald-700" />
+                  <span>Ambil dari Input Nilai Budaya HARA</span>
+                </button>
+              </div>
+
+              {useObjectiveHara && (
+                <div className="p-2.5 bg-emerald-50/70 border border-emerald-200 rounded-xl text-xs text-emerald-950 flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-emerald-700 shrink-0" />
+                  <span>
+                    <strong>Penilaian Objektif Aktif:</strong> Nilai sikap ditarik langsung dari audit SOP 16 parameter budaya HARA, menghilangkan bias subjektivitas skala 1-5.
+                  </span>
+                </div>
+              )}
+
+              {ASPEK_ATTITUDE_HARA_DETAIL.map((aspek) => {
                 const curRating = attitudeScores[aspek.key] ?? 4;
+                const curObjective = objectiveHaraScores[aspek.key] ?? 90;
                 const matchedDesc = aspek.levelKriteria.find((l) => l.bintang === curRating)?.bukti || '';
 
                 return (
                   <div key={aspek.key} className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 transition-all space-y-3">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="text-xs font-black text-slate-900 flex items-center gap-1.5">
-                          <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center text-[10px] font-black">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="w-6 h-6 rounded-lg bg-emerald-700 text-white flex items-center justify-center text-[10px] font-black">
                             {aspek.key}
                           </span>
-                          <span>{aspek.nama}</span>
-                        </h4>
-                        <p className="text-[11px] text-slate-500 mt-0.5">{aspek.deskripsi}</p>
+                          <h4 className="text-xs font-black text-slate-900">
+                            {aspek.nama}
+                          </h4>
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60 italic">
+                            "{aspek.tagline}"
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 leading-relaxed">{aspek.deskripsi}</p>
+                        
+                        {/* 3 Perilaku Utama Terkait */}
+                        <div className="pt-1.5 pb-0.5 space-y-1">
+                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 font-mono">
+                            Perilaku Utama Teruji:
+                          </span>
+                          <div className="grid grid-cols-1 gap-1">
+                            {aspek.perilakuUtama.map((pu, idx) => (
+                              <div key={idx} className="flex items-center gap-1.5 text-[10.5px] text-slate-700 font-medium">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shrink-0" />
+                                <span>{pu}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-xs font-black text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg shrink-0">
-                        {curRating} / 5 Bintang
+
+                      <span className="text-xs font-black text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 shrink-0">
+                        {useObjectiveHara ? `${curObjective} pt / 100` : `${curRating} / 5 Bintang`}
                       </span>
                     </div>
 
-                    {/* Star Rating Selectors */}
-                    <div className="flex items-center gap-2">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <button
-                          key={star}
-                          type="button"
-                          onClick={() => setAttitudeScores((prev) => ({ ...prev, [aspek.key]: star }))}
-                          className={`flex-1 py-2 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1 transition-all cursor-pointer ${
-                            curRating >= star ? 'bg-amber-400 text-slate-900 border-amber-500 shadow-xs' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
-                          }`}
-                        >
-                          <Star size={13} className={curRating >= star ? 'fill-slate-900' : ''} />
-                          <span>{star}</span>
-                        </button>
-                      ))}
-                    </div>
+                    {/* Mode A: Nilai HARA Objektif 0-100 pt */}
+                    {useObjectiveHara ? (
+                      <div className="space-y-1.5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-bold text-slate-800">Skor Audit Objektif SOP {aspek.nama.split(' ')[0]}</span>
+                          <span className="font-mono font-black text-emerald-700">{curObjective} Poin</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={curObjective}
+                          onChange={(e) =>
+                            setObjectiveHaraScores((prev) => ({
+                              ...prev,
+                              [aspek.key]: Number(e.target.value),
+                            }))
+                          }
+                          className="w-full accent-emerald-700 cursor-pointer"
+                        />
+                      </div>
+                    ) : (
+                      /* Mode B: Star Rating Selectors (Fallback) */
+                      <div className="flex items-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setAttitudeScores((prev) => ({ ...prev, [aspek.key]: star }))}
+                            className={`flex-1 py-2 rounded-xl border text-xs font-extrabold flex items-center justify-center gap-1 transition-all cursor-pointer ${
+                              curRating >= star ? 'bg-amber-400 text-slate-900 border-amber-500 shadow-xs' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            <Star size={13} className={curRating >= star ? 'fill-slate-900' : ''} />
+                            <span>{star}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
                     {/* Active Behavioral Description */}
-                    <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 text-xs">
-                      <span className="font-black text-emerald-900 block text-[10.5px]">Indikator Terpilih ({curRating} Bintang):</span>
-                      <p className="text-slate-700 text-[11px] mt-0.5">{matchedDesc}</p>
-                    </div>
+                    {!useObjectiveHara && (
+                      <div className="p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-200/60 text-xs">
+                        <span className="font-black text-emerald-900 block text-[10.5px]">Indikator Terpilih ({curRating} Bintang):</span>
+                        <p className="text-slate-700 text-[11px] mt-0.5">{matchedDesc}</p>
+                      </div>
+                    )}
 
-                    {/* Evidence Tags for RESPECT */}
+                    {/* Evidence Tags for H.A.R.A */}
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {aspek.tagBuktiAlasan.map((tag) => {
                         const isTagSelected = selectedEvidenceTags.includes(tag);
@@ -2186,12 +2359,12 @@ export const TrainerAssessmentModal: React.FC<TrainerAssessmentModalProps> = ({
                     <CheckSquare size={14} className="text-[#96171B]" />
                     <span>Daftar Bukti Observasi Nyata Terpilih ({selectedEvidenceTags.length}):</span>
                   </span>
-                  <span className="text-[11px] text-slate-500 font-medium">Bisa dipilih dari tab Teori, Praktik, RESPECT & Ketahanan</span>
+                  <span className="text-[11px] text-slate-500 font-medium">Bisa dipilih dari tab Teori, Praktik, Budaya H.A.R.A & Ketahanan</span>
                 </div>
                 
                 {selectedEvidenceTags.length === 0 ? (
                   <div className="p-3 bg-white rounded-xl border border-dashed border-slate-300 text-center text-xs text-slate-400">
-                    Belum ada bukti spesifik terpilih. Buka tab Teori / Praktik / RESPECT untuk memilih tag bukti observasi.
+                    Belum ada bukti spesifik terpilih. Buka tab Teori / Praktik / Budaya H.A.R.A untuk memilih tag bukti observasi.
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto p-1 bg-white rounded-xl border border-slate-200">

@@ -103,9 +103,9 @@ export const BantuanView: React.FC = () => {
             <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center font-bold text-xs">
               <Award size={16} />
             </div>
-            <div className="font-bold text-xs text-slate-900">4. Tri-Node Diamonds (25-50-25)</div>
+            <div className="font-bold text-xs text-slate-900">4. Quad-Pillar Standard (20-40-15-25)</div>
             <p className="text-[11.5px] text-slate-600 leading-snug">
-              Tiga berlian presisi pada mahkota mewakili bobot Teori SOP (25%), Praktik Kerja (50%), dan Uji Lisan/Respon (25%).
+              Empat pilar evaluasi terstandarisasi: Teori SOP (20%), Praktik SOS (40%), Lisan HACCP (15%), dan Sikap Budaya H.A.R.A (25%).
             </p>
           </div>
         </div>
@@ -181,38 +181,50 @@ export const BantuanView: React.FC = () => {
           </div>
 
           <p className="text-xs text-slate-500">
-            Skor komposit akhir kru dihitung secara proporsional dari 3 pilar evaluasi:
+            Skor komposit akhir kru dihitung secara proporsional dari 4 pilar kompetensi terpadu:
           </p>
 
           <div className="space-y-2.5 text-xs">
             <div className="p-3 bg-[#FAF9F7] border border-slate-200/80 rounded-xl flex items-center justify-between">
               <div>
-                <div className="font-bold text-slate-900">1. Uji Teori SOP (Kognitif)</div>
+                <div className="font-bold text-slate-900">1. Uji Teori SOP (Kognitif) & HOTS</div>
                 <div className="text-[11px] text-slate-500">SOP HACCP, formula resep, sanitasi, dan 5S</div>
               </div>
               <div className="text-right">
                 <span className="text-xs font-bold text-[#96171B] bg-red-50 px-2 py-1 rounded-lg border border-red-200">
-                  Bobot 25%
+                  Bobot 20%
                 </span>
               </div>
             </div>
 
             <div className="p-3 bg-[#FAF9F7] border border-slate-200/80 rounded-xl flex items-center justify-between">
               <div>
-                <div className="font-bold text-slate-900">2. Uji Praktik Lapangan (Keterampilan)</div>
-                <div className="text-[11px] text-slate-500">Eksekusi deep-fryer 170°C, takaran cabai geprek, kasir POS</div>
+                <div className="font-bold text-slate-900">2. Uji Praktik & Speed of Service / SOS (Keterampilan)</div>
+                <div className="text-[11px] text-slate-500">Eksekusi deep-fryer 160°C (12 menit), Sambal Bawang 30g, kasir POS</div>
               </div>
               <div className="text-right">
                 <span className="text-xs font-bold text-amber-800 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">
-                  Bobot 50%
+                  Bobot 40%
                 </span>
               </div>
             </div>
 
             <div className="p-3 bg-[#FAF9F7] border border-slate-200/80 rounded-xl flex items-center justify-between">
               <div>
-                <div className="font-bold text-slate-900">3. Uji Lisan & Respon (Hospitality)</div>
-                <div className="text-[11px] text-slate-500">Greeting ramah 3S, penanganan komplain, respon situasi darurat</div>
+                <div className="font-bold text-slate-900">3. Uji Lisan & Pemahaman Kritis HACCP</div>
+                <div className="text-[11px] text-slate-500">Critical control point, core temp ≥ 74°C, holding warmer maks 120 menit</div>
+              </div>
+              <div className="text-right">
+                <span className="text-xs font-bold text-blue-800 bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
+                  Bobot 15%
+                </span>
+              </div>
+            </div>
+
+            <div className="p-3 bg-[#FAF9F7] border border-slate-200/80 rounded-xl flex items-center justify-between">
+              <div>
+                <div className="font-bold text-slate-900">4. Sikap Budaya H.A.R.A (12 Perilaku Utama) & Psikometri SJT</div>
+                <div className="text-[11px] text-slate-500">Penerapan 12 Perilaku Utama: Halal, Amanah, Responsif, Adaptif & integritas kasir Rp 0</div>
               </div>
               <div className="text-right">
                 <span className="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
@@ -223,18 +235,22 @@ export const BantuanView: React.FC = () => {
           </div>
 
           <div className="p-3.5 bg-slate-900 text-white rounded-xl text-xs space-y-2">
-            <div className="font-bold text-amber-300 text-xs">Tiga Tingkat Predikat Kompetensi:</div>
-            <div className="grid grid-cols-3 gap-2 text-center text-[10.5px]">
+            <div className="font-bold text-amber-300 text-xs">Standar KKM 4 Tingkat Grade Kelulusan HARA:</div>
+            <div className="grid grid-cols-4 gap-2 text-center text-[10px]">
               <div className="p-2 bg-white/10 rounded-lg">
-                <div className="font-bold text-emerald-400">Mahir</div>
-                <div className="text-slate-300">Skor ≥ 85</div>
+                <div className="font-bold text-emerald-400">Grade A (Mahir)</div>
+                <div className="text-slate-300">Skor 85 - 100</div>
               </div>
               <div className="p-2 bg-white/10 rounded-lg">
-                <div className="font-bold text-amber-300">Terampil</div>
-                <div className="text-slate-300">Skor 60 - 84</div>
+                <div className="font-bold text-blue-400">Grade B (Kompeten)</div>
+                <div className="text-slate-300">Skor 75 - 84</div>
               </div>
               <div className="p-2 bg-white/10 rounded-lg">
-                <div className="font-bold text-rose-400">Pemula</div>
+                <div className="font-bold text-amber-300">Grade C (Pembinaan)</div>
+                <div className="text-slate-300">Skor 60 - 74</div>
+              </div>
+              <div className="p-2 bg-white/10 rounded-lg">
+                <div className="font-bold text-rose-400">Remedial</div>
                 <div className="text-slate-300">Skor &lt; 60</div>
               </div>
             </div>

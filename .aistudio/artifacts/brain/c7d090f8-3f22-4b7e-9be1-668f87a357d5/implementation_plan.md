@@ -1,115 +1,72 @@
-# Rencana Induk Peningkatan Menyeluruh Sistem HARA PD (Bertahap & Terstruktur)
+# IMPLEMENTATION PLAN: SISTEM ONBOARDING PRAKTIK 2 HARI ("DEMO TRAINER 15 MENIT + EKSEKUSI SERENTAK MANDIRI") & SPREADSHEET / PDF EXPORTER
 
-Rencana ini disusun untuk merespons evaluasi menyeluruh Anda terhadap sistem HARA PD. Pelaksanaan akan dilakukan secara **satu per satu per fase (step-by-step)** agar setiap komponen memiliki kualitas maksimal, teruji, rapi, dan stabil.
-
----
-
-## Urutan Fase Pengerjaan (Step-by-Step)
-
-```
-[FASE 1: Bank SOP 4 Jobdesk & Sinkronisasi]
-                   ↓
-[FASE 2: Rekonstruksi Sistem Ujian Kru & Keamanan Anti-Cheat]
-                   ↓
-[FASE 3: Sistem Penilaian Karakter Kru Terpadu (SJT 5 Dimensi)]
-                   ↓
-[FASE 4: Peningkatan UI & Tampilan Antarmuka Modern]
-                   ↓
-[FASE 5: Penguatan Keamanan Sistem & Audit Terintegrasi]
-```
+Dokumen ini merinci arsitektur, kurikulum 2 hari, pembagian produk per batch, estimasi waktu SOP, serta metodologi evaluasi onboarding untuk 11–17 kru baru HARA Chicken.
 
 ---
 
-## FASE 1: Restorasi & Validasi Bank SOP 4 Jobdesk Lengkap
-*Fokus: Memastikan seluruh dokumen SOP dari 4 divisi (Kitchen, Kasir, Geprek, Helper) tampil 100% lengkap tanpa ada yang hilang atau tersembunyi karena filter/cache.*
+## 1. Arsitektur & Metodologi Pelaksanaan Onboarding
 
-### 1.1 Inventarisasi & Pembaruan Bank SOP Resmi (76 Dokumen)
-- **Kitchen & Fryer (26 SOP)**:
-  - Mengintegrasikan **SOP Nasi Goreng Rev 02 (`SOP-KTC-026`)**: Gramasi 170 gr nasi, 20 gr bumbu ECO, 30 gr sayur potong, teknik api besar, 2 slice timun.
-  - SOP Penggorengan Ayam Krispi, Suhu & Timer Fryer, Chiller Ayam Marinated, Penyaringan Minyak, Kaldu & Sup.
-- **Geprek & Sambal / Saus (24 SOP)**:
-  - Mengintegrasikan **SOP Ayam & Krispi Saus Mentai (`SOP-AyamSausMentai-01`)**: Peralatan torch & 2 solet, daya simpan saus mentai showcase 5 hari, teknik torch kecokelatan merata.
-  - Mengintegrasikan **SOP Saus Ayoli (`SOP-SausAyoli-01`)**: Campuran chili oil & mayones diaduk garpu, daya simpan showcase 5 hari, SOP Kasir wajib menanyakan opsi pisah/campur.
-  - Mengintegrasikan **SOP Saus Rendang (`SOP-PenyejianSausRendang-01`)**: Standar chiller 4°C, box plastik (campur) vs box kertas + cup (pisah), SOP Kasir wajib menanyakan opsi campur/pisah.
-  - SOP Ulekan Sambal Bawang, Sambal Ijo, Sambal Matah, Tingkat Kepedasan Level 1-5.
-- **Kasir & Pelayanan POS (10 SOP)**:
-  - SOP Pelayanan 5S (Senyum, Salam, Sapa, Sopan, Santun), Penanganan Kas & Kembalian, Rekonsiliasi Mesin EDC/QRIS, Penanganan Komplain Pelanggan, SOP Up-selling & Paket Menu.
-  - Standar integrasi penawaran saus (Ayoli & Rendang: konfirmasi pisah/campur).
-- **Helper, Sanitasi & Logistik (16 SOP)**:
-  - SOP Penerimaan Bahan Baku & FIFO, Cuci Peralatan 3 Bak (Wash, Rinse, Sanitize), Sanitasi Meja Makan & Area Dine-In, Pemilahan Sampah & Greasetrap, Standar Pembersihan Toilet.
-
-### 1.2 Solusi UI & Penanganan Cache
-- Memperbaiki filter Bank SOP pada `PelatihanEvaluasiView` dan `StationWorkspaceView` agar selalu memuat seluruh divisi secara default.
-- Menyediakan tombol **"Muat Ulang Katalog SOP (Force Resync)"** untuk membersihkan cache browser lokal jika terdapat perubahan data baru.
-- Memperbaiki sinkronisasi Firestore `bank_sop` agar tidak menimpa data lengkap lokal dengan snapshot kosong atau parsial.
+### A. Metode Terpilih: "Demo Trainer 15 Menit lalu Praktik Serentak Mandiri"
+1. **Fase 1 — Master Class Demo Trainer (15 Menit):**
+   - Trainer mendemonstrasikan 1 siklus pembuatan produk standar emas (*Golden Standard*) di Meja Pass-Thru / Demo Station di hadapan seluruh peserta.
+   - Penekanan pada 3 hal krusial: Titik Kritis Keamanan Pangan (HACCP), Teknik Menakar Gramatur Tanpa Perkiraan, dan Kerapihan Platting Dine-In vs Take-Away.
+2. **Fase 2 — Eksekusi Serentak Mandiri (45–60 Menit):**
+   - Kru disebar ke stasiun kerja masing-masing (1–2 orang per stasiun sesuai generator pembagian).
+   - Seluruh stasiun mulai memasak secara paralel dipandu oleh Countdown Timer Dapur.
+   - Trainer berkeliling (*Floor Roaming*) mencatat deviasi pada form observasi cepat.
+3. **Fase 3 — Gallery Walk & Quality Control (QC) (30 Menit):**
+   - Produk yang matang langsung dibawa ke Meja Pass-Thru.
+   - Pengecekan suhu core ($\ge 74^\circ\text{C}$), penimbangan gramatur, uji kerenyahan, uji visual platting 2 slice timun, dan pemberian nilai instan pada Form Penilaian 4-Indikator.
 
 ---
 
-## FASE 2: Rekonstruksi Sistem Ujian Kru & Fitur Keamanan
-*Fokus: Membangun sistem ujian yang masif, aman, tanpa PIN yang merepotkan kru, namun berintegritas tinggi.*
+## 2. Struktur Kurikulum & Estimasi Waktu Produk Sesuai SOP
 
-### 2.1 Isolasi Jobdesk Mutlak (Zero Cross-Discipline Question)
-- Saat kru memilih divisinya (misal: Kasir), paket soal **100% fokus** pada kasir, hospitality, uang kas, sistem POS, dan SOP umum gerai. Tidak ada lagi soal suhu fryer atau teknik penggorengan untuk kasir.
-- Bank soal mingguan (Minggu 1 s/d 4) dirancang terstruktur per divisi:
-  - **Paket Kitchen**: Standar suhu, porsi Nasi Goreng Rev 02, marinasi, teknik frying, kebersihan dapur.
-  - **Paket Kasir**: Transaksi EDC/QRIS, handling komplain, akurasi uang kas, konfirmasi saus baru.
-  - **Paket Geprek**: Tekstur geprekan, teknik torch mentai, takaran cup saus ayoli, variasi sambal.
-  - **Paket Helper**: Standar FIFO gudang, desinfeksi 3 bak, pengelolaan limbah, sanitasi outlet.
-
-### 2.2 Fitur Keamanan & Integritas Ujian
-- **Deteksi Pindah Tab / Window Blur**: Sistem otomatis mendeteksi jika kru beralih aplikasi (membuka WhatsApp, browser lain) dan menampilkan peringatan transparan serta mencatat frekuensi pelanggaran.
-- **Dynamic Security Watermark**: Layar ujian dilengkapi watermark transparan (Nama Kru, NIK/ID, Outlet, Timestamp pengerjaan) untuk mencegah kebocoran soal via jepretan kamera ponsel.
-- **Anti-Copy & Proteksi Klik Kanan**: Mencegah teks pertanyaan disalin ke clipboard atau dibagikan ke AI/grup luar.
-- **Single-Attempt Token & Session Lock**: Kru tidak dapat mengulang ujian secara sembarangan setelah tombol kirim diklik. Hasil langsung terkunci dan tersimpan ke riwayat.
-- **Timer Sesi Penuh (25-30 Menit) & Autosave**: Kru dapat maju-mundur mengecek nomor soal yang ragu-ragu dengan navigasi grid nomor tanpa dibatasi detik per nomor.
+### Day 1: Fondasi Dapur & Menu Signature Geprek (7 Jam)
+| Sesi / Jam | Modul | Rincian Produk | Estimasi Durasi | Titik Kritis SOP |
+|---|---|---|---|---|
+| **08:00 – 10:00** | Pemaparan Teori & 4 SOP Inti | Teori K3, 4 Warna Lap, Grooming APD, Suhu 175°C/160°C | 120 Menit | Pemahaman KKM 75 pt, bebas perhiasan |
+| **10:00 – 10:30** | Demo Trainer Batch 1 | Demo 10 Produk Fondasi oleh Lead Trainer | 15–30 Menit | Teknik potong simetris, takaran air Miyako |
+| **10:30 – 11:30** | **Eksekusi Paralel Batch 1 (10 Produk)** | 1. Ayam Utuh (potong & marinasi 900-1000g)<br>2. Nasi Pulen (170g timbang, air 4-8 cup)<br>3. Teh Manis Segar (biang 100°C)<br>4. Goreng Ayam Crispy (175°C/160°C 12-14 mnt)<br>5. Sambal Bawang (30g ulek siram minyak panas)<br>6. Sup Kaldu Ayam (kuah bening $\ge 70^\circ\text{C}$)<br>7. Scramble Egg Fluffy (api kecil, susu, mentega)<br>8. Spinach Crispy (bayam 170°C 90 dtk)<br>9. Terong Goreng (serong 1.5cm 160°C)<br>10. Indomie Racikan HARA (rebus tepat 3 mnt) | **60 Menit** (Paralel) | • Suhu core ayam $\ge 74^\circ\text{C}$<br>• Tanak nasi 15 mnt pasca jegleg<br>• Sambal ulek kasar cobek batu<br>• Tiriskan minyak minimal 1 mnt |
+| **11:30 – 12:00** | Gallery Walk & QC Batch 1 | Evaluasi Meja Pass-Thru & Scoring 4-Indikator | 30 Menit | Suhu probe, penimbangan toleransi $\pm 3\text{g}$ |
+| **12:00 – 13:20** | ISHOMA & Sanitasi Stasiun Sesi 1 | Istirahat, makan, ibadah & lap 4 warna | 80 Menit | Dapur steril, peralatan dicuci bersih |
+| **13:20 – 13:35** | Demo Trainer Batch 2 | Demo Torching Mentai, Moza, Griddle Krisbar & Nasgor | 15 Menit | Jarak torch 5-7 cm, bumbu ECO 20g |
+| **13:35 – 14:20** | **Eksekusi Paralel Batch 2 (11 Menu Geprek)** | 1. Nasgor Geprek ORI (SOP-NasGor-02 Nasi 170g + ECO 20g)<br>2. Geprek ORI (geprek 2-3 ketukan)<br>3. Geprek Keju Parut (cover 80% ayam)<br>4. Geprek Mentai (2 solet $\pm 40\text{g}$, torch 15-20 dtk)<br>5. Geprek Moza (mozzarella melt torch)<br>6. Geprek Ayoli (aduk garpu sebelum tuang)<br>7. Geprek Krisbar (oles BBQ griddle 180°C)<br>8. Hot Nashville (oil dip paprika cayenne + timun)<br>9. Krisbar Krispi (tanpa geprek griddle karamel)<br>10. Mentai Krispi (utuh + torch nori)<br>11. Ayoli Krispi (utuh zigzag + wijen peterseli) | **45 Menit** (Paralel) | • Nasi pera 170g timbang digital<br>• 2 slice timun miring 45° wajib<br>• Saus ayoli tidak pecah minyak<br>• Keju moza mulur tidak gosong |
+| **14:20 – 15:00** | Audit Platting Dine-In vs Take-Away & Rekap | Evaluasi kemasan bento/bowl/kertas cokelat & scoring | 40 Menit | Stiker segel QC, kerapihan kemasan delivery |
 
 ---
 
-## FASE 3: Sistem Penilaian Karakter Kru Terpadu (SJT Multidimensi)
-*Fokus: Mengukur karakter dan kepribadian kru secara objektif melalui soal skenario situasional operasional (SJT).*
-
-### 3.1 Lima Dimensi Karakter Kerja
-1. **Integritas & Kejujuran (Bobot 25%)**: Kepatuhan terhadap kas, penolakan gratifikasi/mencuri bahan, anti-manipulasi stok afkir.
-2. **Ketahanan Tekanan / Stres (Bobot 20%)**: Pengendalian emosi saat rush hour, antrean panjang, atau kendala peralatan gerai.
-3. **Fokus Pelanggan / Hospitality (Bobot 20%)**: Keramahan alami, empati pelayanan, resolusi komplain tanpa berdebat.
-4. **Disiplin SOP & Mutu (Bobot 20%)**: Kepatuhan tidak memotong proses standar (gramasi, suhu, kebersihan).
-5. **Kerjasama Tim & Inisiatif (Bobot 15%)**: Kepekaan membantu stasiun lain yang kewalahan tanpa mengabaikan tugas pokok.
-
-### 3.2 Output Penilaian untuk Trainer & Supervisor
-- **Karakter Radar Chart (Visual 5 Dimensi)** pada dashboard admin dan sertifikat hasil ujian kru.
-- **Tipe Karakter Kerja (Workplace Archetype)**:
-  - *Front-Liner Unggul & Duta Layanan*
-  - *Penjaga Standar Baku & Kepatuhan Mutu*
-  - *Kolaborator Tangguh & Penggerak Tim*
-  - *Pekerja Teliti & Penjaga Integritas*
-- **Rekomendasi Bimbingan (Actionable Coaching Notes)**: Catatan otomatis untuk Store Manager mengenai area yang butuh bimbingan saat shift harian.
+### Day 2: Aneka Kulit Crispy, Side Dish, Minuman & Final Assembly (7 Jam)
+| Sesi / Jam | Modul | Rincian Produk | Estimasi Durasi | Titik Kritis SOP |
+|---|---|---|---|---|
+| **08:00 – 08:30** | Briefing & Evaluasi Hari 1 | Review gap nilai Day 1, review kesalahan umum | 30 Menit | Reminder KKM 75 pt & K3 Dapur |
+| **08:30 – 08:45** | Demo Trainer Batch 3 | Demo Goreng Kulit, Burger Ayam & Side Dish | 15 Menit | Penepungan kulit mekar tidak menggumpal |
+| **08:45 – 09:45** | **Eksekusi Paralel Batch 3 (Side Dish & Kulit)** | 1. Kulit Ayam Crispy (suhu 170°C 4-5 mnt)<br>2. Kulit Bakar Krisbar (griddle glaze BBQ karamel)<br>3. Burger Ayam Crispy (toast bun + selada + mayo)<br>4. Tahu & Tempe Crispy Bumbu Kuning<br>5. Jamur Enoki Crispy HARA | **60 Menit** (Paralel) | • Kulit garing mekar tidak keras<br>• Daging burger matang merata<br>• Jamur tiris minyak sempurna |
+| **09:45 – 10:15** | Gallery Walk & QC Batch 3 | Sensory evaluation & kerenyahan | 30 Menit | Uji kriuk suara, minyak tiris maksimal |
+| **10:15 – 10:30** | Demo Trainer Batch 4 | Demo Racikan Minuman Signature & Sealer Cup | 15 Menit | Brix meter kemanisan, es kristal higienis |
+| **10:30 – 11:30** | **Eksekusi Paralel Batch 4 (Minuman & Assembly)** | 1. Lemon Tea Dingin (perasan lemon asli)<br>2. Orange Sunkist Segar<br>3. Es Kopi Susu Gula Aren HARA<br>4. Milo HARA Creamy Foam<br>5. Teh Tarik Dingin Berbusa<br>6. Packaging Assembly Lengkap (Dine-in vs Online GoFood/GrabFood/ShopeeFood) | **60 Menit** (Paralel) | • Cup sealer rapat anti-bocor<br>• Rasio es batu pas tidak encer<br>• Kelengkapan kantong kresek & sedotan |
+| **11:30 – 12:00** | Audit Minuman & Packing Delivery | Inspeksi cup sealer, ketahanan panas paper bowl | 30 Menit | Shake test cup sealer tanpa bocor |
+| **12:00 – 13:20** | ISHOMA & Sanitasi Stasiun Sesi 2 | Makan siang bersama & pembersihan deep clean | 80 Menit | Chiller stock check & waste log closing |
+| **13:20 – 14:30** | Ujian Praktik Simulasi Kasir & Speed of Service (SOS) | Simulasi pesanan jam rush (Order to Serve < 3 mnt) | 70 Menit | Kecepatan POS, keramahan 5S, akurasi pesanan |
+| **14:30 – 15:00** | Evaluasi Kelulusan, Yudisium & Penyerahan Sertifikat | Pengumuman nilai 4 pilar & serah terima kru ke Outlet | 30 Menit | Sertifikat kelulusan Grade A/B/C diterbitkan |
 
 ---
 
-## FASE 4: Peningkatan UI & Tampilan Antarmuka Modern
-*Fokus: Merapikan antarmuka agar intuitif, modern, berkelas, rapi, dan optimal diakses dari smartphone maupun PC outlet.*
+## 3. Rencana Komponen & Fitur Aplikasi yang Akan Ditambahkan
 
-- **Penyelarasan Desain (Design System)**: Penggunaan palet warna HARA (Gold, Crimson, Charcoal, Slate) yang elegan dan bersih.
-- **Struktur Navigasi yang Bersih**:
-  - Penataan tab katalog SOP dengan pemisahan ikon stasiun yang jelas.
-  - Lembar ujian responsif dengan drawer daftar nomor soal, status terjawab/belum, dan timer mengambang yang tidak mengganggu.
-  - Tampilan kartu materi SOP yang modular, mudah dibaca cepat saat kru berada di stasiun kerja.
-- **Pembersihan Elemen Antarmuka**: Menghilangkan inkonsistensi styling dan memperjelas tombol aksi utama (Action Buttons).
-
----
-
-## FASE 5: Penguatan Keamanan Sistem Menyeluruh & Audit Trail
-*Fokus: Menjaga kedaulatan data operasional dan riwayat pengujian.*
-
-- **Dual-Layer Persistence**: Sinkronisasi lancar antara penyimpanan offline (IndexedDB/LocalStorage) dan cloud (Firestore) tanpa saling menimpa data yang valid.
-- **Audit Log Pengujian**: Catatan riwayat nilai ujian kru lengkap dengan rekapitulasi waktu pengerjaan, skor per dimensi, dan indikator kepatuhan.
-- **Ekspor Laporan**: Fitur unduh laporan hasil evaluasi kru (PDF/Cetak & Excel) untuk manajemen pusat.
+1. **Tab Day 1 vs Day 2 Switcher di `SimulasiPraktikRnDView.tsx`:**
+   - Menyediakan tampilan tab: **Day 1: Fondasi & Menu Geprek** dan **Day 2: Kulit, Minuman & Assembly**.
+   - Dilengkapi tabel produk Batch 3 dan Batch 4 dengan titik kritis terperinci.
+2. **Interactive Spreadsheet Matrix View:**
+   - Menampilkan tabel format spreadsheet 12 kolom lengkap: No, Sesi, Jam, Modul, Produk, Stasiun, Estimasi Menit, Target Suhu, Target Gramatur, PIC Trainer, Titik Kritis SOP, dan Toleransi.
+   - Tombol **"Unduh Spreadsheet (.CSV)"** untuk membuka langsung di Microsoft Excel atau Google Sheets.
+3. **Generator Cetak Dokumen PDF Dossier Onboarding (Multi-Ukuran):**
+   - Generator PDF vektor resolusi tinggi berisi jadwal rundown lengkap, jadwal stasiun 11–17 peserta, checklist SOP, dan berita acara penyerahan peserta.
+   - Mendukung format kertas A4, Folio/F4, Letter, A3 dengan orientasi Portrait / Landscape tanpa pemotongan teks.
 
 ---
 
-## Rencana Verifikasi & Uji Kualitas
-1. **Verifikasi Katalog 4 Divisi**: Memeriksa tab Kitchen (26), Geprek (24), Kasir (10), dan Helper (16) dapat dibuka dan dicari dengan lancar.
-2. **Verifikasi Soal & SOP Baru**: Memastikan Nasi Goreng Rev 02, Mentai, Ayoli, dan Rendang terintegrasi di materi dan bank soal.
-3. **Verifikasi Simulasi Ujian Tiap Divisi**: Mencoba ujian sebagai Kru Kasir, Kitchen, Geprek, dan Helper untuk memastikan kesesuaian soal 100%.
-4. **Verifikasi Fitur Keamanan**: Menguji peringatan saat tab browser beralih dan memastikan watermark kru tampil jelas.
-5. **Verifikasi Build**: Menjalankan `compile_applet` dan `lint_applet` untuk menjamin tidak ada error kode.
+## 4. Rencana Verifikasi
+- Validasi fungsi download CSV Spreadsheet di browser.
+- Uji coba tombol toggle Day 1 dan Day 2 serta generator stasiun otomatis.
+- Jalankan `npm run lint` (`tsc --noEmit`) dan `compile_applet` untuk memastikan nol error.

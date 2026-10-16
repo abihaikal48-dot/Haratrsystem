@@ -141,9 +141,9 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="relative hidden lg:block ml-2">
           <button
             onClick={() => setShowOutletDropdown(!showOutletDropdown)}
-            className="flex items-center gap-2 bg-[#F8F6F2] hover:bg-[#EFECE5] border border-slate-200/90 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 transition-all cursor-pointer hover:shadow-xs"
+            className="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 border border-slate-200/90 rounded-xl px-3 py-1.5 text-xs font-bold text-slate-800 transition-all cursor-pointer hover:shadow-2xs"
           >
-            <Building2 size={13} className="text-[#96171B]" />
+            <Building2 size={13} className="text-amber-600" />
             <span className="text-xs max-w-[170px] truncate">
               {selectedOutletCode === 'ALL'
                 ? 'Semua Outlet'
@@ -164,12 +164,12 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onSelectOutletCode('ALL')}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-colors ${
                   selectedOutletCode === 'ALL'
-                    ? 'bg-red-50 text-[#96171B] font-bold'
+                    ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200/60'
                     : 'text-slate-700 hover:bg-slate-50'
                 }`}
               >
                 <span>Semua Cabang (Nasional)</span>
-                {selectedOutletCode === 'ALL' && <Check size={14} className="text-[#96171B]" />}
+                {selectedOutletCode === 'ALL' && <Check size={14} className="text-amber-600" />}
               </button>
               <div className="h-px bg-slate-100 my-1" />
               {outlets.map((o) => (
@@ -178,7 +178,7 @@ export const Header: React.FC<HeaderProps> = ({
                   onClick={() => onSelectOutletCode(o.kode_outlet)}
                   className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-left cursor-pointer transition-colors ${
                     selectedOutletCode === o.kode_outlet
-                      ? 'bg-red-50 text-[#96171B] font-bold'
+                      ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200/60'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
                     <div className="font-bold text-xs">{o.nama_outlet}</div>
                     <div className="text-[10px] text-slate-400">{o.kode_outlet} • {o.kepala_outlet}</div>
                   </div>
-                  {selectedOutletCode === o.kode_outlet && <Check size={14} className="text-[#96171B] shrink-0" />}
+                  {selectedOutletCode === o.kode_outlet && <Check size={14} className="text-amber-600 shrink-0" />}
                 </button>
               ))}
             </div>
@@ -212,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Live Digital Clock */}
         <div className="hidden xl:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium">
-          <Clock size={12} className="text-[#96171B]" />
+          <Clock size={12} className="text-amber-600" />
           <span>{currentDate}</span>
           <span className="text-slate-300">•</span>
           <span className="font-mono text-slate-900 font-bold">{currentTime}</span>
