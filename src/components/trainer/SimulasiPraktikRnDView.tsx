@@ -38,14 +38,14 @@ export const BATCH_1_PRODUCTS: ProductSOPItem[] = [
     targetMinutes: 45,
     criticalPoints: [
       'Cuci beras minimal 3 kali hingga air bilasan jernih (bebas bau apek & kotoran).',
-      'Takar air baku sesuai kalibrasi resmi: 3 cup beras : 4 cup air, 4:5, 5:6, maksimal 6 cup beras : 8 cup air.',
+      'Takar air baku sesuai kalibrasi resmi: 3 cup beras : 4 cup air, 4:5, 5:6, maksimal 6 cup beras : 8 cup air (rasio baku 1:1.33).',
       'Nyalakan api kompor: Tekan tombol kiri (api kecil) terlebih dahulu, baru tekan tombol COOK kanan.',
-      'Setelah jegleg matang, WAJIB didiamkan tanak 15 menit (maks 30 menit di rice cooker gas) sebelum dipindahkan ke Magicom.',
-      'Gramatur porsi saji wajib ditimbang tepat 170 gr per porsi.'
+      'Setelah jegleg matang, WAJIB didiamkan tanak 15 menit (toleransi 13–18 menit sebelum dipindahkan ke Magicom).',
+      'Penyajian menggunakan centong standar porsi HARA (porsi mantap pulen merata tanpa perlu timbangan gram per piring).'
     ],
-    equipment: ['Rice Cooker Gas Miyako', 'Gelas Ukur Kalibrasi', 'Centong Anti Lengket', 'Timbangan Digital 170g'],
-    keySpec: 'Pulen tidak pera/lembek, suhu saji >= 65°C, porsi presisi 170g',
-    dineInStandard: 'Piring melamin putih bersih dicetak bulat rapi ring mold 170g.',
+    equipment: ['Rice Cooker Gas Miyako', 'Gelas Ukur Kalibrasi', 'Centong Standar Anti Lengket', 'Ring Mold Nasi'],
+    keySpec: 'Pulen tidak pera/lembek, rasio air tepat, porsi standar 1 centong bulat rapi',
+    dineInStandard: 'Piring melamin putih bersih dicetak bulat rapi menggunakan ring mold / centong standar.',
     takeAwayStandard: 'Box besar beralas 1/4 lembar kertas nasi atau Bento Box bersekat.'
   },
   {
@@ -1702,11 +1702,11 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                       <div className="flex items-center gap-2">
                         <Scale size={16} className="text-[#96171B]" />
                         <h4 className="text-xs font-bold font-['Outfit'] text-[#181411]">
-                          1. Akurasi Gramatur Bahan Baku (Bobot 30%)
+                          1. Akurasi Takaran Bahan Baku & Rasio (Bobot 30%)
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Nasi 170g (+/- 5g), Sambal 30g, Bumbu ECO 20g, Kulit 50g mentah → 60g matang, Kol 200g.
+                        Rasio Cup Nasi Miyako 1:1.33 & centong standar (tanpa timbang meja saji), Sambal 30g, Bumbu ECO 20g, Kulit 50g mentah → 60g matang.
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-[#96171B] bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
@@ -1730,11 +1730,11 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                       <div className="flex items-center gap-2">
                         <Thermometer size={16} className="text-amber-600" />
                         <h4 className="text-xs font-bold font-['Outfit'] text-[#181411]">
-                          2. Ketepatan Suhu & Durasi Waktu (Bobot 30%)
+                          2. Ketepatan Suhu (Kondisional Termal) & Timer Adaptif (Bobot 30%)
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Deep fryer kompor 175°C / minyak 160°C (12 mnt), suhu core ayam ≥ 74°C, tanak nasi 15 mnt, bayam 90 dtk.
+                        Deep fryer 160°C ± 5°C (12 mnt ± 30 dtk), suhu core ayam ≥ 74°C, tanak nasi 15 mnt (toleransi 13–18 mnt). Station non-termal otomatis N/A bebas probe.
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">

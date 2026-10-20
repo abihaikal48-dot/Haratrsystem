@@ -19,11 +19,12 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
       'Cek isi tabung gas lalu buka tuas saluran gas.',
       'Tekan tombol api kecil (sebelah kiri), lalu tekan tombol COOK ke bawah (sebelah kanan).',
       'Tunggu hingga tombol COOK kembali ke posisi semula (berbunyi).',
-      'Biarkan sekitar 15 menit (agar tanak sempurna) sebelum dipindahkan ke magicom.',
-      'Nasi tidak boleh dibiarkan di rice cooker lebih dari 30 menit agar tidak mengeras.'
+      'Biarkan sekitar 15 menit (toleransi 13–18 menit agar tanak sempurna) sebelum dipindahkan ke magicom.',
+      'Nasi tidak boleh dibiarkan di rice cooker lebih dari 30 menit agar tidak mengeras.',
+      'Penyajian porsi saji menggunakan centong standar porsi HARA (1 centong penuh bulat rapi tanpa perlu ditimbang gram per piring di meja saji saat jam sibuk).'
     ],
-    poin_kritis: 'Setelah tombol jegleg, dilarang langsung memindahkan nasi sebelum 15 menit (belum tanak). Dilarang menyalakan tombol kanan sebelum tombol kiri api kecil.',
-    standar_waktu: '15 menit tanak setelah jegleg',
+    poin_kritis: 'Setelah tombol jegleg, dilarang langsung memindahkan nasi sebelum 15 menit (belum tanak). Dilarang menyalakan tombol kanan sebelum tombol kiri api kecil. Porsi disajikan dengan centong standar anti-lengket (tanpa penimbangan gram per piring).',
+    standar_waktu: '15 menit tanak setelah jegleg (toleransi 13–18 mnt)',
     alat_bahan: 'Beras Miyako, Rice Cooker Gas, Cup Takar, Air Bersih',
     sumber: 'Dokumen SOP Hara Chicken - Masak Dan Rebus',
     status_aktif: 'Aktif',

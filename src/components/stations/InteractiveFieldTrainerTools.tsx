@@ -257,7 +257,7 @@ export const InteractiveFieldTrainerTools: React.FC = () => {
                   </div>
                 </div>
                 <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  Target Saji: 170g / Porsi
+                  Porsi 1 Centong Standar
                 </span>
               </div>
 
@@ -302,7 +302,7 @@ export const InteractiveFieldTrainerTools: React.FC = () => {
                   <div className="text-2xl font-extrabold font-['JetBrains_Mono'] text-stone-800 mt-0.5">
                     ± {BERAS_RATIO_MAP[berasCup].porsi} Porsi
                   </div>
-                  <span className="text-[10px] text-stone-500">170g timbang per piring</span>
+                  <span className="text-[10px] text-stone-500">Centong standar (tanpa timbang meja saji)</span>
                 </div>
               </div>
 

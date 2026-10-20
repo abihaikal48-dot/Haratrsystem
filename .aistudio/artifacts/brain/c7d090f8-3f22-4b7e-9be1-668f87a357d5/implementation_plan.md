@@ -1,72 +1,68 @@
-# IMPLEMENTATION PLAN: SISTEM ONBOARDING PRAKTIK 2 HARI ("DEMO TRAINER 15 MENIT + EKSEKUSI SERENTAK MANDIRI") & SPREADSHEET / PDF EXPORTER
+# Rencana Implementasi: Sistem Penilaian Kru Onboarding & Penyesuaian Standar SOP HARA Chicken
 
-Dokumen ini merinci arsitektur, kurikulum 2 hari, pembagian produk per batch, estimasi waktu SOP, serta metodologi evaluasi onboarding untuk 11–17 kru baru HARA Chicken.
-
----
-
-## 1. Arsitektur & Metodologi Pelaksanaan Onboarding
-
-### A. Metode Terpilih: "Demo Trainer 15 Menit lalu Praktik Serentak Mandiri"
-1. **Fase 1 — Master Class Demo Trainer (15 Menit):**
-   - Trainer mendemonstrasikan 1 siklus pembuatan produk standar emas (*Golden Standard*) di Meja Pass-Thru / Demo Station di hadapan seluruh peserta.
-   - Penekanan pada 3 hal krusial: Titik Kritis Keamanan Pangan (HACCP), Teknik Menakar Gramatur Tanpa Perkiraan, dan Kerapihan Platting Dine-In vs Take-Away.
-2. **Fase 2 — Eksekusi Serentak Mandiri (45–60 Menit):**
-   - Kru disebar ke stasiun kerja masing-masing (1–2 orang per stasiun sesuai generator pembagian).
-   - Seluruh stasiun mulai memasak secara paralel dipandu oleh Countdown Timer Dapur.
-   - Trainer berkeliling (*Floor Roaming*) mencatat deviasi pada form observasi cepat.
-3. **Fase 3 — Gallery Walk & Quality Control (QC) (30 Menit):**
-   - Produk yang matang langsung dibawa ke Meja Pass-Thru.
-   - Pengecekan suhu core ($\ge 74^\circ\text{C}$), penimbangan gramatur, uji kerenyahan, uji visual platting 2 slice timun, dan pemberian nilai instan pada Form Penilaian 4-Indikator.
+## 1. Ringkasan & Konteks Kebutuhan
+Berdasarkan arahan pengguna dan hasil klarifikasi:
+1. **Penilaian Kru Onboarding**: Dibuatkan penilaian khusus untuk kru yang saat ini sedang aktif onboarding (Batch OB-02: Dimas Kurniawan [Kitchen], Nurul Hidayah [Kasir], Fajar Maulana [Geprek]) yang mencakup Uji Praktik RnD 16 Jam dan Checklist 10 Sesi Kurikulum Baku.
+2. **Penyesuaian SOP Nasi**: Menghilangkan kewajiban menimbang porsi nasi per piring dengan timbangan gram di setiap penyajian. Menggantinya dengan SOP rasio baku Cup Beras Miyako (1 cup beras : 1.33 air) saat memasak, serta takaran porsi centong standar saat serving.
+3. **Timer Adaptif (Tidak Kaku)**: Menerapkan toleransi waktu wajar (misal: Deep Frying 12 menit ± 30 detik, Tanak Nasi 15 menit ± 2 menit, Serving SOS < 3 menit) sehingga tidak menggugurkan penilaian hanya karena selisih beberapa detik jika kualitas organoleptik tercapai.
+4. **Suhu Kondisional**: Pengukuran suhu probe hanya diberlakukan pada station termal (Minyak Deep Fryer 160°C ± 5°C, Suhu Inti Ayam ≥ 74°C, dan Holding Warmer 60–70°C). Station non-termal (Kasir POS, Sanitasi 4 Warna Lap, Penanganan Sambal, dan Packing) diset **N/A (Bebas Probe Suhu)** tanpa input paksa atau penalti nilai.
 
 ---
 
-## 2. Struktur Kurikulum & Estimasi Waktu Produk Sesuai SOP
+## 2. Arsitektur Komponen & UX Flow
 
-### Day 1: Fondasi Dapur & Menu Signature Geprek (7 Jam)
-| Sesi / Jam | Modul | Rincian Produk | Estimasi Durasi | Titik Kritis SOP |
-|---|---|---|---|---|
-| **08:00 – 10:00** | Pemaparan Teori & 4 SOP Inti | Teori K3, 4 Warna Lap, Grooming APD, Suhu 175°C/160°C | 120 Menit | Pemahaman KKM 75 pt, bebas perhiasan |
-| **10:00 – 10:30** | Demo Trainer Batch 1 | Demo 10 Produk Fondasi oleh Lead Trainer | 15–30 Menit | Teknik potong simetris, takaran air Miyako |
-| **10:30 – 11:30** | **Eksekusi Paralel Batch 1 (10 Produk)** | 1. Ayam Utuh (potong & marinasi 900-1000g)<br>2. Nasi Pulen (170g timbang, air 4-8 cup)<br>3. Teh Manis Segar (biang 100°C)<br>4. Goreng Ayam Crispy (175°C/160°C 12-14 mnt)<br>5. Sambal Bawang (30g ulek siram minyak panas)<br>6. Sup Kaldu Ayam (kuah bening $\ge 70^\circ\text{C}$)<br>7. Scramble Egg Fluffy (api kecil, susu, mentega)<br>8. Spinach Crispy (bayam 170°C 90 dtk)<br>9. Terong Goreng (serong 1.5cm 160°C)<br>10. Indomie Racikan HARA (rebus tepat 3 mnt) | **60 Menit** (Paralel) | • Suhu core ayam $\ge 74^\circ\text{C}$<br>• Tanak nasi 15 mnt pasca jegleg<br>• Sambal ulek kasar cobek batu<br>• Tiriskan minyak minimal 1 mnt |
-| **11:30 – 12:00** | Gallery Walk & QC Batch 1 | Evaluasi Meja Pass-Thru & Scoring 4-Indikator | 30 Menit | Suhu probe, penimbangan toleransi $\pm 3\text{g}$ |
-| **12:00 – 13:20** | ISHOMA & Sanitasi Stasiun Sesi 1 | Istirahat, makan, ibadah & lap 4 warna | 80 Menit | Dapur steril, peralatan dicuci bersih |
-| **13:20 – 13:35** | Demo Trainer Batch 2 | Demo Torching Mentai, Moza, Griddle Krisbar & Nasgor | 15 Menit | Jarak torch 5-7 cm, bumbu ECO 20g |
-| **13:35 – 14:20** | **Eksekusi Paralel Batch 2 (11 Menu Geprek)** | 1. Nasgor Geprek ORI (SOP-NasGor-02 Nasi 170g + ECO 20g)<br>2. Geprek ORI (geprek 2-3 ketukan)<br>3. Geprek Keju Parut (cover 80% ayam)<br>4. Geprek Mentai (2 solet $\pm 40\text{g}$, torch 15-20 dtk)<br>5. Geprek Moza (mozzarella melt torch)<br>6. Geprek Ayoli (aduk garpu sebelum tuang)<br>7. Geprek Krisbar (oles BBQ griddle 180°C)<br>8. Hot Nashville (oil dip paprika cayenne + timun)<br>9. Krisbar Krispi (tanpa geprek griddle karamel)<br>10. Mentai Krispi (utuh + torch nori)<br>11. Ayoli Krispi (utuh zigzag + wijen peterseli) | **45 Menit** (Paralel) | • Nasi pera 170g timbang digital<br>• 2 slice timun miring 45° wajib<br>• Saus ayoli tidak pecah minyak<br>• Keju moza mulur tidak gosong |
-| **14:20 – 15:00** | Audit Platting Dine-In vs Take-Away & Rekap | Evaluasi kemasan bento/bowl/kertas cokelat & scoring | 40 Menit | Stiker segel QC, kerapihan kemasan delivery |
+### A. Komponen Penilaian Interaktif (`OnboardingEvaluationModal.tsx` & `KurikulumRoadmapView.tsx`)
+- **Header Modal**: Identitas Kru Onboarding (Nama, Divisi, Outlet, Hari Kerja, Status Onboarding).
+- **Bagian 1: Checklist 10 Sesi Kurikulum Baku (Total 25 Jam)**:
+  - Hari 1: 7 Sesi (Budaya & K3, SOP Kasir POS, Service Excellence 5S, FIFO, Handling Complaint LAST, Motivasi).
+  - Hari 2: Sesi 8 (RnD Bagian I: Marinasi, Penepungan, Penggorengan 8 Jam).
+  - Hari 3: Sesi 9 (RnD Bagian II: Sambal Bawang, Warmer, Packaging 8 Jam) & Sesi 10 (Survey & Komitmen Mutu).
+  - One-click "Checklist Kehadiran & Nilai Sesi" dengan visual indikator ketercapaian.
+- **Bagian 2: Uji Praktik RnD Adaptif (Sesuai Station)**:
+  - Input penilaian rubrik dengan deteksi otomatis tipe station:
+    - **Kitchen (Fryer & Rice)**: Uji rasio cup Miyako (bukan timbang nasi per porsi), suhu minyak 155–165°C, timer 11.5–12.5 menit.
+    - **Kasir & Front House**: Bebas suhu (N/A), fokus pada kecepatan transaksi, senyum 3S, dan rekonsiliasi kas.
+    - **Geprek & Sambal**: Tekstur uleg cobek batu 30g, holding aroma sambal segar, bebas probe thermocouple.
+    - **Helper & Sanitasi**: Kepatuhan 4 warna lap resmi, kebersihan grease trap, bebas probe suhu.
+- **Bagian 3: Tombol Aksi "Simpan & Sinkronisasi Hasil"**:
+  - Menyimpan ke tabel `OnboardingBatch` di localStorage/DB.
+  - Memperbarui rekap kompetensi kru (`crew_competency_summary`).
+  - Otomatis mencatat ke log aktivitas trainer.
 
----
-
-### Day 2: Aneka Kulit Crispy, Side Dish, Minuman & Final Assembly (7 Jam)
-| Sesi / Jam | Modul | Rincian Produk | Estimasi Durasi | Titik Kritis SOP |
-|---|---|---|---|---|
-| **08:00 – 08:30** | Briefing & Evaluasi Hari 1 | Review gap nilai Day 1, review kesalahan umum | 30 Menit | Reminder KKM 75 pt & K3 Dapur |
-| **08:30 – 08:45** | Demo Trainer Batch 3 | Demo Goreng Kulit, Burger Ayam & Side Dish | 15 Menit | Penepungan kulit mekar tidak menggumpal |
-| **08:45 – 09:45** | **Eksekusi Paralel Batch 3 (Side Dish & Kulit)** | 1. Kulit Ayam Crispy (suhu 170°C 4-5 mnt)<br>2. Kulit Bakar Krisbar (griddle glaze BBQ karamel)<br>3. Burger Ayam Crispy (toast bun + selada + mayo)<br>4. Tahu & Tempe Crispy Bumbu Kuning<br>5. Jamur Enoki Crispy HARA | **60 Menit** (Paralel) | • Kulit garing mekar tidak keras<br>• Daging burger matang merata<br>• Jamur tiris minyak sempurna |
-| **09:45 – 10:15** | Gallery Walk & QC Batch 3 | Sensory evaluation & kerenyahan | 30 Menit | Uji kriuk suara, minyak tiris maksimal |
-| **10:15 – 10:30** | Demo Trainer Batch 4 | Demo Racikan Minuman Signature & Sealer Cup | 15 Menit | Brix meter kemanisan, es kristal higienis |
-| **10:30 – 11:30** | **Eksekusi Paralel Batch 4 (Minuman & Assembly)** | 1. Lemon Tea Dingin (perasan lemon asli)<br>2. Orange Sunkist Segar<br>3. Es Kopi Susu Gula Aren HARA<br>4. Milo HARA Creamy Foam<br>5. Teh Tarik Dingin Berbusa<br>6. Packaging Assembly Lengkap (Dine-in vs Online GoFood/GrabFood/ShopeeFood) | **60 Menit** (Paralel) | • Cup sealer rapat anti-bocor<br>• Rasio es batu pas tidak encer<br>• Kelengkapan kantong kresek & sedotan |
-| **11:30 – 12:00** | Audit Minuman & Packing Delivery | Inspeksi cup sealer, ketahanan panas paper bowl | 30 Menit | Shake test cup sealer tanpa bocor |
-| **12:00 – 13:20** | ISHOMA & Sanitasi Stasiun Sesi 2 | Makan siang bersama & pembersihan deep clean | 80 Menit | Chiller stock check & waste log closing |
-| **13:20 – 14:30** | Ujian Praktik Simulasi Kasir & Speed of Service (SOS) | Simulasi pesanan jam rush (Order to Serve < 3 mnt) | 70 Menit | Kecepatan POS, keramahan 5S, akurasi pesanan |
-| **14:30 – 15:00** | Evaluasi Kelulusan, Yudisium & Penyerahan Sertifikat | Pengumuman nilai 4 pilar & serah terima kru ke Outlet | 30 Menit | Sertifikat kelulusan Grade A/B/C diterbitkan |
-
----
-
-## 3. Rencana Komponen & Fitur Aplikasi yang Akan Ditambahkan
-
-1. **Tab Day 1 vs Day 2 Switcher di `SimulasiPraktikRnDView.tsx`:**
-   - Menyediakan tampilan tab: **Day 1: Fondasi & Menu Geprek** dan **Day 2: Kulit, Minuman & Assembly**.
-   - Dilengkapi tabel produk Batch 3 dan Batch 4 dengan titik kritis terperinci.
-2. **Interactive Spreadsheet Matrix View:**
-   - Menampilkan tabel format spreadsheet 12 kolom lengkap: No, Sesi, Jam, Modul, Produk, Stasiun, Estimasi Menit, Target Suhu, Target Gramatur, PIC Trainer, Titik Kritis SOP, dan Toleransi.
-   - Tombol **"Unduh Spreadsheet (.CSV)"** untuk membuka langsung di Microsoft Excel atau Google Sheets.
-3. **Generator Cetak Dokumen PDF Dossier Onboarding (Multi-Ukuran):**
-   - Generator PDF vektor resolusi tinggi berisi jadwal rundown lengkap, jadwal stasiun 11–17 peserta, checklist SOP, dan berita acara penyerahan peserta.
-   - Mendukung format kertas A4, Folio/F4, Letter, A3 dengan orientasi Portrait / Landscape tanpa pemotongan teks.
+### B. Penyesuaian Komponen & Utility Eksisting
+1. **`src/lib/sopData.ts` & `src/lib/soalData.ts`**:
+   - Update SOP `HC-SOP-01-NASI`: Ganti instruksi "penimbangan piring gramatur kaku" menjadi "Standardisasi Takaran Centong Porsi & Rasio Cup Miyako 1:1.33".
+   - Perbarui parameter timer dan suhu agar menggunakan rentang toleransi (`min_toleransi`, `max_toleransi`, `is_thermal_required`).
+2. **`src/components/stations/InteractiveFieldTrainerTools.tsx`**:
+   - Pastikan kalkulator beras Miyako menjadi acuan utama tanpa paksaan timbangan gram pada nasi matang.
+3. **`src/components/trainer/SimulasiPraktikRnDView.tsx` & `src/components/PenilaianPraktikView.tsx`**:
+   - Sembunyikan field input suhu pada station non-termal (tampilkan label badge "Non-Termal / N/A").
+   - Ganti validasi timer kaku dengan status toleransi "Dalam Rentang Ideal".
+4. **Data Onboarding Aktif (`src/lib/storage.ts` & `src/data/onboardingCurriculumData.ts`)**:
+   - Generate data penilaian resmi komprehensif untuk peserta Batch OB-02 (Dimas Kurniawan, Nurul Hidayah, Fajar Maulana) agar trainer langsung dapat melihat hasil evaluasi mereka.
 
 ---
 
-## 4. Rencana Verifikasi
-- Validasi fungsi download CSV Spreadsheet di browser.
-- Uji coba tombol toggle Day 1 dan Day 2 serta generator stasiun otomatis.
-- Jalankan `npm run lint` (`tsc --noEmit`) dan `compile_applet` untuk memastikan nol error.
+## 3. Langkah-Langkah Pengerjaan
+
+1. **Refactoring Parameter SOP & Toleransi**:
+   - Menambahkan flag `is_thermal: boolean` dan `rentang_timer` pada data SOP di `src/lib/sopData.ts`.
+   - Mengubah rujukan penimbangan nasi menjadi takaran centong porsi standar dan rasio cup Miyako.
+2. **Pembaruan Form Penilaian Praktik & Onboarding**:
+   - Memodifikasi `PenilaianPraktikView.tsx` dan `KurikulumRoadmapView.tsx` agar field suhu kondisional sesuai divisi/station.
+   - Menyediakan timer toleransi adaptif (hijau jika di rentang wajar, tanpa penalti kegagalan total).
+3. **Penyediaan Fitur "Penilaian Cepat & Komprehensif Kru Onboarding"**:
+   - Menambahkan aksi penilaian langsung per kru onboarding di tab `batches` dan `absensi_nilai` di `KurikulumRoadmapView.tsx`.
+4. **Pembaruan Data Awal Kru Onboarding**:
+   - Menyimpan hasil penilaian nyata untuk 3 kru onboarding aktif di Batch OB-02.
+5. **Verifikasi & Build**:
+   - Menjalankan `compile_applet` dan `lint_applet` untuk menjamin tidak ada regresi kode atau error TypeScript.
+
+---
+
+## 4. Kriteria Keberhasilan
+- [x] Kru onboarding aktif (Dimas Kurniawan, Nurul Hidayah, Fajar Maulana) memiliki catatan penilaian evaluasi terisi lengkap dan dapat diubah sewaktu-waktu.
+- [x] Nasi matang tidak lagi diwajibkan ditimbang gram di meja saji, melainkan dinilai dari rasio cup Miyako & takaran centong porsi standar.
+- [x] Input suhu hanya muncul pada station termal (fryer/warmer); station non-termal otomatis N/A.
+- [x] Timer memiliki rentang toleransi wajar dan tidak kaku.
+- [x] Build applet sukses tanpa error kompilasi.

@@ -212,6 +212,8 @@ export interface PenilaianPraktik {
   id: string;
   tanggal: string;
   nama_kru: string;
+  kru_id?: string;
+  kode_outlet?: string;
   sop_terkait: string;
   detail_skor_langkah: number[];
   waktu_detik?: number;
