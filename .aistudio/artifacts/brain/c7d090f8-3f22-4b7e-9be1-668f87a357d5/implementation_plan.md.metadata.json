@@ -1,6 +1,6 @@
 {
-  "summary": "Rencana Implementasi Penilaian Kru Onboarding HARA Chicken:\n1. Pembuatan Modul Penilaian Uji Praktik RnD & Checklist 10 Sesi Kurikulum Onboarding yang adaptif dan terintegrasi langsung ke database batch.\n2. Penyesuaian SOP Nasi Putih Miyako: Penggantian penimbangan gram piring menjadi rasio cup beras Miyako (1:1.33) & porsi sendok centong standar.\n3. Fleksibilitas Timer & Toleransi Waktu Operasional (bukan batas kaku mati detik).\n4. Penyesuaian Suhu Kondisional: Pengukuran suhu hanya aktif untuk station termal (Deep Fryer & Holding Warmer), sedangkan station non-termal (Kasir, Sanitasi 4 Warna Lap, Plating Sambal, Prep Nasi) berstatus N/A tanpa penalti skor.\n5. Pembuatan data evaluasi resmi awal untuk seluruh kru yang sedang aktif menjalani onboarding di Batch OB-02.",
-  "updatedAt": "2026-10-20T00:31:04.213339315Z",
+  "summary": "Rencana Implementasi:\n1. Pemisahan Produk Mandiri & Non-Gabung: Memisahkan Scramble Egg (5 mnt, tanpa suhu 160), Indomie (10 mnt), Geprek Ori, Mentai, Ayoli, Nashville, Krisbar, dll.\n2. Penegakan Suhu 160 C Khusus Deep Fryer: Hanya stasiun deep fryer (Goreng Ayam, Kulit, Terong, Jamur, Kentang) yang menggunakan probe suhu 160 C; scramble dan stasiun lainnya bebas probe suhu.\n3. Dashboard Grafik Analitik Komprehensif (Banyak Grafik): Radar 4 pilar kompetensi, perbandingan performa 12 kru onboarding, deviasi waktu SOS per stasiun, distribusi status kelulusan, kepatuhan suhu deep fryer, performa 12 outlet, dan cetak rapor batch.",
+  "updatedAt": "2026-10-20T02:23:32.703518557Z",
   "requestFeedback": true,
   "userFacing": true
 }

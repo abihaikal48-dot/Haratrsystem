@@ -5,6 +5,7 @@ export interface TrainingStationTask {
   day: 1 | 2;
   station: 'Station 1' | 'Station 2' | 'Station 3' | 'All Crew';
   nama_tugas: string;
+  kode_sop_ref: string;
   durasi_menit: number;
   durasi_detik: number;
   toleransi_waktu_label: string;
@@ -12,6 +13,7 @@ export interface TrainingStationTask {
   max_toleransi_detik: number;
   divisi_terkait: Division;
   kategori_sop: string;
+  is_deep_fryer: boolean; // Hanya TRUE untuk stasiun deep fryer penggorengan minyak
   is_thermal: boolean;
   target_temp?: number;
   toleransi_temp_label?: string;
@@ -20,6 +22,7 @@ export interface TrainingStationTask {
   is_bebas_timbangan?: boolean;
   batch_info: string;
   keterangan: string;
+  alat_bahan: string;
   langkah_ringkas: string[];
 }
 
@@ -60,14 +63,20 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
 
 /**
  * DAFTAR TUGAS STATION & TIMER RESMI DARI AGENDA TRAINING CENTER
+ * STRICT SESUAI DOKUMEN SOP RESMI PT HARA CHICKEN INDONESIA
+ * Tidak ada produk digabung (Scramble mandiri, Indomie mandiri, Nashville mandiri).
+ * Suhu 160°C hanya eksklusif untuk stasiun Deep Fryer.
  */
 export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
-  // ================= DAY 1: STATION 1 =================
+  // ==========================================
+  // DAY 1: STATION 1
+  // ==========================================
   {
     id: 'd1-st1-nasi',
     day: 1,
     station: 'Station 1',
     nama_tugas: 'Nasi 4 Cup',
+    kode_sop_ref: 'HC-SOP-KIT-01',
     durasi_menit: 35,
     durasi_detik: 35 * 60,
     toleransi_waktu_label: '35 Menit (Toleransi 30–40 mnt)',
@@ -75,17 +84,19 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 40 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Masak',
+    is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: 'Beras Miyako 4 Cup : Air 5 Cup (Rasio Tanak Resmi). Porsi saji centong anti-lengket tanpa timbang gram.',
+    takaran_standar: 'Beras Miyako 4 Cup : Air 5 Cup. 1 Centong standar saji tanpa timbang gram.',
     is_nasi_cup: true,
     batch_info: 'Batch 1 (40 mnt) / Batch 2 (30-40 mnt)',
-    keterangan: 'Tanak di rice cooker gas hingga tombol cook naik, diamkan tanak sempurna.',
+    keterangan: 'SOP Nasi: Takar 4 cup beras Miyako, cuci 3x hingga jernih, air rasio 4:5, tanak rice cooker gas sampai tombol COOK naik, diamkan 15 mnt.',
+    alat_bahan: 'Rice Cooker Gas, Centong Anti-Lengket, Cup Takar Miyako, Wadah Cuci Beras',
     langkah_ringkas: [
-      'Ambil 4 cup beras Miyako, cuci minimal 3x hingga air jernih.',
-      'Tambahkan air dengan rasio resmi 4 cup beras : 5 cup air.',
-      'Tekan tuas api kecil lalu tombol COOK ke bawah.',
-      'Tunggu tombol COOK berbunyi naik, biarkan tanak sempurna (~35 mnt).',
-      'Pindahkan ke magicom hangat, porsikan dengan centong standar porsi.'
+      'Ambil 4 cup beras merk Miyako, cuci minimal 3 kali bilas hingga air jernih.',
+      'Masukkan beras ke wadah rice cooker gas, tambahkan air dengan rasio baku 4 cup beras : 5 cup air.',
+      'Buka saluran gas, tekan tombol api kecil (kiri), lalu tekan tombol COOK ke bawah (kanan).',
+      'Tunggu tombol COOK kembali ke posisi semula (berbunyi naik).',
+      'Biarkan 15 menit agar tanak sempurna, pindahkan ke magicom hangat, saji dengan centong standar bulat rapi.'
     ]
   },
   {
@@ -93,6 +104,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 1',
     nama_tugas: 'Teh (10lt)',
+    kode_sop_ref: 'HC-SOP-KIT-02',
     durasi_menit: 40,
     durasi_detik: 40 * 60,
     toleransi_waktu_label: '40 Menit (Toleransi 35–45 mnt)',
@@ -100,16 +112,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 45 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Beverage & Station',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Air 10 Liter + Teh Seduh HARA + Sirup Gula Standar.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Seduh air mendidih, ekstraksi aroma teh pekat, saring higienis ke dispenser teh.',
+    keterangan: 'SOP Teh: Rebus air sampai mendidih, seduh daun teh harum, saring kain bersih, tuang ke dispenser 10L.',
+    alat_bahan: 'Panci Stainless Steel, Kain Saringan Teh, Pengaduk, Dispenser Teh 10L',
     langkah_ringkas: [
-      'Rebus air hingga mendidih di panci stainless steel.',
-      'Masukkan racikan teh wangi HARA, tutup rapat selama 15 menit.',
-      'Saring ampas teh menggunakan kain saringan bersih.',
-      'Campur gula cair standar, aduk larut merata, tuang ke dispenser teh 10L.'
+      'Rebus air bersih di panci stainless steel hingga mendidih.',
+      'Masukkan racikan teh wangi HARA, tutup panci rapat selama 15 menit.',
+      'Saring ampas teh menggunakan kain saringan bersih higienis.',
+      'Campur gula cair standar, aduk larut merata, tuangkan ke dispenser teh 10L.'
     ]
   },
   {
@@ -117,6 +131,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 1',
     nama_tugas: 'Sup Sayur',
+    kode_sop_ref: 'HC-SOP-KIT-03',
     durasi_menit: 40,
     durasi_detik: 40 * 60,
     toleransi_waktu_label: '40 Menit (Toleransi 35–45 mnt)',
@@ -124,18 +139,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 45 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Sup',
-    is_thermal: true,
-    target_temp: 80,
-    toleransi_temp_label: '≥ 75°C (Suhu Saji Hangat)',
+    is_deep_fryer: false,
+    is_thermal: false,
     takaran_standar: 'Kaldu ayam gurih + potongan wortel, buncis, seledri segar.',
-    is_bebas_timbangan: false,
+    is_bebas_timbangan: true,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Masak kaldu gurih sayuran matang pas (tidak layu hancur), simpan di warmer.',
+    keterangan: 'SOP Sup Sayur: Masak kuah kaldu rempah, masukkan wortel dan sayuran segar, simpan di warmer.',
+    alat_bahan: 'Panci Sup, Sendok Sayur, Warmer Display, Talenan & Pisau',
     langkah_ringkas: [
-      'Didihkan kaldu ayam beraroma rempah bawang.',
-      'Masukkan sayuran wortel lebih dulu, disusul buncis dan kol.',
-      'Koreksi rasa gurih lembut khas HARA.',
-      'Pertahankan suhu holding soup di warmer ≥ 65°C.'
+      'Didihkan kaldu ayam beraroma rempah bawang wangi.',
+      'Masukkan potongan wortel segar lebih awal hingga setengah matang.',
+      'Masukkan buncis dan kol, koreksi rasa gurih lembut khas HARA.',
+      'Pindahkan ke panci soup warmer holding display (suhu saji hangat).'
     ]
   },
   {
@@ -143,31 +158,35 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 1',
     nama_tugas: 'Geprek Ori',
+    kode_sop_ref: 'HC-SOP-GPK-01',
     durasi_menit: 2,
     durasi_detik: 2 * 60,
-    toleransi_waktu_label: '2 Menit / 120 Detik (Toleransi 90–150 dtk)',
+    toleransi_waktu_label: '2 Menit (Toleransi 90–150 dtk)',
     min_toleransi_detik: 90,
     max_toleransi_detik: 150,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek & Sambal',
+    is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: 'Cabai rawit sesuai level + garam + micin + siram minyak panas 1 sendok sayur.',
+    takaran_standar: 'Cabai rawit sesuai level + garam mix + siram minyak panas wangi 1 sendok sayur.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Kecepatan ulek kasar fresh cobek batu, geprek ayam 2x ketukan renyah.',
+    keterangan: 'SOP Geprek Ori: Ulek kasar cabai rawit di cobek fresh, siram minyak panas 1 sendok sayur, geprek ayam 2x ketukan mantap.',
+    alat_bahan: 'Cobek Batu, Ulekan, Sendok Sayur Minyak Panas, Piring Rotan & Kertas Nasi',
     langkah_ringkas: [
-      'Ambil cabai rawit segar & bumbu di cobek batu.',
-      'Ulek kasar dalam waktu < 45 detik.',
-      'Siram minyak panas wangi bawang 1 sendok sayur.',
-      'Letakkan ayam krispi panas, geprek 2x ketukan mantap jangan hancur lebur.',
-      'Sajikan di piring rotan/alas kertas minyak bersama timun miring.'
+      'Ambil cabai rawit merah segar & garam mix di cobek batu sesuai level pedas.',
+      'Ulek kasar berkarakter dalam waktu < 45 detik (tidak halus jus).',
+      'Siram minyak panas wangi bawang 1 sendok sayur hingga aroma harum keluar.',
+      'Letakkan ayam krispi panas, geprek 2x ketukan mantap (jangan hancur lebur).',
+      'Plating rapi di piring rotan beralas kertas minyak bersama 2 slice timun miring.'
     ]
   },
   {
     id: 'd1-st1-krisbar',
     day: 1,
     station: 'Station 1',
-    nama_tugas: 'Geprek & Krispi Krisbar',
+    nama_tugas: 'Krisbar Geprek',
+    kode_sop_ref: 'HC-SOP-GPK-03',
     durasi_menit: 7,
     durasi_detik: 7 * 60,
     toleransi_waktu_label: '7 Menit (Toleransi 6–8 mnt)',
@@ -175,18 +194,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 8 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek & Bakar',
-    is_thermal: true,
-    target_temp: 180,
-    toleransi_temp_label: 'Panas grill/flame torch merata',
-    takaran_standar: 'Olesan bumbu bakar manis pedas HARA + sambal geprek.',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Olesan bumbu krisbar gurih manis + sambal geprek.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Bakar ayam krispi hingga aroma karamelisasi harum keluar, geprek dengan sambal krisbar.',
+    keterangan: 'SOP Krisbar: Olesi bumbu bakar manis gurih HARA, panggang hingga karamelisasi harum, geprek.',
+    alat_bahan: 'Pemanggang/Grill, Kuas Oles Bumbu, Jepitan, Cobek Sambal',
     langkah_ringkas: [
-      'Olesi ayam krispi dengan bumbu krisbar gurih manis.',
-      'Panggang/bakar di panggangan selama 3–4 menit hingga bumbu meresap karamel.',
-      'Geprek bersama sambal khas Krisbar HARA.',
-      'Sajikan wangi smokey harum menggugah selera.'
+      'Ambil ayam krispi matang, olesi bumbu krisbar gurih manis merata.',
+      'Panggang di atas grill selama 3-4 menit hingga bumbu meresap berkaramelisasi.',
+      'Geprek bersama sambal khas Krisbar di cobek.',
+      'Sajikan harum smokey dengan garnish timun segar.'
     ]
   },
   {
@@ -194,6 +213,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 1',
     nama_tugas: 'Geprek Mozarella',
+    kode_sop_ref: 'HC-SOP-GPK-04',
     durasi_menit: 10,
     durasi_detik: 10 * 60,
     toleransi_waktu_label: '10 Menit (Toleransi 8–12 mnt)',
@@ -201,27 +221,30 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 12 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek Topping',
-    is_thermal: true,
-    target_temp: 190,
-    toleransi_temp_label: 'Torch meleleh mulur sempurna',
-    takaran_standar: 'Keju Mozarella serut porsi standar 35g, torch merata.',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Keju Mozarella serut porsi standar 35g, torch merata mulur.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Geprek ayam, taburi keju moza melimpah, torch hingga melted kecokelatan.',
+    keterangan: 'SOP Mozarella: Tabur keju mozarella serut merata di atas ayam geprek, torch api sedang hingga meleleh mulur.',
+    alat_bahan: 'Gas Torch, Piring Tahan Panas, Keju Mozarella Serut 35g, Jepitan',
     langkah_ringkas: [
-      'Geprek ayam dengan sambal tingkat kepedasan pesanan tamu.',
-      'Taburkan keju mozarella serut secara merata menutupi permukaan ayam.',
-      'Gunakan gas torch jarak 10–12 cm dengan gerakan memutar stabil.',
-      'Lumerkan hingga keju meleleh mulur dan muncul semburat kecokelatan wangi.'
+      'Geprek ayam krispi dengan sambal pesanan.',
+      'Taburkan keju mozarella serut 35g secara merata menutupi permukaan ayam.',
+      'Nyalakan gas torch api sedang, arahkan jarak 10–12 cm dengan gerakan memutar stabil.',
+      'Lumerkan hingga keju meleleh mulur mengilap dengan semburat kecokelatan wangi.'
     ]
   },
 
-  // ================= DAY 1: STATION 2 =================
+  // ==========================================
+  // DAY 1: STATION 2
+  // ==========================================
   {
     id: 'd1-st2-goreng-ayam',
     day: 1,
     station: 'Station 2',
-    nama_tugas: 'Goreng Ayam (Goreng Ayam)',
+    nama_tugas: 'Goreng Ayam',
+    kode_sop_ref: 'HC-SOP-KIT-04',
     durasi_menit: 20,
     durasi_detik: 20 * 60,
     toleransi_waktu_label: '20 Menit Siklus Batch (Toleransi 18–22 mnt)',
@@ -229,27 +252,146 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 22 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Frying',
+    is_deep_fryer: true, // WAJIB SUHU DEEP FRYER 160°C
     is_thermal: true,
     target_temp: 160,
-    toleransi_temp_label: 'Deep fryer 160°C / Kompor 175°C (Core ≥ 74°C)',
+    toleransi_temp_label: 'Deep Fryer 160°C / Kompor 175°C (Core Ayam ≥ 74°C)',
     takaran_standar: '1 Keranjang Deep Fryer (Maksimal 20 potong ayam).',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Penepungan 2x celup keriting krispi, timer fryer 12 menit goreng, tiriskan 2 menit.',
+    keterangan: 'SOP Penggorengan: Suhu minyak deep fryer tepat 160°C (kompor 175°C), penepungan 2x celup, timer goreng 12 menit, tiriskan 2 mnt, core temp ayam ≥ 74°C.',
+    alat_bahan: 'Mesin Deep Fryer, Termometer Probe Suhu, Timer, Keranjang Fryer, Breader Box, Wadah Celupan Es',
     langkah_ringkas: [
-      'Cek suhu minyak deep fryer tepat 160°C dengan termometer probe.',
-      'Lakukan penepungan pertama (aduk putar 10x ringan mengambang).',
-      'Celupkan ke air es bersih selama 3 detik, tiriskan.',
-      'Penepungan kedua hingga terbentuk serpihan keriting alami.',
-      'Masukkan ke minyak panas, pasang timer deep fryer 12 menit.',
-      'Angkat, tiriskan di gantungan keranjang 2 menit, pindahkan ke holding warmer.'
+      'Verifikasi suhu minyak deep fryer tepat 160°C (kompor 175°C) menggunakan probe termometer.',
+      'Lakukan penepungan pertama (aduk putar 10x ringan mengambang tidak ditekan padat).',
+      'Celupkan ayam ke air es bersih selama 3 detik, angkat dan tiriskan.',
+      'Lakukan penepungan kedua hingga terbentuk serpihan keriting krispi alami.',
+      'Masukkan ayam ke minyak panas, pasang timer fryer 12 menit, goyang keranjang di menit ke-3.',
+      'Angkat keranjang saat timer berbunyi, tiriskan 2 menit, pindahkan ke holding warmer (core temp ≥ 74°C).'
     ]
   },
   {
-    id: 'd1-st2-mentai',
+    id: 'd1-st2-scramble',
     day: 1,
     station: 'Station 2',
-    nama_tugas: 'Geprek & Krispi Mentai (Scrembel)',
+    nama_tugas: 'Scramble Egg (Scrembel)',
+    kode_sop_ref: 'HC-SOP-KIT-14',
+    durasi_menit: 5,
+    durasi_detik: 5 * 60,
+    toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
+    min_toleransi_detik: 4 * 60,
+    max_toleransi_detik: 6 * 60,
+    divisi_terkait: 'Kitchen',
+    kategori_sop: 'Kitchen & Masak',
+    is_deep_fryer: false, // BEBAS SUHU 160°C (BUKAN DEEP FRYER)
+    is_thermal: false,
+    takaran_standar: '1 Butir telur ayam + 1 sdm susu UHT + garam mix 1/4g + 3 sdm minyak goreng baru di wajan.',
+    is_bebas_timbangan: true,
+    batch_info: 'Batch 1 (40 mnt)',
+    keterangan: 'SOP Scramble (Mandiri, Tanpa Indomie): Pecahkan 1 telur, kocok rata bersama garam mix & susu UHT, masak di wajan api sedang sambil diaduk terus berbutir lembut (1 butir = 2 porsi scramble).',
+    alat_bahan: 'Wajan/Pan Datar, Mangkok, Susu UHT, Telur Ayam, Garam Mix, Spatula, Toples Scramble',
+    langkah_ringkas: [
+      'Pecahkan 1 butir telur ayam ke mangkuk bersih.',
+      'Tambahkan mix garam 1/4 gr (sendok takar) dan 1 sdm susu UHT.',
+      'Kocok telur sampai tercampur merata.',
+      'Panaskan 3 sdm minyak goreng baru di wajan dengan api sedang.',
+      'Masukkan kocokan telur, masak sambil diaduk terus menerus sampai matang berbutir scramble lembut.',
+      '1 butir telur menghasilkan 2 porsi scramble egg; masukkan toples display warmer ayam bagian bawah.'
+    ]
+  },
+  {
+    id: 'd1-st2-indomie',
+    day: 1,
+    station: 'Station 2',
+    nama_tugas: 'Indomie',
+    kode_sop_ref: 'HC-SOP-KIT-25',
+    durasi_menit: 10,
+    durasi_detik: 10 * 60,
+    toleransi_waktu_label: '10 Menit (Toleransi 8–12 mnt)',
+    min_toleransi_detik: 8 * 60,
+    max_toleransi_detik: 12 * 60,
+    divisi_terkait: 'Kitchen',
+    kategori_sop: 'Kitchen & Masak',
+    is_deep_fryer: false, // BEBAS SUHU 160°C (BUKAN DEEP FRYER)
+    is_thermal: false,
+    takaran_standar: '1 Bungkus Indomie + 500 ml air rebusan mendidih dalam panci mie.',
+    is_bebas_timbangan: true,
+    batch_info: 'Batch 2 (30-40 mnt)',
+    keterangan: 'SOP Indomie (Mandiri, Tanpa Telur): Rebus 500 ml air mendidih, masukkan mie rebus 2 menit kenyal pas al dente, tiriskan, aduk rata bersama bumbu.',
+    alat_bahan: 'Panci Rebus Mie, Saringan Mie, Piring Extra / Box Kecil, Sendok Garpu',
+    langkah_ringkas: [
+      'Rebus 500 ml air bersih sampai mendidih dalam panci mie.',
+      'Masukkan 1 bungkus mie ke dalam air mendidih.',
+      'Masak dan diamkan selama tepat 2 menit sampai kematangan pas (tidak lembek/overcooked).',
+      'Siapkan bumbu indomie di piring (dine in) atau mangkok/box (take away).',
+      'Saring dan tiriskan mie, campurkan ke dalam piring bumbu.',
+      'Aduk mie dan bumbu sampai tercampur merata, sajikan hangat.'
+    ]
+  },
+  {
+    id: 'd1-st2-nashville',
+    day: 1,
+    station: 'Station 2',
+    nama_tugas: 'Nashville',
+    kode_sop_ref: 'HC-SOP-GPK-06',
+    durasi_menit: 2,
+    durasi_detik: 2 * 60,
+    toleransi_waktu_label: '2 Menit (Toleransi 90–150 dtk)',
+    min_toleransi_detik: 90,
+    max_toleransi_detik: 150,
+    divisi_terkait: 'Geprek',
+    kategori_sop: 'Geprek & Nashville',
+    is_deep_fryer: false, // BEBAS SUHU 160°C (BUKAN DEEP FRYER)
+    is_thermal: false,
+    takaran_standar: 'Bumbu celup rempah Nashville 30g + boncabe 1g + label level kepedasan.',
+    is_bebas_timbangan: false,
+    batch_info: 'Batch 2 (30-40 mnt)',
+    keterangan: 'SOP Nashville (Mandiri): Celup ayam krispi ke bumbu rempah Nashville 1 menit, tiriskan, tabur boncabe 1g, bungkus rapi dengan alas plastik nashville dan tempel stiker level.',
+    alat_bahan: 'Wadah Stainless Bumbu, Jepitan, Boncabe 1g, Plastik Alas Nashville, Label Level (Biru/Kuning/Merah)',
+    langkah_ringkas: [
+      'Ambil 1 pcs ayam krispi potong hangat sesuai pesanan.',
+      'Siapkan bumbu celup rempah Nashville (30 gr) sesuai level kepedasan, aduk homogen.',
+      'Celup ayam ke bumbu, diamkan selama 1 menit lalu tiriskan sampai minyak berkurang.',
+      'Taburkan 1 gr boncabe di atas ayam secara merata.',
+      'Alas box take away dengan 1 lembar plastik alas nashville, tata ayam rapi.',
+      'Tempel stiker label level kepedasan (Biru: Lv 1, Kuning: Lv 2, Merah: Lv 3).'
+    ]
+  },
+  {
+    id: 'd1-st2-spinach',
+    day: 1,
+    station: 'Station 2',
+    nama_tugas: 'Spinach',
+    kode_sop_ref: 'HC-SOP-KIT-13',
+    durasi_menit: 40,
+    durasi_detik: 40 * 60,
+    toleransi_waktu_label: '40 Menit Batch Sesi (Goreng 90 Detik)',
+    min_toleransi_detik: 35 * 60,
+    max_toleransi_detik: 45 * 60,
+    divisi_terkait: 'Kitchen',
+    kategori_sop: 'Kitchen & Frying',
+    is_deep_fryer: false, // Wajan minyak sedang 500ml, bukan deep fryer utama
+    is_thermal: false,
+    takaran_standar: '100g daun bayam petik iris tipis + 500ml minyak wajan + bumbu kentang 2.5g.',
+    is_bebas_timbangan: false,
+    batch_info: 'Batch 1 (40 mnt)',
+    keterangan: 'SOP Bayam Goreng Spinach: Iris tipis 100g bayam petik, panaskan 500ml minyak di wajan api sedang, goreng 90 detik kering krispi, tiriskan, campur bumbu kentang 2.5g.',
+    alat_bahan: 'Wajan, Saringan Minyak, Daun Bayam Petik 100g, Bumbu Kentang 2.5g, Toples Display Warmer',
+    langkah_ringkas: [
+      'Cuci bersih 100 gr daun bayam petik segar.',
+      'Rajang atau iris tipis-tipis daun bayam petik.',
+      'Panaskan 500 ml minyak di wajan dengan api sedang.',
+      'Setelah panas, masukkan irisan daun bayam petik, goreng selama 90 detik (1,5 menit) sampai kering krispi.',
+      'Angkat lalu tiriskan minyak sampai tuntas.',
+      'Campur dengan bumbu kentang 1/2 sdt (2,5 gr), simpan toples display warmer ayam bagian bawah.'
+    ]
+  },
+  {
+    id: 'd1-st2-mentai-krispi',
+    day: 1,
+    station: 'Station 2',
+    nama_tugas: 'Mentai Krispi',
+    kode_sop_ref: 'HC-SOP-GPK-05',
     durasi_menit: 5,
     durasi_detik: 5 * 60,
     toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
@@ -257,118 +399,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 6 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek & Mentai',
-    is_thermal: true,
-    target_temp: 180,
-    toleransi_temp_label: 'Torch saus mentai wangi gurih',
-    takaran_standar: 'Saus Mentai HARA 30g + Telur Scrembel lembut.',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Saus Mentai HARA 30g + Torch kilat 15-20 detik.',
     is_bebas_timbangan: false,
-    batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Masak telur orak-arik lembut, siram saus mentai khas HARA, torch kilat.',
-    langkah_ringkas: [
-      'Kocok telur, masak scrambled lembut di atas pan anti-lengket.',
-      'Plating ayam krispi/geprek bersama telur scrembel.',
-      'Tuang saus mentai zig-zag rapi di atas ayam.',
-      'Torch cepat 15–20 detik hingga harum beraroma smokey.'
-    ]
-  },
-  {
-    id: 'd1-st2-nashville-spinach',
-    day: 1,
-    station: 'Station 2',
-    nama_tugas: 'Nashville (Spinach)',
-    durasi_menit: 40,
-    durasi_detik: 40 * 60,
-    toleransi_waktu_label: '40 Menit (Toleransi 35–45 mnt)',
-    min_toleransi_detik: 35 * 60,
-    max_toleransi_detik: 45 * 60,
-    divisi_terkait: 'Kitchen',
-    kategori_sop: 'Kitchen & Prep',
-    is_thermal: true,
-    target_temp: 165,
-    toleransi_temp_label: 'Minyak goreng sayur bayam krispi',
-    takaran_standar: 'Bayam segar pilihan dipetik bersih + adonan tepung renyah.',
-    is_bebas_timbangan: true,
-    batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Petik bayam segar, celup adonan encer, goreng renyah kriuk tidak menyerap minyak.',
-    langkah_ringkas: [
-      'Cuci bersih daun bayam segar, tiriskan hingga kering.',
-      'Balur ke dalam adonan tepung bumbu krispi tipis.',
-      'Goreng dalam minyak panas api sedang hingga kaku renyah hijau.',
-      'Tiriskan di peniris jaring berlubang hingga bebas minyak.'
-    ]
-  },
-  {
-    id: 'd1-st2-scrembel-indomie',
-    day: 1,
-    station: 'Station 2',
-    nama_tugas: 'Scrembel (Indomie)',
-    durasi_menit: 10,
-    durasi_detik: 10 * 60,
-    toleransi_waktu_label: '10 Menit (Toleransi 8–12 mnt)',
-    min_toleransi_detik: 8 * 60,
-    max_toleransi_detik: 12 * 60,
-    divisi_terkait: 'Kitchen',
-    kategori_sop: 'Kitchen & Noodle',
-    is_thermal: true,
-    target_temp: 100,
-    toleransi_temp_label: 'Air rebusan mendidih',
-    takaran_standar: '1 Porsi Indomie Goreng/Kuah + 1 butir telur scrembel.',
-    is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Rebus mie kenyal pas 3 menit, racik bumbu, dampingi telur scrembel hangat.',
+    keterangan: 'SOP Saus Mentai: Semprotkan saus mentai zig-zag rapi di atas ayam krispi, torch api sedang hingga harum smokey.',
+    alat_bahan: 'Botol Saus Mentai 30g, Gas Torch, Piring Saji',
     langkah_ringkas: [
-      'Didihkan air, masukkan mie instan masak tepat 3 menit (tekstur kenyal al-dente).',
-      'Tuang bumbu ke dalam mangkuk/piring.',
-      'Tiriskan mie, campur bumbu hingga rata mengilap.',
-      'Tambahkan topping telur scrembel dan taburan bawang goreng.'
-    ]
-  },
-  {
-    id: 'd1-st2-spinach-nashville',
-    day: 1,
-    station: 'Station 2',
-    nama_tugas: 'Spinach (Nashville Dipping)',
-    durasi_menit: 2,
-    durasi_detik: 2 * 60,
-    toleransi_waktu_label: '2 Menit (Toleransi 90–150 dtk)',
-    min_toleransi_detik: 90,
-    max_toleransi_detik: 150,
-    divisi_terkait: 'Kitchen',
-    kategori_sop: 'Kitchen & Dipping',
-    is_thermal: false,
-    takaran_standar: 'Minyak rempah pedas Nashville panas + celup ayam krispi.',
-    is_bebas_timbangan: true,
-    batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Pencelupan cepat ayam ke bumbu pedas Nashville, tabur bubuk cabai bumbu khas.',
-    langkah_ringkas: [
-      'Aduk rata minyak rempah Nashville hangat.',
-      'Celupkan ayam krispi selama 3–5 detik hingga terbalur merata.',
-      'Tiriskan sekejap, taburi bubuk cabai rempah khas Nashville.',
-      'Sajikan bersama garnish bayam crispy krispi.'
-    ]
-  },
-  {
-    id: 'd1-st2-indomie-geprek',
-    day: 1,
-    station: 'Station 2',
-    nama_tugas: 'Indomie Geprek (Mentai Krispi)',
-    durasi_menit: 5,
-    durasi_detik: 5 * 60,
-    toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
-    min_toleransi_detik: 4 * 60,
-    max_toleransi_detik: 6 * 60,
-    divisi_terkait: 'Geprek',
-    kategori_sop: 'Geprek Combo',
-    is_thermal: false,
-    takaran_standar: 'Indomie bumbu lengkap + Ayam Geprek sambal bawang pedas.',
-    is_bebas_timbangan: true,
-    batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Plating indomie hangat dengan ayam geprek renyah pedas di atasnya.',
-    langkah_ringkas: [
-      'Siapkan piring saji berisi mie yang sudah dibumbui harum.',
-      'Geprek ayam krispi dengan sambal cabai fresh di cobek.',
-      'Letakkan ayam geprek tepat di atas hamparan mie.',
-      'Lengkapi dengan potongan timun segar.'
+      'Siapkan ayam krispi hangat di piring saji.',
+      'Tuang saus mentai zig-zag rapi menutupi bagian atas ayam krispi.',
+      'Torch cepat 15–20 detik menggunakan api sedang hingga beraroma smokey wangi.',
+      'Sajikan segera selagi saus mentai hangat.'
     ]
   },
   {
@@ -376,25 +418,26 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 2',
     nama_tugas: 'Geprek Mentai',
+    kode_sop_ref: 'HC-SOP-GPK-05',
     durasi_menit: 7,
     durasi_detik: 7 * 60,
     toleransi_waktu_label: '7 Menit (Toleransi 6–8 mnt)',
     min_toleransi_detik: 6 * 60,
     max_toleransi_detik: 8 * 60,
     divisi_terkait: 'Geprek',
-    kategori_sop: 'Geprek Topping',
-    is_thermal: true,
-    target_temp: 180,
-    toleransi_temp_label: 'Torch merata aroma harum',
-    takaran_standar: 'Saus mentai 30g di atas ayam geprek.',
+    kategori_sop: 'Geprek & Mentai',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Ayam Geprek + Saus Mentai 30g + Torch.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Geprek ayam gurih, beri saus mentai tebal, torch lembut.',
+    keterangan: 'SOP Geprek Mentai: Geprek ayam bersama sambal cobek, siram saus mentai tebal, torch harum.',
+    alat_bahan: 'Cobek Batu, Saus Mentai, Gas Torch, Piring Saji',
     langkah_ringkas: [
-      'Geprek ayam krispi sesuai pesanan tamu.',
-      'Semprotkan saus mentai melimpah di permukaan ayam.',
-      'Torch menggunakan api sedang hingga berkaramelisasi harum.',
-      'Sajikan segera selagi saus hangat.'
+      'Geprek ayam krispi bersama sambal tingkat kepedasan pesanan tamu di cobek.',
+      'Pindahkan ayam geprek ke piring saji.',
+      'Semprotkan saus mentai secara melimpah di atas ayam geprek.',
+      'Torch menggunakan api sedang hingga saus sedikit berkaramelisasi harum.'
     ]
   },
   {
@@ -402,6 +445,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 2',
     nama_tugas: 'Krisbar Ori & Krispi Ayoli',
+    kode_sop_ref: 'HC-SOP-GPK-09',
     durasi_menit: 8,
     durasi_detik: 8 * 60,
     toleransi_waktu_label: '8 Menit (Toleransi 7–9 mnt)',
@@ -409,27 +453,30 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 9 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek & Sauce',
-    is_thermal: true,
-    target_temp: 180,
-    toleransi_temp_label: 'Bakar krisbar smokey harum',
-    takaran_standar: 'Bumbu krisbar + saus ayoli gurih creamy khas HARA.',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Ayam bakar krisbar + saus ayoli gurih creamy 25ml.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Bakar ayam krisbar, siram saus ayoli creamy dengan sentuhan bawang putih gurih.',
+    keterangan: 'SOP Saus Ayoli Krisbar: Bakar ayam krispi bumbu bakar, siram saus ayoli creamy bawang putih gurih.',
+    alat_bahan: 'Grill Panggangan, Botol Saus Ayoli, Kuas Oles, Piring Saji',
     langkah_ringkas: [
-      'Panggang ayam krispi dengan olesan bumbu bakar manis pedas.',
-      'Geprek ringan agar bumbu meresap ke dalam serat daging.',
-      'Tuangkan saus ayoli creamy gurih di atas ayam.',
-      'Garnish dengan daun peterseli kering/biji wijen.'
+      'Panggang ayam krispi dengan olesan bumbu bakar manis pedas hingga karamel.',
+      'Geprek ringan agar bumbu meresap ke serat daging ayam.',
+      'Tuangkan saus ayoli creamy gurih zig-zag di atas ayam.',
+      'Sajikan segera ke counter pesanan.'
     ]
   },
 
-  // ================= DAY 1: STATION 3 =================
+  // ==========================================
+  // DAY 1: STATION 3
+  // ==========================================
   {
     id: 'd1-st3-terong',
     day: 1,
     station: 'Station 3',
-    nama_tugas: 'Goreng Terong (Terong)',
+    nama_tugas: 'Terong',
+    kode_sop_ref: 'HC-SOP-KIT-11',
     durasi_menit: 25,
     durasi_detik: 25 * 60,
     toleransi_waktu_label: '25 Menit (Toleransi 22–28 mnt)',
@@ -437,18 +484,21 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 28 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Side Dish',
+    is_deep_fryer: true, // WAJIB SUHU DEEP FRYER 160°C
     is_thermal: true,
     target_temp: 160,
-    toleransi_temp_label: 'Minyak panas 160°C terong tidak menyerap minyak',
-    takaran_standar: '1 Buah terong ungu dipotong serong tebal 1.5 cm + balur tepung renyah.',
+    toleransi_temp_label: 'Deep Fryer 150°C - 160°C',
+    takaran_standar: 'Terong ungu dipotong serong tebal 1.5 cm + tepung breader.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Potong terong serong presisi, balur tepung kering, goreng krispi renyah luar lembut dalam.',
+    keterangan: 'SOP Terong Krispi: Cuci terong, potong serong 1.5 cm, balur tepung breader, goreng di Deep Fryer 150°C-160°C hingga kuning keemasan renyah luar lembut dalam.',
+    alat_bahan: 'Deep Fryer, Pisau, Talenan, Keranjang Fryer, Tepung Breader, Piring Saji',
     langkah_ringkas: [
-      'Cuci terong ungu segar, potong serong dengan ketebalan 1.5 cm merata.',
-      'Balur ke tepung krispi HARA tipis merata.',
-      'Goreng di minyak panas hingga warna kuning keemasan.',
-      'Tiriskan hingga bebas dari tetesan minyak berlebih.'
+      'Cuci bersih terong ungu segar di bawah air mengalir.',
+      'Potong serong dengan ketebalan 1.5 cm merata (tidak terlalu tipis agar tidak lembek).',
+      'Balur ke tepung breader krispi HARA tipis merata.',
+      'Goreng di minyak deep fryer suhu 150°C - 160°C hingga warna kuning keemasan mekar.',
+      'Angkat keranjang, tiriskan hingga bebas minyak berlebih, sajikan krispi renyah.'
     ]
   },
   {
@@ -456,6 +506,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 3',
     nama_tugas: 'Sambal (1 Variant)',
+    kode_sop_ref: 'HC-SOP-GPK-02',
     durasi_menit: 30,
     durasi_detik: 30 * 60,
     toleransi_waktu_label: '30 Menit (Toleransi 25–35 mnt)',
@@ -463,23 +514,26 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 35 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Sambal & Prep',
+    is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: 'Bahan baku cabai rawit merah segar, bawang putih kupas, garam & bumbu ECO.',
+    takaran_standar: 'Cabai rawit merah segar + bawang putih kupas + garam mix HARA.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Prep cabai segar, buang tangkai, ulek kasar seragam, siraman minyak panas gurih.',
+    keterangan: 'SOP Sambal: Buang tangkai cabai, cuci bersih, timbang takaran resep, ulek kasar seragam cobek besar, siram minyak panas berkualitas.',
+    alat_bahan: 'Cobek Batu Besar, Ulekan Batu, Timbangan Gram, Wadah Stainless Sambal',
     langkah_ringkas: [
-      'Pilih cabai rawit merah segar, bersihkan dari tangkai dan cuci higienis.',
-      'Timbang proporsi cabai & bawang putih sesuai resep batch.',
+      'Pilih cabai rawit merah segar, bersihkan tangkai dan cuci higienis.',
+      'Timbang proporsi cabai dan bawang putih sesuai resep batch resmi.',
       'Ulek di cobek besar dengan tekstur kasar berkarakter (tidak diblender halus jus).',
-      'Siram minyak panas kelapa/sawit berkualitas, aduk rata aroma harum keluar.'
+      'Siram minyak panas kelapa/sawit berkualitas, aduk rata aroma harum keluar, simpan di wadah rapat.'
     ]
   },
   {
     id: 'd1-st3-kulit',
     day: 1,
     station: 'Station 3',
-    nama_tugas: 'Goreng Kulit (Kulit)',
+    nama_tugas: 'Goreng Kulit',
+    kode_sop_ref: 'HC-SOP-KIT-02',
     durasi_menit: 45,
     durasi_detik: 45 * 60,
     toleransi_waktu_label: '45 Menit (Toleransi 40–50 mnt)',
@@ -487,19 +541,21 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 50 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Frying',
+    is_deep_fryer: true, // WAJIB SUHU DEEP FRYER 155°C
     is_thermal: true,
     target_temp: 155,
-    toleransi_temp_label: 'Minyak sedang 155°C agar garing tidak gosong',
-    takaran_standar: 'Kulit ayam marinasi bumbu gurih 50g mentah → hasil goreng 60g krispi mekar.',
+    toleransi_temp_label: 'Deep Fryer 150°C - 155°C stabil',
+    takaran_standar: 'Kulit ayam mentah 500 gr dipotong 4x4 cm -> hasil goreng krispi mekar.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'Kerik lemak kulit ayam, potong kotak 4x4 cm, balur tepung, goreng renyah kriuk tahan lama.',
+    keterangan: 'SOP Menggoreng Kulit: Bersihkan lemak, potong 4x4 cm, penepungan tipis, goreng di deep fryer suhu 150°C-155°C api terkontrol agar mekar garing tahan lama.',
+    alat_bahan: 'Deep Fryer 155°C, Pisau, Talenan, Keranjang Peniris, Tepung Bumbu Kulit',
     langkah_ringkas: [
-      'Bersihkan lemak berlebih pada kulit ayam segar.',
-      'Potong kulit ukuran seragam 4x4 cm.',
-      'Balur ke dalam tepung bumbu tipis.',
-      'Goreng api sedang terkontrol sambil dibalik berkala agar tidak menggumpal.',
-      'Angkat saat gelembung minyak mengecil dan warna cokelat keemasan cerah.'
+      'Bersihkan lemak berlebih pada kulit ayam mentah (bobot 500 gr).',
+      'Potong kulit ayam ukuran seragam 4x4 cm.',
+      'Balur ke dalam tepung bumbu tipis merata tanpa menggumpal.',
+      'Goreng di deep fryer suhu 150°C - 155°C sambil dibalik berkala agar tidak menempel.',
+      'Angkat saat buih minyak mengecil dan warna cokelat keemasan cerah mekar garing.'
     ]
   },
   {
@@ -507,6 +563,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 3',
     nama_tugas: 'Nasgor Geprek',
+    kode_sop_ref: 'HC-SOP-KIT-24',
     durasi_menit: 15,
     durasi_detik: 15 * 60,
     toleransi_waktu_label: '15 Menit (Toleransi 12–18 mnt)',
@@ -514,25 +571,26 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 18 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Wok',
-    is_thermal: true,
-    target_temp: 120,
-    toleransi_temp_label: 'Wok panas aroma smokey harum',
+    is_deep_fryer: false,
+    is_thermal: false,
     takaran_standar: '1 Porsi nasi dingin pulen (1 centong besar) + pasta bumbu nasgor HARA.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Tumis bumbu rempah di wajan wok panas, aduk nasi cepat rata, sajikan bersama ayam geprek.',
+    keterangan: 'SOP Nasi Goreng Geprek: Panaskan minyak wajan wok, tumis pasta bumbu nasgor hingga wangi, aduk nasi cepat, sajikan bersama ayam geprek.',
+    alat_bahan: 'Wajan Wok, Spatula Wok, Kompor Gas Wok, Mangkuk Cetak Nasi, Piring Saji',
     langkah_ringkas: [
-      'Panaskan sedikit minyak di wajan wok.',
-      'Tumis bumbu racik nasi goreng HARA hingga wangi.',
-      'Masukkan nasi, aduk cepat dengan spatula agar butiran nasi terpisah rata.',
-      'Angkat, cetak di mangkuk, plating di piring bersama ayam geprek pedas.'
+      'Panaskan sedikit minyak di wajan wok dengan api sedang.',
+      'Tumis bumbu racik nasi goreng HARA hingga aroma rempah wangi tercium.',
+      'Masukkan 1 centong besar nasi dingin pulen, aduk cepat dengan spatula agar bulir nasi terpisah rata.',
+      'Cetak nasi di mangkuk, sajikan di piring bersama ayam geprek sambal dan lalapan timun.'
     ]
   },
   {
     id: 'd1-st3-keju-parut',
     day: 1,
     station: 'Station 3',
-    nama_tugas: 'Geprek Keju Parut',
+    nama_tugas: 'Keju Parut',
+    kode_sop_ref: 'HC-SOP-GPK-04',
     durasi_menit: 5,
     durasi_detik: 5 * 60,
     toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
@@ -540,15 +598,17 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 6 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek Topping',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Keju cheddar blok diparut panjang halus (20g).',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Geprek ayam, taburi keju parut segar menggunung menutupi ayam.',
+    keterangan: 'SOP Keju Parut: Posisikan parutan keju tepat di atas ayam geprek, parut tarikan panjang lurus menghasilkan gunungan serut rapi.',
+    alat_bahan: 'Parutan Keju Stainless, Keju Cheddar Blok, Piring Saji',
     langkah_ringkas: [
       'Geprek ayam krispi bersama sambal pesanan.',
       'Posisikan parutan keju tepat di atas ayam geprek.',
-      'Parut keju dengan tarikan panjang lurus menghasilkan gunungan serut rapi.',
+      'Parut keju dengan tarikan panjang lurus menghasilkan gunungan serut keju rapi.',
       'Sajikan rapi bersama lalapan segar.'
     ]
   },
@@ -557,6 +617,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 3',
     nama_tugas: 'Geprek Ayoli',
+    kode_sop_ref: 'HC-SOP-GPK-09',
     durasi_menit: 5,
     durasi_detik: 5 * 60,
     toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
@@ -564,16 +625,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 6 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Geprek Sauce',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Saus ayoli creamy gurih 25ml di atas ayam geprek.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'Geprek ayam, tuang saus ayoli gurih lembut merata.',
+    keterangan: 'SOP Geprek Ayoli: Geprek ayam hangat, tuang saus ayoli gurih lembut dengan gerakan zig-zag merata.',
+    alat_bahan: 'Cobek Batu, Botol Saus Ayoli 25ml, Piring Saji',
     langkah_ringkas: [
-      'Geprek ayam krispi hangat di cobek batu.',
-      'Pindahkan ayam ke wadah saji.',
+      'Geprek ayam krispi hangat di cobek batu bersama sambal.',
+      'Pindahkan ayam geprek ke wadah saji.',
       'Tuangkan saus ayoli dengan gerakan zig-zag menarik.',
-      'Sajikan segera ke counter pick-up.'
+      'Sajikan segera ke meja atau counter pick-up.'
     ]
   },
   {
@@ -581,6 +644,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 1,
     station: 'Station 3',
     nama_tugas: 'Goreng Ayam Utuh (Knowledge)',
+    kode_sop_ref: 'HC-SOP-KIT-15',
     durasi_menit: 25,
     durasi_detik: 25 * 60,
     toleransi_waktu_label: '25 Menit (Materi Knowledge & Demo)',
@@ -588,13 +652,15 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 30 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen Knowledge',
+    is_deep_fryer: true,
     is_thermal: true,
     target_temp: 160,
-    toleransi_temp_label: 'Deep fryer 160°C kontrol waktu goreng karkas utuh',
+    toleransi_temp_label: 'Deep fryer 160°C kontrol karkas ayam utuh',
     takaran_standar: '1 Ekor karkas ayam utuh marinasi standar HARA.',
     is_bebas_timbangan: true,
     batch_info: 'Knowledge Sesi',
-    keterangan: 'Materi pengenalan anatomi potong 9 bagian, teknik marinasi merata, dan penggorengan karkas.',
+    keterangan: 'SOP Knowledge Ayam Utuh: Pahami anatomi potong 9 karkas, marinasi 12-24 jam di chiller 1-4°C, dan teknik penggorengan karkas utuh matang ke tulang.',
+    alat_bahan: 'Karkas Ayam Utuh, Wadah Marinasi Chiller, Deep Fryer, Pisau Potong 9 Bagian',
     langkah_ringkas: [
       'Pahami spesifikasi berat karkas ayam standar HARA.',
       'Pelajari teknik pemotongan presisi 9 bagian (dada, paha atas, paha bawah, sayap).',
@@ -603,12 +669,15 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     ]
   },
 
-  // ================= DAY 2 =================
+  // ==========================================
+  // DAY 2: STATION 1, 2, 3 & ALL CREW
+  // ==========================================
   {
     id: 'd2-st1-nasi-45',
     day: 2,
     station: 'Station 1',
-    nama_tugas: 'Nasi 4 cup (Lanjutan Day 2)',
+    nama_tugas: 'Nasi 4 cup (Day 2)',
+    kode_sop_ref: 'HC-SOP-KIT-01',
     durasi_menit: 45,
     durasi_detik: 45 * 60,
     toleransi_waktu_label: '45 Menit (Toleransi 40–50 mnt)',
@@ -616,11 +685,13 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 50 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Masak',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: '4 Cup beras Miyako : 5 Cup air baku. Centong porsi standar tanpa timbang gram.',
     is_nasi_cup: true,
     batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'Uji konsistensi tekstur nasi pulen, kepatuhan rasio cup, dan kecepatan porsi saji.',
+    keterangan: 'SOP Nasi Lanjutan Day 2: Uji konsistensi tekstur pulen, kepatuhan rasio cup Miyako, dan kecepatan porsi saji tanpa timbang gram.',
+    alat_bahan: 'Rice Cooker Gas, Centong Anti-Lengket, Cup Takar Miyako, Magicom Warmer',
     langkah_ringkas: [
       'Takar beras 4 cup Miyako presisi bibir cup.',
       'Cuci 3x bilasan hingga air jernih.',
@@ -634,6 +705,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 2,
     station: 'Station 1',
     nama_tugas: 'Goreng Kulit (Day 2)',
+    kode_sop_ref: 'HC-SOP-KIT-02',
     durasi_menit: 45,
     durasi_detik: 45 * 60,
     toleransi_waktu_label: '45 Menit (Toleransi 40–50 mnt)',
@@ -641,17 +713,19 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 50 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Frying',
+    is_deep_fryer: true, // DEEP FRYER 155°C
     is_thermal: true,
     target_temp: 155,
-    toleransi_temp_label: '155°C stabil',
+    toleransi_temp_label: 'Deep Fryer 150°C - 155°C stabil',
     takaran_standar: 'Kulit ayam krispi mekar renyah.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'Praktik mandiri penggorengan kulit ayam krispi bebas bau amis.',
+    keterangan: 'SOP Goreng Kulit Mandiri Day 2: Praktik mandiri penggorengan kulit ayam krispi mekar di fryer.',
+    alat_bahan: 'Deep Fryer 155°C, Keranjang Peniris, Tepung Bumbu Kulit',
     langkah_ringkas: [
       'Pastikan kulit ayam bebas bulu & lemak tebal.',
       'Penepungan merata tanpa gumpalan basah.',
-      'Goreng di minyak api sedang teratur.',
+      'Goreng di minyak deep fryer suhu 155°C terkontrol.',
       'Tiriskan dan pastikan kerenyahan bertahan > 3 jam.'
     ]
   },
@@ -660,6 +734,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 2,
     station: 'Station 2',
     nama_tugas: 'Teh (8lt)',
+    kode_sop_ref: 'HC-SOP-KIT-02',
     durasi_menit: 30,
     durasi_detik: 30 * 60,
     toleransi_waktu_label: '30 Menit (Toleransi 25–35 mnt)',
@@ -667,16 +742,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 35 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Beverage & Station',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Air 8 Liter + racikan teh harum wangi.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'Seduh teh volume 8 Liter dispenser counter kasir.',
+    keterangan: 'SOP Seduh Teh 8L: Seduh daun teh harum di air mendidih 15 mnt tertutup, saring higienis.',
+    alat_bahan: 'Panci Stainless Steel, Kain Saringan Teh, Dispenser Teh 8L',
     langkah_ringkas: [
-      'Rebus air 8 Liter di panci stainless steel.',
+      'Rebus air 8 Liter di panci stainless steel hingga mendidih.',
       'Seduh daun teh harum HARA selama 15 menit tertutup.',
       'Saring ampas dan campur gula cair sesuai takaran standar.',
-      'Tuang ke dispenser teh higienis.'
+      'Tuang ke dispenser teh higienis counter kasir.'
     ]
   },
   {
@@ -684,6 +761,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 2,
     station: 'Station 2',
     nama_tugas: 'Sambal Mattah',
+    kode_sop_ref: 'HC-SOP-GPK-10',
     durasi_menit: 20,
     durasi_detik: 20 * 60,
     toleransi_waktu_label: '20 Menit (Toleransi 15–25 mnt)',
@@ -691,11 +769,13 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 25 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Sambal Segar',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Irisan serai tipis + cabai rawit + bawang merah + terasi bakar + siram minyak panas kelapa.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'Ketelitian pisau iris serai & bawang halus tipis, aroma terasi bakar harum, siram minyak panas gurih.',
+    keterangan: 'SOP Sambal Matah: Iris serai sangat tipis, iris bawang merah & cabai rawit seragam, remas garam & gula, siram minyak panas kelapa.',
+    alat_bahan: 'Pisau Tajam, Talenan Higienis, Mangkok Stainless, Minyak Panas Kelapa',
     langkah_ringkas: [
       'Iris serai bagian putih sangat halus tipis.',
       'Iris bawang merah dan cabai rawit merah secara seragam.',
@@ -708,6 +788,7 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     day: 2,
     station: 'Station 2',
     nama_tugas: 'Sambal Daun Jeruk',
+    kode_sop_ref: 'HC-SOP-GPK-11',
     durasi_menit: 20,
     durasi_detik: 20 * 60,
     toleransi_waktu_label: '20 Menit (Toleransi 15–25 mnt)',
@@ -715,11 +796,13 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 25 * 60,
     divisi_terkait: 'Geprek',
     kategori_sop: 'Sambal Segar',
+    is_deep_fryer: false,
     is_thermal: false,
     takaran_standar: 'Cabai rawit ulek kasar + daun jeruk purut buang tulang daun diiris halus.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'Aroma aromatik daun jeruk segar bersatu dengan pedas nampol khas HARA.',
+    keterangan: 'SOP Sambal Daun Jeruk: Buang tulang tengah daun jeruk purut, iris setipis rambut, ulek kasar cabai rawit, siram minyak panas wangi.',
+    alat_bahan: 'Cobek Batu, Pisau Tajam, Talenan, Daun Jeruk Purut Segar, Cabai Rawit',
     langkah_ringkas: [
       'Buang tulang tengah daun jeruk purut agar tidak pahit.',
       'Gulung daun jeruk dan iris setipis rambut.',
@@ -731,7 +814,8 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     id: 'd2-all-jamur-kentang',
     day: 2,
     station: 'All Crew',
-    nama_tugas: 'Goreng Jamur & Kentang (All Crew)',
+    nama_tugas: 'Goreng Jamur & Kentang',
+    kode_sop_ref: 'HC-SOP-KIT-12',
     durasi_menit: 15,
     durasi_detik: 15 * 60,
     toleransi_waktu_label: '15 Menit (Toleransi 12–18 mnt)',
@@ -739,25 +823,85 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 18 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Snack & Side Dish',
+    is_deep_fryer: true, // DEEP FRYER 165°C
     is_thermal: true,
     target_temp: 165,
-    toleransi_temp_label: 'Fryer 165°C kentang & jamur garing keemasan',
+    toleransi_temp_label: 'Deep Fryer 165°C kentang & jamur garing keemasan',
     takaran_standar: '1 Porsi French Fries (120g) & Jamur Tiram Krispi (100g).',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 All Crew (40 mnt)',
-    keterangan: 'Goreng kentang renyah luar lembut dalam, jamur mekar kriuk kering.',
+    keterangan: 'SOP Goreng Kentang & Jamur: Goreng kentang beku di deep fryer suhu 165°C selama 3-4 mnt, goreng jamur tiram berlapis tepung breader hingga kuning keemasan.',
+    alat_bahan: 'Deep Fryer 165°C, Keranjang Fryer, Bumbu Tabur, Pouch Kemasan',
     langkah_ringkas: [
-      'Goreng kentang beku langsung di suhu 165°C selama 3–4 menit.',
+      'Goreng kentang beku langsung di suhu deep fryer 165°C selama 3–4 menit.',
       'Goreng jamur tiram berlapis tepung krispi hingga kuning keemasan.',
       'Tiriskan di peniris berlubang, taburi bumbu tabur jika diminta.',
       'Sajikan hangat di pouch kemasan HARA.'
     ]
   },
   {
-    id: 'd2-all-orange-milkshake',
+    id: 'd2-st1-sucok',
     day: 2,
-    station: 'All Crew',
-    nama_tugas: 'Orange 1 Porsi & Milkshake All Variant',
+    station: 'Station 1',
+    nama_tugas: 'Sucok (Susu Kocok)',
+    kode_sop_ref: 'HC-SOP-GPK-08',
+    durasi_menit: 5,
+    durasi_detik: 5 * 60,
+    toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
+    min_toleransi_detik: 4 * 60,
+    max_toleransi_detik: 6 * 60,
+    divisi_terkait: 'Kasir',
+    kategori_sop: 'Beverage Bar',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Susu UHT segar + sirup varian + es batu kristal di-shake manual.',
+    is_bebas_timbangan: true,
+    batch_info: 'Batch 2 Day 2 (30-40 mnt)',
+    keterangan: 'SOP Susu Kocok (Sucok): Takar susu UHT dan sirup, masukkan es batu, kocok di shaker hingga berbusa creamy halus, tuang ke cup.',
+    alat_bahan: 'Shaker Minuman, Jigger Takar, Cup Plastik HARA, Es Kristal',
+    langkah_ringkas: [
+      'Tuangkan susu UHT segar 150ml ke dalam shaker.',
+      'Tambahkan sirup varian rasa standar 25ml.',
+      'Masukkan es batu kristal secukupnya, tutup shaker rapat.',
+      'Kocok kuat selama 15 detik sampai tekstur berbusa creamy.',
+      'Tuangkan ke dalam cup HARA dan sajikan dingin segar.'
+    ]
+  },
+  {
+    id: 'd2-st3-menggoreng-ayam',
+    day: 2,
+    station: 'Station 3',
+    nama_tugas: 'Menggoreng Ayam (Day 2)',
+    kode_sop_ref: 'HC-SOP-KIT-04',
+    durasi_menit: 20,
+    durasi_detik: 20 * 60,
+    toleransi_waktu_label: '20 Menit (Toleransi 18–22 mnt)',
+    min_toleransi_detik: 18 * 60,
+    max_toleransi_detik: 22 * 60,
+    divisi_terkait: 'Kitchen',
+    kategori_sop: 'Kitchen & Frying',
+    is_deep_fryer: true, // DEEP FRYER 160°C
+    is_thermal: true,
+    target_temp: 160,
+    toleransi_temp_label: 'Deep Fryer 160°C / Core Temp Ayam ≥ 74°C',
+    takaran_standar: '1 Keranjang deep fryer isi ayam marinasi standar HARA.',
+    is_bebas_timbangan: true,
+    batch_info: 'Batch 1 & 2 Day 2',
+    keterangan: 'SOP Menggoreng Ayam Lanjutan Day 2: Uji konsistensi kematangan krispi emas, kontrol suhu fryer 160°C stabil, dan core temp ayam matang tulang.',
+    alat_bahan: 'Deep Fryer 160°C, Probe Termometer Digital, Breader Box, Keranjang Fryer',
+    langkah_ringkas: [
+      'Cek kestabilan suhu minyak deep fryer pada 160°C sebelum memasukkan ayam.',
+      'Lakukan penepungan teknik 2x celup ringan tanpa ditekan padat.',
+      'Masukkan ayam ke minyak panas, goreng 12 menit.',
+      'Tiriskan di holding display 2 menit, periksa core temperature ≥ 74°C.'
+    ]
+  },
+  {
+    id: 'd2-st3-milkshake',
+    day: 2,
+    station: 'Station 3',
+    nama_tugas: 'Milkshake All Variant (Day 2)',
+    kode_sop_ref: 'HC-SOP-GPK-08',
     durasi_menit: 10,
     durasi_detik: 10 * 60,
     toleransi_waktu_label: '10 Menit (Toleransi 8–12 mnt)',
@@ -765,16 +909,45 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 12 * 60,
     divisi_terkait: 'Kasir',
     kategori_sop: 'Beverage Bar',
+    is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: 'Sirup jeruk segar 40ml + es batu kristal + air higienis / powder milkshake + susu cair.',
+    takaran_standar: 'Bubuk milkshake all variant + susu cair dingin + es kristal + sealer.',
+    is_bebas_timbangan: true,
+    batch_info: 'Batch 1 & 2 Day 2',
+    keterangan: 'SOP Milkshake Day 2: Shake racikan milkshake aneka rasa (coklat/vanilla/strawberry), seal rapi presisi anti-bocor.',
+    alat_bahan: 'Cup Sealer Otomatis, Shaker, Jigger, Cup Plastik',
+    langkah_ringkas: [
+      'Ambil bubuk rasa milkshake pesanan, campur dengan 100ml air hangat untuk melarutkan.',
+      'Tambahkan susu cair dingin dan es batu kristal.',
+      'Shake hingga tekstur mengembang lembut.',
+      'Seal dengan mesin press cup otomatis, pastikan segel rapat 100%.'
+    ]
+  },
+  {
+    id: 'd2-all-orange',
+    day: 2,
+    station: 'All Crew',
+    nama_tugas: 'Orange 1 Porsi',
+    kode_sop_ref: 'HC-SOP-GPK-08',
+    durasi_menit: 5,
+    durasi_detik: 5 * 60,
+    toleransi_waktu_label: '5 Menit (Toleransi 4–6 mnt)',
+    min_toleransi_detik: 4 * 60,
+    max_toleransi_detik: 6 * 60,
+    divisi_terkait: 'Kasir',
+    kategori_sop: 'Beverage Bar',
+    is_deep_fryer: false,
+    is_thermal: false,
+    takaran_standar: 'Sirup orange 40ml + air dingin + es kristal + cup sealer.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 & 2 All Crew',
-    keterangan: 'Standar takaran minuman dingin, sealing cup sealer rapat anti bocor.',
+    keterangan: 'SOP Minuman Orange 1 Porsi: Tuang sirup orange 40ml jigger takar, isi es batu kristal, tuang air dingin, seal press cup rapi.',
+    alat_bahan: 'Jigger 40ml, Sendok Es, Cup Sealer, Cup Plastik HARA',
     langkah_ringkas: [
-      'Takar sirup orange atau bubuk rasa milkshake presisi.',
-      'Tambahkan es batu kristal higienis dan air/susu.',
-      'Shake / aduk hingga busa creamy merata.',
-      'Seal menggunakan cup sealer otomatis, periksa kerapian segel bibir cup.'
+      'Takar sirup jeruk konsentrat 40ml menggunakan jigger.',
+      'Tuangkan ke cup plastik, isi es kristal higienis hingga 3/4 penuh.',
+      'Tambahkan air dingin hingga batas bibir cup.',
+      'Seal menggunakan cup sealer otomatis, sajikan dingin.'
     ]
   }
 ];

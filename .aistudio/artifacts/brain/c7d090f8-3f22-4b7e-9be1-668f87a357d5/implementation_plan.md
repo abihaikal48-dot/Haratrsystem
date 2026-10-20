@@ -1,68 +1,84 @@
-# Rencana Implementasi: Sistem Penilaian Kru Onboarding & Penyesuaian Standar SOP HARA Chicken
+# Rencana Implementasi: Pemisahan Produk Mandiri, Penegakan Suhu Deep Fryer, dan Dashboard Grafik Analitik Onboarding
 
 ## 1. Ringkasan & Konteks Kebutuhan
-Berdasarkan arahan pengguna dan hasil klarifikasi:
-1. **Penilaian Kru Onboarding**: Dibuatkan penilaian khusus untuk kru yang saat ini sedang aktif onboarding (Batch OB-02: Dimas Kurniawan [Kitchen], Nurul Hidayah [Kasir], Fajar Maulana [Geprek]) yang mencakup Uji Praktik RnD 16 Jam dan Checklist 10 Sesi Kurikulum Baku.
-2. **Penyesuaian SOP Nasi**: Menghilangkan kewajiban menimbang porsi nasi per piring dengan timbangan gram di setiap penyajian. Menggantinya dengan SOP rasio baku Cup Beras Miyako (1 cup beras : 1.33 air) saat memasak, serta takaran porsi centong standar saat serving.
-3. **Timer Adaptif (Tidak Kaku)**: Menerapkan toleransi waktu wajar (misal: Deep Frying 12 menit ± 30 detik, Tanak Nasi 15 menit ± 2 menit, Serving SOS < 3 menit) sehingga tidak menggugurkan penilaian hanya karena selisih beberapa detik jika kualitas organoleptik tercapai.
-4. **Suhu Kondisional**: Pengukuran suhu probe hanya diberlakukan pada station termal (Minyak Deep Fryer 160°C ± 5°C, Suhu Inti Ayam ≥ 74°C, dan Holding Warmer 60–70°C). Station non-termal (Kasir POS, Sanitasi 4 Warna Lap, Penanganan Sambal, dan Packing) diset **N/A (Bebas Probe Suhu)** tanpa input paksa atau penalti nilai.
+Berdasarkan arahan pengguna:
+1. **Pemisahan Produk Mandiri**: Produk tidak boleh digabung. *Scramble Egg* berdiri sendiri (5 menit), tidak digabung dengan *Indomie* (10 menit). Begitu juga varian produk lainnya dipisah murni sesuai itemnya di SOP.
+2. **Kepatuhan Suhu 160°C Khusus Deep Fryer**: Suhu probe 160°C hanya berlaku untuk stasiun **Deep Fryer** (Goreng Ayam, Goreng Kulit, Goreng Terong, Goreng Jamur & Kentang). Produk seperti *Scramble Egg*, *Indomie*, *Nasi*, *Teh*, *Geprek*, *Sambal*, dan *Topping* **tidak menggunakan suhu 160°C** (bebas probe termometer).
+3. **Dashboard Grafik Lengkap & Kaya Data ("Banyak Grafik Banyakin")**: Ditambahkan dashboard analitik lengkap dengan beragam grafik visual interaktif (Radar Kompetensi, Bar Performa 12 Kru, Deviasi Waktu SOS per Stasiun, Donut Distribusi Kelulusan, Matriks Kepatuhan Suhu Deep Fryer, dan Performa 12 Outlet Asal Kru).
 
 ---
 
-## 2. Arsitektur Komponen & UX Flow
+## 2. Rincian Perubahan & Pemisahan Produk
 
-### A. Komponen Penilaian Interaktif (`OnboardingEvaluationModal.tsx` & `KurikulumRoadmapView.tsx`)
-- **Header Modal**: Identitas Kru Onboarding (Nama, Divisi, Outlet, Hari Kerja, Status Onboarding).
-- **Bagian 1: Checklist 10 Sesi Kurikulum Baku (Total 25 Jam)**:
-  - Hari 1: 7 Sesi (Budaya & K3, SOP Kasir POS, Service Excellence 5S, FIFO, Handling Complaint LAST, Motivasi).
-  - Hari 2: Sesi 8 (RnD Bagian I: Marinasi, Penepungan, Penggorengan 8 Jam).
-  - Hari 3: Sesi 9 (RnD Bagian II: Sambal Bawang, Warmer, Packaging 8 Jam) & Sesi 10 (Survey & Komitmen Mutu).
-  - One-click "Checklist Kehadiran & Nilai Sesi" dengan visual indikator ketercapaian.
-- **Bagian 2: Uji Praktik RnD Adaptif (Sesuai Station)**:
-  - Input penilaian rubrik dengan deteksi otomatis tipe station:
-    - **Kitchen (Fryer & Rice)**: Uji rasio cup Miyako (bukan timbang nasi per porsi), suhu minyak 155–165°C, timer 11.5–12.5 menit.
-    - **Kasir & Front House**: Bebas suhu (N/A), fokus pada kecepatan transaksi, senyum 3S, dan rekonsiliasi kas.
-    - **Geprek & Sambal**: Tekstur uleg cobek batu 30g, holding aroma sambal segar, bebas probe thermocouple.
-    - **Helper & Sanitasi**: Kepatuhan 4 warna lap resmi, kebersihan grease trap, bebas probe suhu.
-- **Bagian 3: Tombol Aksi "Simpan & Sinkronisasi Hasil"**:
-  - Menyimpan ke tabel `OnboardingBatch` di localStorage/DB.
-  - Memperbarui rekap kompetensi kru (`crew_competency_summary`).
-  - Otomatis mencatat ke log aktivitas trainer.
-
-### B. Penyesuaian Komponen & Utility Eksisting
-1. **`src/lib/sopData.ts` & `src/lib/soalData.ts`**:
-   - Update SOP `HC-SOP-01-NASI`: Ganti instruksi "penimbangan piring gramatur kaku" menjadi "Standardisasi Takaran Centong Porsi & Rasio Cup Miyako 1:1.33".
-   - Perbarui parameter timer dan suhu agar menggunakan rentang toleransi (`min_toleransi`, `max_toleransi`, `is_thermal_required`).
-2. **`src/components/stations/InteractiveFieldTrainerTools.tsx`**:
-   - Pastikan kalkulator beras Miyako menjadi acuan utama tanpa paksaan timbangan gram pada nasi matang.
-3. **`src/components/trainer/SimulasiPraktikRnDView.tsx` & `src/components/PenilaianPraktikView.tsx`**:
-   - Sembunyikan field input suhu pada station non-termal (tampilkan label badge "Non-Termal / N/A").
-   - Ganti validasi timer kaku dengan status toleransi "Dalam Rentang Ideal".
-4. **Data Onboarding Aktif (`src/lib/storage.ts` & `src/data/onboardingCurriculumData.ts`)**:
-   - Generate data penilaian resmi komprehensif untuk peserta Batch OB-02 (Dimas Kurniawan, Nurul Hidayah, Fajar Maulana) agar trainer langsung dapat melihat hasil evaluasi mereka.
+### A. Katalog Produk & Stasiun Murni (Tanpa Penggabungan)
+| Kode Tugas | Nama Produk Mandiri | Durasi Resmi | Kategori Suhu | Keterangan & Standar |
+| :--- | :--- | :--- | :--- | :--- |
+| `task-st1-nasi` | **Nasi 4 Cup** | 35 Mnt (D1) / 45 Mnt (D2) | **Bebas Suhu** | Rasio beras Miyako 4:5 air, centong bulat (tanpa timbang gram) |
+| `task-st1-teh` | **Teh (10lt / 8lt)** | 40 Mnt (D1) / 30 Mnt (D2) | **Bebas Suhu** | Rebusan seduh teh wangi dispenser kasir |
+| `task-st1-sup` | **Sup Sayur** | 40 Mnt | Warmer $\ge$ 75°C | Kuah kaldu sayuran segar |
+| `task-st1-geprek-ori` | **Geprek Ori** | 2 Mnt (120 Detik) | **Bebas Suhu** | Ulek kasar cobek fresh, siram minyak panas wangi, toleransi 90–150 dtk |
+| `task-st1-krisbar` | **Krisbar Geprek** | 7 Mnt | Panggangan karamel | Bakar bumbu krisbar gurih |
+| `task-st1-geprek-moza` | **Geprek Mozarella** | 10 Mnt | Torch keju | Lumerkan mozzarella mulur |
+| `task-st2-goreng-ayam` | **Goreng Ayam (Fryer)** | 20 Mnt | **🔥 DEEP FRYER 160°C** | Penepungan 2x celup, fryer 160°C kompor 175°C, core $\ge$ 74°C |
+| `task-st2-scramble` | **Scramble Egg (Scrembel)** | 5 Mnt | **Bebas Suhu 160°C** | Wajan dadar, 1 butir telur + susu UHT + garam mix (mandiri, tanpa Indomie) |
+| `task-st2-indomie` | **Indomie Goreng/Kuah** | 10 Mnt | Rebusan Panci 100°C | Panci air mendidih, rebus 2 mnt al-dente, racik bumbu (mandiri, tanpa telur) |
+| `task-st2-mentai-krispi` | **Mentai Krispi** | 5 Mnt | Torch saus mentai | Saus mentai zig-zag wangi |
+| `task-st2-geprek-mentai` | **Geprek Mentai** | 7 Mnt | Torch saus mentai | Ayam geprek sambal + saus mentai |
+| `task-st2-nashville` | **Hot Nashville** | 2 Mnt | Wadah Celupan Bumbu | Bumbu celup 65g level 2, rendam 1 mnt, tabur boncabe, saus keju terpisah |
+| `task-st2-spinach` | **Spinach (Bayam Crispy)** | 40 Mnt | Wajan Api Sedang | Goreng 90 dtk daun bayam iris di wajan, bumbu kentang 2.5g |
+| `task-st2-krisbar-ayoli` | **Krisbar Ori & Ayoli** | 8 Mnt | Grill bumbu bakar | Bakar krisbar + saus ayoli gurih |
+| `task-st3-terong` | **Goreng Terong** | 25 Mnt | **🔥 DEEP FRYER 160°C** | Potong serong 1.5 cm, krispi renyah luar lembut dalam |
+| `task-st3-kulit` | **Goreng Kulit** | 45 Mnt | **🔥 DEEP FRYER 155°C** | Garing mekar kriuk tahan lama |
+| `task-st3-sambal` | **Sambal (1 Variant)** | 30 Mnt | **Bebas Suhu** | Prep cabai rawit merah & ulek kasar cobek |
+| `task-st3-nasgor` | **Nasgor Geprek** | 15 Mnt | Wok panas tumis | Tumis nasi bumbu HARA di wajan wok |
+| `task-st3-keju` | **Keju Parut** | 5 Mnt | **Bebas Suhu** | Parut keju cheddar panjang rapi |
+| `task-st3-ayoli` | **Geprek Ayoli** | 5 Mnt | **Bebas Suhu** | Siram saus ayoli creamy gurih |
+| `task-d2-sambal-mattah`| **Sambal Mattah** | 20 Mnt | **Bebas Suhu** | Iris tipis serai, bawang merah, cabai rawit |
+| `task-d2-sambal-jeruk` | **Sambal Daun Jeruk** | 20 Mnt | **Bebas Suhu** | Irisan daun jeruk purut buang tulang daun |
+| `task-d2-jamur-kentang`| **Goreng Jamur & Kentang** | 15 Mnt | **🔥 DEEP FRYER 165°C** | Kentang beku 3-4 mnt, jamur mekar krispi |
+| `task-d2-orange-shake` | **Orange & Milkshake** | 10 Mnt | **Bebas Suhu** | Shake minuman dingin & cup sealer otomatis |
 
 ---
 
-## 3. Langkah-Langkah Pengerjaan
+## 3. Rencana Dashboard Analitik Grafik ("Banyak Grafik Banyakin")
 
-1. **Refactoring Parameter SOP & Toleransi**:
-   - Menambahkan flag `is_thermal: boolean` dan `rentang_timer` pada data SOP di `src/lib/sopData.ts`.
-   - Mengubah rujukan penimbangan nasi menjadi takaran centong porsi standar dan rasio cup Miyako.
-2. **Pembaruan Form Penilaian Praktik & Onboarding**:
-   - Memodifikasi `PenilaianPraktikView.tsx` dan `KurikulumRoadmapView.tsx` agar field suhu kondisional sesuai divisi/station.
-   - Menyediakan timer toleransi adaptif (hijau jika di rentang wajar, tanpa penalti kegagalan total).
-3. **Penyediaan Fitur "Penilaian Cepat & Komprehensif Kru Onboarding"**:
-   - Menambahkan aksi penilaian langsung per kru onboarding di tab `batches` dan `absensi_nilai` di `KurikulumRoadmapView.tsx`.
-4. **Pembaruan Data Awal Kru Onboarding**:
-   - Menyimpan hasil penilaian nyata untuk 3 kru onboarding aktif di Batch OB-02.
-5. **Verifikasi & Build**:
-   - Menjalankan `compile_applet` dan `lint_applet` untuk menjamin tidak ada regresi kode atau error TypeScript.
+Ditambahkan tab **"📊 Dashboard Analitik & Rapor Grafik"** di dalam sistem evaluasi yang memuat 7 jenis grafik visual dan data analitik interaktif:
+1. **Radar Chart 4 Pilar Kompetensi HARA**:
+   - Pilar 1 Teori SOP (20%)
+   - Pilar 2 Praktik SOS (35%)
+   - Pilar 3 HACCP & Suhu (15%)
+   - Pilar 4 Budaya Sikap H.A.R.A (30%)
+2. **Bar Chart Perbandingan Skor 12 Kru Onboarding**:
+   - Memvisualisasikan capaian nilai tiap individu (Iqbal, Dhimas, Wanu, Tri, Gohan, Rully, Aulia, Karima, Shabrina, Ryan, Chicha, Intan) dengan batas KKM 75 dan Kategori Mahir $\ge$ 85.
+3. **Scatter / Column Chart Deviasi Waktu SOS vs Standar**:
+   - Mengukur kecepatan riil setiap stasiun (Nasi 35m, Ayam 20m, Terong 25m, Scramble 5m, Indomie 10m, Geprek 2m) dibandingkan batas toleransi wajar.
+4. **Donut Chart Distribusi Status Kelulusan**:
+   - Persentase kelulusan kru onboarding: *Lulus Mahir*, *Lulus Terampil*, dan *Perlu Remedial*.
+5. **Bar Chart Kepatuhan Suhu Deep Fryer (160°C)**:
+   - Persentase kepatuhan suhu minyak optimal deep fryer (155°C–165°C) khusus stasiun gorengan vs deteksi pelanggaran suhu.
+6. **Stacked Bar Chart Performa 12 Outlet Asal**:
+   - Membandingkan rata-rata nilai kru berdasarkan outlet asal (Imogiri Barat, Purworejo, Wates Bendungan, Sedayu, Jangkang, Gito-gati, Wates Kemiri, Parakan, Pandean, Godean Munggur, Kalakijo, Mantrijeron).
+7. **Area Chart Trend Efisiensi Batch Simultan**:
+   - Memantau tren ritme waktu penyelesaian Batch 1 (40 menit) dan Batch 2 (30–40 menit) sepanjang kurikulum 2 hari.
 
 ---
 
-## 4. Kriteria Keberhasilan
-- [x] Kru onboarding aktif (Dimas Kurniawan, Nurul Hidayah, Fajar Maulana) memiliki catatan penilaian evaluasi terisi lengkap dan dapat diubah sewaktu-waktu.
-- [x] Nasi matang tidak lagi diwajibkan ditimbang gram di meja saji, melainkan dinilai dari rasio cup Miyako & takaran centong porsi standar.
-- [x] Input suhu hanya muncul pada station termal (fryer/warmer); station non-termal otomatis N/A.
-- [x] Timer memiliki rentang toleransi wajar dan tidak kaku.
-- [x] Build applet sukses tanpa error kompilasi.
+## 4. Rencana File yang Diubah
+1. `src/data/trainingCenterData.ts`:
+   - Memperbarui daftar tugas stasiun agar Scramble Egg (5 mnt) dan Indomie (10 mnt) berdiri sendiri.
+   - Menetapkan atribut `is_deep_fryer: true` khusus untuk stasiun penggorengan minyak, dan `is_deep_fryer: false` untuk Scramble, Indomie, Nasi, Teh, Geprek, Sambal, dll.
+2. `src/components/PenilaianPraktikView.tsx`:
+   - Menghubungkan tugas mandiri baru ke grid simultan dan preset.
+   - Mengunci verifikasi suhu 160°C **hanya muncul jika tugas bertipe deep fryer**. Scramble egg dan lainnya otomatis non-termal.
+   - Menambahkan tombol dan tab **"📊 Dashboard Analitik & Grafik Lengkap"**.
+3. `src/components/OnboardingAnalyticsDashboard.tsx` (Komponen Baru):
+   - Komponen khusus visualisasi data dan grafik-grafik interaktif untuk rekam hasil onboarding 12 kru.
+   - Fitur ekspor/cetak laporan hasil evaluasi.
+
+---
+
+## 5. Verifikasi & Pengujian
+- Menjalankan `compile_applet` dan `lint_applet` untuk memastikan zero errors.
+- Menguji independensi stasiun Scramble Egg dan Indomie di grid simultan.
+- Memastikan stasiun Scramble Egg tidak menampilkan input suhu 160°C, sementara stasiun Goreng Ayam menampilkan probe suhu deep fryer 160°C secara akurat.
+- Memastikan seluruh grafik analitik ter-render dengan rapi, responsif, dan kaya data.
