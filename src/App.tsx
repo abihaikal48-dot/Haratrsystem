@@ -33,8 +33,6 @@ import { AnalitikRadarView } from './components/analytics/AnalitikRadarView';
 import { LaporanDiagnostikView } from './components/reports/LaporanDiagnostikView';
 import { UnifiedLaporanEksekutifView } from './components/reports/UnifiedLaporanEksekutifView';
 import { UnifiedTrainingOJTView } from './components/trainer/UnifiedTrainingOJTView';
-import { ProgramOJT30HariView } from './components/trainer/ProgramOJT30HariView';
-import { CrewTrainingMonitoringView } from './components/trainer/CrewTrainingMonitoringView';
 import { db } from './lib/storage';
 import {
   seedFirestoreIfEmpty,
@@ -583,19 +581,6 @@ export function App() {
             />
           )}
 
-          {currentTab === 'operasional-sop' && (
-            <PelatihanEvaluasiView
-              allowedSubTabs={['bank-sop', 'bank-soal']}
-              initialSubTab="bank-sop"
-              customCategory="STANDAR OPERASIONAL BAKU (SOP)"
-              customTitle="Katalog Master Bank SOP & Bank Soal Resmi (4 Jobdesk)"
-              customDescription="Koleksi lengkap 82 instruksi kerja baku dan bank soal objektif untuk 4 Jobdesk gerai: Kitchen & Fryer (26 SOP), Geprek & Saus (24 SOP), Kasir & POS (16 SOP), dan Helper & Sanitasi (16 SOP)."
-              selectedOutletCode={selectedOutletCode}
-              onOpenAIAction={handleOpenAIAction}
-              onSelectOutletCode={setSelectedOutletCode}
-            />
-          )}
-
           {currentTab === 'analitik-radar' && (
             <AnalitikRadarView
               selectedOutletCode={selectedOutletCode}
@@ -750,8 +735,9 @@ export function App() {
             />
           )}
 
-          {/* 4. BANK SOP & BANK SOAL (Consolidating bank-sop, bank-soal) */}
+          {/* 4. BANK SOP & BANK SOAL (Consolidating bank-sop, bank-soal, operasional-sop) */}
           {(currentTab === 'bank-sop-soal' ||
+            currentTab === 'operasional-sop' ||
             currentTab === 'bank-sop' ||
             currentTab === 'bank-soal') && (
             <PelatihanEvaluasiView

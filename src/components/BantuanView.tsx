@@ -75,7 +75,7 @@ export const BantuanView: React.FC = () => {
             </div>
             <div className="font-bold text-xs text-slate-900">1. Tameng Heksagonal HACCP</div>
             <p className="text-[11.5px] text-slate-600 leading-snug">
-              Melambangkan 6 pilar keamanan pangan: Food Safety, Suhu 170°C, Sanitasi, Kecepatan, Hospitality, dan Disiplin Prosedur.
+              Melambangkan 6 pilar keamanan pangan: Food Safety, Kompor 175°C / Minyak 160°C (12 Menit), Sanitasi, Kecepatan, Hospitality, dan Disiplin Prosedur.
             </p>
           </div>
 
@@ -83,9 +83,9 @@ export const BantuanView: React.FC = () => {
             <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-800 flex items-center justify-center font-bold text-xs">
               <Flame size={16} />
             </div>
-            <div className="font-bold text-xs text-slate-900">2. Golden Hyper-Flame 170°C</div>
+            <div className="font-bold text-xs text-slate-900">2. Golden Hyper-Flame (Kompor 175°C / Minyak 160°C)</div>
             <p className="text-[11.5px] text-slate-600 leading-snug">
-              Nyala api emas kinetik di inti monogram mewakili akurasi suhu deep-fryer resep rahasia dan semangat Kaizen perbaikan tanpa henti.
+              Nyala api emas kinetik di inti monogram mewakili akurasi suhu deep-fryer resep rahasia (Kompor 175°C / Minyak 160°C, 12 Menit) dan semangat Kaizen perbaikan tanpa henti.
             </p>
           </div>
 

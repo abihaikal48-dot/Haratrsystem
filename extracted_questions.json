@@ -133,30 +133,30 @@
     "mingguNomor": 1,
     "divisi": "Semua",
     "tipe": "PILIHAN_GANDA",
-    "topik": "SOP Produk - Nasi Goreng HARA (HC-SOP-KIT-05)",
+    "topik": "SOP Produk - Nasi Goreng HARA (SOP-NasGorTelur-02)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Mudah",
-    "pertanyaan": "Formulasi baku bumbu dan bahan untuk memasak 1 porsi Nasi Goreng HARA sesuai SOP HC-SOP-KIT-05 adalah:",
+    "pertanyaan": "Berdasarkan SOP-NasGorTelur-02 resmi HARA Chicken, berapa gramatur baku bahan dan pelengkap wajib untuk memasak 1 porsi Nasi Goreng?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Nasi 2 cup, minyak 50ml, kecap manis botol 3 sdm, cabai rawit 5 biji"
+        "teks": "Nasi 250 gr dikira-kira, minyak 50 ml, bumbu racik instan, tanpa timun"
       },
       {
         "label": "B",
-        "teks": "Nasi 1 cup, minyak 15 ml, bawang putih geprek, mix veg 30 gr, bumbu Eco 20 gr, saos ricebowl 15 gr, dan 2 tetes minyak wijen"
+        "teks": "Nasi putih 170 gr (wajib ditimbang), minyak goreng 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), api besar, Telur Dadar + WAJIB 2 slice timun"
       },
       {
         "label": "C",
-        "teks": "Nasi panas 1 piring, margarin 1 sdm, bumbu instan sachet"
+        "teks": "Nasi 100 gr, minyak 30 ml, kecap manis 3 sdm, 1 slice timun"
       },
       {
         "label": "D",
-        "teks": "Nasi goreng bebas takaran asalkan warnanya cokelat gelap"
+        "teks": "Nasi sisa kemarin tanpa ditimbang, bumbu tabur kentang 10 gr, daun selada"
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Formula baku: Nasi 1 cup, minyak 15 ml, 1/2-1 siung bawang putih geprek, mix veg 30 gr, bumbu Eco 20 gr, saos ricebowl 15 gr, dan 2 tetes minyak wijen disajikan bersama telur.",
+    "pembahasan_sop": "SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, mix sayur 30 gr, bumbu nasgor ECO 20 gr wajib timbang, telur dadar, dan WAJIB 2 slice timun segar.",
     "bobot": 5
   },
   {
@@ -640,35 +640,99 @@
     "bobot": 5
   },
   {
+    "id": "M1-JOB-GEP-02",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Geprek",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Sedang",
+    "pertanyaan": "Berdasarkan SOP-AyamSausMentai-01, bagaimana prosedur pemanasan torch dan teknik memindahkan ayam geprek mentai ke piring atau kemasan box?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Saus mentai digoreng di wajan, diangkat dengan tangan kosong"
+      },
+      {
+        "label": "B",
+        "teks": "Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun"
+      },
+      {
+        "label": "C",
+        "teks": "Saus mentai dibakar langsung di dalam box plastik hingga meleleh"
+      },
+      {
+        "label": "D",
+        "teks": "Ayam dipindahkan menggunakan garpu satu per satu"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi kecokelatan, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar saus tidak tumpah/hancur.",
+    "bobot": 5
+  },
+  {
+    "id": "M1-JOB-GEP-03",
+    "minggu": "MINGGU_1",
+    "mingguNomor": 1,
+    "divisi": "Geprek",
+    "tipe": "PILIHAN_GANDA",
+    "topik": "Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)",
+    "pilar_kompetensi": "sop_jobdesk",
+    "tingkat_kesulitan": "Mudah",
+    "pertanyaan": "Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib yang harus dilakukan kru sebelum menuangkan Saus Ayoli ke atas ayam geprek?",
+    "opsi": [
+      {
+        "label": "A",
+        "teks": "Saus ayoli langsung dituang tanpa diaduk"
+      },
+      {
+        "label": "B",
+        "teks": "Saus Ayoli (chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan"
+      },
+      {
+        "label": "C",
+        "teks": "Saus ayoli dipanaskan di atas kompor hingga mendidih"
+      },
+      {
+        "label": "D",
+        "teks": "Saus ayoli dicampur dengan air keran agar encer"
+      }
+    ],
+    "jawaban_benar": "B",
+    "pembahasan_sop": "SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.",
+    "bobot": 5
+  },
+  {
     "id": "M1-JOB-HLP-01",
     "minggu": "MINGGU_1",
     "mingguNomor": 1,
     "divisi": "Helper",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Helper - Standar 4 Kode Warna Lap Pembersih (HC-SOP-HLP-01)",
+    "topik": "Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Sedang",
-    "pertanyaan": "Sesuai SOP Sanitasi HARA HC-SOP-HLP-01, pembagian fungsi 4 kode warna lap pembersih microfiber yang benar untuk mencegah kontaminasi silang adalah:",
+    "pertanyaan": "Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di seluruh outlet HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Semua warna lap bebas digunakan untuk meja makan dan toilet"
+        "teks": "Semua jenis lap bebas dipakai bergantian untuk piring dan lantai"
       },
       {
         "label": "B",
-        "teks": "Lap Merah: Toilet & lantai kotor; Lap Biru: Meja makan & dining area; Lap Kuning: Meja counter & kasir; Lap Hijau: Area persiapan makanan & kitchen food-contact"
+        "teks": "Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat penepungan dusting"
       },
       {
         "label": "C",
-        "teks": "Lap Hijau untuk toilet, Lap Merah untuk meja makan pelanggan"
+        "teks": "Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer"
       },
       {
         "label": "D",
-        "teks": "Lap Kuning untuk lantai basah, Lap Biru untuk membersihkan deep fryer"
+        "teks": "Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai"
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Standar HACCP 4 Warna Lap: Merah (toilet/lantai risiko tinggi), Biru (dining table), Kuning (counter/kasir/service), Hijau (dapur/food contact area). Dilarang tertukar!",
+    "pembahasan_sop": "Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.",
     "bobot": 5
   },
   {

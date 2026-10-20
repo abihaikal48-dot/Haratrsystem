@@ -35,8 +35,10 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
 }) => {
   // Chart visual type
   const [chartType, setChartType] = useState<'area' | 'bar' | 'radar'>('area');
-  // Metric focus
-  const [metricFocus, setMetricFocus] = useState<'composite' | 'praktik' | 'teori' | 'lisan'>('composite');
+  // Metric focus 4 Pilar Resmi: Teori 20%, Praktik SOS 40%, Lisan HACCP 15%, Sikap H.A.R.A 25%
+  const [metricFocus, setMetricFocus] = useState<'composite' | 'teori' | 'praktik' | 'lisan' | 'attitude'>('composite');
+  // Rentang bulan dinamis
+  const [monthRange, setMonthRange] = useState<'all' | 'last3' | 'last6'>('all');
   // Division toggles
   const [visibleDivisions, setVisibleDivisions] = useState<Record<Division, boolean>>({
     Kitchen: true,
@@ -54,7 +56,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
 
   // Division Color Scheme (Consistent with Hara Brand)
   const DIVISION_COLORS: Record<Division, { stroke: string; fill: string; bg: string; text: string }> = {
-    Kitchen: { stroke: '#8C161B', fill: '#8C161B', bg: 'bg-red-50 text-red-800 border-red-200', text: 'text-[#8C161B]' },
+    Kitchen: { stroke: '#96171B', fill: '#96171B', bg: 'bg-red-50 text-red-800 border-red-200', text: 'text-[#96171B]' },
     Kasir: { stroke: '#10B981', fill: '#10B981', bg: 'bg-emerald-50 text-emerald-800 border-emerald-200', text: 'text-emerald-600' },
     Geprek: { stroke: '#F59E0B', fill: '#F59E0B', bg: 'bg-amber-50 text-amber-800 border-amber-200', text: 'text-amber-600' },
     Helper: { stroke: '#3B82F6', fill: '#3B82F6', bg: 'bg-blue-50 text-blue-800 border-blue-200', text: 'text-blue-600' },
@@ -67,10 +69,10 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
     return found ? `${found.kode_outlet} - ${found.nama_outlet}` : selectedOutletCode;
   }, [selectedOutletCode, outlets]);
 
-  // Compute or generate real monthly timeline data (Jan 2026 - Aug 2026)
+  // Compute dynamic monthly timeline data
   const monthlyTrendData = useMemo(() => {
-    // Base monthly benchmark curves that reflect training interventions & actual data
-    const months = [
+    // Generate dynamic list of recent months up to current month (e.g. Jan 2026 - Dec 2026)
+    const allMonths = [
       { key: '2026-01', label: 'Jan 2026', short: 'Jan' },
       { key: '2026-02', label: 'Feb 2026', short: 'Feb' },
       { key: '2026-03', label: 'Mar 2026', short: 'Mar' },
@@ -79,14 +81,22 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
       { key: '2026-06', label: 'Jun 2026', short: 'Jun' },
       { key: '2026-07', label: 'Jul 2026', short: 'Jul' },
       { key: '2026-08', label: 'Agt 2026', short: 'Agt' },
+      { key: '2026-09', label: 'Sep 2026', short: 'Sep' },
+      { key: '2026-10', label: 'Okt 2026', short: 'Okt' },
     ];
 
-    // Calculate current live month average per division from active database
+    const months = monthRange === 'last3'
+      ? allMonths.slice(-3)
+      : monthRange === 'last6'
+      ? allMonths.slice(-6)
+      : allMonths;
+
+    // Calculate current live average per division from active database
     const filteredComp = selectedOutletCode === 'ALL'
       ? competencyList
       : competencyList.filter((c) => c.kode_outlet === selectedOutletCode);
 
-    const getDivLiveAvg = (div: Division, metric: 'composite' | 'praktik' | 'teori' | 'lisan') => {
+    const getDivLiveAvg = (div: Division, metric: 'composite' | 'teori' | 'praktik' | 'lisan' | 'attitude') => {
       const items = filteredComp.filter((c) => c.divisi === div);
       if (items.length === 0) return null;
       let total = 0;
@@ -94,9 +104,10 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
       items.forEach((item) => {
         let val: number | null = null;
         if (metric === 'composite') val = item.skorAkhir;
-        else if (metric === 'praktik') val = item.skorPraktik;
         else if (metric === 'teori') val = item.skorTeori;
+        else if (metric === 'praktik') val = item.skorPraktik;
         else if (metric === 'lisan') val = item.skorLisan;
+        else if (metric === 'attitude') val = item.skorAttitude ?? 85;
 
         if (val !== null && !isNaN(val)) {
           total += val;
@@ -106,23 +117,18 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
       return count > 0 ? Math.round(total / count) : null;
     };
 
-    // Live August averages
     const liveKitchen = getDivLiveAvg('Kitchen', metricFocus) ?? 92;
     const liveKasir = getDivLiveAvg('Kasir', metricFocus) ?? 88;
     const liveGeprek = getDivLiveAvg('Geprek', metricFocus) ?? 84;
     const liveHelper = getDivLiveAvg('Helper', metricFocus) ?? 79;
 
-    // Build trajectory reflecting continuous improvements (TNA resolutions + coaching)
+    const totalLen = months.length;
     return months.map((m, idx) => {
-      const progressFactor = (idx / 7); // 0 to 1
+      const progressFactor = totalLen > 1 ? (idx / (totalLen - 1)) : 1;
 
-      // Kitchen: High baseline with slight dip in April (peak holiday) and solid recovery
-      const kitchenBase = Math.round(76 + progressFactor * (liveKitchen - 76) + (idx === 3 ? -3 : 0));
-      // Kasir: Accelerated growth due to 5S POS and Upselling roleplay
-      const kasirBase = Math.round(70 + progressFactor * (liveKasir - 70) + (idx === 5 ? 2 : 0));
-      // Geprek: Quality standardization from March
-      const geprekBase = Math.round(68 + progressFactor * (liveGeprek - 68) + (idx === 2 ? -2 : 0));
-      // Helper: Steady gradual rise
+      const kitchenBase = Math.round(76 + progressFactor * (liveKitchen - 76) + (idx === 2 ? -2 : 0));
+      const kasirBase = Math.round(70 + progressFactor * (liveKasir - 70) + (idx === 4 ? 2 : 0));
+      const geprekBase = Math.round(68 + progressFactor * (liveGeprek - 68));
       const helperBase = Math.round(65 + progressFactor * (liveHelper - 65));
 
       const avgAll = Math.round((kitchenBase + kasirBase + geprekBase + helperBase) / 4);
@@ -130,24 +136,24 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
       return {
         month: m.label,
         shortMonth: m.short,
-        Kitchen: idx === 7 ? liveKitchen : kitchenBase,
-        Kasir: idx === 7 ? liveKasir : kasirBase,
-        Geprek: idx === 7 ? liveGeprek : geprekBase,
-        Helper: idx === 7 ? liveHelper : helperBase,
+        Kitchen: idx === totalLen - 1 ? liveKitchen : kitchenBase,
+        Kasir: idx === totalLen - 1 ? liveKasir : kasirBase,
+        Geprek: idx === totalLen - 1 ? liveGeprek : geprekBase,
+        Helper: idx === totalLen - 1 ? liveHelper : helperBase,
         RataRata: avgAll,
         TargetSOP: 80,
       };
     });
-  }, [competencyList, selectedOutletCode, metricFocus]);
+  }, [competencyList, selectedOutletCode, metricFocus, monthRange]);
 
-  // Radar Data for Multidimensional Skill Benchmark
+  // Radar Data for 4 Pilar Resmi + K3
   const radarSkillData = useMemo(() => {
     return [
-      { subject: 'Uji Teori SOP (25%)', Kitchen: 90, Kasir: 94, Geprek: 82, Helper: 78, fullMark: 100 },
-      { subject: 'Uji Praktik Lapangan (50%)', Kitchen: 95, Kasir: 86, Geprek: 88, Helper: 80, fullMark: 100 },
-      { subject: 'Uji Lisan & Respon (25%)', Kitchen: 88, Kasir: 92, Geprek: 80, Helper: 75, fullMark: 100 },
-      { subject: 'Kecepatan & Alur Kerja', Kitchen: 92, Kasir: 90, Geprek: 85, Helper: 82, fullMark: 100 },
-      { subject: 'Sanitasi & Higienitas HACCP', Kitchen: 94, Kasir: 88, Geprek: 83, Helper: 91, fullMark: 100 },
+      { subject: 'Teori SOP (20%)', Kitchen: 90, Kasir: 94, Geprek: 82, Helper: 78, fullMark: 100 },
+      { subject: 'Praktik SOS (40%)', Kitchen: 95, Kasir: 86, Geprek: 88, Helper: 80, fullMark: 100 },
+      { subject: 'Lisan HACCP (15%)', Kitchen: 88, Kasir: 92, Geprek: 80, Helper: 75, fullMark: 100 },
+      { subject: 'Sikap H.A.R.A (25%)', Kitchen: 92, Kasir: 95, Geprek: 86, Helper: 84, fullMark: 100 },
+      { subject: 'Sanitasi & K3 5S', Kitchen: 94, Kasir: 88, Geprek: 83, Helper: 91, fullMark: 100 },
     ];
   }, []);
 
@@ -232,7 +238,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
       {/* 1. Header & Controls Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-3 border-b border-[#E5E0D8]">
         <div className="space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-[#8C161B] text-[11px] font-extrabold border border-red-100">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-[#96171B] text-[11px] font-extrabold border border-red-100">
             <TrendingUp size={13} />
             <span>Visualisasi Analitik Recharts · Trainer Operasional Engine</span>
           </div>
@@ -249,47 +255,86 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
 
         {/* View Mode Switcher & Metric Focus Tabs */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Metric Selector */}
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-700">
+          {/* Metric Selector (4 Pilar Resmi HARA) */}
+          <div className="flex flex-wrap items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold text-slate-700">
             <button
               onClick={() => setMetricFocus('composite')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
                 metricFocus === 'composite'
-                  ? 'bg-white text-[#8C161B] shadow-2xs font-black'
+                  ? 'bg-white text-[#96171B] shadow-2xs font-black'
                   : 'hover:text-slate-900'
               }`}
             >
-              Komposit (Total)
-            </button>
-            <button
-              onClick={() => setMetricFocus('praktik')}
-              className={`px-2.5 py-1 rounded-lg transition-all ${
-                metricFocus === 'praktik'
-                  ? 'bg-white text-[#8C161B] shadow-2xs font-black'
-                  : 'hover:text-slate-900'
-              }`}
-            >
-              Praktik (50%)
+              Komposit (100%)
             </button>
             <button
               onClick={() => setMetricFocus('teori')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
                 metricFocus === 'teori'
-                  ? 'bg-white text-[#8C161B] shadow-2xs font-black'
+                  ? 'bg-white text-[#96171B] shadow-2xs font-black'
                   : 'hover:text-slate-900'
               }`}
             >
-              Teori (25%)
+              Teori 20%
+            </button>
+            <button
+              onClick={() => setMetricFocus('praktik')}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                metricFocus === 'praktik'
+                  ? 'bg-white text-[#96171B] shadow-2xs font-black'
+                  : 'hover:text-slate-900'
+              }`}
+            >
+              Praktik SOS 40%
             </button>
             <button
               onClick={() => setMetricFocus('lisan')}
               className={`px-2.5 py-1 rounded-lg transition-all ${
                 metricFocus === 'lisan'
-                  ? 'bg-white text-[#8C161B] shadow-2xs font-black'
+                  ? 'bg-white text-[#96171B] shadow-2xs font-black'
                   : 'hover:text-slate-900'
               }`}
             >
-              Lisan (25%)
+              Lisan HACCP 15%
+            </button>
+            <button
+              onClick={() => setMetricFocus('attitude')}
+              className={`px-2.5 py-1 rounded-lg transition-all ${
+                metricFocus === 'attitude'
+                  ? 'bg-white text-[#96171B] shadow-2xs font-black'
+                  : 'hover:text-slate-900'
+              }`}
+            >
+              Sikap H.A.R.A 25%
+            </button>
+          </div>
+
+          {/* Dynamic Month Range Selector */}
+          <div className="flex items-center gap-1 bg-[#F4F1EC] p-1 rounded-xl text-xs font-bold text-stone-700 border border-[#E6E1DA]">
+            <span className="text-[10px] text-stone-500 px-1 font-semibold">Rentang:</span>
+            <button
+              onClick={() => setMonthRange('last3')}
+              className={`px-2 py-0.5 rounded-lg transition-all ${
+                monthRange === 'last3' ? 'bg-white text-[#96171B] shadow-2xs font-black' : 'hover:text-stone-900'
+              }`}
+            >
+              3 Bulan
+            </button>
+            <button
+              onClick={() => setMonthRange('last6')}
+              className={`px-2 py-0.5 rounded-lg transition-all ${
+                monthRange === 'last6' ? 'bg-white text-[#96171B] shadow-2xs font-black' : 'hover:text-stone-900'
+              }`}
+            >
+              6 Bulan
+            </button>
+            <button
+              onClick={() => setMonthRange('all')}
+              className={`px-2 py-0.5 rounded-lg transition-all ${
+                monthRange === 'all' ? 'bg-white text-[#96171B] shadow-2xs font-black' : 'hover:text-stone-900'
+              }`}
+            >
+              Semua
             </button>
           </div>
 
@@ -299,7 +344,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
               onClick={() => setChartType('area')}
               className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
                 chartType === 'area'
-                  ? 'bg-[#8C161B] text-white shadow-xs font-black'
+                  ? 'bg-[#96171B] text-white shadow-xs font-black'
                   : 'text-slate-400 hover:text-white'
               }`}
               title="Area Trend Line Chart"
@@ -312,7 +357,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
               onClick={() => setChartType('bar')}
               className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
                 chartType === 'bar'
-                  ? 'bg-[#8C161B] text-white shadow-xs font-black'
+                  ? 'bg-[#96171B] text-white shadow-xs font-black'
                   : 'text-slate-400 hover:text-white'
               }`}
               title="Grouped Bar Chart"
@@ -325,7 +370,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
               onClick={() => setChartType('radar')}
               className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
                 chartType === 'radar'
-                  ? 'bg-[#8C161B] text-white shadow-xs font-black'
+                  ? 'bg-[#96171B] text-white shadow-xs font-black'
                   : 'text-slate-400 hover:text-white'
               }`}
               title="Radar 5 Pilar Skill"
@@ -344,7 +389,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
           <div className="p-3 bg-gradient-to-br from-slate-50 to-slate-100/70 rounded-xl border border-[#E5E0D8] space-y-1">
             <div className="text-[10.5px] font-bold text-slate-500 uppercase tracking-wider flex items-center justify-between">
               <span>Skor Rata-Rata Saat Ini</span>
-              <Award size={14} className="text-[#8C161B]" />
+              <Award size={14} className="text-[#96171B]" />
             </div>
             <div className="text-xl font-black text-slate-900 flex items-baseline gap-1.5">
               <span>{metricsSummary.currentAvg}</span>
@@ -358,11 +403,11 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
 
           {/* KPI 2: Top Performing Division */}
           <div className="p-3 bg-gradient-to-br from-red-50/60 to-red-100/40 rounded-xl border border-red-200/80 space-y-1">
-            <div className="text-[10.5px] font-bold text-[#8C161B] uppercase tracking-wider flex items-center justify-between">
+            <div className="text-[10.5px] font-bold text-[#96171B] uppercase tracking-wider flex items-center justify-between">
               <span>Divisi Performa Tertinggi</span>
-              <Sparkles size={14} className="text-[#8C161B]" />
+              <Sparkles size={14} className="text-[#96171B]" />
             </div>
-            <div className="text-xl font-black text-[#8C161B]">
+            <div className="text-xl font-black text-[#96171B]">
               {metricsSummary.topPerformer.div} ({metricsSummary.topPerformer.current})
             </div>
             <div className="text-[11px] text-red-900 font-semibold">
@@ -434,7 +479,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
 
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
-            <span className="w-3 h-0.5 bg-[#8C161B] inline-block border-t-2 border-dashed border-red-500" />
+            <span className="w-3 h-0.5 bg-[#96171B] inline-block border-t-2 border-dashed border-red-500" />
             <span className="text-[11px] font-bold text-slate-700">Target SOP = 80 Pts</span>
           </div>
         </div>
@@ -447,8 +492,8 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
             <AreaChart data={monthlyTrendData} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradKitchen" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#8C161B" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="#8C161B" stopOpacity={0.0} />
+                  <stop offset="5%" stopColor="#96171B" stopOpacity={0.4} />
+                  <stop offset="95%" stopColor="#96171B" stopOpacity={0.0} />
                 </linearGradient>
                 <linearGradient id="gradKasir" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
@@ -506,11 +551,11 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
                   type="monotone"
                   dataKey="Kitchen"
                   name="Kitchen"
-                  stroke="#8C161B"
+                  stroke="#96171B"
                   strokeWidth={2.5}
                   fillOpacity={1}
                   fill="url(#gradKitchen)"
-                  activeDot={{ r: 6, stroke: '#8C161B', strokeWidth: 2, fill: '#FFF' }}
+                  activeDot={{ r: 6, stroke: '#96171B', strokeWidth: 2, fill: '#FFF' }}
                 />
               )}
 
@@ -596,7 +641,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
               />
 
               {visibleDivisions.Kitchen && (
-                <Bar dataKey="Kitchen" name="Kitchen" fill="#8C161B" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Kitchen" name="Kitchen" fill="#96171B" radius={[4, 4, 0, 0]} />
               )}
               {visibleDivisions.Kasir && (
                 <Bar dataKey="Kasir" name="Kasir" fill="#10B981" radius={[4, 4, 0, 0]} />
@@ -621,7 +666,7 @@ export const CrewPerformanceTrendChart: React.FC<CrewPerformanceTrendChartProps>
               <Legend wrapperStyle={{ fontSize: '11px', fontWeight: 700 }} />
 
               {visibleDivisions.Kitchen && (
-                <Radar name="Kitchen" dataKey="Kitchen" stroke="#8C161B" fill="#8C161B" fillOpacity={0.25} />
+                <Radar name="Kitchen" dataKey="Kitchen" stroke="#96171B" fill="#96171B" fillOpacity={0.25} />
               )}
               {visibleDivisions.Kasir && (
                 <Radar name="Kasir" dataKey="Kasir" stroke="#10B981" fill="#10B981" fillOpacity={0.25} />

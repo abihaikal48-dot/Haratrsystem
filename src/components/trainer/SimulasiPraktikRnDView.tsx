@@ -5,12 +5,12 @@ import {
   Printer, Play, Pause, RotateCcw, ChevronRight, Eye,
   FileCheck, ShieldCheck, Utensils, Box, ArrowRight, Star,
   Download, FileSpreadsheet, Layers, BookOpen, Compass, Check,
-  Info, Coffee, PackageCheck, Timer, Zap
+  Info, Coffee, PackageCheck, Timer, Zap, CookingPot
 } from 'lucide-react';
 import { db } from '../../lib/storage';
 
 // ============================================================================
-// DATA KONSTANTA & DEFINISI PRODUK
+// DATA KONSTANTA & DEFINISI PRODUK RESMI HARA CHICKEN (CV. ULTIMA RASA INDONESIA)
 // ============================================================================
 
 export interface ProductSOPItem {
@@ -27,156 +27,152 @@ export interface ProductSOPItem {
 }
 
 // ----------------------------------------------------------------------------
-// DAY 1 - BATCH 1 (10 Produk Fondasi Dapur)
+// BATCH 1: 10 PRODUK DASAR DAPUR HARA (DAY 1)
 // ----------------------------------------------------------------------------
 export const BATCH_1_PRODUCTS: ProductSOPItem[] = [
   {
-    id: 'b1-ayam-utuh',
-    name: 'Ayam Utuh (Potong & Marinasi)',
-    category: 'Persiapan Bahan Baku',
-    estimatedTime: '25 Menit',
-    targetMinutes: 25,
-    criticalPoints: [
-      'Bobot karkas ayam standar 900 - 1000g, dipotong presisi menjadi 9 atau 10 bagian simetris.',
-      'Dilarang ada sisa darah beku pada rongga dada/tulang paha (cuci bersih tiriskan 15 menit).',
-      'Marinasi merata dengan bumbu marinasi HARA, simpan di chiller 1°C - 4°C minimal 2 jam.'
-    ],
-    equipment: ['Pisau Dapur Tajam 8 inch', 'Talenan Putih Khusus Unggas', 'Timbangan Digital 5kg', 'Baskom Stainless'],
-    keySpec: 'Gramatur potongan: Dada 110-120g, Paha Atas 100-110g, Paha Bawah 85-95g, Sayap 75-85g',
-    dineInStandard: 'Penyimpanan prep stock di Chiller Stainless suhu 1 - 4°C dengan label tanggal & jam marinasi.',
-    takeAwayStandard: 'Sama dengan Dine-In, kontrol FIFO ketat (stok lama wajib digunakan lebih dahulu).'
-  },
-  {
     id: 'b1-nasi',
-    name: 'Nasi Pulen HARA (Miyako / Gas)',
+    name: 'Nasi Putih Pulen (Miyako / Rice Cooker Gas)',
     category: 'Karbohidrat & Bahan Pokok',
     estimatedTime: '45 Menit',
     targetMinutes: 45,
     criticalPoints: [
-      'Cuci beras 3 kali hingga air bilasan jernih (tidak boleh berbau apek/beras patah).',
-      'Takaran air baku terkalibrasi: 3 cup beras = 4 cup air, 4 cup beras = 5 cup air, 5 cup = 6 cup, 6 cup = 8 cup.',
-      'Wajib didiamkan tanak 15 menit pasca tombol jegleg/warm sebelum diaduk dan disajikan (maks 30 menit).'
+      'Cuci beras minimal 3 kali hingga air bilasan jernih (bebas bau apek & kotoran).',
+      'Takar air baku sesuai kalibrasi resmi: 3 cup beras : 4 cup air, 4:5, 5:6, maksimal 6 cup beras : 8 cup air.',
+      'Nyalakan api kompor: Tekan tombol kiri (api kecil) terlebih dahulu, baru tekan tombol COOK kanan.',
+      'Setelah jegleg matang, WAJIB didiamkan tanak 15 menit (maks 30 menit di rice cooker gas) sebelum dipindahkan ke Magicom.',
+      'Gramatur porsi saji wajib ditimbang tepat 170 gr per porsi.'
     ],
-    equipment: ['Rice Cooker Miyako / Gas Commercial', 'Gelas Ukur Beras & Air', 'Centong Nasi Anti-Lengket', 'Lap Oranye Meja'],
-    keySpec: 'Tekstur pulen tidak pera, suhu core minimal saji \u2265 65°C, porsi saji 170g timbang',
-    dineInStandard: 'Piring melamin putih bersih HARA, dicetak bulat rapi dengan ring mold atau mangkuk porsi 170g.',
-    takeAwayStandard: 'Kertas nasi cokelat anti-minyak berlogo HARA atau Bento Box kompartemen, rapat dan higienis.'
+    equipment: ['Rice Cooker Gas Miyako', 'Gelas Ukur Kalibrasi', 'Centong Anti Lengket', 'Timbangan Digital 170g'],
+    keySpec: 'Pulen tidak pera/lembek, suhu saji >= 65°C, porsi presisi 170g',
+    dineInStandard: 'Piring melamin putih bersih dicetak bulat rapi ring mold 170g.',
+    takeAwayStandard: 'Box besar beralas 1/4 lembar kertas nasi atau Bento Box bersekat.'
   },
   {
-    id: 'b1-teh',
-    name: 'Teh Manis Segar (Signature Tea)',
-    category: 'Minuman Segar',
-    estimatedTime: '15 Menit',
-    targetMinutes: 15,
+    id: 'b1-es-teh',
+    name: 'Es Teh Manis Segar (Resep 40 Cup)',
+    category: 'Minuman Bar Resmi',
+    estimatedTime: '25 Menit',
+    targetMinutes: 25,
     criticalPoints: [
-      'Ekstraksi biang teh dengan air mendidih 100°C selama 10 menit, saring daun teh sempurna.',
-      'Gula cair terkalibrasi (rasio manis seimbang 12° Brix), dilarang menggunakan pemanis buatan.',
-      'Masa simpan dispenser maksimal 12 jam pada suhu ruang; wajib ganti biang baru setiap shift.'
+      '1 bungkus teh resmi HARA (80 gr) + 1 kg gula pasir + 4 liter air mendidih.',
+      'Aduk gula larut sempurna, tutup rapat panci dan diamkan ekstraksi selama 20 menit.',
+      'Saring menggunakan saringan besar & kecil berlapis ke wadah Jumbo dispenser.',
+      'Tambahkan 4 liter air matang galon (khusus outlet Hara Extra Dine-in total air 10L, Take-away total 8L).',
+      'Penyajian: Takar 200 ml teh ke dalam cup 14 oz + es batu kristal, Cup Sealer suhu 160°C.'
     ],
-    equipment: ['Panci Rebus Stainless', 'Saringan Kain Teh Tarik', 'Dispenser Teh Keran', 'Gelas Ukur 1000ml'],
-    keySpec: 'Aroma wangi melati khas HARA, warna amber cerah tembus pandang, rasa manis segar seimbang',
-    dineInStandard: 'Gelas es 16 oz / 22 oz dengan es batu kristal higienis, sedotan ramah lingkungan.',
-    takeAwayStandard: 'Cup Sealer transparan 16 oz / 22 oz rapat anti-bocor + kantong kresek single cup.'
+    equipment: ['Panci Rebus 10L', 'Saringan Kain Halus Berlapis', 'Jumbo Dispenser Teh', 'Mesin Cup Sealer 160°C', 'Cup 14 oz'],
+    keySpec: 'Aroma wangi teh segar melati, manis seimbang (12° Brix), warna amber jernih',
+    dineInStandard: 'Gelas akrilik tebal 14 oz dengan es batu kristal higienis.',
+    takeAwayStandard: 'Cup 14 oz di-press Cup Sealer suhu 160°C rapat anti-bocor.'
   },
   {
-    id: 'b1-goreng-ayam',
-    name: 'Goreng Ayam Crispy (Deep Fryer)',
-    category: 'Pengolahan Panas Utama',
+    id: 'b1-sup-sayur',
+    name: 'Sup Sayur Hara Extra (1 Resep = 6 Liter)',
+    category: 'Kuah & Sayuran',
     estimatedTime: '20 Menit',
     targetMinutes: 20,
     criticalPoints: [
-      'Suhu minyak deep fryer wajib stabil di 175°C (atau 160°C kompor manual komersial).',
-      'Waktu goreng tepat 12 - 14 menit tergantung ukuran potongan daging.',
-      'Suhu core daging matang wajib mencapai minimal \u2265 74°C (cek termometer jarum probe).',
-      'Tiriskan di rak kawat minimal 1 menit sebelum dipindahkan ke etalase pemanas (display warmer).'
+      'Rebus 5 Liter air di panci sup hingga mendidih.',
+      'Bumbu halus: 30 gr bawang putih + 6 butir kapulaga ditumis wajan dengan 5 sdm minyak + 1 Liter air tumisan.',
+      'Tuang tumisan bumbu ke panci air mendidih + 4.5 sdm (67.5 gr) mix garam + 2 sachet Royco Ayam.',
+      'Masukkan Wortel (250 gr), tunggu 2 menit -> Masukkan Kol (600 gr), tunggu 2 menit.',
+      'MATIKAN API KOMPOR -> Baru masukkan Seledri (3 batang) dan Daun Bawang/Loncang (1 batang) agar tidak layu hitam.'
     ],
-    equipment: ['Deep Fryer Gas / Listrik 175°C', 'Keranjang Stainless Fryer', 'Termometer Probe Tusuk', 'Penjepit Ayam 12 inch'],
-    keySpec: 'Golden brown merata, kulit kriuk bergelombang krispi, daging dalam juicy tidak berdarah',
-    dineInStandard: 'Piring saji melamin bersih bebas cipratan minyak, disajikan langsung hangat.',
-    takeAwayStandard: 'Paper bag tahan minyak (greaseproof) berventilasi udara agar kriuk tidak melempem lemas.'
+    equipment: ['Panci Sup Stainless 10L', 'Wajan Tumis Bumbu', 'Sendok Sayur Berlubang', 'Timbangan Sayur'],
+    keySpec: 'Kuah bening gurih kaldu kapulaga, wortel & kol renyah segar tidak lembek, suhu >= 70°C',
+    dineInStandard: 'Mangkuk sup kecil melamin HARA disajikan hangat mengepul.',
+    takeAwayStandard: 'Paper Bowl kuah tahan panas bertutup rapat + isolasi pengaman.'
   },
   {
-    id: 'b1-sambal-bawang',
-    name: 'Sambal Bawang Segar HARA',
-    category: 'Condiment & Saus Pedas',
-    estimatedTime: '10 Menit',
-    targetMinutes: 10,
+    id: 'b1-goreng-ayam',
+    name: 'Goreng Ayam Potong Reguler (Deep Fryer)',
+    category: 'Pengolahan Panas Utama',
+    estimatedTime: '15 Menit',
+    targetMinutes: 15,
     criticalPoints: [
-      'Gunakan cabai rawit merah segar pilihan (bebas busuk) + bawang putih kating wangi.',
-      'Ulek kasar di cobek batu tradisional; dilarang diblender halus menjadi pasta.',
-      'Siram minyak panas mendidih 160°C langsung ke atas ulekan untuk mematangkan aroma bawang gurih.',
-      'Gramatur porsi wajib 30g per porsi ayam geprek standar.'
+      'Setelan kompor Deep Fryer 175°C, suhu minyak saat ayam masuk wajib stabil di 160°C.',
+      'Kapasitas goreng: 2 - 3 kg ayam per batch goreng.',
+      'Penepungan 2x dengan teknik cubit lembut berputar (DILARANG ditekan-tekan keras hingga bantat).',
+      'Waktu goreng tepat 12 menit; goyang keranjang fryer tiap 3 menit agar matang merata.',
+      'Suhu core internal daging ayam matang wajib mencapai minimal >= 74°C (cek termometer tusuk).',
+      'Kuras & saring minyak setiap selesai 16 - 20 kg ayam atau setiap pergantian shift.'
     ],
-    equipment: ['Cobek Batu & Ulekan Tradisional', 'Sendok Porsi 30g', 'Wajan Siram Minyak Panas', 'Timbangan Digital Mini'],
-    keySpec: 'Tekstur ulek kasar berbiji, warna merah-oranye menggoda, aroma bawang matang harum pedas',
-    dineInStandard: 'Dibalurkan langsung menutupi ayam geprek di atas piring atau cobek saji dine-in.',
-    takeAwayStandard: 'Cup saus plastik 35ml bertutup klip rapat terpisah atau dibalur di atas ayam take-away.'
+    equipment: ['Deep Fryer Gas 175°C / Minyak 160°C', 'Keranjang Stainless Fryer', 'Termometer Probe Tusuk', 'Penjepit 12 inch'],
+    keySpec: 'Golden brown mekar keriting krispi, daging dalam juicy matang sempurna tanpa darah',
+    dineInStandard: 'Piring melamin saji bersih bebas genangan minyak.',
+    takeAwayStandard: 'Paper bag berventilasi udara atau box ayam beralas kertas anti-minyak.'
   },
   {
-    id: 'b1-sup',
-    name: 'Sup Segar Kaldu Ayam HARA',
-    category: 'Kuah & Sayuran',
-    estimatedTime: '30 Menit',
-    targetMinutes: 30,
+    id: 'b1-ayam-utuh',
+    name: 'Ayam Utuh / AU (Goreng & Packing)',
+    category: 'Menu Spesial Utuh',
+    estimatedTime: '15 Menit',
+    targetMinutes: 15,
     criticalPoints: [
-      'Ekstraksi kaldu tulang ayam segar, saring lemak berlebih agar kuah tetap bening gurih.',
-      'Potongan sayur (wortel, buncis/kol, daun seledri) dipotong seragam rapi dan tidak overcooked.',
-      'Suhu penyajian panas wajib \u2265 70°C; bumbu kaldu gurih lada tidak boleh dominan asin.'
+      'Suhu kompor dan minyak stabil di 150°C (lebih rendah dari ayam potong reguler).',
+      'Posisi karkas ayam dimekarkan perlahan saat dimasukkan ke dalam minyak panas.',
+      'Waktu goreng tepat 12 menit dengan dibolak-balik perlahan tiap 3 menit.',
+      'Standar Packing Box AU: 1 ekor ayam utuh + 1 cup sambal bawang + 1 cup sambal daun jeruk + 5 potong timun dibungkus plastik bening 1/4 kg.'
     ],
-    equipment: ['Panci Sup Stainless 10L', 'Sendok Sayur Berlubang & Centong Kuah', 'Mangkuk Sup Keramik / Melamin'],
-    keySpec: 'Kuah bening keemasan, sayur renyah segar, gurih rempah lada seimbang',
-    dineInStandard: 'Mangkuk sup kecil melamin berlogo HARA, taburan daun bawang dan bawang goreng wangi.',
-    takeAwayStandard: 'Paper Bowl kuah tahan panas bertutup rapat + seal isolasi pelindung anti-tumpah.'
+    equipment: ['Deep Fryer Suhu 150°C', 'Capitan Stainless Besar', 'Box Khusus Ayam Utuh (AU)', 'Cup Sambal Klip'],
+    keySpec: 'Ayam utuh mekar simetris, kulit krispi merata, daging dada & paha matang tembus tulang',
+    dineInStandard: 'Piring oval besar beralas kertas roti HARA dengan 2 jenis sambal pendamping.',
+    takeAwayStandard: 'Box eksklusif AU + 1 cup sambal bawang + 1 cup sambal daun jeruk + 5 slice timun di plastik 1/4 kg.'
   },
   {
-    id: 'b1-scramble',
-    name: 'Scramble Egg Lembut (Fluffy)',
-    category: 'Side Dish Protein',
-    estimatedTime: '5 Menit',
-    targetMinutes: 5,
-    criticalPoints: [
-      '1 butir telur kocok lepas + 10ml susu UHT/air + sejumput garam kaldu HARA.',
-      'Masak dengan api kecil (low heat) menggunakan mentega wangi di wajan anti-lengket teflon.',
-      'Lipat perlahan dengan spatula silikon; angkat saat masih 85% matang (moist & glossy).',
-      'Dilarang overcooked hingga berubah warna kecokelatan atau kering berpori.'
-    ],
-    equipment: ['Wajan Teflon Anti-Lengket 20cm', 'Spatula Silikon Tahan Panas', 'Mangkuk Kocok Stainless', 'Garpu Kocok'],
-    keySpec: 'Tekstur fluffy berlapis lembut, warna kuning cerah keemasan, rasa gurih creamy lembut',
-    dineInStandard: 'Diletakkan rapi di samping nasi pulen hangat atau menutupi separuh mangkuk porsi.',
-    takeAwayStandard: 'Diletakkan di kompartemen bento box atau di atas nasi kotak take-away.'
-  },
-  {
-    id: 'b1-spinach',
-    name: 'Spinach Crispy (Bayam Renyah)',
+    id: 'b1-terong-krispi',
+    name: 'Terong Krispi (SOP-TerongKrispi-01)',
     category: 'Side Dish Renyah',
     estimatedTime: '8 Menit',
     targetMinutes: 8,
     criticalPoints: [
-      'Daun bayam hijau segar lebar dicuci tiriskan hingga kering sempurna dari air.',
-      'Balut adonan tepung bumbu tipis berbutir halus (bukan adonan basah yang tebal menggumpal).',
-      'Goreng kilat di minyak panas 170°C selama 60 - 90 detik hingga mekar renyah.',
-      'Tiriskan di atas kertas minyak; dilarang berminyak basah atau hangus kehitaman.'
+      '1 buah terong dipotong serong menjadi 20 slice seragam (1 porsi saji = 10 slice).',
+      'Rendam di Air Marinasi Extra (2 siung bawang putih uleg + 5 sdm / 75 gr mix garam + 1 liter air) selama 10 menit.',
+      'Lakukan penepungan 2x (tepung kering -> celup air -> tepung kering berbutir).',
+      'Goreng di deep fryer pada suhu 150°C selama tepat 5 menit sambil dibolak-balik.',
+      'Tiriskan minyak dengan posisi miring di rak kawat.'
     ],
-    equipment: ['Wajan Penggorengan', 'Serok Kawat Halus', 'Baskom Penepungan', 'Kertas Tiris Minyak'],
-    keySpec: 'Warna hijau zaitun mekar kriuk, tekstur rapuh renyah tidak berminyak, gurih ringan',
-    dineInStandard: 'Garnish renyah di sisi piring menemani ayam geprek dan lalapan timun.',
-    takeAwayStandard: 'Plastik klip standing pouch kecil atau paper cone berventilasi udara.'
+    equipment: ['Pisau Serong & Talenan Hijau', 'Deep Fryer 150°C', 'Baskom Marinasi Extra', 'Serok Stainless'],
+    keySpec: 'Warna kuning keemasan, tekstur renyah di luar dan lembut lumer di dalam, tidak menyerap minyak',
+    dineInStandard: 'Disusun kipas rapi 10 slice di piring saji mendampingi ayam geprek.',
+    takeAwayStandard: 'Paper bag berventilasi udara atau kompartemen samping bento box.'
   },
   {
-    id: 'b1-terong',
-    name: 'Terong Goreng Manis HARA',
-    category: 'Side Dish Sayuran',
-    estimatedTime: '6 Menit',
-    targetMinutes: 6,
+    id: 'b1-sambal-bawang',
+    name: 'Sambal Bawang Segar (1 Resep = 6 Porsi @ 30 gr)',
+    category: 'Condiment Inti HARA',
+    estimatedTime: '10 Menit',
+    targetMinutes: 10,
     criticalPoints: [
-      'Terong ungu segar dipotong serong tebal 1.5 cm seragam.',
-      'Goreng dalam minyak panas 160°C selama 2 - 3 menit hingga bagian daging dalam lembut meleleh.',
-      'Kulit luar ungu mengkilap, tidak menyerap minyak berlebih (tiriskan dengan posisi miring).'
+      'Komposisi resep: Cabai rawit merah segar 150 gr + bawang putih 35 gr (dipotong 2 bagian).',
+      'Goreng cabai dan bawang di wajan dengan 200 ml minyak goreng menggunakan api kecil selama 3 - 5 menit hingga layu wangi.',
+      'Uleg halus di cobek batu tradisional (DILARANG KERAS MENGGUNAKAN BLENDER/CHOPPER) + mix garam 7 gr.',
+      'Siram dengan 60 ml minyak panas bekas menggoreng bahan tadi.',
+      'Timbang presisi 30 gr per porsi menggunakan timbangan digital / sendok takar.'
     ],
-    equipment: ['Pisau Dapur & Talenan Hijau Sayuran', 'Wajan Penggorengan', 'Serok Tiris Stainless'],
-    keySpec: 'Bagian luar mulus mengkilap, daging dalam lembut manis alami, tidak gosong',
-    dineInStandard: 'Disusun kipas rapi 3 - 4 potong di samping sambal bawang dan ayam goreng.',
-    takeAwayStandard: 'Disatukan di kompartemen lauk pelengkap dalam paper box / bento box.'
+    equipment: ['Cobek Batu Tradisional & Ulekan', 'Wajan Penggorengan Cabai', 'Timbangan Digital Presisi', 'Sendok Porsi 30g'],
+    keySpec: 'Tekstur ulek manual berbutir basah, warna merah oranye segar, aroma gurih bawang matang, pedas nikmat',
+    dineInStandard: 'Dibalurkan langsung menutupi ayam geprek di atas piring atau cobek saji.',
+    takeAwayStandard: 'Cup sambal plastik 35ml bertutup klip rapat terpisah atau dibalur di atas ayam.'
+  },
+  {
+    id: 'b1-spinach',
+    name: 'Spinach (Bayam Goreng Renyah Gurih)',
+    category: 'Side Dish Primadona',
+    estimatedTime: '5 Menit',
+    targetMinutes: 5,
+    criticalPoints: [
+      '100 gr daun bayam segar petik dirajang tipis-tipis memanjang.',
+      'Goreng di wajan berisi 500 ml minyak panas api sedang selama 90 detik (1.5 menit) sampai kering renyah mekar.',
+      'Angkat dan tiriskan minyak hingga tuntas di kertas tiris.',
+      'Taburi 1/2 sdt (2.5 gr) bumbu kentang gurih, aduk rata perlahan.',
+      'Standar penyajian: 1 porsi saji = 2 sdm takar per piring.'
+    ],
+    equipment: ['Wajan Penggorengan Wok', 'Serok Kawat Minyak Halus', 'Sendok Takar 2 sdm', 'Kertas Tiris'],
+    keySpec: 'Warna hijau zaitun mekar kriuk, tidak gosong/pahit, rasa gurih renyah 100% kering',
+    dineInStandard: 'Ditaburkan 2 sdm takar di samping nasi pulen atau di atas ayam.',
+    takeAwayStandard: 'Plastik klip pouch mini atau paper cone berventilasi udara.'
   },
   {
     id: 'b1-indomie',
@@ -185,38 +181,58 @@ export const BATCH_1_PRODUCTS: ProductSOPItem[] = [
     estimatedTime: '5 Menit',
     targetMinutes: 5,
     criticalPoints: [
-      'Rebus mi dalam air mendidih bergolak tepat 3 menit untuk tekstur kenyal al dente.',
-      'Tiriskan cepat dan aduk rata bersama bumbu minyak dan cabai racikan khas HARA.',
-      'Dilarang memasak mi terlalu lama hingga lembek mengembang (overcooked).',
-      'Sajikan mengepul hangat bersama taburan bawang goreng renyah.'
+      'Didihkan 500 ml air bersih di panci mie hingga bergolak kencang.',
+      'Masukkan Indomie, rebus tepat selama 2 menit (tekstur kenyal al dente, dilarang lembek).',
+      'Saring dan tiriskan mie, angin-anginkan sejenak agar uap panas berlebih keluar.',
+      'Baru tuang dan aduk rata bersama bumbu di dalam mangkok saji.'
     ],
-    equipment: ['Panci Rebus Mi Bertingkat', 'Capitan Stainless Mi', 'Mangkuk Aduk Bumbu', 'Timer Digital Dapur'],
-    keySpec: 'Tekstur mi kenyal elastis, bumbu meresap merata mengkilap, tidak menggumpal kering',
-    dineInStandard: 'Piring saji ceper melamin putih, disusun rapi dengan ayam geprek di atasnya.',
-    takeAwayStandard: 'Paper Bowl bulat tahan panas berlogo HARA dengan tutup transparan aman.'
+    equipment: ['Panci Rebus Mie', 'Capitan Stainless Mie', 'Saringan Kawat Mie', 'Mangkok Pengaduk'],
+    keySpec: 'Tekstur mie kenyal lentur tidak mekar benyek, bumbu merata mengkilap gurih',
+    dineInStandard: 'Piring melamin ceper putih disajikan berdampingan dengan ayam geprek.',
+    takeAwayStandard: 'Paper Bowl bulat tahan panas berlogo HARA dengan tutup transparan.'
+  },
+  {
+    id: 'b1-scramble-egg',
+    name: 'Scramble Egg Lembut (1 Telur = 2 Porsi)',
+    category: 'Side Dish Protein',
+    estimatedTime: '4 Menit',
+    targetMinutes: 4,
+    criticalPoints: [
+      '1 butir telur ayam segar (menghasilkan 2 porsi saji) + 1/4 gr sendok takar mix garam + 1 sdm susu UHT.',
+      'Kocok rata hingga putih dan kuning telur menyatu lembut.',
+      'Panaskan wajan dengan 3 sdm minyak goreng baru menggunakan api sedang.',
+      'Tuang adonan telur sambil diaduk memutar secara terus-menerus hingga terbentuk lipatan scramble matang lembut.',
+      'Dilarang memasak terlalu lama hingga kecokelatan kering.'
+    ],
+    equipment: ['Wajan Teflon 20cm', 'Spatula Silikon Tahan Panas', 'Sendok Takar 1/4 gr & 1 sdm', 'Mangkuk Kocok'],
+    keySpec: 'Tekstur fluffy berlapis basah glossy, warna kuning cerah, rasa creamy gurih lembut',
+    dineInStandard: 'Diletakkan rapi di separuh sisi nasi putih hangat 170g.',
+    takeAwayStandard: 'Kompartemen bento box bersekat atau di atas nasi kotak take-away.'
   }
 ];
 
 // ----------------------------------------------------------------------------
-// DAY 1 - BATCH 2 (11 Menu Signature & RnD Assembly)
+// BATCH 2: 11 MENU PERAKITAN / ASSEMBLY RESMI HARA (DAY 1 SIANG)
 // ----------------------------------------------------------------------------
 export const BATCH_2_PRODUCTS: ProductSOPItem[] = [
   {
     id: 'b2-nasgor-geprek-ori',
-    name: 'Nasgor Geprek ORI (SOP-NasGor-02)',
-    category: 'Menu Signature RnD',
-    estimatedTime: '7 Menit',
-    targetMinutes: 7,
+    name: 'Nasgor Geprek ORI (SOP-NasGorTelur-02)',
+    category: 'Menu Signature Perakitan',
+    estimatedTime: '6 Menit',
+    targetMinutes: 6,
     criticalPoints: [
-      'Timbang beras/nasi pera tepat 170g timbang digital (bebas gumpalan).',
-      'Minyak tumis 15ml, mix sayur (wortel & buncis iris) 30g ditumis lebih dahulu.',
-      'Wajib gunakan bumbu ECO HARA 20g timbang presisi, aduk cepat dengan teknik high wok heat.',
-      'Sajikan bersama ayam geprek sambal bawang 30g + 2 slice timun segar wajib.'
+      'Nasi putih dingin wajib ditimbang tepat 170 gr (bebas gumpalan).',
+      'Minyak goreng 15 ml (1 sdm) dipanaskan di wok, tumis mix sayur 30 gr lebih dulu.',
+      'Bumbu nasgor ECO wajib ditimbang tepat 20 gr, masak dengan teknik api besar cepat.',
+      'Pelengkap: 1 butir Telur Dadar (1 telur + 1 gr mix garam + 50 ml minyak goreng).',
+      'Topping: Ayam Geprek Sambal Bawang 30 gr + WAJIB 2 slice timun segar.',
+      'Standar Take-away: Box besar beralas 1 lembar kertas nasi utuh, sendok diletakkan di atas kertas penutup.'
     ],
-    equipment: ['Wok Baja Komersial High Pressure', 'Spatula Wok Besi', 'Timbangan Digital 5kg Presisi', 'Sendok Takar Minyak 15ml'],
-    keySpec: 'Aroma wok hei smokey sedap, warna cokelat keemasan merata, nasi pulen terurai tidak benyek',
-    dineInStandard: 'Piring ceper melamin hitam/putih HARA, garnish 2 slice timun miring 45°, kerupuk renyah.',
-    takeAwayStandard: 'Bento Box HARA dengan sekat khusus atau Paper Bowl 800ml bersegel stiker QC.'
+    equipment: ['Wok Baja High Pressure', 'Timbangan Digital 170g & 20g', 'Sendok Takar Minyak 15ml', 'Box Besar & Kertas Nasi Utuh'],
+    keySpec: 'Aroma wok hei smokey, bumbu ECO 20g merata, telur dadar lebar garing, 2 slice timun wajib',
+    dineInStandard: 'Piring ceper melamin hitam/putih HARA, telur dadar di samping nasi, 2 slice timun miring 45°.',
+    takeAwayStandard: 'Box besar beralas 1 lembar kertas nasi utuh, sendok di atas kertas penutup bersegel stiker QC.'
   },
   {
     id: 'b2-geprek-ori',
@@ -225,386 +241,333 @@ export const BATCH_2_PRODUCTS: ProductSOPItem[] = [
     estimatedTime: '3 Menit',
     targetMinutes: 3,
     criticalPoints: [
-      'Geprek ayam crispy 2 - 3 ketukan lembut menggunakan ulekan kayu/batu di atas cobek.',
-      'Dilarang meremukkan tulang hingga hancur menjadi serpihan tajam berbahaya.',
-      'Balurkan sambal bawang 30g merata ke seluruh permukaan serat ayam selagi hangat.'
+      'Ayam krispi digeprek 2 - 3 ketukan lembut di cobek hingga serat merekah (tulang dilarang hancur remuk).',
+      'Balurkan Sambal Bawang takaran tepat 30 gr merata di atas ayam selagi panas.',
+      'Wajib disertai 2 slice timun segar bersih.',
+      'Standar Take-away: Box besar beralas 1/4 kertas nasi (jika pakai nasi) atau box kecil (tanpa nasi), posisi gagang sendok di atas nasi.'
     ],
-    equipment: ['Cobek Tradisional Batu & Ulekan', 'Capitan Makanan Stainless', 'Sendok Sambal 30g'],
-    keySpec: 'Kulit tetap renyah di sela geprekan, sambal meresap gurih pedas menyengat',
-    dineInStandard: 'Cobek batu beralas kayu saji atau piring melamin merah HARA bersama nasi hangat.',
-    takeAwayStandard: 'Paper box HARA berventilasi udara + kantong saus sambal jika dipisah.'
+    equipment: ['Cobek Tradisional Batu & Ulekan', 'Sendok Sambal 30g', 'Box Besar / Box Kecil', 'Kertas Nasi 1/4'],
+    keySpec: 'Kulit kriuk berpadu pedas gurih sambal bawang 30g, 2 slice timun segar',
+    dineInStandard: 'Cobek batu saji atau piring melamin merah HARA bersama nasi pulen 170g.',
+    takeAwayStandard: 'Box besar (alas 1/4 kertas nasi) / box kecil tanpa nasi, gagang sendok di atas nasi.'
   },
   {
     id: 'b2-geprek-keju-parut',
-    name: 'Ayam Geprek Keju Parut Lembut',
-    category: 'Varian Keju Signature',
+    name: 'Ayam Geprek Keju Parut',
+    category: 'Varian Keju HARA',
     estimatedTime: '3 Menit',
     targetMinutes: 3,
     criticalPoints: [
-      'Ayam digeprek dengan sambal bawang takaran standar 30g.',
-      'Parut keju cheddar olahan berkualitas dengan parutan kawat panjang halus.',
-      'Taburan keju wajib menutupi minimal 80% permukaan ayam dengan kerapatan tinggi.',
-      'Keju tidak boleh menggumpal atau basah terkena uap air dingin.'
+      'Ayam digeprek dengan sambal bawang 30 gr di cobek.',
+      'Pindahkan ayam geprek ke piring saji atau box take-away terlebih dahulu.',
+      'Keju cheddar diparut LANGSUNG di atas piring atau box (DILARANG KERAS memarut keju di atas cobek!).',
+      'Rapikan tumpukan keju parut menggunakan solet agar simetris menutupi 80% ayam + 2 slice timun.'
     ],
-    equipment: ['Parutan Keju Stainless Panjang', 'Timbangan Gramatur Keju (20-25g)', 'Capitan Stainless'],
-    keySpec: 'Tumpukan salju keju cheddar rapi, kontras pedas sambal dengan gurih asin keju',
-    dineInStandard: 'Piring saji oval putih bersih, taburan keju menjuntai rapi estetik.',
-    takeAwayStandard: 'Paper box HARA dengan kertas roti pembatas agar keju tidak menempel di tutup.'
+    equipment: ['Parutan Keju Stainless Panjang', 'Solet Silikon Perapi Keju', 'Piring Saji / Box HARA'],
+    keySpec: 'Salju keju cheddar rapi dan bersih, tidak tercampur remah kotor cobek, 2 slice timun',
+    dineInStandard: 'Piring melamin oval putih, keju parut menjuntai rapi estetik.',
+    takeAwayStandard: 'Box HARA beralas kertas pembatas agar parutan keju tidak menempel di tutup box.'
   },
   {
     id: 'b2-geprek-mentai',
-    name: 'Ayam Geprek Mentai Torch',
-    category: 'Saus Spesial RnD',
+    name: 'Ayam Geprek Mentai (SOP-AyamSausMentai-01)',
+    category: 'Saus Spesial Torch',
     estimatedTime: '4 Menit',
     targetMinutes: 4,
     criticalPoints: [
-      'Geprek ayam 2 ketukan, siram dengan saus mentai gurih kental standar 2 solet penuh (\u00b140g).',
-      'Gunakan gas blow torch berjarak 5 - 7 cm dengan api biru-kuning berputar stabil.',
-      'Torch selama 15 - 20 detik hingga permukaan saus berkaramel dan muncul bintik cokelat wangi.',
-      'Dilarang torch terlalu dekat karena akan menghasilkan bau gas dan saus gosong pahit.'
+      'Ulek sambal bawang -> Geprek ayam dan padatkan perlahan di cobek.',
+      'Beri Saus Mentai gurih kental standar 2 solet penuh di atas permukaan ayam.',
+      'Bakar permukaan saus dengan Gas Torch secara memutar hingga timbul bintik kecokelatan harum.',
+      'WAJIB angkat ayam menggunakan 2 SOLET ke piring atau box agar bentuk mentai tidak hancur berantakan.',
+      'Wajib diberi 2 slice timun. (Masa simpan saus mentai di showcase maksimal 5 hari).'
     ],
-    equipment: ['Gas Blow Torch Komersial', 'Solet Silikon Saus Mentai', 'Talenan Tahan Panas Metal'],
-    keySpec: 'Lapisan saus berkilau dengan bintik karamel smokey harum, gurih creamy tobi-mayo',
-    dineInStandard: 'Piring keramik tahan panas atau piring melamin tebal dengan alas daun pisang/kertas saji.',
-    takeAwayStandard: 'Aluminium Foil tray atau Paper Box tahan minyak panas bersegel "Hati-Hati Panas".'
+    equipment: ['Gas Blow Torch Komersial', '2 Solet Silikon Pengangkat', 'Cobek Batu', 'Piring Keramik / Box'],
+    keySpec: 'Saus mentai berkaramel smokey mengkilap, bentuk ayam utuh rapi terangkat 2 solet, 2 slice timun',
+    dineInStandard: 'Piring saji melamin tebal tahan panas dengan alas bersih, 2 slice timun miring 45°.',
+    takeAwayStandard: 'Box berventilasi udara bersegel aman "Hati-Hati Panas".'
   },
   {
     id: 'b2-geprek-moza',
     name: 'Ayam Geprek Mozarella Melt',
-    category: 'Varian Keju Signature',
+    category: 'Varian Keju Melt',
     estimatedTime: '4 Menit',
     targetMinutes: 4,
     criticalPoints: [
-      'Letakkan keju mozzarella iris tebal (\u00b130g) di atas ayam geprek yang sudah bersambal.',
-      'Torch dengan intensitas sedang hingga keju meleleh elastis menutupi ayam sempurna.',
-      'Pastikan keju mulur elastis dan tidak terbakar hingga menjadi jelaga hitam.',
-      'Wajib disajikan segera dalam kondisi panas agar keju tidak kembali mengeras.'
+      'Geprek ayam dengan sambal bawang 30 gr di cobek.',
+      'Taruh lembaran keju mozarella pipih (±30 gr) menutupi seluruh permukaan ayam.',
+      'Bakar dengan Gas Torch DI ATAS COBEK sampai keju meleleh mulur elastis dan kecokelatan wangi.',
+      'Pindahkan perlahan ke piring atau box take-away + 2 slice timun segar.'
     ],
-    equipment: ['Gas Blow Torch Khusus Dapur', 'Capitan Anti-Panas', 'Pisau Iris Mozzarella'],
-    keySpec: 'Keju mulur keemasan elastis, aroma smokey keju panggang memikat',
-    dineInStandard: 'Piring saji panas dengan peringatan keju leleh, disajikan instan.',
-    takeAwayStandard: 'Paper Box khusus dengan ventilasi udara kecil agar keju tetap lembut saat diterima pelanggan.'
+    equipment: ['Gas Blow Torch Dapur', 'Cobek Batu Tahan Panas', 'Capitan / Solet Pengangkat'],
+    keySpec: 'Keju mulur elastis menutupi ayam sempurna tanpa jelaga hitam pahit, disajikan panas segera',
+    dineInStandard: 'Piring saji panas dengan peringatan keju leleh, disajikan instan ke tamu.',
+    takeAwayStandard: 'Box take-away tertutup rapat agar panas keju terjaga.'
   },
   {
     id: 'b2-geprek-ayoli',
-    name: 'Ayam Geprek Garlic Ayoli',
-    category: 'Saus Spesial RnD',
+    name: 'Ayam Geprek Garlic Ayoli (SOP-SausAyoli-01)',
+    category: 'Saus Spesial Ayoli',
     estimatedTime: '3 Menit',
     targetMinutes: 3,
     criticalPoints: [
-      'Saus Ayoli (Garlic Aioli) wajib diaduk cepat menggunakan garpu sebelum disendok (emulsi stabil).',
-      'Tuangkan saus ayoli meliuk zig-zag rapi di atas ayam geprek bumbu sambal.',
-      'Garnish taburan daun peterseli kering cincang halus untuk daya tarik visual modern.',
-      'Rasa dominan bawang putih lembut wangi tanpa rasa kecut berlebih.'
+      'Geprek ayam dengan sambal di cobek -> Pindahkan ke piring atau box.',
+      'Siapkan 1 cup Saus Ayoli (campuran chili oil & mayones gurih) yang SUDAH DIADUK RATA MENGGUNAKAN GARPU.',
+      'Tuangkan saus ayoli di atas ayam secara merata (atau sajikan terpisah dalam cup jika diminta kasir).',
+      'Wajib disertai 2 slice timun segar.'
     ],
-    equipment: ['Botol Squeeze Saus Ayoli / Sendok Solet', 'Garpu Pengaduk Stainless', 'Garnish Shaker Herb'],
-    keySpec: 'Warna putih kekuningan satin, tekstur kental lembut tidak pecah minyak, aroma bawang harum',
-    dineInStandard: 'Piring melamin putih bistro, garnish daun peterseli hijau segar.',
-    takeAwayStandard: 'Box Bento dengan saus ayoli zig-zag rapi atau cup mini 35ml terpisah.'
+    equipment: ['Garpu Pengaduk Stainless', 'Cup Saus Ayoli 35ml', 'Piring Saji / Box HARA'],
+    keySpec: 'Saus ayoli emulsi sempurna diaduk garpu (tidak pecah minyak), warna krem oranye satin, 2 slice timun',
+    dineInStandard: 'Piring melamin putih bersih dengan siraman saus ayoli estetik.',
+    takeAwayStandard: 'Box bento atau cup ayoli terpisah bertutup rapat.'
   },
   {
     id: 'b2-geprek-krisbar',
-    name: 'Ayam Geprek Krisbar (Krispi Bakar)',
-    category: 'Signature Bakar Griddle',
+    name: 'Ayam Geprek Krisbar (Krispi Bakar 2x Celup)',
+    category: 'Signature Bakar Grill',
     estimatedTime: '5 Menit',
     targetMinutes: 5,
     criticalPoints: [
-      'Ayam krispi dioles saus BBQ bakar racikan HARA di kedua sisinya menggunakan kuas silikon.',
-      'Panggang di atas griddle / wajan bakar panas 180°C selama 1.5 menit tiap sisi.',
-      'Bentuk grill mark karamel cantik tanpa menghanguskan lapisan tepung tepung krispi.',
-      'Aroma asap bakar legit menyatu dengan kriuk ayam yang tetap renyah.'
+      'Celup ayam krispi ke bumbu krisbar gurih manis di mangkok celup.',
+      'Bakar di grill pan / wajan bakar panas selama 1.5 menit.',
+      'WAJIB CELUP KE-2 KALI ke bumbu krisbar (wajib 2x pencelupan agar bumbu meresap legit).',
+      'Bakar kembali di grill pan hingga terbentuk karamelisasi cantik.',
+      'Geprek ayam dengan sambal bawang di cobek + 2 slice timun segar.'
     ],
-    equipment: ['Wajan Griddle Plat Datar / Grill Pan', 'Kuas Silikon Oles Saus', 'Capitan Stainless Griddle'],
-    keySpec: 'Lapisan saus karamel mengkilap dengan aroma bakaran smokey manis gurih',
-    dineInStandard: 'Piring saji bakar berhias 2 iris mentimun dan sambal bakar pendamping.',
-    takeAwayStandard: 'Kertas bungkus anti-lengket khusus grill + paper box tebal.'
+    equipment: ['Grill Pan / Wajan Bakar', 'Mangkok Celup Bumbu Krisbar', 'Capitan Stainless Griddle'],
+    keySpec: 'Karamel bakaran smokey legit meresap 2x celup, kulit tetap renyah, 2 slice timun',
+    dineInStandard: 'Piring ceper saji bakar berhias 2 iris mentimun segar.',
+    takeAwayStandard: 'Paper box tebal beralas kertas anti-lengket khusus grill.'
   },
   {
     id: 'b2-hot-nashville',
     name: 'Hot Nashville Chicken HARA',
-    category: 'Varian Pedas Internasional',
+    category: 'Varian Pedas Rempah',
     estimatedTime: '4 Menit',
     targetMinutes: 4,
     criticalPoints: [
-      'Celup kilat ayam krispi panas ke dalam minyak bumbu Nashville (paprika bubuk, cayenne, brown sugar).',
-      'Tiriskan minyak celup 10 detik agar lapisan bumbu menempel pekat tanpa menetes becek.',
-      'Wajib disajikan bersama 2 slice pickle mentimun asam segar sebagai penyeimbang rasa pedas.',
-      'Warna merah membara merata menandakan pencelupan bumbu yang sempurna.'
+      'Aduk rata bumbu minyak rempah Nashville sesuai pilihan level (Biru Lv1, Kuning Lv2, Merah Lv3).',
+      'Rendam ayam krispi panas selama tepat 1 menit di dalam 30 gr bumbu minyak pedas.',
+      'Tiriskan minyak celup sejenak (10 detik) agar tidak becek berlebih.',
+      'Letakkan di piring saji atau box yang BERALAS 1 LEMBAR PLASTIK NASHVILLE KHUSUS.',
+      'Taburi tepat 1 gr boncabe di atas permukaan ayam.'
     ],
-    equipment: ['Baskom Stainless Celup Nashville', 'Penjepit Ayam Khusus Minyak Pedas', 'Rak Tiris Kawat'],
-    keySpec: 'Warna merah bata membara memikat, pedas rempah menusuk dengan sensasi hangat manis',
-    dineInStandard: 'Piring ceper modern putih dengan alas kertas roti kraft cokelat bertema Nashville.',
-    takeAwayStandard: 'Paper bag khusus berpori atau burger box tebal dengan penanda stiker Level Pedas.'
+    equipment: ['Baskom Celup Minyak Nashville', 'Penjepit Stainless', 'Plastik Khusus Nashville', 'Timbangan 1 gr Boncabe'],
+    keySpec: 'Warna merah bata pedas menyengat, alas 1 lembar plastik Nashville wajib, taburan 1g boncabe',
+    dineInStandard: 'Piring ceper putih beralas 1 lembar plastik Nashville higienis.',
+    takeAwayStandard: 'Box take-away beralas 1 lembar plastik Nashville dengan stiker Level Pedas.'
   },
   {
     id: 'b2-krisbar-krispi',
-    name: 'Krisbar Krispi Tanpa Geprek',
-    category: 'Varian Bakar Signature',
+    name: 'Krisbar Krispi Utuh (Tanpa Geprek)',
+    category: 'Signature Bakar Utuh',
     estimatedTime: '4 Menit',
     targetMinutes: 4,
     criticalPoints: [
-      'Ayam krispi utuh tanpa digeprek dioles saus bakar smokey HARA merata.',
-      'Dipanggang kilat untuk mengunci karamelisasi saus tanpa membuat kulit lembek.',
-      'Menjaga kerenyahan kulit luar 100% utuh kriuk.'
+      'Ayam krispi utuh tanpa digeprek dicelupkan ke bumbu krisbar.',
+      'Bakar di grill pan -> Celup ke-2 kali ke bumbu krisbar -> Bakar kembali hingga mengkilap.',
+      'Kerenyahan kulit luar terjaga 100% utuh tanpa retak remuk tulang + 2 slice timun.'
     ],
-    equipment: ['Griddle Gas Commercial', 'Kuas Silikon Bersih', 'Capitan Plat Lebar'],
-    keySpec: 'Bentuk ayam utuh cantik berlapis glaze mengkilap, kriuk maksimal dengan aroma grill',
-    dineInStandard: 'Piring saji melamin hitam kontras dengan warna emas karamel ayam.',
-    takeAwayStandard: 'Paper box HARA higienis dengan ventilasi udara terjaga.'
+    equipment: ['Grill Pan Gas', 'Mangkok Celup Bumbu', 'Capitan Stainless Lebar'],
+    keySpec: 'Glaze karamel berkilau 2x celup, ayam utuh montok krispi tanpa retakan',
+    dineInStandard: 'Piring melamin ceper saji bakar bersama lalapan 2 slice timun.',
+    takeAwayStandard: 'Paper box higienis beralas kertas roti anti-lengket.'
   },
   {
     id: 'b2-mentai-krispi',
-    name: 'Mentai Krispi Utuh',
-    category: 'Saus Spesial RnD',
+    name: 'Mentai Krispi Utuh (Tanpa Geprek)',
+    category: 'Saus Spesial Utuh',
     estimatedTime: '4 Menit',
     targetMinutes: 4,
     criticalPoints: [
-      'Ayam krispi utuh tanpa geprek diselimuti saus mentai kental 2 solet penuh.',
-      'Torching presisi pada puncak kontur tepung krispi hingga melepuh wangi.',
-      'Taburan nori flakes (rumput laut kering) tipis di atas saus bakar.'
+      'Ayam krispi utuh ditaruh di atas cobek (tanpa digeprek).',
+      'Beri Saus Mentai standar 2 solet penuh menutupi lekuk tepung krispi.',
+      'Bakar saus menggunakan Gas Torch secara merata hingga kecokelatan aromatik.',
+      'Pindahkan menggunakan 2 SOLET ke piring atau box + 2 slice timun.'
     ],
-    equipment: ['Gas Blow Torch Dapur', 'Solet Silikon', 'Shaker Nori Flakes'],
-    keySpec: 'Aroma torch khas bistro Jepang dipadu kriuk ayam khas HARA, taburan nori rapi',
-    dineInStandard: 'Piring keramik modern atau piring melamin oval berlogo resmi.',
-    takeAwayStandard: 'Bowl eksklusif bertutup cembung bening agar saus mentai tidak tersentuh tutup.'
+    equipment: ['Gas Blow Torch', '2 Solet Silikon', 'Piring Saji / Box'],
+    keySpec: 'Lapisan mentai karamel smokey melekat di atas ayam utuh, dipindahkan aman pakai 2 solet',
+    dineInStandard: 'Piring saji oval putih bersih dengan garnish 2 slice timun.',
+    takeAwayStandard: 'Box cembung bersegel QC rapi anti-rusak saus.'
   },
   {
     id: 'b2-ayoli-krispi',
-    name: 'Ayoli Krispi Utuh',
-    category: 'Saus Spesial RnD',
+    name: 'Ayoli Krispi Utuh (Tanpa Geprek)',
+    category: 'Saus Spesial Utuh',
     estimatedTime: '3 Menit',
     targetMinutes: 3,
     criticalPoints: [
-      'Ayam krispi utuh dilapisi saus garlic ayoli gurih lembut dengan pola zigzag presisi.',
-      'Garnish biji wijen sangrai renyah dan peterseli cincang di atasnya.',
-      'Menampilkan kontras warna antara ayam golden brown dan saus krem putih satin.'
+      'Ayam krispi utuh ditata di piring atau box take-away.',
+      'Siapkan 1 cup Saus Ayoli yang sudah diaduk rata dengan GARPU.',
+      'Tuangkan saus ayoli di atas ayam krispi utuh + 2 slice timun segar.'
     ],
-    equipment: ['Botol Squeeze Saus Ayoli', 'Shaker Wijen Sangrai', 'Piring Assembly'],
-    keySpec: 'Visual premium modern bistro, tekstur crunchy ayam berpadu creamy saus bawang',
-    dineInStandard: 'Piring ceper modern putih dengan hiasan garnish daun selada dan tomat cherry mini.',
-    takeAwayStandard: 'Bento Box HARA dengan tutup transparan anti-embun.'
+    equipment: ['Garpu Pengaduk Stainless', 'Cup Saus Ayoli', 'Piring / Box'],
+    keySpec: 'Visual modern elegan, saus ayoli lembut tercampur garpu sempurna tanpa pisah minyak',
+    dineInStandard: 'Piring bistro modern putih dengan lalapan timun segar.',
+    takeAwayStandard: 'Bento box take-away bersegel stiker QC.'
   }
 ];
 
 // ----------------------------------------------------------------------------
-// DAY 2 - BATCH 3 (Kulit Crispy & Varian Minuman Segar Lengkap)
+// BATCH 3: MENU EXTRA & MINUMAN RESMI HARA SESUAI HC-SOP-11-PKP (DAY 2)
 // ----------------------------------------------------------------------------
 export const BATCH_3_PRODUCTS: ProductSOPItem[] = [
   {
-    id: 'b3-kulit-crispy',
-    name: 'Kulit Crispy HARA (Garing Gurih)',
-    category: 'Side Dish Primadona',
+    id: 'b3-kulit-krispi',
+    name: 'Kulit Krispi HARA (50g Mentah -> 60g Matang)',
+    category: 'Menu Extra Primadona',
+    estimatedTime: '15 Menit',
+    targetMinutes: 15,
+    criticalPoints: [
+      'Timbang berat mentah kulit ayam tepat 50 gr per porsi.',
+      'Lakukan penepungan 2x (tepung basah -> celup -> tepung kering berbutir halus).',
+      'Goreng di deep fryer pada suhu 150°C selama tepat 12 menit.',
+      'Timbang berat matang akhir: Standar hasil matang krispi adalah 60 gr per porsi.',
+      'Tiriskan minyak hingga kering sebelum disajikan.'
+    ],
+    equipment: ['Deep Fryer 150°C', 'Keranjang Halus Kulit', 'Timbangan Digital Presisi (50g -> 60g)', 'Kertas Tiris'],
+    keySpec: 'Super renyah meletup, warna kuning keemasan, berat matang presisi 60 gr',
+    dineInStandard: 'Mangkuk melamin merah HARA beralas kertas minyak bercap resmi.',
+    takeAwayStandard: 'Kantong kraft tahan minyak berventilasi udara agar tidak melempem.'
+  },
+  {
+    id: 'b3-tempe-tahu',
+    name: 'Tempe Krispi & Tahu Krispi (1 Porsi = 4 Pcs)',
+    category: 'Menu Extra Nabati',
     estimatedTime: '12 Menit',
     targetMinutes: 12,
     criticalPoints: [
-      'Bersihkan sisa lemak bawah kulit hingga bersih kesat (mencegah rasa eneg & lembek).',
-      'Potong seragam ukuran 3 x 3 cm (timbang porsi prep 80g per saji).',
-      'Balut tepung bumbu tipis berbutir; dilarang menggumpal seperti adonan bakwan.',
-      'Goreng di minyak 175°C selama 7 - 8 menit hingga kuning keemasan garing, tiriskan miring.'
+      '1 porsi saji berisi 4 pcs tempe atau tahu potong rapi.',
+      'Rendam di Air Marinasi Extra (2 siung bawang putih uleg + 75 gr mix garam + 1 Liter air) selama 10 menit.',
+      'Lakukan penepungan 2x secara merata.',
+      'Goreng di deep fryer pada suhu 150°C selama tepat 5 menit.',
+      'Tiriskan dengan posisi miring agar minyak tuntas.'
     ],
-    equipment: ['Deep Fryer 175°C', 'Keranjang Kawat Halus', 'Talenan Putih & Pisau Stainless', 'Kertas Tiris Minyak'],
-    keySpec: 'Warna golden yellow, renyah meletup saat digigit, tidak ada rasa lemak basah',
-    dineInStandard: 'Mangkuk melamin merah HARA beralas kertas minyak bercap logo resmi.',
-    takeAwayStandard: 'Standing pouch kraft berventilasi udara rapat klip agar tetap renyah.'
+    equipment: ['Deep Fryer 150°C', 'Baskom Air Marinasi Extra', 'Serok Stainless'],
+    keySpec: 'Kulit luar garing kriuk, bagian dalam tahu/tempe gurih berbumbu bawang meresap',
+    dineInStandard: 'Piring melamin merah disusun rapi 4 pcs mendampingi sambal.',
+    takeAwayStandard: 'Paper bag tahan minyak berlabel stiker Tahu/Tempe Krispi.'
   },
   {
-    id: 'b3-kulit-geprek',
-    name: 'Kulit Geprek Sambal Bawang',
-    category: 'Varian Pedas Krispi',
-    estimatedTime: '4 Menit',
-    targetMinutes: 4,
+    id: 'b3-jamur-enoki',
+    name: 'Jamur Enoki Krispi (1 Bungkus = 2 Porsi @ 50g)',
+    category: 'Menu Extra Sayuran',
+    estimatedTime: '6 Menit',
+    targetMinutes: 6,
     criticalPoints: [
-      'Kulit crispy digeprek 1 ketukan ringan (jangan dihancurkan sampai remuk tepung).',
-      'Oleskan 30g sambal bawang matang siram minyak panas merata di atas hamparan kulit.',
-      'Sajikan cepat maksimal 3 menit setelah digeprek agar kerenyahan kulit tidak layu minyak.'
+      '1 bungkus jamur enoki (100 gr) dibagi menjadi 2 porsi saji (@ 50 gr).',
+      'Pipihkan jamur hingga mekar seperti kipas lebar.',
+      'Lakukan penepungan 2x tipis merata ke sela-sela batang jamur.',
+      'Goreng di minyak suhu 150°C selama tepat 3 menit hingga kaku renyah.',
+      'Tiriskan, lalu taburi 2.5 gr bumbu kentang gurih.'
     ],
-    equipment: ['Cobek Tradisional Batu', 'Sendok Sambal 30g Terkalibrasi', 'Capitan Stainless'],
-    keySpec: 'Renyah rekah bercampur pedasnya cabai rawit bawang gurih',
-    dineInStandard: 'Cobek batu saji beralas piring kecil dan garnish 2 iris mentimun segar.',
-    takeAwayStandard: 'Paper box berventilasi udara dengan sambal bawang di cup terpisah atau dibalur langsung.'
+    equipment: ['Deep Fryer 150°C', 'Sendok Tabur Bumbu 2.5 gr', 'Kertas Tiris'],
+    keySpec: 'Bentuk mekar kipas cantik, garing renyah tidak berminyak, gurih bumbu kentang 2.5g',
+    dineInStandard: 'Piring ceper melamin putih beralas kertas roti HARA.',
+    takeAwayStandard: 'Standing pouch kraft berventilasi udara.'
   },
   {
-    id: 'b3-es-teh-jumbo',
-    name: 'Es Teh Manis Jumbo (Signature 22 oz)',
-    category: 'Minuman Segar Signature',
+    id: 'b3-kol-goreng',
+    name: 'Kol Goreng (1 Porsi = 200 gr)',
+    category: 'Menu Extra Sayuran',
     estimatedTime: '3 Menit',
     targetMinutes: 3,
     criticalPoints: [
-      'Tuang biang teh kental 150ml hasil ekstraksi standar 10 menit.',
-      'Tambahkan sirup gula tebu cair terkalibrasi 40ml (standar manis 12° Brix).',
-      'Isi es batu kristal higienis hingga 80% volume cup 22 oz.',
-      'Kocok / aduk memutar 5 kali hingga cairan tercampur dingin merata.'
+      'Timbang potongan kol segar bersih tepat 200 gr per porsi.',
+      'Buang bagian tangkai keras di tengah kol.',
+      'Goreng di deep fryer pada suhu 150°C selama tepat 1.5 menit (90 detik).',
+      'Angkat dan tiriskan cepat agar warna tetap karamel keemasan dan tidak hangus kehitaman.'
     ],
-    equipment: ['Gelas Ukur Kalibrasi 100ml & 50ml', 'Cup Sealer Mesin Press 22 oz', 'Sendok Es Batu Stainless'],
-    keySpec: 'Dingin menyegarkan, manis seimbang tanpa rasa pahit sepat pekat berlebih',
-    dineInStandard: 'Gelas akrilik transparan 22 oz tebal bertangkai dengan sedotan higienis.',
-    takeAwayStandard: 'Cup 22 oz di-press mesin Cup Sealer rapat anti-bocor + sedotan berbungkus kertas.'
+    equipment: ['Deep Fryer 150°C', 'Serok Kawat Halus', 'Timbangan Sayur 200g'],
+    keySpec: 'Karamel manis alami menggoda, renyah layu tidak berminyak basah, tidak gosong',
+    dineInStandard: 'Mangkuk melamin kecil atau mendampingi ayam geprek di piring.',
+    takeAwayStandard: 'Paper box kecil beralas kertas anti-minyak.'
   },
   {
-    id: 'b3-lemon-tea',
-    name: 'Lemon Tea Segar Alami HARA',
-    category: 'Minuman Buah Segar',
-    estimatedTime: '4 Menit',
-    targetMinutes: 4,
+    id: 'b3-kentang-goreng',
+    name: 'Kentang Goreng (1 Pack 2kg = 20 Porsi @ 100g)',
+    category: 'Menu Extra Karbohidrat',
+    estimatedTime: '8 Menit',
+    targetMinutes: 8,
     criticalPoints: [
-      'Biang teh melati 120ml + sari lemon asli 15ml (gunakan sendok takar 15ml kalibrasi).',
-      'Tambahkan gula cair 45ml + air mineral dingin 30ml.',
-      'Beri 1 irisan slice lemon segar tebal 3mm di permukaan es sebagai garnish visual wangi.',
-      'Rasa seimbang antara asam buah segar dan manis aromatik teh.'
+      '1 kemasan pack kentang beku (2 kg) distandarkan untuk 20 porsi saji (@ 100 gr).',
+      'Goreng di 500 ml minyak panas selama 5 menit hingga renyah keemasan.',
+      'Tiriskan minyak hingga tuntas.',
+      'Taburi 2.5 gr bumbu kentang gurih resmi HARA di dalam wadah kocok.'
     ],
-    equipment: ['Sendok Takar 15ml Kalibrasi', 'Pisau Buah & Talenan Kuning', 'Gelas Shaker Minuman'],
-    keySpec: 'Warna kuning madu cerah, aroma citrus semerbak, asam manis menyegarkan dahaga',
-    dineInStandard: 'Gelas kaca transparan tinggi dengan garnish slice lemon di bibir gelas.',
-    takeAwayStandard: 'Cup Sealer 16 oz / 22 oz berstiker varian Lemon Tea.'
+    equipment: ['Penggorengan Kentang', 'Wadah Kocok Bumbu', 'Sendok Takar 2.5 gr Bumbu Kentang'],
+    keySpec: 'Kentang lurus garing di luar dan lembut di dalam, taburan bumbu 2.5g merata',
+    dineInStandard: 'Keranjang kawat saji beralas kertas roti atau piring ceper.',
+    takeAwayStandard: 'Paper bag khusus kentang goreng bertutup lipat.'
   },
   {
-    id: 'b3-milk-tea-milo',
-    name: 'Varian Milk Tea / Milo HARA Shake',
-    category: 'Minuman Creamy Shake',
-    estimatedTime: '5 Menit',
-    targetMinutes: 5,
+    id: 'b3-es-jeruk',
+    name: 'Es Jeruk Segar (Resep 40 Cup)',
+    category: 'Minuman Bar Resmi',
+    estimatedTime: '15 Menit',
+    targetMinutes: 15,
     criticalPoints: [
-      'Larutkan premix bubuk resmi 30g menggunakan air panas 60ml dalam gelas shaker.',
-      'Aduk cepat hingga serbuk larut sempurna bebas gumpalan.',
-      'Tambahkan 20ml kental manis + 30ml susu evaporasi creamy + es kristal.',
-      'Kocok (shake) dengan shaker stainless selama 10 detik hingga berbusa lembut (frothy).'
+      'Takaran bahan resmi: Knorr Lime Powder 8 sdm (120 gr) + 1 kg gula pasir.',
+      'Larutkan dengan 4 Liter air mendidih, aduk rata hingga seluruh serbuk larut sempurna.',
+      'Tambahkan 4 Liter air matang galon dingin, aduk memutar.',
+      'Penyajian per cup: 200 ml larutan es jeruk di cup 14 oz + es batu kristal higienis.'
     ],
-    equipment: ['Shaker Stainless 500ml', 'Sendok Aduk Spiral Panjang', 'Gelas Ukur Takar Susu'],
-    keySpec: 'Busa creamy di permukaan, rasa manis gurih cokelat/milk tea lembut tidak encer',
-    dineInStandard: 'Gelas shaker saji dingin dengan taburan serbuk cokelat tipis di atas busa.',
-    takeAwayStandard: 'Cup Sealer tebal berlabel varian rasa + sedotan besar ramah boba/shake.'
+    equipment: ['Gelas Ukur Kalibrasi', 'Sendok Takar 8 sdm', 'Jumbo Dispenser Jeruk', 'Mesin Cup Sealer 160°C'],
+    keySpec: 'Asam manis jeruk segar seimbang, aroma citrus alami harum, warna oranye jernih',
+    dineInStandard: 'Gelas akrilik transparan 14 oz dengan es kristal dingin.',
+    takeAwayStandard: 'Cup 14 oz di-press Cup Sealer 160°C rapat anti-bocor.'
   },
   {
-    id: 'b3-kopi-aren',
-    name: 'Kopi Susu Gula Aren HARA',
-    category: 'Signature Coffee Drink',
-    estimatedTime: '4 Menit',
-    targetMinutes: 4,
+    id: 'b3-es-lemon-tea',
+    name: 'Es Lemon Tea (Resep 40 Cup)',
+    category: 'Minuman Bar Resmi',
+    estimatedTime: '25 Menit',
+    targetMinutes: 25,
     criticalPoints: [
-      'Lapisan 1: Sirup gula aren organik cair 25ml di dasar gelas.',
-      'Lapisan 2: Masukkan es batu kristal hingga 70% penuh, lalu tuang 120ml Fresh Milk dingin perlahan.',
-      'Lapisan 3: Tuangkan 1 shot konsentrat kopi robusta-arabica blend HARA (30ml) di atas susu (membentuk 3 layer estetik).',
-      'Aroma kopi wangi karamel, rasa gurih creamy tidak kemanisan.'
+      'Komposisi resmi: Teh HARA 40 gr + 1 kg gula pasir + Knorr Lime Powder 4 sdm (60 gr).',
+      'Seduh dengan 4 Liter air mendidih, tutup rapat dan diamkan selama 20 menit.',
+      'Saring menggunakan saringan halus ke wadah Jumbo dispenser.',
+      'Tambahkan 4 Liter air matang dingin.',
+      'Penyajian: 200 ml di cup 14 oz + es batu kristal higienis.'
     ],
-    equipment: ['Gelas Ukur Kopi Espresso', 'Jigger Sirup Aren 25ml', 'Sendok Layering Stainless'],
-    keySpec: 'Gradasi 3 layer warna: cokelat pekat kopi di atas, putih susu di tengah, cokelat tua aren di dasar',
-    dineInStandard: 'Gelas kaca bening tanpa sedotan (disajikan dengan coaster kayu estetik HARA).',
-    takeAwayStandard: 'Cup transparan 16 oz dengan tutup dome atau sealer bening memperlihatkan layer.'
-  }
-];
-
-// ----------------------------------------------------------------------------
-// DAY 2 - BATCH 4 (Speed Assembly Combo, Bento Box & Closing Sanitasi)
-// ----------------------------------------------------------------------------
-export const BATCH_4_PRODUCTS: ProductSOPItem[] = [
-  {
-    id: 'b4-bento-takeaway',
-    name: 'Assembly Bento Box Combo Take-Away',
-    category: 'Packaging & Platting Combo',
-    estimatedTime: '3 Menit',
-    targetMinutes: 3,
-    criticalPoints: [
-      'Kompartemen 1: Nasi pulen timbang tepat 170g dicetak rapi persegi/bulat beralas daun pisang imitasi.',
-      'Kompartemen 2: 1 potong Ayam Geprek / Mentai dengan saus rapi tidak mencoreng tepi sekat.',
-      'Kompartemen 3: Scramble egg lembut (fluffy) berdampingan dengan spinach crispy.',
-      'Kompartemen 4: 2 slice timun miring 45° + cup sambal tertutup rapat klip.',
-      'Tutup bento box rapat klik di 4 sudut, tempelkan stiker segel QC HARA & label jam saji.'
-    ],
-    equipment: ['Bento Box 4 Kompartemen Food Grade', 'Timbangan Gramatur 170g', 'Stiker Segel QC HARA'],
-    keySpec: 'Penataan bersih 100% higienis, tidak ada cipratan saus di dinding bento, segel tertutup kencang',
-    dineInStandard: 'Dapat disajikan sebagai Paket Bento Lunch Box Meja Dine-In.',
-    takeAwayStandard: 'Standar baku take-away & pesanan online (GrabFood/GoFood/ShopeeFood).'
+    equipment: ['Panci Seduh Teh', 'Saringan Kain Halus', 'Jumbo Dispenser Lemon Tea', 'Cup Sealer 160°C'],
+    keySpec: 'Perpaduan wangi teh melati dan segarnya lemon alami, manis seimbang',
+    dineInStandard: 'Gelas akrilik 14 oz dengan es kristal menyegarkan.',
+    takeAwayStandard: 'Cup 14 oz di-press Cup Sealer suhu 160°C rapat anti-bocor.'
   },
   {
-    id: 'b4-paper-bowl',
-    name: 'Assembly Paper Bowl Rice & Chicken Hot',
-    category: 'Packaging Bowl Praktis',
-    estimatedTime: '3 Menit',
-    targetMinutes: 3,
-    criticalPoints: [
-      'Dasar mangkuk: Nasi pulen hangat 170g diratakan perlahan dengan centong.',
-      'Topping: Daging ayam suwir / geprek dadu crispy disebar menutupi 70% permukaan nasi.',
-      'Tuang saus ayoli/mentai zig-zag estetik + taburan wijen sangrai dan daun peterseli.',
-      'Pasang tutup cembung bening berlubang ventilasi uap; tutup rapat hingga berbunyi "klik".'
-    ],
-    equipment: ['Paper Bowl 650ml / 800ml Food Grade', 'Tutup Cembung Bening', 'Stiker Segel Higienis'],
-    keySpec: 'Tampilan bowl warna-warni menarik dari atas tutup cembung, hangat mengepul',
-    dineInStandard: 'Paper bowl beralas nampan kayu kecil ramah lingkungan.',
-    takeAwayStandard: 'Paper bowl dimasukkan kantong plastik kantong spunbond bersama sendok garpu kemas steril.'
-  },
-  {
-    id: 'b4-dinein-platter',
-    name: 'Platting Dine-In Platter Meja Resto',
-    category: 'Standar Platting Restoran',
-    estimatedTime: '2 Menit',
-    targetMinutes: 2,
-    criticalPoints: [
-      'Piring ceper melamin merah/hitam HARA wajib bersih kering tanpa bekas jari atau tetesan air.',
-      'Nasi dicetak bulat padat di sisi kiri piring (170g).',
-      'Ayam geprek/mentai diletakkan miring bersandar estetik di samping nasi.',
-      'Garnish timun dan spinach diletakkan di sisi kanan atas piring.',
-      'Tepi piring wajib dilap bersih menggunakan Kanebo / lap khusus piring bersih.'
-    ],
-    equipment: ['Piring Melamin Ceper Berlogo HARA', 'Kanebo Khusus Piring Bersih', 'Capitan Stainless Saji'],
-    keySpec: 'Presentasi bersih ala bistro modern, kontras warna menggugah selera makan tamu',
-    dineInStandard: 'Standar resmi saji Dine-In di seluruh outlet HARA Chicken.',
-    takeAwayStandard: 'Bukan untuk take-away (khusus santap di tempat).'
-  },
-  {
-    id: 'b4-speed-rush-hour',
-    name: 'Simulasi Rush Hour 5 Pesanan Cepat',
-    category: 'Kecepatan & Kolaborasi Tim',
+    id: 'b3-orange',
+    name: 'Orange Segar (Resep 10 Cup)',
+    category: 'Minuman Bar Resmi',
     estimatedTime: '10 Menit',
     targetMinutes: 10,
     criticalPoints: [
-      'Selesaikan 5 tiket pesanan simulasi serentak (3 Dine-In, 2 Take-Away) dalam waktu maksimal 10 menit.',
-      'Komunikasi lantang dan jelas antara Kasir, Kitchen Fryer, Assembly, dan Runner.',
-      'Ketepatan isi pesanan 100% tanpa salah sambal / salah saus / salah minum.',
-      'Waktu saji per tiket (ticket time) wajib di bawah 3 menit per paket.'
+      '1 resep serbuk bubuk Orange resmi HARA.',
+      'Larutkan dengan 1 Liter air mendidih, aduk hingga serbuk larut bebas gumpalan.',
+      'Tambahkan 1 Liter air galon matang, aduk merata.',
+      'Penyajian: 200 ml di cup 14 oz + es batu kristal.'
     ],
-    equipment: ['Display Tiket Pesanan Mockup', 'Timer Countdown 10 Menit', 'Meja Pass-Thru Assembly'],
-    keySpec: 'Ketepatan tiket 100%, kecepatan saji < 3 menit per menu, ketenangan ritme kerja dapur',
-    dineInStandard: 'Nampan saji terorganisir rapi siap diantarkan ke meja tamu.',
-    takeAwayStandard: 'Kantong pesanan online bersegel rapi dengan struk terlampir.'
-  },
-  {
-    id: 'b4-closing-sanitasi',
-    name: 'Audit Closing, Sanitasi & 4 Lap Warna HARA',
-    category: 'Higiene & Penutupan Dapur',
-    estimatedTime: '20 Menit',
-    targetMinutes: 20,
-    criticalPoints: [
-      'Pemisahan sisa matang: Dilarang simpan ayam matang/terong/sup untuk dijual besok (HC-SOP-11-PKP Hal 15).',
-      'Bahan boleh disimpan: Sambal, saus mentai, spinach, sirup teh (simpan chiller tertutup label FIFO).',
-      'Pembersihan 4 Lap Resmi: Kanebo untuk piring, Lap Orange untuk meja, Lap Basah untuk lantai/grease, Lap Kering untuk tangan.',
-      'Suhu Chiller dipastikan stabil 1°C - 4°C, Deep Fryer dimatikan dan ditutup penutup stainless.'
-    ],
-    equipment: ['4 Jenis Lap Warna HARA', 'Thermometer Digital Chiller', 'Cairan Sanitizer Food Grade'],
-    keySpec: 'Dapur steril 100%, peralatan kering rapi pada rak, inventaris tercatat akurat',
-    dineInStandard: 'Ruang makan & meja tamu kinclong bebas noda minyak atau remah makanan.',
-    takeAwayStandard: 'Area meja kasir & packing take-away tersusun rapi untuk shift esok hari.'
+    equipment: ['Teko Ukur 2L', 'Pengaduk Spiral', 'Cup Sealer 160°C'],
+    keySpec: 'Rasa manis buah jeruk segar cerah, warna oranye pekat memikat',
+    dineInStandard: 'Gelas akrilik 14 oz dengan es batu.',
+    takeAwayStandard: 'Cup 14 oz di-press Cup Sealer rapat.'
   }
 ];
 
 // ============================================================================
-// KOMPONEN UTAMA SIMULASI PRAKTIK BATCH 1 & BATCH 2 (RnD)
+// KOMPONEN UTAMA SIMULASI PRAKTIK BATCH 1, 2 & 3 (RnD HARA CHICKEN)
 // ============================================================================
 
 export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> = ({
   selectedOutletCode = 'ALL'
 }) => {
-  // Navigation Sub-Section: methods, rundown, generator, scoring
-  const [subSection, setSubSection] = useState<'methods' | 'rundown' | 'generator' | 'scoring'>('methods');
-
-  // Day Selection: Day 1 (Fondasi & Geprek) vs Day 2 (Kulit, Minuman & Assembly)
+  // Navigation Sub-Section: 'koreografi' | 'methods' | 'rundown' | 'generator' | 'scoring'
+  const [subSection, setSubSection] = useState<'koreografi' | 'methods' | 'rundown' | 'generator' | 'scoring'>('koreografi');
   const [selectedDay, setSelectedDay] = useState<'day1' | 'day2'>('day1');
 
-  // --------------------------------------------------------------------------
-  // STATE BAGIAN 1: RUNDOWN & TIMER
-  // --------------------------------------------------------------------------
-  const [activeRundownIndex, setActiveRundownIndex] = useState<number>(0);
-  const [timerSeconds, setTimerSeconds] = useState<number>(3600); // 60 menit default
+  // Timer Countdown
+  const [timerSeconds, setTimerSeconds] = useState<number>(3600);
   const [isTimerRunning, setIsTimerRunning] = useState<boolean>(false);
+  const [activeRundownIndex, setActiveRundownIndex] = useState<number>(0);
   const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
@@ -625,7 +588,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
     return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
   };
 
-  // Jadwal Rundown Hari 1
+  // Rundown Schedules
   const RUNDOWN_DAY_1 = [
     {
       id: 'd1-s1',
@@ -633,8 +596,8 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       duration: '120 Menit',
       title: 'Materi 4 SOP Inti (Briefing Teori, K3 & HACCP)',
       trainer: 'Lead Field Trainer & SPV Outlet',
-      desc: 'Penyampaian komprehensif 4 fondasi utama: SOP Deep Fryer (175°C/160°C & waktu 12-14 mnt), SOP Beras Miyako (air baku terukur & tanak 15 mnt), SOP Sambal Bawang (ulek kasar & siram minyak panas), serta Kebersihan & 4 Lap Warna HARA (Kanebo, Orange Meja, Basah Kotak-kotak, Kering Kotak-kotak).',
-      deliverables: ['Pemahaman parameter kritis 4 SOP', 'Verifikasi kelengkapan APD kru', 'Pre-test checklist kesiapan'],
+      desc: 'Penyampaian komprehensif 4 fondasi utama: SOP Deep Fryer (175°C kompor / 160°C minyak selama 12 mnt), SOP Nasi Miyako (maks 6:8, tombol kiri baru kanan COOK, tanak 15 mnt), SOP Sambal Bawang (goreng 3-5 mnt, ulek kasar cobek + siram minyak panas), dan 4 Lap Resmi HARA (Kanebo, Orange Meja, Basah Kotak, Kering Kotak).',
+      deliverables: ['Paham parameter kritis 4 SOP', 'Verifikasi APD celemek & hairnet', 'Pre-test checklist kesiapan'],
       badge: 'Teori & Fondasi'
     },
     {
@@ -651,10 +614,10 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       id: 'd1-s3',
       time: '10:30 - 11:30',
       duration: '60 Menit',
-      title: 'Eksekusi Paralel Batch 1 (10 Produk Fondasi Dapur)',
+      title: 'Eksekusi Paralel Batch 1 (10 Produk Dasar Dapur)',
       trainer: 'Seluruh Trainer & Peserta Training (11-17 Kru)',
-      desc: '10 stasiun berjalan serempak secara mandiri: Ayam Utuh, Nasi, Teh Manis, Goreng Ayam Deep Fryer, Sambal Bawang, Sup Ayam, Scramble Egg, Spinach Crispy, Terong Goreng, dan Indomie Racikan HARA.',
-      deliverables: ['10 Produk Fondasi Selesai Tepat Waktu', 'Penerapan Safety & K3 Dapur', 'Akurasi Gramatur Bahan Baku'],
+      desc: '10 stasiun berjalan serempak secara mandiri: Nasi Miyako, Es Teh 40 Cup, Sup Sayur Extra 6L, Goreng Ayam Reguler 160°C, Ayam Utuh AU 150°C, Terong Krispi 150°C, Sambal Bawang 30g, Spinach Bayam 90 dtk, Indomie 2 mnt, dan Scramble Egg.',
+      deliverables: ['10 Produk Fondasi Selesai Tepat Waktu', 'Penerapan K3 Dapur', 'Akurasi Gramatur Bahan'],
       badge: 'Eksekusi Batch 1'
     },
     {
@@ -663,7 +626,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       duration: '30 Menit',
       title: 'Gallery Walk & Quality Control (QC) Meja Pass-Thru',
       trainer: 'Lead Trainer & QC Inspector',
-      desc: 'Seluruh kru berbaris membawa hasil masakan ke Meja Pass-Thru untuk diinspeksi serentak: uji suhu core ayam (\u2265 74°C), audit rasa sambal & sup, kerenyahan bayam & kulit ayam, serta evaluasi gramatur timbangan.',
+      desc: 'Seluruh kru berbaris membawa hasil masakan ke Meja Pass-Thru untuk diinspeksi serentak: uji suhu core ayam (>= 74°C), audit rasa sambal & sup, kerenyahan bayam & terong krispi, serta evaluasi gramatur timbangan.',
       deliverables: ['Uji Suhu Core Thermometer Jarum', 'Sensory Evaluation (Aroma & Rasa)', 'Feedback Langsung Per Peserta'],
       badge: 'QC & Gallery Walk'
     },
@@ -681,9 +644,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       id: 'd1-s6',
       time: '13:20 - 14:20',
       duration: '60 Menit',
-      title: 'Eksekusi Paralel Batch 2 (11 Menu Signature & RnD Assembly)',
+      title: 'Eksekusi Paralel Batch 2 (11 Menu Perakitan Resmi)',
       trainer: 'Lead Trainer & RnD Specialist',
-      desc: 'Perakitan serempak 11 Menu Signature: Nasgor Geprek ORI (SOP-NasGor-02 Nasi 170g + ECO 20g), Geprek ORI, Geprek Keju Parut, Geprek Mentai (torch 2 solet), Geprek Moza (melt torch), Geprek Ayoli (aduk garpu), Geprek Krisbar (griddle smokey), Hot Nashville (oil dip pedas), Krisbar Krispi, Mentai Krispi, dan Ayoli Krispi.',
+      desc: 'Perakitan serempak 11 Menu: Nasgor Geprek ORI (SOP-NasGorTelur-02 Nasi 170g + ECO 20g + Telur Dadar + 2 slice timun), Geprek ORI, Geprek Keju Parut (parut langsung di piring/box), Geprek Mentai (torch & angkat 2 solet), Geprek Moza (torch di cobek), Geprek Ayoli (aduk garpu), Geprek Krisbar (celup 2x bakar 2x), Hot Nashville (rendam 1 mnt + alas plastik Nashville + boncabe 1g), Krisbar Krispi, Mentai Krispi, dan Ayoli Krispi.',
       deliverables: ['11 Menu Signature Siap Saji', 'Teknik Assembly Presisi Cepat', 'Penguasaan Torching & Griddle'],
       badge: 'Eksekusi Batch 2'
     },
@@ -699,46 +662,45 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
     }
   ];
 
-  // Jadwal Rundown Hari 2
   const RUNDOWN_DAY_2 = [
     {
       id: 'd2-s1',
       time: '08:00 - 09:00',
       duration: '60 Menit',
-      title: 'Refreshment Materi Hari 1 & Evaluasi QC Kemarin',
+      title: 'Refreshment Hari 1 & Bedah Kesalahan QC Kemarin',
       trainer: 'Lead Field Trainer & SPV Outlet',
-      desc: 'Bedah hasil penilaian Batch 1 & 2 hari kemarin, review kesalahan umum (suhu minyak tidak stabil, penimbangan nasi < 170g, torching terlalu dekat), dan briefing target pencapaian Hari 2.',
-      deliverables: ['Evaluasi catatan remedial kru', 'Refleksi SOP titik kritis', 'Kesiapan fisik dan mental tim'],
+      desc: 'Evaluasi kesalahan umum Hari 1: penimbangan nasi < 170g, bumbu ECO nasgor tidak ditimbang 20g, keju diparut di cobek (pelanggaran SOP), atau memindahkan mentai tanpa 2 solet.',
+      deliverables: ['Evaluasi catatan remedial', 'Refleksi SOP titik kritis', 'Kesiapan fisik dan mental tim'],
       badge: 'Review & Refreshment'
     },
     {
       id: 'd2-s2',
       time: '09:00 - 09:30',
       duration: '30 Menit',
-      title: 'Briefing Teori SOP Kulit Crispy & Standar Minuman Bar HARA',
+      title: 'Briefing Teori SOP Menu Extra & Standar Bar HARA',
       trainer: 'RnD Specialist & Beverage Trainer',
-      desc: 'Penyampaian SOP penanganan kulit ayam (pembersihan lemak bawah kulit & pemotongan 3x3 cm), kalibrasi mesin Cup Sealer, rasio sirup gula 12° Brix, ekstraksi 100°C, dan sanitasi dispenser.',
-      deliverables: ['Penguasaan SOP Kulit Crispy', 'Kalibrasi Gula & Es Batu', 'Setting Mesin Cup Sealer'],
-      badge: 'Teori Kulit & Bar'
+      desc: 'Penyampaian SOP Kulit Krispi (50g mentah -> 60g matang, deep fryer 150°C 12 mnt), Tempe/Tahu Krispi (Air Marinasi Extra 10 mnt, 150°C 5 mnt), Enoki Krispi (mekar kipas 150°C 3 mnt), Es Jeruk (Knorr lime 8 sdm), dan Es Lemon Tea (Knorr lime 4 sdm).',
+      deliverables: ['Penguasaan SOP Menu Extra', 'Kalibrasi Gula & Es Batu Bar', 'Setting Mesin Cup Sealer 160°C'],
+      badge: 'Teori Menu Extra & Bar'
     },
     {
       id: 'd2-s3',
       time: '09:30 - 10:45',
       duration: '75 Menit',
-      title: 'Eksekusi Paralel Batch 3 (Kulit Crispy & 6 Varian Minuman Segar)',
+      title: 'Eksekusi Paralel Batch 3 (Menu Extra & Minuman Bar Resmi)',
       trainer: 'Trainer Stasiun Bar & Fryer',
-      desc: 'Praktik serentak: Kulit Crispy 175°C (7-8 mnt), Kulit Geprek Sambal Bawang, Es Teh Jumbo 22 oz, Lemon Tea 15ml sari lemon asli, Milk Tea / Milo creamy shake, dan Kopi Susu Gula Aren 3 layer.',
-      deliverables: ['Kulit Crispy Mekar Sempurna', 'Minuman Terkalibrasi Manis & Es', 'Cup Sealer Rapat Tanpa Bocor'],
+      desc: 'Praktik serentak: Kulit Krispi 150°C (12 mnt), Tempe/Tahu Krispi, Enoki Krispi, Kol Goreng 1.5 mnt, Kentang Goreng 5 mnt, Es Jeruk 40 Cup, Es Lemon Tea 40 Cup, dan Orange 10 Cup.',
+      deliverables: ['Kulit Krispi 60g Garing Sempurna', 'Minuman Terkalibrasi Manis & Es', 'Cup Sealer Rapat Tanpa Bocor'],
       badge: 'Eksekusi Batch 3'
     },
     {
       id: 'd2-s4',
       time: '10:45 - 11:30',
       duration: '45 Menit',
-      title: 'Gallery Walk Day 2 & Blind Taste Minuman',
+      title: 'Gallery Walk Day 2 & Sensory Test Minuman Bar',
       trainer: 'Lead Trainer & Kru Peserta',
-      desc: 'Uji kerenyahan kulit crispy di meja pass-thru (suara renyah & tidak berminyak), uji rasa manis minuman (Brix meter / sensory test), dan audit kerapihan sealer cup.',
-      deliverables: ['Audit Kerenyahan Kulit', 'Sensory Test Minuman Bar', 'Feedback Instan Trainer'],
+      desc: 'Uji kerenyahan kulit crispy di meja pass-thru (suara renyah & tidak berminyak), uji rasa asam manis minuman (sensory test), dan audit kerapihan sealer cup.',
+      deliverables: ['Audit Kerenyahan Kulit Krispi', 'Sensory Test Minuman Bar', 'Feedback Instan Trainer'],
       badge: 'QC Minuman & Kulit'
     },
     {
@@ -755,27 +717,17 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       id: 'd2-s6',
       time: '12:45 - 14:00',
       duration: '75 Menit',
-      title: 'Eksekusi Paralel Batch 4 (Speed Assembly Combo Dine-In vs Take-Away)',
-      trainer: 'Lead Trainer & Assembly Specialist',
-      desc: 'Perakitan menu kombo: Bento Box 4 kompartemen (nasi 170g + ayam mentai + telur + bayam + timun), Paper Bowl Rice Chicken Hot, Dine-In Platter melamin, serta simulasi pengemasan rapi tahan tumpah.',
-      deliverables: ['Bento Box Rapi Segel QC', 'Paper Bowl Tutup Klik Cembung', 'Platting Melamin Cantik Bersih'],
-      badge: 'Eksekusi Batch 4'
-    },
-    {
-      id: 'd2-s7',
-      time: '14:00 - 14:45',
-      duration: '45 Menit',
-      title: 'Simulasi Rush Hour Dapur (Speed Order Mockup 10 Menit)',
+      title: 'Simulasi Rush Hour 5 Tiket Pesanan Cepat (< 10 Menit)',
       trainer: 'Ops Manager & SPV Outlet',
-      desc: 'Simulasi dapur nyata berkecepatan tinggi: 5 tiket pesanan online & offline serentak. Uji koordinasi kasir, fryer, geprek, packaging dan runner dengan batas waktu saji di bawah 3 menit per paket.',
-      deliverables: ['5 Tiket Pesanan Selesai < 10 Menit', 'Ticket Time Rata-rata < 3 Menit', 'Kerjasama Tim Solid'],
+      desc: 'Simulasi ritme nyata dapur saat antrean puncak: 5 tiket pesanan online & offline masuk serentak. Uji koordinasi kasir, fryer, geprek, packaging dan runner dengan target ticket time < 3 menit per paket.',
+      deliverables: ['5 Tiket Selesai < 10 Menit', 'Ticket Time Rata-rata < 3 Menit', 'Kerjasama Tim Solid'],
       badge: 'Simulasi Rush Hour'
     },
     {
-      id: 'd2-s8',
-      time: '14:45 - 15:30',
-      duration: '45 Menit',
-      title: 'Closing Sanitasi Dapur, Rekap Skor 4-Indikator & Sertifikasi Kelulusan OJT',
+      id: 'd2-s7',
+      time: '14:00 - 15:30',
+      duration: '90 Menit',
+      title: 'Closing Sanitasi Dapur, Rekapitulasi Skor & Kelulusan OJT',
       trainer: 'Lead Trainer & Manajer Operasional',
       desc: 'Penerapan SOP Closing (pemisahan sisa bahan matang dilarang jual besok vs chiller, lap 4 warna), penghitungan nilai akhir 4 indikator, serta penyerahan sertifikat kelulusan praktik OJT HARA.',
       deliverables: ['Dapur Closing Sempurna', 'Rekapitulasi Nilai Seluruh Kru', 'Sertifikat Kompetensi OJT Terbit'],
@@ -785,11 +737,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
 
   const currentRundown = selectedDay === 'day1' ? RUNDOWN_DAY_1 : RUNDOWN_DAY_2;
 
-  // --------------------------------------------------------------------------
-  // STATE BAGIAN 2: GENERATOR PEMBAGIAN STASIUN OTOMATIS (11-17 KRU)
-  // --------------------------------------------------------------------------
+  // Generator Stasiun
   const [crewCount, setCrewCount] = useState<number>(14);
-  const [activeBatchTab, setActiveBatchTab] = useState<'batch1' | 'batch2' | 'batch3' | 'batch4'>('batch1');
+  const [activeBatchTab, setActiveBatchTab] = useState<'batch1' | 'batch2' | 'batch3'>('batch1');
   const [traineeNames, setTraineeNames] = useState<string[]>([
     'Budi Santoso', 'Siti Rahmawati', 'Rian Hidayat', 'Dewi Lestari',
     'Ahmad Fauzi', 'Nurul Aini', 'Eko Prasetyo', 'Mega Putri',
@@ -797,26 +747,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
     'Fajar Sidiq', 'Tri Wahyuni', 'Agus Setiawan', 'Lia Marlina', 'Hendro Wijaya'
   ]);
 
-  // Load existing trainees from local database if available
-  useEffect(() => {
-    try {
-      const storedTrainees = db.getTable('trainee_outlet');
-      if (storedTrainees && storedTrainees.length >= 5) {
-        const names = storedTrainees.map((t: any) => t.nama_lengkap || t.namaKru || t.name).filter(Boolean);
-        if (names.length >= 11) {
-          setTraineeNames(names.slice(0, 17));
-        }
-      }
-    } catch (e) {
-      // fallback to default
-    }
-  }, []);
-
-  const activeTraineeList = useMemo(() => {
-    return traineeNames.slice(0, crewCount);
-  }, [traineeNames, crewCount]);
-
-  // Algoritma pembagian stasiun otomatis
+  const activeTraineeList = useMemo(() => traineeNames.slice(0, crewCount), [traineeNames, crewCount]);
   const [shuffleSeed, setShuffleSeed] = useState<number>(1);
 
   const getStationAssignments = (products: ProductSOPItem[], seedMultiplier: number) => {
@@ -836,41 +767,33 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
   const assignedStationsBatch1 = useMemo(() => getStationAssignments(BATCH_1_PRODUCTS, 1), [activeTraineeList, shuffleSeed]);
   const assignedStationsBatch2 = useMemo(() => getStationAssignments(BATCH_2_PRODUCTS, 3), [activeTraineeList, shuffleSeed]);
   const assignedStationsBatch3 = useMemo(() => getStationAssignments(BATCH_3_PRODUCTS, 5), [activeTraineeList, shuffleSeed]);
-  const assignedStationsBatch4 = useMemo(() => getStationAssignments(BATCH_4_PRODUCTS, 7), [activeTraineeList, shuffleSeed]);
 
   const currentAssignedStations = useMemo(() => {
     switch (activeBatchTab) {
       case 'batch1': return assignedStationsBatch1;
       case 'batch2': return assignedStationsBatch2;
       case 'batch3': return assignedStationsBatch3;
-      case 'batch4': return assignedStationsBatch4;
       default: return assignedStationsBatch1;
     }
-  }, [activeBatchTab, assignedStationsBatch1, assignedStationsBatch2, assignedStationsBatch3, assignedStationsBatch4]);
+  }, [activeBatchTab, assignedStationsBatch1, assignedStationsBatch2, assignedStationsBatch3]);
 
-  // --------------------------------------------------------------------------
-  // STATE BAGIAN 3: FORM PENILAIAN PRAKTIK CEPAT 4 INDIKATOR
-  // --------------------------------------------------------------------------
+  // Form Penilaian 4 Indikator
   const [selectedTraineeForScoring, setSelectedTraineeForScoring] = useState<string>(activeTraineeList[0] || 'Budi Santoso');
-  const [scoringBatch, setScoringBatch] = useState<'Batch 1' | 'Batch 2' | 'Batch 3' | 'Batch 4'>('Batch 1');
+  const [scoringBatch, setScoringBatch] = useState<'Batch 1' | 'Batch 2' | 'Batch 3'>('Batch 1');
   const [selectedProductScored, setSelectedProductScored] = useState<string>(BATCH_1_PRODUCTS[0].name);
 
-  // Update selected product when scoring batch changes
   useEffect(() => {
     if (scoringBatch === 'Batch 1') setSelectedProductScored(BATCH_1_PRODUCTS[0].name);
     else if (scoringBatch === 'Batch 2') setSelectedProductScored(BATCH_2_PRODUCTS[0].name);
     else if (scoringBatch === 'Batch 3') setSelectedProductScored(BATCH_3_PRODUCTS[0].name);
-    else if (scoringBatch === 'Batch 4') setSelectedProductScored(BATCH_4_PRODUCTS[0].name);
   }, [scoringBatch]);
 
-  // 4 Indikator Penilaian
-  const [scoreGramatur, setScoreGramatur] = useState<number>(85); // Bobot 30%
-  const [scoreSuhuDurasi, setScoreSuhuDurasi] = useState<number>(85); // Bobot 30%
-  const [scorePlattingRasa, setScorePlattingRasa] = useState<number>(90); // Bobot 25%
-  const [scoreHygieneWalk, setScoreHygieneWalk] = useState<number>(80); // Bobot 15%
-  const [scoringNotes, setScoringNotes] = useState<string>('Eksekusi presisi, suhu core tercapai, penataan timun rapi.');
+  const [scoreGramatur, setScoreGramatur] = useState<number>(85); // 30%
+  const [scoreSuhuDurasi, setScoreSuhuDurasi] = useState<number>(85); // 30%
+  const [scorePlattingRasa, setScorePlattingRasa] = useState<number>(90); // 25%
+  const [scoreHygieneWalk, setScoreHygieneWalk] = useState<number>(80); // 15%
+  const [scoringNotes, setScoringNotes] = useState<string>('Eksekusi sesuai SOP, gramatur akurat, 2 slice timun rapi.');
 
-  // Composite Score Calculation
   const finalCalculatedScore = useMemo(() => {
     const total =
       scoreGramatur * 0.30 +
@@ -882,14 +805,13 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
 
   const getScoreGrade = (score: number) => {
     if (score >= 90) return { grade: 'Grade A', label: 'Mastery (Sangat Kompeten)', color: 'bg-emerald-50 text-emerald-800 border-emerald-300' };
-    if (score >= 80) return { grade: 'Grade B', label: 'Kompeten Mandiri', color: 'bg-sky-50 text-sky-800 border-sky-300' };
+    if (score >= 80) return { grade: 'Grade B', label: 'Kompeten Mandiri (Lulus OJT)', color: 'bg-sky-50 text-sky-800 border-sky-300' };
     if (score >= 75) return { grade: 'Grade C', label: 'Lulus Bersyarat (Pendampingan)', color: 'bg-amber-50 text-amber-800 border-amber-300' };
     return { grade: 'Remedial', label: 'Belum Kompeten (Wajib Ulang)', color: 'bg-rose-50 text-rose-800 border-rose-300' };
   };
 
   const currentGradeInfo = getScoreGrade(finalCalculatedScore);
 
-  // Local storage history of QC evaluations
   const [evaluationHistory, setEvaluationHistory] = useState<any[]>(() => {
     try {
       const saved = localStorage.getItem('hara_rnd_simulasi_evaluations');
@@ -922,129 +844,128 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
     setEvaluationHistory(updated);
     try {
       localStorage.setItem('hara_rnd_simulasi_evaluations', JSON.stringify(updated));
+      // Simpan ke storage tabel penilaian praktik jika ada id matching
+      db.insertRow('penilaian_praktik', {
+        id_kru: `kru-${Date.now()}`,
+        tanggal_penilaian: new Date().toISOString().slice(0, 10),
+        station: 'Kitchen',
+        skor_kecepatan: scoreSuhuDurasi,
+        skor_kualitas_produk: scorePlattingRasa,
+        skor_kepatuhan_resep: scoreGramatur,
+        skor_sanitasi_k3: scoreHygieneWalk,
+        skor_total: finalCalculatedScore,
+        catatan_trainer: `[QC ${scoringBatch} - ${selectedProductScored}] ${scoringNotes}`
+      } as any);
     } catch (e) {
       console.error(e);
     }
 
-    setSaveSuccessMsg(`Penilaian praktik untuk "${selectedTraineeForScoring}" berhasil disimpan!`);
+    setSaveSuccessMsg(`Penilaian praktik untuk "${selectedTraineeForScoring}" berhasil disimpan ke sistem!`);
     setTimeout(() => setSaveSuccessMsg(null), 3500);
   };
 
-  // --------------------------------------------------------------------------
-  // SPREADSHEET (CSV / EXCEL) EXPORT GENERATOR
-  // --------------------------------------------------------------------------
+  // Unduh Master Spreadsheet CSV
   const handleExportSpreadsheet = () => {
     const rows: string[][] = [];
 
-    // Header Metadata
-    rows.push(['HARA CHICKEN - MASTER PLANNING ONBOARDING & SIMULASI PRAKTIK DAPUR']);
-    rows.push(['Dibuat:', new Date().toLocaleDateString('id-ID'), 'Outlet:', selectedOutletCode, 'Target Peserta:', `${crewCount} Kru`]);
+    rows.push(['HARA CHICKEN - MASTER PLANNING ONBOARDING & SIMULASI PRAKTIK DAPUR RESMI']);
+    rows.push(['Perusahaan:', 'CV. ULTIMA RASA INDONESIA', 'Outlet:', selectedOutletCode, 'Tanggal:', new Date().toLocaleDateString('id-ID')]);
     rows.push([]);
 
-    // Section 1: Rundown Hari 1
-    rows.push(['=== JADWAL RUNDOWN PRAKTIK HARI 1 (FONDASI & GEPREK) ===']);
-    rows.push(['Waktu', 'Durasi', 'Sesi / Aktivitas', 'Penanggung Jawab', 'Output / Deliverables', 'Kategori']);
+    rows.push(['=== JADWAL RUNDOWN PRAKTIK HARI 1 (FONDASI & MENU GEPREK) ===']);
+    rows.push(['Waktu', 'Durasi', 'Sesi', 'Penanggung Jawab', 'Deliverables', 'Kategori']);
     RUNDOWN_DAY_1.forEach((item) => {
       rows.push([item.time, item.duration, item.title, item.trainer, item.deliverables.join('; '), item.badge]);
     });
     rows.push([]);
 
-    // Section 2: Rundown Hari 2
-    rows.push(['=== JADWAL RUNDOWN PRAKTIK HARI 2 (KULIT, MINUMAN, ASSEMBLY & CLOSING) ===']);
-    rows.push(['Waktu', 'Durasi', 'Sesi / Aktivitas', 'Penanggung Jawab', 'Output / Deliverables', 'Kategori']);
+    rows.push(['=== JADWAL RUNDOWN PRAKTIK HARI 2 (MENU EXTRA, MINUMAN BAR & CLOSING) ===']);
+    rows.push(['Waktu', 'Durasi', 'Sesi', 'Penanggung Jawab', 'Deliverables', 'Kategori']);
     RUNDOWN_DAY_2.forEach((item) => {
       rows.push([item.time, item.duration, item.title, item.trainer, item.deliverables.join('; '), item.badge]);
     });
     rows.push([]);
 
-    // Section 3: Matriks Pembagian Stasiun Kru (Batch 1 s.d. Batch 4)
-    rows.push(['=== MATRIKS PEMBAGIAN STASIUN KERJA & ESTIMASI WAKTU SOP ===']);
-    rows.push(['Batch', 'Nomor Stasiun', 'Produk SOP HARA', 'Kategori', 'Estimasi Waktu', 'Kru Bertugas', 'Titik Kritis SOP', 'Spesifikasi Kunci']);
+    rows.push(['=== MATRIKS STASIUN KERJA, WAKTU & SPESIFIKASI RESMI HARA ===']);
+    rows.push(['Batch', 'Nomor Stasiun', 'Nama Produk', 'Kategori', 'Estimasi Waktu', 'Kru Bertugas', 'Titik Kritis SOP Resmi']);
 
     assignedStationsBatch1.forEach((st, idx) => {
-      rows.push(['Batch 1 (Fondasi)', `Stasiun 1.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | '), st.product.keySpec]);
+      rows.push(['Batch 1 (10 Dasar)', `Stasiun 1.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | ')]);
     });
 
     assignedStationsBatch2.forEach((st, idx) => {
-      rows.push(['Batch 2 (Signature)', `Stasiun 2.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | '), st.product.keySpec]);
+      rows.push(['Batch 2 (11 Perakitan)', `Stasiun 2.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | ')]);
     });
 
     assignedStationsBatch3.forEach((st, idx) => {
-      rows.push(['Batch 3 (Kulit & Minuman)', `Stasiun 3.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | '), st.product.keySpec]);
-    });
-
-    assignedStationsBatch4.forEach((st, idx) => {
-      rows.push(['Batch 4 (Assembly & Closing)', `Stasiun 4.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | '), st.product.keySpec]);
+      rows.push(['Batch 3 (Menu Extra & Bar)', `Stasiun 3.${idx + 1}`, st.product.name, st.product.category, st.product.estimatedTime, st.trainees.join(', ') || 'Belum Ditugaskan', st.product.criticalPoints.join(' | ')]);
     });
     rows.push([]);
 
-    // Section 4: Rubrik Penilaian 4 Indikator
-    rows.push(['=== FORMULA PENILAIAN 4 INDIKATOR & STANDAR KELULUSAN ===']);
-    rows.push(['Indikator Penilaian', 'Bobot (%)', 'Toleransi & Standar Kunci']);
-    rows.push(['1. Akurasi Gramatur Bahan Baku', '30%', 'Toleransi timbangan maksimal +/- 5g. Nasi 170g, Sambal 30g, Bumbu ECO 20g, Ayam 110-120g']);
-    rows.push(['2. Ketepatan Suhu & Durasi Waktu', '30%', 'Fryer 175°C (12-14 mnt), Suhu Core Ayam >= 74°C, Tanak Nasi 15 mnt, Torch 15-20 dtk, Griddle 1.5 mnt/sisi']);
-    rows.push(['3. Standar Platting, Packing & Rasa', '25%', 'Estetika piring bersih bebas cipratan minyak, 2 slice timun miring 45°, kemasan take-away anti-bocor segel QC']);
-    rows.push(['4. Hygiene & Presentasi Gallery Walk', '15%', 'APD celemek & hairnet lengkap, 4 lap warna HARA sesuai fungsinya, kerapihan meja pass-thru']);
+    rows.push(['=== KOREOGRAFI KOMPOR & PERALATAN 1 OUTLET HARA ===']);
+    rows.push(['Peralatan', 'Alokasi Penggunaan & Urutan Suhu', 'Standar Waktu & Catatan SOP']);
+    rows.push(['1 Deep Fryer', '150°C Terong & Tahu/Tempe (5 mnt) -> 150°C Ayam Utuh AU (12 mnt) & Kulit Krispi (12 mnt) -> Naikkan ke 175°C kompor / 160°C minyak untuk Ayam Potong Reguler (12 mnt)', 'Goyang keranjang tiap 3 mnt, kuras tiap 16-20 kg ayam']);
+    rows.push(['2 Tungku Kompor Gas', 'Tungku 1: Rebus Air Es Teh 4L mendidih -> Sup Sayur HARA Extra 6L (5L rebus + 1L tumis). Tungku 2: Minyak 200ml api kecil cabai sambal bawang (3-5 mnt) -> Minyak 500ml api sedang Spinach bayam (90 dtk) -> Telur Dadar nasgor / Scramble Egg -> Rebus Indomie (2 mnt)', 'Dilarang menggunakan wajan yang sama tanpa sanitasi']);
+    rows.push(['1 Rice Cooker Gas', 'Beras Miyako (maks 6 cup beras : 8 cup air), tekan tombol kiri api kecil baru tombol kanan COOK', 'Wajib tanak 15 menit pasca jegleg sebelum pindah Magicom']);
+    rows.push(['2 Cobek Batu Tradisional', 'Cobek 1: Khusus ulek sambal bawang & daun jeruk. Cobek 2: Khusus geprek ayam & torch mentai/moza', 'Dilarang ulek bumbu di cobek ayam']);
     rows.push([]);
-    rows.push(['Standar Kelulusan:', 'Nilai Akhir >= 75.0 (Grade A: >= 90 Mastery, Grade B: 80-89 Kompeten, Grade C: 75-79 Pendampingan, < 75 Remedial)']);
 
-    // Build CSV with BOM for Excel compatibility
+    rows.push(['=== FORMULA PENILAIAN 4 INDIKATOR (PASSING GRADE >= 75.0) ===']);
+    rows.push(['Indikator', 'Bobot', 'Standar Baku']);
+    rows.push(['1. Akurasi Gramatur Bahan Baku', '30%', 'Toleransi +/- 5g. Nasi 170g, Sambal 30g, Bumbu ECO 20g, Kulit 50g mentah -> 60g matang']);
+    rows.push(['2. Ketepatan Suhu & Durasi Waktu', '30%', 'Fryer 175°C / 160°C (12 mnt), Suhu Core >= 74°C, Tanak Nasi 15 mnt, Bayam 90 dtk']);
+    rows.push(['3. Standar Platting, Packing & Rasa', '25%', '2 slice timun wajib, box besar beralas kertas nasi utuh/seperempat, mentai diangkat 2 solet']);
+    rows.push(['4. Hygiene & Presentasi Gallery Walk', '15%', 'APD celemek/hairnet, 4 lap warna HARA (Kanebo, Orange, Basah Kotak, Kering Kotak)']);
+
     const csvContent = '\uFEFF' + rows.map((e) => e.map((val) => `"${String(val).replace(/"/g, '""')}"`).join(',')).join('\r\n');
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `HARA_Onboarding_Day1_Day2_Planning_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `HARA_Master_Onboarding_Day1_Day2_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div className="space-y-6">
-      {/* ===================================================================
-          HEADER UTAMA & ACTIONS EKSPOR SPREADSHEET / PDF
-          =================================================================== */}
+      {/* HEADER BANNER UTAMA */}
       <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)]">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FEF2F2] text-[#96171B] border border-[#FECACA]">
-                MODUL RnD & SIMULASI PRAKTIK
+                SOP RESMI CV. ULTIMA RASA INDONESIA
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
                 Standar Kuota: 11 - 17 Kru
               </span>
               <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F4F1EC] text-[#181411]">
-                Metode Terpilih: Demo 15 Mnt + Praktik Serentak
+                Metode: Demo 15 Mnt + Praktik Serentak
               </span>
             </div>
             <h2 className="text-xl font-bold font-['Outfit'] text-[#181411] tracking-tight">
-              Sistem Onboarding Praktik Dapur: Day 1 & Day 2 (RnD)
+              Simulasi Praktik Batch 1, Batch 2 & Batch 3 (SOP Asli HARA)
             </h2>
             <p className="text-xs text-stone-500 font-['Plus_Jakarta_Sans'] mt-0.5 max-w-3xl">
-              Perencanaan komprehensif timeline dapur, generator pembagian stasiun otomatis (21+ Produk SOP), 3 komparasi metode efisiensi, dan form penilaian QC 4 indikator.
+              Panduan operasional baku dapur: 10 Produk Dasar, 11 Menu Perakitan, Menu Extra & Minuman Bar Resmi, Koreografi Kompor 1 Outlet, serta Penilaian Praktik 4-Indikator.
             </p>
           </div>
 
-          {/* Tombol Ekspor Spreadsheet & Print PDF */}
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportSpreadsheet}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold font-['Outfit'] bg-emerald-700 text-white hover:bg-emerald-800 transition-all shadow-sm active:scale-95"
-              title="Download perencanaan lengkap dalam format Spreadsheet Excel / CSV"
+              title="Download Master Spreadsheet Excel/CSV"
             >
               <FileSpreadsheet size={15} />
-              <span>Download Spreadsheet</span>
+              <span>Download Master Excel/CSV</span>
             </button>
             <button
-              onClick={handlePrint}
+              onClick={() => window.print()}
               className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold font-['Outfit'] bg-white border border-[#E6E1DA] text-[#181411] hover:bg-stone-50 transition-all shadow-sm"
-              title="Cetak lembar kerja praktik untuk Trainer & Kru"
+              title="Cetak lembar kerja praktik"
             >
               <Printer size={15} />
               <span>Cetak / PDF</span>
@@ -1056,6 +977,17 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
         <div className="mt-5 pt-4 border-t border-[#E6E1DA] flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 bg-[#F4F1EC] p-1.5 rounded-xl border border-[#E6E1DA]">
             <button
+              onClick={() => setSubSection('koreografi')}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold font-['Outfit'] transition-all ${
+                subSection === 'koreografi'
+                  ? 'bg-[#96171B] text-white shadow-sm'
+                  : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
+              }`}
+            >
+              <CookingPot size={15} />
+              1. Koreografi Kompor & Alat
+            </button>
+            <button
               onClick={() => setSubSection('methods')}
               className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold font-['Outfit'] transition-all ${
                 subSection === 'methods'
@@ -1064,7 +996,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               }`}
             >
               <Compass size={15} />
-              1. 3 Pilihan Metode & Alur
+              2. 3 Pilihan Metode Onboarding
             </button>
             <button
               onClick={() => setSubSection('rundown')}
@@ -1075,7 +1007,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               }`}
             >
               <Clock size={15} />
-              2. Rundown Timeline (Day 1 & 2)
+              3. Rundown Timeline (Day 1 & 2)
             </button>
             <button
               onClick={() => setSubSection('generator')}
@@ -1086,7 +1018,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               }`}
             >
               <Shuffle size={15} />
-              3. Generator Stasiun (11-17 Kru)
+              4. Generator Stasiun (11-17 Kru)
             </button>
             <button
               onClick={() => setSubSection('scoring')}
@@ -1097,11 +1029,11 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               }`}
             >
               <Award size={15} />
-              4. Form Penilaian 4-Indikator
+              5. Form Penilaian 4-Indikator
             </button>
           </div>
 
-          {/* Toggle Hari (Day 1 vs Day 2) */}
+          {/* Toggle Day 1 vs Day 2 */}
           <div className="flex items-center gap-1.5 bg-[#FAF8F5] p-1 rounded-xl border border-[#E6E1DA]">
             <button
               onClick={() => setSelectedDay('day1')}
@@ -1121,18 +1053,189 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   : 'text-stone-600 hover:text-stone-900'
               }`}
             >
-              Hari 2: Kulit, Minuman & Assembly
+              Hari 2: Menu Extra, Bar & Closing
             </button>
           </div>
         </div>
       </div>
 
       {/* ===================================================================
-          TAB 1: 3 PILIHAN METODE PRAKTIK ONBOARDING & ALUR DETAIL
+          TAB 1: KOREOGRAFI KOMPOR & PERALATAN 1 OUTLET HARA (SOLUSI BOTTLENECK)
+          =================================================================== */}
+      {subSection === 'koreografi' && (
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-[#96171B] to-[#7A1215] text-white rounded-2xl p-6 shadow-md">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
+                <CookingPot size={26} />
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase bg-amber-400 text-stone-900">
+                    Standar Dapur Komersial HARA
+                  </span>
+                  <span className="text-xs text-rose-200 font-medium">
+                    1 Deep Fryer + 2 Tungku Gas + 1 Rice Cooker + 2 Cobek Batu
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold font-['Outfit']">
+                  Koreografi Menit Masuk Kompor 1 Outlet (Anti-Tabrakan Alur)
+                </h3>
+                <p className="text-xs text-rose-100/90 leading-relaxed max-w-3xl">
+                  Dalam 1 gerai HARA, peralatan dapur terbatas. Agar 11–17 kru dapat memasak secara paralel tanpa tabrakan jadwal kompor dan minyak tetap bersih higienis, ikuti urutan suhu berjenjang dan alokasi tungku berikut.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* ALOKASI 1: DEEP FRYER TUNGGAL (SUHU BERJENJANG) */}
+            <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                <div className="flex items-center gap-2">
+                  <Flame size={18} className="text-[#96171B]" />
+                  <h4 className="text-sm font-bold font-['Outfit'] text-[#181411]">
+                    1 Deep Fryer Utama (Suhu Berjenjang 150°C → 160°C)
+                  </h4>
+                </div>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                  Urutan Minyak Bersih
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1">
+                  <div className="flex items-center justify-between font-bold text-stone-800">
+                    <span>1. Menit 00:00 - 00:05 (Suhu 150°C)</span>
+                    <span className="text-emerald-700 font-['JetBrains_Mono']">5 Menit</span>
+                  </div>
+                  <p className="text-stone-600 text-[11px]">
+                    <strong>Terong Krispi (10 slice) & Tahu/Tempe (4 pcs):</strong> Minyak masih sangat jernih pada 150°C. Terong digoreng 5 menit bolak-balik; tahu/tempe digoreng 5 menit.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1">
+                  <div className="flex items-center justify-between font-bold text-stone-800">
+                    <span>2. Menit 00:05 - 00:17 (Suhu 150°C)</span>
+                    <span className="text-emerald-700 font-['JetBrains_Mono']">12 Menit</span>
+                  </div>
+                  <p className="text-stone-600 text-[11px]">
+                    <strong>Ayam Utuh (AU) & Kulit Krispi (50g → 60g):</strong> Tetap pada 150°C. AU digoreng 12 menit dibolak-balik tiap 3 menit; Kulit Krispi digoreng 12 menit hingga garing.
+                  </p>
+                </div>
+
+                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
+                  <div className="flex items-center justify-between font-bold text-[#96171B]">
+                    <span>3. Menit 00:20 - 00:32 (Kompor 175°C / Minyak 160°C)</span>
+                    <span className="text-[#96171B] font-['JetBrains_Mono']">12 Menit</span>
+                  </div>
+                  <p className="text-stone-700 text-[11px]">
+                    <strong>Ayam Potong Reguler (2-3 kg/batch):</strong> Naikkan setelan kompor ke 175°C agar suhu minyak naik ke 160°C. Goyang keranjang tiap 3 menit, pastikan suhu core ≥ 74°C.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* ALOKASI 2: 2 TUNGKU KOMPOR GAS */}
+            <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-stone-100">
+                <div className="flex items-center gap-2">
+                  <CookingPot size={18} className="text-amber-700" />
+                  <h4 className="text-sm font-bold font-['Outfit'] text-[#181411]">
+                    2 Tungku Kompor Gas (Panci Rebus vs Wajan Penggorengan)
+                  </h4>
+                </div>
+                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-sky-50 text-sky-800 border border-sky-200">
+                  Paralel 2 Stasiun
+                </span>
+              </div>
+
+              <div className="space-y-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-amber-50/50 border border-amber-200 space-y-1">
+                  <div className="font-bold text-amber-900">
+                    Tungku 1 (Panci Rebusan Air & Kuah):
+                  </div>
+                  <ul className="space-y-1 text-stone-600 text-[11px]">
+                    <li>• <strong>Pagi (08:00):</strong> Rebus 4L air mendidih untuk Es Teh Manis / Es Lemon Tea.</li>
+                    <li>• <strong>Lanjut (09:00):</strong> Rebus 5L air + 1L tumisan untuk Sup Sayur Hara Extra 6L (wortel 2 mnt, kol 2 mnt, matikan api baru loncang/seledri).</li>
+                  </ul>
+                </div>
+
+                <div className="p-3 rounded-xl bg-sky-50/50 border border-sky-200 space-y-1">
+                  <div className="font-bold text-sky-900">
+                    Tungku 2 (Wajan Minyak Tumis & Goreng Kilat):
+                  </div>
+                  <ul className="space-y-1 text-stone-600 text-[11px]">
+                    <li>• <strong>Sesi 1:</strong> Goreng 150g cabai & 35g baput sambal bawang di 200ml minyak api kecil (3-5 mnt).</li>
+                    <li>• <strong>Sesi 2:</strong> Goreng 100g bayam (Spinach) di 500ml minyak api sedang selama tepat 90 detik.</li>
+                    <li>• <strong>Sesi 3:</strong> Masak Telur Dadar nasgor (50ml minyak) / Scramble Egg (3 sdm minyak baru).</li>
+                    <li>• <strong>Sesi 4:</strong> Rebus Indomie 500ml air selama 2 menit.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* ALOKASI 3: RICE COOKER GAS */}
+            <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-stone-100">
+                <Scale size={16} className="text-[#96171B]" />
+                <h4 className="text-sm font-bold font-['Outfit'] text-[#181411]">
+                  1 Rice Cooker Gas Miyako (Prosedur Tombol Ganda)
+                </h4>
+              </div>
+              <p className="text-xs text-stone-600 leading-relaxed">
+                Maksimal 6 cup beras : 8 cup air baku. Cuci minimal 3 kali. <strong>PENTING:</strong> Tekan tombol kiri (api kecil) lebih dulu, baru tekan COOK kanan. Setelah jegleg, <strong>WAJIB tanak 15 menit</strong> (maks 30 menit di rice cooker gas) sebelum dipindahkan ke Magicom.
+              </p>
+            </div>
+
+            {/* ALOKASI 4: 2 COBEK BATU MEJA GEPREK */}
+            <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm space-y-3">
+              <div className="flex items-center gap-2 pb-2 border-b border-stone-100">
+                <Utensils size={16} className="text-[#96171B]" />
+                <h4 className="text-sm font-bold font-['Outfit'] text-[#181411]">
+                  2 Cobek Batu Tradisional (Pemisahan Fungsi)
+                </h4>
+              </div>
+              <ul className="text-xs text-stone-600 space-y-1.5 leading-relaxed">
+                <li>• <strong>Cobek 1 (Khusus Bumbu):</strong> Ulek halus cabai & baput sambal bawang + 7g mix garam + siram 60ml minyak panas. DILARANG BLENDER.</li>
+                <li>• <strong>Cobek 2 (Khusus Ayam Geprek):</strong> Geprek ayam 2-3 ketukan lembut, balur sambal, torching keju Moza di cobek, dan wadah oles saus Mentai (angkat selalu pakai 2 solet).</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* STANDAR 4 LAP RESMI HARA */}
+          <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm space-y-3">
+            <h4 className="text-sm font-bold font-['Outfit'] text-[#181411] flex items-center gap-2">
+              <ShieldCheck size={18} className="text-[#96171B]" />
+              Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 rounded-xl bg-stone-50 border border-stone-200 space-y-1">
+                <div className="font-bold text-stone-800">1. Lap Piring (Kanebo)</div>
+                <p className="text-[11px] text-stone-500">Khusus mengelap piring makan melamin agar kinclong kering bebas noda air/minyak.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 space-y-1">
+                <div className="font-bold text-amber-900">2. Lap Meja (Orange)</div>
+                <p className="text-[11px] text-stone-500">Lap kain kering + cairan pembersih kaca untuk mengelap kaca, meja kasir, dan kursi tamu.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-sky-50 border border-sky-200 space-y-1">
+                <div className="font-bold text-sky-900">3. Lap Basah (Kotak-kotak)</div>
+                <p className="text-[11px] text-stone-500">Membersihkan meja geprek, meja dapur, meja minuman, dan alat bantu menguras minyak fryer.</p>
+              </div>
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 space-y-1">
+                <div className="font-bold text-rose-900">4. Lap Tangan (Kotak Kering)</div>
+                <p className="text-[11px] text-stone-500">Khusus mengeringkan tangan kru saat proses dusting (penepungan ayam krispi).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          TAB 2: 3 PILIHAN METODE ONBOARDING
           =================================================================== */}
       {subSection === 'methods' && (
         <div className="space-y-6">
-          {/* Banner Rekomendasi Terpilih */}
           <div className="bg-gradient-to-r from-amber-500/10 via-rose-500/5 to-transparent border border-amber-200 rounded-2xl p-5">
             <div className="flex items-start gap-4">
               <div className="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-sm">
@@ -1144,7 +1247,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     Pilihan Metode Direkomendasikan
                   </span>
                   <span className="text-xs font-bold text-stone-500">
-                    Sesuai Preferensi Terpilih
+                    Sesuai Kuota 11–17 Kru
                   </span>
                 </div>
                 <h3 className="text-lg font-bold font-['Outfit'] text-[#181411]">
@@ -1157,9 +1260,8 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
             </div>
           </div>
 
-          {/* Kartu 3 Opsi Metode Komparasi */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-            {/* OPSI 1: REKOMENDASI TERPILIH */}
+            {/* OPSI 1 */}
             <div className="bg-white border-2 border-[#96171B] rounded-2xl p-5 shadow-sm relative flex flex-col justify-between">
               <div className="absolute -top-3 left-5 px-3 py-0.5 bg-[#96171B] text-white rounded-full text-[10px] font-extrabold tracking-wide uppercase shadow-sm">
                 Opsi 1 (Paling Efisien)
@@ -1174,37 +1276,22 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 <p className="text-xs text-stone-600 leading-relaxed">
                   Trainer mendemokan titik kritis produk (suhu, gramatur, teknik ulek/torch) selama 15 menit. Dilanjutkan 45 menit eksekusi paralel mandiri di 10–11 stasiun serempak.
                 </p>
-
-                <div className="space-y-2 pt-2 border-t border-stone-100 text-xs">
-                  <div className="font-bold text-stone-800">Alur Waktu Per Batch (60 Mnt):</div>
-                  <ul className="space-y-1.5 text-stone-600 text-[11px]">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#96171B]"></span>
-                      <strong>00:00 - 00:15:</strong> Demo Sentral Trainer di Meja Pass-Thru
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#96171B]"></span>
-                      <strong>00:15 - 00:55:</strong> Praktik Serentak Mandiri Kru
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#96171B]"></span>
-                      <strong>00:55 - 01:00:</strong> Plating & Sajikan ke Meja QC
-                    </li>
+                <div className="space-y-1.5 pt-2 border-t border-stone-100 text-xs">
+                  <div className="font-bold text-stone-800">Alur Waktu Per Batch:</div>
+                  <ul className="space-y-1 text-stone-600 text-[11px]">
+                    <li>• 00:00 - 00:15: Demo Sentral Trainer di Meja Pass-Thru</li>
+                    <li>• 00:15 - 00:55: Praktik Serentak Mandiri Kru</li>
+                    <li>• 00:55 - 01:00: Plating & Sajikan ke Meja QC</li>
                   </ul>
                 </div>
-
-                <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-[11px] leading-relaxed">
-                  <strong>Keunggulan:</strong> Efisiensi waktu 100%, tidak ada kru yang menganggur menunggu giliran, output langsung terukur di meja Gallery Walk.
-                </div>
               </div>
-
               <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
                 <span>Kebutuhan Trainer: 2 Orang</span>
                 <span className="font-bold text-[#96171B]">Efisiensi: 98%</span>
               </div>
             </div>
 
-            {/* OPSI 2: METODE CAROUSEL (ROTASI STASIUN) */}
+            {/* OPSI 2 */}
             <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -1217,39 +1304,16 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   Carousel Rotasi Stasiun Tiap 25 Menit
                 </h4>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Peserta dibagi menjadi 4 kelompok kecil. Setiap kelompok berada di satu stasiun selama 25 menit lalu berotasi searah jarum jam saat bel timer berbunyi.
+                  Peserta dibagi menjadi kelompok kecil. Setiap kelompok berada di satu stasiun selama 25 menit lalu berotasi searah jarum jam saat bel timer berbunyi.
                 </p>
-
-                <div className="space-y-2 pt-2 border-t border-stone-100 text-xs">
-                  <div className="font-bold text-stone-800">Alur Waktu Per Rotasi:</div>
-                  <ul className="space-y-1.5 text-stone-600 text-[11px]">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Rotasi 1 (25 Mnt):</strong> Stasiun Fryer & Prep Ayam
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Rotasi 2 (25 Mnt):</strong> Stasiun Geprek & Sambal
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Rotasi 3 (25 Mnt):</strong> Stasiun Nasi, Teh & Side Dish
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] leading-relaxed">
-                  <strong>Catatan Evaluasi:</strong> Kru mencoba lebih banyak menu, namun perpindahan stasiun memakan waktu pembersihan ulang dan butuh pengawasan ketat.
-                </div>
               </div>
-
               <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
                 <span>Kebutuhan Trainer: 3 Orang</span>
                 <span className="font-bold text-stone-700">Efisiensi: 82%</span>
               </div>
             </div>
 
-            {/* OPSI 3: BUDDY SYSTEM (ASSEMBLY LINE BERPASANGAN) */}
+            {/* OPSI 3 */}
             <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-sm flex flex-col justify-between">
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -1262,85 +1326,12 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   Buddy System (Prep - Cook - Pack)
                 </h4>
                 <p className="text-xs text-stone-600 leading-relaxed">
-                  Kru dipasangkan 2 orang per stasiun kerja: Kru A sebagai Prep Master (penimbangan & bumbu) dan Kru B sebagai Cook & Platter. Mereka berganti peran di Batch 2.
+                  Kru dipasangkan 2 orang per stasiun kerja: Kru A sebagai Prep Master dan Kru B sebagai Cook & Platter. Berganti peran di Batch berikutnya.
                 </p>
-
-                <div className="space-y-2 pt-2 border-t border-stone-100 text-xs">
-                  <div className="font-bold text-stone-800">Pembagian Peran Buddy:</div>
-                  <ul className="space-y-1.5 text-stone-600 text-[11px]">
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Kru A (Prep Master):</strong> Kalibrasi gramatur & sanitasi
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Kru B (Chef & Platter):</strong> Eksekusi panas & penyajian
-                    </li>
-                    <li className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                      <strong>Saling Koreksi:</strong> Kru A memvalidasi suhu core Kru B
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="p-2.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-800 text-[11px] leading-relaxed">
-                  <strong>Keunggulan:</strong> Sangat baik untuk membangun kekompakan tim rush hour dapur komersial dan mengurangi kecemasan kru pemula.
-                </div>
               </div>
-
               <div className="mt-4 pt-3 border-t border-stone-100 flex items-center justify-between text-xs text-stone-500">
                 <span>Kebutuhan Trainer: 2 Orang</span>
                 <span className="font-bold text-stone-700">Efisiensi: 88%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Panduan Eksekusi Langkah-Demi-Langkah Trainer */}
-          <div className="bg-white border border-[#E6E1DA] rounded-2xl p-6 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)]">
-            <h3 className="text-base font-bold font-['Outfit'] text-[#181411] mb-4 flex items-center gap-2">
-              <ChefHat size={18} className="text-[#96171B]" />
-              Panduan SOP Trainer Memimpin Praktik Paralel 11-17 Kru
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                <div className="w-7 h-7 rounded-lg bg-[#96171B] text-white flex items-center justify-center font-bold text-xs">
-                  1
-                </div>
-                <div className="font-bold text-xs text-[#181411]">Briefing & Kalibrasi (08:00-10:30)</div>
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  Pastikan 4 SOP Fondasi dijelaskan tuntas. Cek suhu fryer stabil 175°C, chiller 1-4°C, dan timbangan digital sudah dikalibrasi nol (tare).
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                <div className="w-7 h-7 rounded-lg bg-[#96171B] text-white flex items-center justify-center font-bold text-xs">
-                  2
-                </div>
-                <div className="font-bold text-xs text-[#181411]">Demo Kilat 15 Mnt (10:30-10:45)</div>
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  Trainer mendemokan potongan ayam, ulek kasar sambal bawang, takaran air beras miyako, dan teknik siram minyak panas di depan seluruh peserta.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                <div className="w-7 h-7 rounded-lg bg-[#96171B] text-white flex items-center justify-center font-bold text-xs">
-                  3
-                </div>
-                <div className="font-bold text-xs text-[#181411]">Eksekusi Paralel (10:45-11:30)</div>
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  Peserta serentak menuju stasiun masing-masing sesuai generator penugasan. Trainer mobile mengawasi APD, gramatur, dan waktu masak.
-                </p>
-              </div>
-
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                <div className="w-7 h-7 rounded-lg bg-[#96171B] text-white flex items-center justify-center font-bold text-xs">
-                  4
-                </div>
-                <div className="font-bold text-xs text-[#181411]">Gallery Walk & QC (11:30-12:00)</div>
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  Semua produk dibawa ke meja pass-thru. Cek suhu core ayam (\u2265 74°C), audit rasa bersama kru, dan input skor ke Form 4-Indikator.
-                </p>
               </div>
             </div>
           </div>
@@ -1348,20 +1339,16 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       )}
 
       {/* ===================================================================
-          TAB 2: JADWAL RUNDOWN PRAKTIK & TIMER COUNTDOWN
+          TAB 3: JADWAL RUNDOWN PRAKTIK & TIMER COUNTDOWN
           =================================================================== */}
       {subSection === 'rundown' && (
         <div className="space-y-6">
-          {/* Card Interaktif Timer & Status Sesi */}
           <div className="bg-gradient-to-r from-[#96171B] to-[#7A1215] text-white rounded-2xl p-6 shadow-md">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-rose-200 text-xs font-medium">
                   <Flame size={16} />
-                  <span>MODUL WORKSHOP & PRAKTIK DAPUR INTENSIF</span>
-                  <span className="px-2 py-0.5 rounded-full bg-white/20 text-white font-bold text-[10px]">
-                    {selectedDay === 'day1' ? 'HARI 1: FONDASI & GEPREK' : 'HARI 2: KULIT, BAR & CLOSING'}
-                  </span>
+                  <span>SOP RESMI HARA • {selectedDay === 'day1' ? 'HARI 1: FONDASI & GEPREK' : 'HARI 2: MENU EXTRA, BAR & CLOSING'}</span>
                 </div>
                 <h3 className="text-2xl font-bold font-['Outfit'] tracking-tight">
                   Sesi Aktif: {currentRundown[activeRundownIndex]?.title || 'Sesi Latihan'}
@@ -1371,7 +1358,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 </p>
               </div>
 
-              {/* Countdown Stopwatch */}
               <div className="bg-black/30 backdrop-blur-sm border border-white/20 rounded-xl p-4 flex items-center gap-4">
                 <div>
                   <div className="text-[10px] text-rose-200 uppercase tracking-wider font-semibold">
@@ -1386,7 +1372,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   <button
                     onClick={() => setIsTimerRunning(!isTimerRunning)}
                     className="w-10 h-10 rounded-lg bg-white text-[#96171B] flex items-center justify-center hover:bg-rose-50 transition-all font-bold shadow-sm"
-                    title={isTimerRunning ? 'Pause Timer' : 'Mulai Timer'}
                   >
                     {isTimerRunning ? <Pause size={18} /> : <Play size={18} />}
                   </button>
@@ -1396,7 +1381,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                       setTimerSeconds(3600);
                     }}
                     className="w-10 h-10 rounded-lg bg-black/40 text-white flex items-center justify-center hover:bg-black/60 transition-all"
-                    title="Reset Timer 60 Menit"
                   >
                     <RotateCcw size={16} />
                   </button>
@@ -1405,7 +1389,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
             </div>
           </div>
 
-          {/* Timeline Table Rundown */}
           <div className="bg-white border border-[#E6E1DA] rounded-2xl overflow-hidden shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)]">
             <div className="p-4 bg-[#FAF8F5] border-b border-[#E6E1DA] flex items-center justify-between">
               <div>
@@ -1413,7 +1396,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   Jadwal Rundown {selectedDay === 'day1' ? 'Hari 1 (08:00 - 15:00)' : 'Hari 2 (08:00 - 15:30)'}
                 </h3>
                 <p className="text-xs text-stone-500">
-                  Klik baris sesi untuk mengaktifkan pada panel instruktur dan stopwatch panggung.
+                  Klik baris sesi untuk mengaktifkan pada panel instruktur dan stopwatch.
                 </p>
               </div>
               <span className="text-xs font-bold text-stone-400 font-['JetBrains_Mono']">
@@ -1445,7 +1428,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                             ? 'bg-emerald-600 border-emerald-600 text-white'
                             : 'border-stone-300 hover:border-[#96171B] text-transparent'
                         }`}
-                        title="Tandai Selesai"
                       >
                         <CheckCircle2 size={16} />
                       </button>
@@ -1468,24 +1450,12 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                         <p className="text-xs text-stone-500 font-['Plus_Jakarta_Sans'] max-w-2xl">
                           {step.desc}
                         </p>
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                          {step.deliverables.map((del, dIdx) => (
-                            <span key={dIdx} className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium bg-stone-100 text-stone-600">
-                              <CheckCircle2 size={10} className="text-emerald-600" />
-                              {del}
-                            </span>
-                          ))}
-                        </div>
                       </div>
                     </div>
 
-                    <div className="flex md:flex-col items-end justify-between md:justify-center shrink-0 border-t md:border-t-0 pt-2 md:pt-0 border-stone-100">
-                      <div className="text-[11px] font-semibold text-stone-400">
-                        Penanggung Jawab:
-                      </div>
-                      <div className="text-xs font-bold text-stone-700 font-['Outfit']">
-                        {step.trainer}
-                      </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-[11px] font-semibold text-stone-400">PJ Sesi:</div>
+                      <div className="text-xs font-bold text-stone-700 font-['Outfit']">{step.trainer}</div>
                     </div>
                   </div>
                 );
@@ -1496,11 +1466,10 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       )}
 
       {/* ===================================================================
-          TAB 3: GENERATOR PEMBAGIAN STASIUN OTOMATIS (11-17 KRU)
+          TAB 4: GENERATOR STASIUN (11-17 KRU)
           =================================================================== */}
       {subSection === 'generator' && (
         <div className="space-y-6">
-          {/* Kontrol Kuota & Batch Tab */}
           <div className="bg-white border border-[#E6E1DA] rounded-2xl p-5 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)]">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
@@ -1508,11 +1477,10 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   Generator Stasiun Otomatis (11 - 17 Kru)
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Algoritma pembagian seimbang: setiap kru menerima 1 stasiun independen lengkap dengan spesifikasi SOP dan estimasi waktu.
+                  Setiap kru menerima 1 stasiun independen lengkap dengan spesifikasi SOP dan estimasi waktu.
                 </p>
               </div>
 
-              {/* Slider Kuota Kru 11 - 17 */}
               <div className="flex items-center gap-3 bg-[#FAF8F5] p-2.5 rounded-xl border border-[#E6E1DA]">
                 <Users size={16} className="text-[#96171B]" />
                 <div className="text-xs font-semibold text-stone-600">
@@ -1534,7 +1502,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 <button
                   onClick={() => setShuffleSeed((prev) => prev + 1)}
                   className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold text-stone-700 bg-white border border-[#E6E1DA] hover:bg-stone-50 transition-all shadow-xs"
-                  title="Acak Rotasi Stasiun"
                 >
                   <Shuffle size={13} />
                   <span>Acak</span>
@@ -1542,7 +1509,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               </div>
             </div>
 
-            {/* Sub-Tabs Batch 1 s.d. Batch 4 */}
             <div className="flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-[#E6E1DA]">
               <button
                 onClick={() => setActiveBatchTab('batch1')}
@@ -1552,7 +1518,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     : 'bg-[#F4F1EC] text-stone-600 hover:text-stone-900'
                 }`}
               >
-                Day 1 • Batch 1: 10 Produk Fondasi Dapur
+                Day 1 • Batch 1: 10 Produk Dasar Dapur
               </button>
               <button
                 onClick={() => setActiveBatchTab('batch2')}
@@ -1562,7 +1528,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     : 'bg-[#F4F1EC] text-stone-600 hover:text-stone-900'
                 }`}
               >
-                Day 1 • Batch 2: 11 Menu Signature & Assembly
+                Day 1 • Batch 2: 11 Menu Perakitan Resmi
               </button>
               <button
                 onClick={() => setActiveBatchTab('batch3')}
@@ -1572,22 +1538,11 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     : 'bg-[#F4F1EC] text-stone-600 hover:text-stone-900'
                 }`}
               >
-                Day 2 • Batch 3: Kulit Crispy & Minuman Segar
-              </button>
-              <button
-                onClick={() => setActiveBatchTab('batch4')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold font-['Outfit'] transition-all ${
-                  activeBatchTab === 'batch4'
-                    ? 'bg-[#96171B] text-white shadow-sm'
-                    : 'bg-[#F4F1EC] text-stone-600 hover:text-stone-900'
-                }`}
-              >
-                Day 2 • Batch 4: Bento Combo & Closing Sanitasi
+                Day 2 • Batch 3: Menu Extra & Minuman Bar Resmi
               </button>
             </div>
           </div>
 
-          {/* Grid Kartu Stasiun & Petugas Kru */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {currentAssignedStations.map((station, sIdx) => {
               const product = station.product;
@@ -1598,7 +1553,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   className="bg-white border border-[#E6E1DA] rounded-2xl p-4 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)] flex flex-col justify-between hover:border-amber-300 transition-all group"
                 >
                   <div className="space-y-3">
-                    {/* Header Stasiun */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="space-y-0.5">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-stone-400">
@@ -1613,7 +1567,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                       </span>
                     </div>
 
-                    {/* Kru yang Bertugas */}
                     <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-1.5">
                       <div className="text-[10px] font-bold text-stone-400 uppercase tracking-wider flex items-center justify-between">
                         <span>Kru Bertugas ({station.trainees.length})</span>
@@ -1629,16 +1582,12 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                             {tName}
                           </span>
                         ))}
-                        {station.trainees.length === 0 && (
-                          <span className="text-xs text-stone-400 italic">Belum dialokasikan</span>
-                        )}
                       </div>
                     </div>
 
-                    {/* Titik Kritis SOP */}
                     <div className="space-y-1 text-xs">
                       <div className="text-[10px] font-bold uppercase tracking-wider text-rose-800">
-                        Titik Kritis SOP:
+                        Titik Kritis SOP Resmi:
                       </div>
                       <ul className="space-y-1 text-[11px] text-stone-600">
                         {product.criticalPoints.map((cp, cpIdx) => (
@@ -1651,7 +1600,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     </div>
                   </div>
 
-                  {/* Footer Spesifikasi & Tindakan Penilaian Cepat */}
                   <div className="mt-4 pt-3 border-t border-[#E6E1DA] flex items-center justify-between text-xs">
                     <span className="text-[11px] text-stone-500 font-medium truncate max-w-[170px]" title={product.keySpec}>
                       {product.keySpec}
@@ -1676,7 +1624,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       )}
 
       {/* ===================================================================
-          TAB 4: FORM PENILAIAN PRAKTIK CEPAT 4 INDIKATOR
+          TAB 5: FORM PENILAIAN PRAKTIK 4 INDIKATOR
           =================================================================== */}
       {subSection === 'scoring' && (
         <div className="space-y-6">
@@ -1688,18 +1636,16 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
           )}
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            {/* Kolom Kiri: Form Input Nilai Slider 4 Indikator */}
             <div className="lg:col-span-8 bg-white border border-[#E6E1DA] rounded-2xl p-6 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)] space-y-6">
               <div>
                 <h3 className="text-base font-bold font-['Outfit'] text-[#181411]">
-                  Lembar Penilaian QC Praktik (4 Indikator Presisi)
+                  Lembar Penilaian QC Praktik (Formula 4 Indikator)
                 </h3>
                 <p className="text-xs text-stone-500 mt-0.5">
-                  Audit langsung di Meja Pass-Thru atau Stasiun Kerja. Formula otomatis menghitung skor komposit (0 - 100 pt).
+                  Audit langsung di Meja Pass-Thru atau Stasiun Kerja. Skor komposit (0 - 100 pt), batas lulus minimal 75 pt.
                 </p>
               </div>
 
-              {/* Selector Kru & Batch */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
                 <div>
                   <label className="block text-[11px] font-bold text-stone-600 uppercase mb-1">
@@ -1725,10 +1671,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScoringBatch(e.target.value as any)}
                     className="w-full bg-white border border-[#E6E1DA] rounded-lg px-3 py-2 text-xs font-bold text-[#181411] focus:outline-none focus:border-[#96171B]"
                   >
-                    <option value="Batch 1">Day 1 • Batch 1 (Fondasi)</option>
-                    <option value="Batch 2">Day 1 • Batch 2 (Menu Signature)</option>
-                    <option value="Batch 3">Day 2 • Batch 3 (Kulit & Minuman)</option>
-                    <option value="Batch 4">Day 2 • Batch 4 (Bento & Closing)</option>
+                    <option value="Batch 1">Day 1 • Batch 1 (10 Produk Dasar)</option>
+                    <option value="Batch 2">Day 1 • Batch 2 (11 Menu Perakitan)</option>
+                    <option value="Batch 3">Day 2 • Batch 3 (Menu Extra & Bar)</option>
                   </select>
                 </div>
 
@@ -1744,14 +1689,13 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     {scoringBatch === 'Batch 1' && BATCH_1_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
                     {scoringBatch === 'Batch 2' && BATCH_2_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
                     {scoringBatch === 'Batch 3' && BATCH_3_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
-                    {scoringBatch === 'Batch 4' && BATCH_4_PRODUCTS.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
                   </select>
                 </div>
               </div>
 
               {/* Slider 4 Indikator */}
               <div className="space-y-5">
-                {/* Indikator 1: Gramatur 30% */}
+                {/* 1. Gramatur 30% */}
                 <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1762,7 +1706,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Toleransi timbangan digital: Nasi 170g (+/- 5g), Sambal 30g, Bumbu ECO 20g, Potongan Ayam 110-120g.
+                        Nasi 170g (+/- 5g), Sambal 30g, Bumbu ECO 20g, Kulit 50g mentah → 60g matang, Kol 200g.
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-[#96171B] bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200">
@@ -1777,14 +1721,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScoreGramatur(Number(e.target.value))}
                     className="w-full accent-[#96171B] cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-stone-400 font-['JetBrains_Mono']">
-                    <span>40 (Salah Besar)</span>
-                    <span>75 (Batas Lulus)</span>
-                    <span>100 (Presisi Sempurna)</span>
-                  </div>
                 </div>
 
-                {/* Indikator 2: Suhu & Durasi 30% */}
+                {/* 2. Suhu & Durasi 30% */}
                 <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1795,7 +1734,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Deep fryer 175°C (12-14 mnt), suhu core ayam \u2265 74°C, tanak nasi 15 mnt, torching 15-20 dtk, griddle 1.5 mnt.
+                        Deep fryer kompor 175°C / minyak 160°C (12 mnt), suhu core ayam ≥ 74°C, tanak nasi 15 mnt, bayam 90 dtk.
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
@@ -1810,14 +1749,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScoreSuhuDurasi(Number(e.target.value))}
                     className="w-full accent-amber-600 cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-stone-400 font-['JetBrains_Mono']">
-                    <span>40 (Mentah / Hangus)</span>
-                    <span>75 (Suhu Tercapai)</span>
-                    <span>100 (Suhu & Waktu Ideal)</span>
-                  </div>
                 </div>
 
-                {/* Indikator 3: Platting & Rasa 25% */}
+                {/* 3. Platting, Packing & Rasa 25% */}
                 <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1828,7 +1762,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Kebersihan piring melamin, posisi timun 2 slice miring 45°, kerapihan bento sekat / bowl, uji rasa seimbang gurih pedas.
+                        WAJIB 2 slice timun miring 45°, alas kertas nasi utuh/seperempat, mentai diangkat 2 solet, piring bersih tanpa noda minyak.
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">
@@ -1843,14 +1777,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScorePlattingRasa(Number(e.target.value))}
                     className="w-full accent-sky-700 cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-stone-400 font-['JetBrains_Mono']">
-                    <span>40 (Berantakan / Encer)</span>
-                    <span>75 (Standar HARA)</span>
-                    <span>100 (Estetika Sempurna)</span>
-                  </div>
                 </div>
 
-                {/* Indikator 4: Hygiene & Gallery Walk 15% */}
+                {/* 4. Hygiene & Gallery Walk 15% */}
                 <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
@@ -1861,7 +1790,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                         </h4>
                       </div>
                       <p className="text-[11px] text-stone-500 mt-0.5">
-                        Kelengkapan APD celemek & hairnet, penggunaan 4 lap warna HARA dengan benar, kebersihan area kerja pasca-memasak.
+                        Kelengkapan APD celemek & hairnet, kepatuhan 4 jenis lap resmi HARA (Kanebo, Orange, Basah, Kering).
                       </p>
                     </div>
                     <span className="font-['JetBrains_Mono'] text-base font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
@@ -1876,15 +1805,9 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScoreHygieneWalk(Number(e.target.value))}
                     className="w-full accent-emerald-700 cursor-pointer"
                   />
-                  <div className="flex justify-between text-[10px] text-stone-400 font-['JetBrains_Mono']">
-                    <span>40 (Kotor / Tanpa APD)</span>
-                    <span>75 (Patuh Standar)</span>
-                    <span>100 (Disiplin HACCP)</span>
-                  </div>
                 </div>
               </div>
 
-              {/* Catatan Feedback Trainer */}
               <div className="space-y-1.5">
                 <label className="block text-[11px] font-bold text-stone-600 uppercase">
                   Catatan Rekomendasi Trainer & Tindakan Perbaikan
@@ -1898,7 +1821,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 />
               </div>
 
-              {/* Tombol Simpan */}
               <button
                 onClick={handleSaveEvaluation}
                 className="w-full py-3 rounded-xl bg-[#96171B] text-white font-bold font-['Outfit'] text-xs hover:bg-[#7A1215] transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.99]"
@@ -1908,9 +1830,8 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
               </button>
             </div>
 
-            {/* Kolom Kanan: Summary Skor & Riwayat Penilaian */}
+            {/* Kolom Kanan: Skor Akhir */}
             <div className="lg:col-span-4 space-y-6">
-              {/* Card Kalkulator Skor Akhir */}
               <div className="bg-white border border-[#E6E1DA] rounded-2xl p-6 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)] space-y-4">
                 <div className="text-center pb-4 border-b border-stone-100">
                   <div className="text-[11px] font-bold uppercase tracking-wider text-stone-400">
@@ -1929,7 +1850,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   </div>
                 </div>
 
-                {/* Breakdown Komponen */}
                 <div className="space-y-2 text-xs">
                   <div className="flex items-center justify-between p-2 rounded-lg bg-stone-50">
                     <span className="text-stone-600">Gramatur (30%):</span>
@@ -1957,7 +1877,6 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   </div>
                 </div>
 
-                {/* Status Kelulusan */}
                 <div className={`p-3 rounded-xl border text-xs font-medium leading-relaxed ${
                   finalCalculatedScore >= 75
                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
@@ -1965,15 +1884,14 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 }`}>
                   <div className="font-bold mb-0.5 flex items-center gap-1.5">
                     {finalCalculatedScore >= 75 ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-                    {finalCalculatedScore >= 75 ? 'STATUS: MEMENUHI STANDAR (LULUS)' : 'STATUS: WAJIB REMEDIAL PRAKTIK'}
+                    {finalCalculatedScore >= 75 ? 'STATUS: LULUS STANDAR HARA' : 'STATUS: WAJIB REMEDIAL PRAKTIK'}
                   </div>
                   {finalCalculatedScore >= 75
-                    ? 'Peserta telah memenuhi kualifikasi standar SOP produk dan siap melanjutkan ke rotasi stasiun berikutnya.'
-                    : 'Skor komposit di bawah batas kelulusan minimal (75 pt). Peserta wajib mengikuti simulasi ulang stasiun ini.'}
+                    ? 'Peserta memenuhi kualifikasi standar SOP produk resmi dan siap melanjutkan tugas mandiri.'
+                    : 'Skor di bawah batas kelulusan minimal (75 pt). Peserta wajib mengulang simulasi stasiun ini.'}
                 </div>
               </div>
 
-              {/* Riwayat Penilaian Sesi Ini */}
               {evaluationHistory.length > 0 && (
                 <div className="bg-white border border-[#E6E1DA] rounded-2xl p-4 shadow-[0_2px_10px_-2px_rgba(24,20,17,0.04)]">
                   <div className="text-[11px] font-bold text-stone-400 uppercase tracking-wider mb-2">

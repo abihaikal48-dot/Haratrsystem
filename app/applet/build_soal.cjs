@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const targetPath = path.resolve(__dirname, 'src/data/bankSoalMingguan.ts');
+const targetPath = fs.existsSync('/src/data/bankSoalMingguan.ts')
+  ? '/src/data/bankSoalMingguan.ts'
+  : path.resolve(process.cwd(), 'src/data/bankSoalMingguan.ts');
 
 function createWeekQuestions(week, weekNomor) {
   const prefix = 'M' + weekNomor;
@@ -348,19 +350,19 @@ function createWeekQuestions(week, weekNomor) {
       mingguNomor: weekNomor,
       divisi: 'Kitchen',
       tipe: 'PILIHAN_GANDA',
-      topik: 'Kitchen - SOP Nasi Goreng Terbaru (Takaran Bumbu Eco & Minyak)',
+      topik: 'Kitchen - SOP Nasi Goreng (SOP-NasGorTelur-02)',
       pilar_kompetensi: 'sop_jobdesk',
       tingkat_kesulitan: 'Mudah',
-      kode_sop: 'HC-SOP-KIT-05',
-      pertanyaan: 'Berdasarkan SOP Nasi Goreng resmi revisi terbaru (HC-SOP-KIT-05), berapa takaran baku Bumbu Eco dan minyak goreng untuk memasak 1 porsi Nasi Goreng?',
+      kode_sop: 'SOP-NasGorTelur-02',
+      pertanyaan: 'Berdasarkan SOP-NasGorTelur-02 resmi revisi terbaru HARA, berapa gramatur baku bahan utama untuk 1 porsi Nasi Goreng?',
       opsi: [
-        { label: 'A', teks: 'Bumbu Eco 10 gr dan minyak goreng 30 ml.' },
-        { label: 'B', teks: 'Bumbu Eco 20 gr dan minyak goreng 15 ml (1 sendok makan).' },
+        { label: 'A', teks: 'Bumbu Eco 10 gr dan minyak goreng 30 ml tanpa timbangan nasi.' },
+        { label: 'B', teks: 'Nasi putih 170 gr (wajib ditimbang), minyak 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), plus telur dadar dan WAJIB 2 slice timun.' },
         { label: 'C', teks: 'Bumbu Eco 35 gr dan minyak goreng 50 ml.' },
         { label: 'D', teks: 'Bumbu Eco secukupnya tanpa perlu ditimbang.' }
       ],
       jawaban_benar: 'B',
-      pembahasan_sop: 'Formula baku SOP Nasi Goreng terbaru: Bumbu Eco 20 gr, Minyak 15 ml (1 sdm) untuk 1 cup nasi pulen dingin.',
+      pembahasan_sop: 'Formula baku SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, bumbu Eco 20 gr wajib timbang, mix sayur 30 gr, telur dadar, dan WAJIB 2 slice timun.',
       bobot: 4
     },
     {
@@ -850,19 +852,19 @@ function createWeekQuestions(week, weekNomor) {
       mingguNomor: weekNomor,
       divisi: 'Geprek',
       tipe: 'PILIHAN_GANDA',
-      topik: 'Geprek - Standar Menu Extra & Side Dishes',
+      topik: 'Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)',
       pilar_kompetensi: 'sop_jobdesk',
-      tingkat_kesulitan: 'Mudah',
-      kode_sop: 'HC-SOP-GPK-16',
-      pertanyaan: 'Berdasarkan Knowledge Menu (HC-SOP-GPK-16), produk pelengkap krispi apa saja yang disiapkan di stasiun geprek & finishing?',
+      tingkat_kesulitan: 'Sedang',
+      kode_sop: 'SOP-AyamSausMentai-01',
+      pertanyaan: 'Berdasarkan SOP-AyamSausMentai-01, bagaimana teknik penataan saus mentai, torching, dan pemindahan ke piring/box?',
       opsi: [
-        { label: 'A', teks: 'Sate kambing dan gulai sapi.' },
-        { label: 'B', teks: 'Terong Krispi, Jamur Enoki Krispi, Spinach (Bayam) Krispi, dan Telur Dadar.' },
-        { label: 'C', teks: 'Pizza dan spaghetti saus bolognese.' },
-        { label: 'D', teks: 'Hanya kerupuk kaleng putih.' }
+        { label: 'A', teks: 'Saus mentai digoreng di wajan bersama ayam.' },
+        { label: 'B', teks: 'Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun.' },
+        { label: 'C', teks: 'Saus mentai dibakar di dalam box kemasan plastik.' },
+        { label: 'D', teks: 'Ayam dipindahkan menggunakan garpu biasa.' }
       ],
       jawaban_benar: 'B',
-      pembahasan_sop: 'Terong krispi, Enoki krispi, Spinach krispi, dan Telur dadar adalah menu ekstra andalan resmi di outlet Hara Chicken.',
+      pembahasan_sop: 'SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar tidak hancur.',
       bobot: 4
     },
     {
@@ -871,19 +873,19 @@ function createWeekQuestions(week, weekNomor) {
       mingguNomor: weekNomor,
       divisi: 'Geprek',
       tipe: 'PILIHAN_GANDA',
-      topik: 'Geprek - SOP Ricebowl Ayam Geprek',
+      topik: 'Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)',
       pilar_kompetensi: 'sop_jobdesk',
-      tingkat_kesulitan: 'Sedang',
-      kode_sop: 'HC-SOP-GPK-08',
-      pertanyaan: 'Berapa standar gramatur nasi dan penataan untuk menu Ricebowl Ayam Geprek?',
+      tingkat_kesulitan: 'Mudah',
+      kode_sop: 'SOP-SausAyoli-01',
+      pertanyaan: 'Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib sebelum menuangkan Saus Ayoli ke atas ayam geprek?',
       opsi: [
-        { label: 'A', teks: 'Nasi 50 gram dengan 1 potong tulang.' },
-        { label: 'B', teks: 'Nasi pulen 200 gram di dalam paper bowl, suwiran ayam krispi boneless (tanpa tulang) 70-80 gram, siraman sambal baku di atasnya, dan garnish timun/daun selada.' },
-        { label: 'C', teks: 'Nasi 500 gram hingga bowl tidak bisa ditutup.' },
-        { label: 'D', teks: 'Nasi mentah yang belum ditanak.' }
+        { label: 'A', teks: 'Saus ayoli langsung dituang tanpa diaduk.' },
+        { label: 'B', teks: 'Saus Ayoli (campuran chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan ke atas ayam + 2 slice timun.' },
+        { label: 'C', teks: 'Saus ayoli dimasak di deep fryer terlebih dahulu.' },
+        { label: 'D', teks: 'Saus ayoli diencerkan dengan air panas.' }
       ],
       jawaban_benar: 'B',
-      pembahasan_sop: 'Ricebowl disajikan dengan 200g nasi, suwiran ayam krispi boneless, sambal merata, dan garnish rapi di kemasan bowl higienis.',
+      pembahasan_sop: 'SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.',
       bobot: 4
     },
     {
@@ -1100,19 +1102,19 @@ function createWeekQuestions(week, weekNomor) {
       mingguNomor: weekNomor,
       divisi: 'Helper',
       tipe: 'PILIHAN_GANDA',
-      topik: 'Helper - SOP Mopping Lantai & K3 Wet Floor Sign',
+      topik: 'Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)',
       pilar_kompetensi: 'sop_jobdesk',
-      tingkat_kesulitan: 'Mudah',
-      kode_sop: 'HC-SOP-HLP-05',
-      pertanyaan: 'Saat mengepel lantai area makan yang terkena tumpahan minyak atau es teh (HC-SOP-HLP-05), prosedur keselamatan apa yang wajib dipasang?',
+      tingkat_kesulitan: 'Sedang',
+      kode_sop: 'HC-SOP-11-PKP',
+      pertanyaan: 'Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di outlet HARA Chicken?',
       opsi: [
-        { label: 'A', teks: 'Tidak perlu pengamanan apa pun.' },
-        { label: 'B', teks: 'Wajib meletakkan papan peringatan kerucut "HATI-HATI LANTAI LICIN / CAUTION WET FLOOR" di lokasi dan gunakan cairan degreaser khusus.' },
-        { label: 'C', teks: 'Menutup seluruh outlet dan mematikan lampu.' },
-        { label: 'D', teks: 'Menyiram lantai dengan minyak goreng agar mengkilap.' }
+        { label: 'A', teks: 'Semua jenis lap bebas dipakai bergantian untuk piring dan lantai dapur.' },
+        { label: 'B', teks: 'Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat dusting.' },
+        { label: 'C', teks: 'Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer.' },
+        { label: 'D', teks: 'Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai.' }
       ],
       jawaban_benar: 'B',
-      pembahasan_sop: 'Pemasangan wet floor sign adalah standar K3 mutlak untuk mencegah pelanggan atau sesama kru terpeleset jatuh.',
+      pembahasan_sop: 'Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.',
       bobot: 4
     },
     {
@@ -1577,10 +1579,10 @@ const allQuestions = [
 
 console.log('Total questions to generate:', allQuestions.length);
 
-const templateFile = fs.readFileSync(path.resolve(__dirname, 'scripts/generate_bank_soal.js'), 'utf-8');
-const topSection = templateFile.split('console.log("Helper template ready");')[0].replace("const contentTop = \`", "").replace("\`;\\n", "");
+const existing = fs.readFileSync(targetPath, 'utf-8');
+const topSection = existing.split('export const BANK_SOAL_MINGGUAN')[0];
 
-const generatedTsContent = topSection + '\n// ==========================================================================\n// BANK SOAL RESMI HARA CHICKEN: ISOLASI KETAT JOBDESK & SOP TERBARU\n// Total Soal: ' + allQuestions.length + ' butir\n// Kasir: 16 butir/minggu | Kitchen: 16 butir/minggu | Geprek: 16 butir/minggu | Helper: 16 butir/minggu | Umum: 10 butir/minggu\n// ==========================================================================\nexport const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = ' + JSON.stringify(allQuestions, null, 2) + ';\n';
+const generatedTsContent = topSection + 'export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = ' + JSON.stringify(allQuestions, null, 2) + ';\n';
 
 fs.writeFileSync(targetPath, generatedTsContent, 'utf-8');
 console.log('Successfully written to', targetPath);

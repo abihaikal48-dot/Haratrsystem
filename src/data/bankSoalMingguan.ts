@@ -988,19 +988,19 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Kitchen",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Kitchen - SOP Nasi Goreng Terbaru (Takaran Bumbu Eco & Minyak)",
+    "topik": "Kitchen - SOP Nasi Goreng (SOP-NasGorTelur-02)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-KIT-05",
-    "pertanyaan": "Berdasarkan SOP Nasi Goreng resmi revisi terbaru (HC-SOP-KIT-05), berapa takaran baku Bumbu Eco dan minyak goreng untuk memasak 1 porsi Nasi Goreng?",
+    "kode_sop": "SOP-NasGorTelur-02",
+    "pertanyaan": "Berdasarkan SOP-NasGorTelur-02 resmi revisi terbaru HARA, berapa gramatur baku bahan utama untuk 1 porsi Nasi Goreng?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml."
+        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml tanpa timbangan nasi."
       },
       {
         "label": "B",
-        "teks": "Bumbu Eco 20 gr dan minyak goreng 15 ml (1 sendok makan)."
+        "teks": "Nasi putih 170 gr (wajib ditimbang), minyak 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), plus telur dadar dan WAJIB 2 slice timun."
       },
       {
         "label": "C",
@@ -1012,7 +1012,7 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Formula baku SOP Nasi Goreng terbaru: Bumbu Eco 20 gr, Minyak 15 ml (1 sdm) untuk 1 cup nasi pulen dingin.",
+    "pembahasan_sop": "Formula baku SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, bumbu Eco 20 gr wajib timbang, mix sayur 30 gr, telur dadar, dan WAJIB 2 slice timun.",
     "bobot": 4
   },
   {
@@ -1771,31 +1771,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - Standar Menu Extra & Side Dishes",
+    "topik": "Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-GPK-16",
-    "pertanyaan": "Berdasarkan Knowledge Menu (HC-SOP-GPK-16), produk pelengkap krispi apa saja yang disiapkan di stasiun geprek & finishing?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "SOP-AyamSausMentai-01",
+    "pertanyaan": "Berdasarkan SOP-AyamSausMentai-01, bagaimana teknik penataan saus mentai, torching, dan pemindahan ke piring/box?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Sate kambing dan gulai sapi."
+        "teks": "Saus mentai digoreng di wajan bersama ayam."
       },
       {
         "label": "B",
-        "teks": "Terong Krispi, Jamur Enoki Krispi, Spinach (Bayam) Krispi, dan Telur Dadar."
+        "teks": "Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Pizza dan spaghetti saus bolognese."
+        "teks": "Saus mentai dibakar di dalam box kemasan plastik."
       },
       {
         "label": "D",
-        "teks": "Hanya kerupuk kaleng putih."
+        "teks": "Ayam dipindahkan menggunakan garpu biasa."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Terong krispi, Enoki krispi, Spinach krispi, dan Telur dadar adalah menu ekstra andalan resmi di outlet Hara Chicken.",
+    "pembahasan_sop": "SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar tidak hancur.",
     "bobot": 4
   },
   {
@@ -1804,31 +1804,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - SOP Ricebowl Ayam Geprek",
+    "topik": "Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Sedang",
-    "kode_sop": "HC-SOP-GPK-08",
-    "pertanyaan": "Berapa standar gramatur nasi dan penataan untuk menu Ricebowl Ayam Geprek?",
+    "tingkat_kesulitan": "Mudah",
+    "kode_sop": "SOP-SausAyoli-01",
+    "pertanyaan": "Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib sebelum menuangkan Saus Ayoli ke atas ayam geprek?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Nasi 50 gram dengan 1 potong tulang."
+        "teks": "Saus ayoli langsung dituang tanpa diaduk."
       },
       {
         "label": "B",
-        "teks": "Nasi pulen 200 gram di dalam paper bowl, suwiran ayam krispi boneless (tanpa tulang) 70-80 gram, siraman sambal baku di atasnya, dan garnish timun/daun selada."
+        "teks": "Saus Ayoli (campuran chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan ke atas ayam + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Nasi 500 gram hingga bowl tidak bisa ditutup."
+        "teks": "Saus ayoli dimasak di deep fryer terlebih dahulu."
       },
       {
         "label": "D",
-        "teks": "Nasi mentah yang belum ditanak."
+        "teks": "Saus ayoli diencerkan dengan air panas."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Ricebowl disajikan dengan 200g nasi, suwiran ayam krispi boneless, sambal merata, dan garnish rapi di kemasan bowl higienis.",
+    "pembahasan_sop": "SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.",
     "bobot": 4
   },
   {
@@ -2156,31 +2156,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Helper",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Helper - SOP Mopping Lantai & K3 Wet Floor Sign",
+    "topik": "Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-HLP-05",
-    "pertanyaan": "Saat mengepel lantai area makan yang terkena tumpahan minyak atau es teh (HC-SOP-HLP-05), prosedur keselamatan apa yang wajib dipasang?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "HC-SOP-11-PKP",
+    "pertanyaan": "Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di outlet HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Tidak perlu pengamanan apa pun."
+        "teks": "Semua jenis lap bebas dipakai bergantian untuk piring dan lantai dapur."
       },
       {
         "label": "B",
-        "teks": "Wajib meletakkan papan peringatan kerucut \"HATI-HATI LANTAI LICIN / CAUTION WET FLOOR\" di lokasi dan gunakan cairan degreaser khusus."
+        "teks": "Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat dusting."
       },
       {
         "label": "C",
-        "teks": "Menutup seluruh outlet dan mematikan lampu."
+        "teks": "Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer."
       },
       {
         "label": "D",
-        "teks": "Menyiram lantai dengan minyak goreng agar mengkilap."
+        "teks": "Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Pemasangan wet floor sign adalah standar K3 mutlak untuk mencegah pelanggan atau sesama kru terpeleset jatuh.",
+    "pembahasan_sop": "Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.",
     "bobot": 4
   },
   {
@@ -2540,31 +2540,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Semua",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Budaya HARA - Akronim Harapan Rakyat, Tagline #BeneranDiGeprek & 4 Pilar Nilai",
+    "topik": "Budaya HARA - Empat Pilar Nilai Perusahaan",
     "pilar_kompetensi": "visi_misi_hara",
     "tingkat_kesulitan": "Mudah",
     "kode_sop": "HARA-CULTURE-01",
-    "pertanyaan": "Apa arti akronim nama 'HARA', tagline resmi, dan 4 pilar nilai budaya kerja HARA Chicken?",
+    "pertanyaan": "Apa kepanjangan dari akronim Budaya H.A.R.A yang menjadi pedoman perilaku seluruh kru outlet?",
     "opsi": [
       {
         "label": "A",
-        "teks": "HARA adalah 'Harapan Rakyat' dengan tagline #BeneranDiGeprek, berlandaskan nilai HALAL, AMANAH, RESPONSIF, dan ADAPTIF."
+        "teks": "Hebat, Asyik, Rajin, Andal"
       },
       {
         "label": "B",
-        "teks": "HARA adalah 'Harga Murah' dengan tagline #PalingMurah, berlandaskan nilai Hemat, Akurat, Rajin, Andal."
+        "teks": "Halal-Higienis, Amanah, Responsif, Adaptif"
       },
       {
         "label": "C",
-        "teks": "HARA adalah 'Hari Raya' dengan tagline #AyamKrispi, berlandaskan nilai Hebat, Asyik, Ramah, Aman."
+        "teks": "Hemat, Akurat, Ramah, Aktif"
       },
       {
         "label": "D",
-        "teks": "HARA adalah 'Hadir Rasa' dengan tagline #AyamKremes, berlandaskan nilai Hangat, Asri, Rapi, Aktif."
+        "teks": "Hangat, Asri, Rapi, Aman"
       }
     ],
-    "jawaban_benar": "A",
-    "pembahasan_sop": "Hara adalah akronim dari 'Harapan Rakyat' sebagai pelopor geprek modern dengan tagline #BeneranDiGeprek. 4 Nilai Utama H.A.R.A: HALAL (Bekerja Halal), AMANAH (Bertindak Amanah), RESPONSIF (Bergerak Responsif), dan ADAPTIF (Berkembang Adaptif) yang mencakup 12 Perilaku Utama.",
+    "jawaban_benar": "B",
+    "pembahasan_sop": "Budaya HARA: Halal-Higienis (standar mutu makanan), Amanah (jujur & integritas), Responsif (sigap melayani), Adaptif (siap belajar berkembang).",
     "bobot": 4
   },
   {
@@ -2573,31 +2573,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 1,
     "divisi": "Semua",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Visi Resmi Perusahaan HARA Chicken",
+    "topik": "Visi Perusahaan - Program Keunggulan Hara Extra",
     "pilar_kompetensi": "visi_misi_hara",
     "tingkat_kesulitan": "Mudah",
     "kode_sop": "HARA-VISION-01",
-    "pertanyaan": "Manakah rumusan Visi resmi terbaru HARA Chicken yang menjadi cita-cita bersama seluruh insan perusahaan?",
+    "pertanyaan": "Apa keunggulan fasilitas \"Hara Extra\" yang dipersembahkan kepada pelanggan saat makan di tempat (Dine In)?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Menjadi Pelopor Ayam Geprek Tradisional Berkelas Nasional yang dikelola secara Modern dan Profesional dengan Cita Rasa Autentik, Kualitas Terjamin dan Pelayanan Terbaik."
+        "teks": "Free refill nasi, es teh manis, dan sup kaldu sepuasnya tanpa biaya tambahan."
       },
       {
         "label": "B",
-        "teks": "Menjadi jaringan warung makan kaki lima termurah di seluruh kabupaten dengan mengutamakan omset harian semata."
+        "teks": "Gratis makan ayam utuh tanpa membayar."
       },
       {
         "label": "C",
-        "teks": "Menjadi restoran cepat saji franchise asing tanpa menyajikan menu tradisional lokal."
+        "teks": "Diskon 99% setiap hari."
       },
       {
         "label": "D",
-        "teks": "Membuka 1.000 cabang dalam satu bulan tanpa memperhatikan standar higienitas dan kepuasan pelanggan."
+        "teks": "Mendapatkan uang saku tunai dari kasir."
       }
     ],
     "jawaban_benar": "A",
-    "pembahasan_sop": "Visi Resmi HARA: 'Menjadi Pelopor Ayam Geprek Tradisional Berkelas Nasional yang dikelola secara Modern dan Profesional dengan Cita Rasa Autentik, Kualitas Terjamin dan Pelayanan Terbaik.'",
+    "pembahasan_sop": "Hara Extra memberikan pengalaman makan mengenyangkan dan bahagia dengan free refill nasi, es teh, dan sup kaldu hangat.",
     "bobot": 4
   },
   {
@@ -3396,19 +3396,19 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 2,
     "divisi": "Kitchen",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Kitchen - SOP Nasi Goreng Terbaru (Takaran Bumbu Eco & Minyak)",
+    "topik": "Kitchen - SOP Nasi Goreng (SOP-NasGorTelur-02)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-KIT-05",
-    "pertanyaan": "Berdasarkan SOP Nasi Goreng resmi revisi terbaru (HC-SOP-KIT-05), berapa takaran baku Bumbu Eco dan minyak goreng untuk memasak 1 porsi Nasi Goreng?",
+    "kode_sop": "SOP-NasGorTelur-02",
+    "pertanyaan": "Berdasarkan SOP-NasGorTelur-02 resmi revisi terbaru HARA, berapa gramatur baku bahan utama untuk 1 porsi Nasi Goreng?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml."
+        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml tanpa timbangan nasi."
       },
       {
         "label": "B",
-        "teks": "Bumbu Eco 20 gr dan minyak goreng 15 ml (1 sendok makan)."
+        "teks": "Nasi putih 170 gr (wajib ditimbang), minyak 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), plus telur dadar dan WAJIB 2 slice timun."
       },
       {
         "label": "C",
@@ -3420,7 +3420,7 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Formula baku SOP Nasi Goreng terbaru: Bumbu Eco 20 gr, Minyak 15 ml (1 sdm) untuk 1 cup nasi pulen dingin.",
+    "pembahasan_sop": "Formula baku SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, bumbu Eco 20 gr wajib timbang, mix sayur 30 gr, telur dadar, dan WAJIB 2 slice timun.",
     "bobot": 4
   },
   {
@@ -4179,31 +4179,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 2,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - Standar Menu Extra & Side Dishes",
+    "topik": "Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-GPK-16",
-    "pertanyaan": "Berdasarkan Knowledge Menu (HC-SOP-GPK-16), produk pelengkap krispi apa saja yang disiapkan di stasiun geprek & finishing?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "SOP-AyamSausMentai-01",
+    "pertanyaan": "Berdasarkan SOP-AyamSausMentai-01, bagaimana teknik penataan saus mentai, torching, dan pemindahan ke piring/box?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Sate kambing dan gulai sapi."
+        "teks": "Saus mentai digoreng di wajan bersama ayam."
       },
       {
         "label": "B",
-        "teks": "Terong Krispi, Jamur Enoki Krispi, Spinach (Bayam) Krispi, dan Telur Dadar."
+        "teks": "Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Pizza dan spaghetti saus bolognese."
+        "teks": "Saus mentai dibakar di dalam box kemasan plastik."
       },
       {
         "label": "D",
-        "teks": "Hanya kerupuk kaleng putih."
+        "teks": "Ayam dipindahkan menggunakan garpu biasa."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Terong krispi, Enoki krispi, Spinach krispi, dan Telur dadar adalah menu ekstra andalan resmi di outlet Hara Chicken.",
+    "pembahasan_sop": "SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar tidak hancur.",
     "bobot": 4
   },
   {
@@ -4212,31 +4212,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 2,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - SOP Ricebowl Ayam Geprek",
+    "topik": "Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Sedang",
-    "kode_sop": "HC-SOP-GPK-08",
-    "pertanyaan": "Berapa standar gramatur nasi dan penataan untuk menu Ricebowl Ayam Geprek?",
+    "tingkat_kesulitan": "Mudah",
+    "kode_sop": "SOP-SausAyoli-01",
+    "pertanyaan": "Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib sebelum menuangkan Saus Ayoli ke atas ayam geprek?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Nasi 50 gram dengan 1 potong tulang."
+        "teks": "Saus ayoli langsung dituang tanpa diaduk."
       },
       {
         "label": "B",
-        "teks": "Nasi pulen 200 gram di dalam paper bowl, suwiran ayam krispi boneless (tanpa tulang) 70-80 gram, siraman sambal baku di atasnya, dan garnish timun/daun selada."
+        "teks": "Saus Ayoli (campuran chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan ke atas ayam + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Nasi 500 gram hingga bowl tidak bisa ditutup."
+        "teks": "Saus ayoli dimasak di deep fryer terlebih dahulu."
       },
       {
         "label": "D",
-        "teks": "Nasi mentah yang belum ditanak."
+        "teks": "Saus ayoli diencerkan dengan air panas."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Ricebowl disajikan dengan 200g nasi, suwiran ayam krispi boneless, sambal merata, dan garnish rapi di kemasan bowl higienis.",
+    "pembahasan_sop": "SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.",
     "bobot": 4
   },
   {
@@ -4564,31 +4564,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 2,
     "divisi": "Helper",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Helper - SOP Mopping Lantai & K3 Wet Floor Sign",
+    "topik": "Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-HLP-05",
-    "pertanyaan": "Saat mengepel lantai area makan yang terkena tumpahan minyak atau es teh (HC-SOP-HLP-05), prosedur keselamatan apa yang wajib dipasang?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "HC-SOP-11-PKP",
+    "pertanyaan": "Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di outlet HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Tidak perlu pengamanan apa pun."
+        "teks": "Semua jenis lap bebas dipakai bergantian untuk piring dan lantai dapur."
       },
       {
         "label": "B",
-        "teks": "Wajib meletakkan papan peringatan kerucut \"HATI-HATI LANTAI LICIN / CAUTION WET FLOOR\" di lokasi dan gunakan cairan degreaser khusus."
+        "teks": "Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat dusting."
       },
       {
         "label": "C",
-        "teks": "Menutup seluruh outlet dan mematikan lampu."
+        "teks": "Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer."
       },
       {
         "label": "D",
-        "teks": "Menyiram lantai dengan minyak goreng agar mengkilap."
+        "teks": "Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Pemasangan wet floor sign adalah standar K3 mutlak untuk mencegah pelanggan atau sesama kru terpeleset jatuh.",
+    "pembahasan_sop": "Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.",
     "bobot": 4
   },
   {
@@ -5804,19 +5804,19 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 3,
     "divisi": "Kitchen",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Kitchen - SOP Nasi Goreng Terbaru (Takaran Bumbu Eco & Minyak)",
+    "topik": "Kitchen - SOP Nasi Goreng (SOP-NasGorTelur-02)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-KIT-05",
-    "pertanyaan": "Berdasarkan SOP Nasi Goreng resmi revisi terbaru (HC-SOP-KIT-05), berapa takaran baku Bumbu Eco dan minyak goreng untuk memasak 1 porsi Nasi Goreng?",
+    "kode_sop": "SOP-NasGorTelur-02",
+    "pertanyaan": "Berdasarkan SOP-NasGorTelur-02 resmi revisi terbaru HARA, berapa gramatur baku bahan utama untuk 1 porsi Nasi Goreng?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml."
+        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml tanpa timbangan nasi."
       },
       {
         "label": "B",
-        "teks": "Bumbu Eco 20 gr dan minyak goreng 15 ml (1 sendok makan)."
+        "teks": "Nasi putih 170 gr (wajib ditimbang), minyak 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), plus telur dadar dan WAJIB 2 slice timun."
       },
       {
         "label": "C",
@@ -5828,7 +5828,7 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Formula baku SOP Nasi Goreng terbaru: Bumbu Eco 20 gr, Minyak 15 ml (1 sdm) untuk 1 cup nasi pulen dingin.",
+    "pembahasan_sop": "Formula baku SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, bumbu Eco 20 gr wajib timbang, mix sayur 30 gr, telur dadar, dan WAJIB 2 slice timun.",
     "bobot": 4
   },
   {
@@ -6587,31 +6587,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 3,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - Standar Menu Extra & Side Dishes",
+    "topik": "Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-GPK-16",
-    "pertanyaan": "Berdasarkan Knowledge Menu (HC-SOP-GPK-16), produk pelengkap krispi apa saja yang disiapkan di stasiun geprek & finishing?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "SOP-AyamSausMentai-01",
+    "pertanyaan": "Berdasarkan SOP-AyamSausMentai-01, bagaimana teknik penataan saus mentai, torching, dan pemindahan ke piring/box?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Sate kambing dan gulai sapi."
+        "teks": "Saus mentai digoreng di wajan bersama ayam."
       },
       {
         "label": "B",
-        "teks": "Terong Krispi, Jamur Enoki Krispi, Spinach (Bayam) Krispi, dan Telur Dadar."
+        "teks": "Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Pizza dan spaghetti saus bolognese."
+        "teks": "Saus mentai dibakar di dalam box kemasan plastik."
       },
       {
         "label": "D",
-        "teks": "Hanya kerupuk kaleng putih."
+        "teks": "Ayam dipindahkan menggunakan garpu biasa."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Terong krispi, Enoki krispi, Spinach krispi, dan Telur dadar adalah menu ekstra andalan resmi di outlet Hara Chicken.",
+    "pembahasan_sop": "SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar tidak hancur.",
     "bobot": 4
   },
   {
@@ -6620,31 +6620,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 3,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - SOP Ricebowl Ayam Geprek",
+    "topik": "Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Sedang",
-    "kode_sop": "HC-SOP-GPK-08",
-    "pertanyaan": "Berapa standar gramatur nasi dan penataan untuk menu Ricebowl Ayam Geprek?",
+    "tingkat_kesulitan": "Mudah",
+    "kode_sop": "SOP-SausAyoli-01",
+    "pertanyaan": "Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib sebelum menuangkan Saus Ayoli ke atas ayam geprek?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Nasi 50 gram dengan 1 potong tulang."
+        "teks": "Saus ayoli langsung dituang tanpa diaduk."
       },
       {
         "label": "B",
-        "teks": "Nasi pulen 200 gram di dalam paper bowl, suwiran ayam krispi boneless (tanpa tulang) 70-80 gram, siraman sambal baku di atasnya, dan garnish timun/daun selada."
+        "teks": "Saus Ayoli (campuran chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan ke atas ayam + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Nasi 500 gram hingga bowl tidak bisa ditutup."
+        "teks": "Saus ayoli dimasak di deep fryer terlebih dahulu."
       },
       {
         "label": "D",
-        "teks": "Nasi mentah yang belum ditanak."
+        "teks": "Saus ayoli diencerkan dengan air panas."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Ricebowl disajikan dengan 200g nasi, suwiran ayam krispi boneless, sambal merata, dan garnish rapi di kemasan bowl higienis.",
+    "pembahasan_sop": "SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.",
     "bobot": 4
   },
   {
@@ -6972,31 +6972,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 3,
     "divisi": "Helper",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Helper - SOP Mopping Lantai & K3 Wet Floor Sign",
+    "topik": "Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-HLP-05",
-    "pertanyaan": "Saat mengepel lantai area makan yang terkena tumpahan minyak atau es teh (HC-SOP-HLP-05), prosedur keselamatan apa yang wajib dipasang?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "HC-SOP-11-PKP",
+    "pertanyaan": "Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di outlet HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Tidak perlu pengamanan apa pun."
+        "teks": "Semua jenis lap bebas dipakai bergantian untuk piring dan lantai dapur."
       },
       {
         "label": "B",
-        "teks": "Wajib meletakkan papan peringatan kerucut \"HATI-HATI LANTAI LICIN / CAUTION WET FLOOR\" di lokasi dan gunakan cairan degreaser khusus."
+        "teks": "Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat dusting."
       },
       {
         "label": "C",
-        "teks": "Menutup seluruh outlet dan mematikan lampu."
+        "teks": "Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer."
       },
       {
         "label": "D",
-        "teks": "Menyiram lantai dengan minyak goreng agar mengkilap."
+        "teks": "Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Pemasangan wet floor sign adalah standar K3 mutlak untuk mencegah pelanggan atau sesama kru terpeleset jatuh.",
+    "pembahasan_sop": "Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.",
     "bobot": 4
   },
   {
@@ -8212,19 +8212,19 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 4,
     "divisi": "Kitchen",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Kitchen - SOP Nasi Goreng Terbaru (Takaran Bumbu Eco & Minyak)",
+    "topik": "Kitchen - SOP Nasi Goreng (SOP-NasGorTelur-02)",
     "pilar_kompetensi": "sop_jobdesk",
     "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-KIT-05",
-    "pertanyaan": "Berdasarkan SOP Nasi Goreng resmi revisi terbaru (HC-SOP-KIT-05), berapa takaran baku Bumbu Eco dan minyak goreng untuk memasak 1 porsi Nasi Goreng?",
+    "kode_sop": "SOP-NasGorTelur-02",
+    "pertanyaan": "Berdasarkan SOP-NasGorTelur-02 resmi revisi terbaru HARA, berapa gramatur baku bahan utama untuk 1 porsi Nasi Goreng?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml."
+        "teks": "Bumbu Eco 10 gr dan minyak goreng 30 ml tanpa timbangan nasi."
       },
       {
         "label": "B",
-        "teks": "Bumbu Eco 20 gr dan minyak goreng 15 ml (1 sendok makan)."
+        "teks": "Nasi putih 170 gr (wajib ditimbang), minyak 15 ml, mix sayur 30 gr, bumbu ECO 20 gr (wajib ditimbang), plus telur dadar dan WAJIB 2 slice timun."
       },
       {
         "label": "C",
@@ -8236,7 +8236,7 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Formula baku SOP Nasi Goreng terbaru: Bumbu Eco 20 gr, Minyak 15 ml (1 sdm) untuk 1 cup nasi pulen dingin.",
+    "pembahasan_sop": "Formula baku SOP-NasGorTelur-02: Nasi putih 170 gr wajib timbang, minyak 15 ml, bumbu Eco 20 gr wajib timbang, mix sayur 30 gr, telur dadar, dan WAJIB 2 slice timun.",
     "bobot": 4
   },
   {
@@ -8995,31 +8995,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 4,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - Standar Menu Extra & Side Dishes",
+    "topik": "Geprek - SOP Ayam Saus Mentai (SOP-AyamSausMentai-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-GPK-16",
-    "pertanyaan": "Berdasarkan Knowledge Menu (HC-SOP-GPK-16), produk pelengkap krispi apa saja yang disiapkan di stasiun geprek & finishing?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "SOP-AyamSausMentai-01",
+    "pertanyaan": "Berdasarkan SOP-AyamSausMentai-01, bagaimana teknik penataan saus mentai, torching, dan pemindahan ke piring/box?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Sate kambing dan gulai sapi."
+        "teks": "Saus mentai digoreng di wajan bersama ayam."
       },
       {
         "label": "B",
-        "teks": "Terong Krispi, Jamur Enoki Krispi, Spinach (Bayam) Krispi, dan Telur Dadar."
+        "teks": "Beri Saus Mentai 2 solet penuh di atas ayam -> bakar permukaan saus dengan Gas Torch merata hingga kecokelatan -> WAJIB angkat menggunakan 2 SOLET ke piring/box agar tidak hancur + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Pizza dan spaghetti saus bolognese."
+        "teks": "Saus mentai dibakar di dalam box kemasan plastik."
       },
       {
         "label": "D",
-        "teks": "Hanya kerupuk kaleng putih."
+        "teks": "Ayam dipindahkan menggunakan garpu biasa."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Terong krispi, Enoki krispi, Spinach krispi, dan Telur dadar adalah menu ekstra andalan resmi di outlet Hara Chicken.",
+    "pembahasan_sop": "SOP-AyamSausMentai-01: Saus mentai ditakar 2 solet penuh, dibakar gas torch hingga wangi, dan WAJIB diangkat menggunakan 2 SOLET secara hati-hati agar tidak hancur.",
     "bobot": 4
   },
   {
@@ -9028,31 +9028,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 4,
     "divisi": "Geprek",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Geprek - SOP Ricebowl Ayam Geprek",
+    "topik": "Geprek - SOP Saus Garlic Ayoli (SOP-SausAyoli-01)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Sedang",
-    "kode_sop": "HC-SOP-GPK-08",
-    "pertanyaan": "Berapa standar gramatur nasi dan penataan untuk menu Ricebowl Ayam Geprek?",
+    "tingkat_kesulitan": "Mudah",
+    "kode_sop": "SOP-SausAyoli-01",
+    "pertanyaan": "Berdasarkan SOP-SausAyoli-01, apa langkah persiapan wajib sebelum menuangkan Saus Ayoli ke atas ayam geprek?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Nasi 50 gram dengan 1 potong tulang."
+        "teks": "Saus ayoli langsung dituang tanpa diaduk."
       },
       {
         "label": "B",
-        "teks": "Nasi pulen 200 gram di dalam paper bowl, suwiran ayam krispi boneless (tanpa tulang) 70-80 gram, siraman sambal baku di atasnya, dan garnish timun/daun selada."
+        "teks": "Saus Ayoli (campuran chili oil & mayones) wajib diaduk rata menggunakan GARPU hingga emulsi tercampur sempurna bebas pisah minyak sebelum dituangkan ke atas ayam + 2 slice timun."
       },
       {
         "label": "C",
-        "teks": "Nasi 500 gram hingga bowl tidak bisa ditutup."
+        "teks": "Saus ayoli dimasak di deep fryer terlebih dahulu."
       },
       {
         "label": "D",
-        "teks": "Nasi mentah yang belum ditanak."
+        "teks": "Saus ayoli diencerkan dengan air panas."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Ricebowl disajikan dengan 200g nasi, suwiran ayam krispi boneless, sambal merata, dan garnish rapi di kemasan bowl higienis.",
+    "pembahasan_sop": "SOP-SausAyoli-01 mewajibkan pengadukan 1 cup saus ayoli menggunakan GARPU agar emulsi chili oil dan mayones bersatu lembut dan tidak memisah.",
     "bobot": 4
   },
   {
@@ -9380,31 +9380,31 @@ export const BANK_SOAL_MINGGUAN: SoalUjianMingguan[] = [
     "mingguNomor": 4,
     "divisi": "Helper",
     "tipe": "PILIHAN_GANDA",
-    "topik": "Helper - SOP Mopping Lantai & K3 Wet Floor Sign",
+    "topik": "Helper - Standar 4 Jenis Lap Resmi HARA (HC-SOP-11-PKP Hal. 16)",
     "pilar_kompetensi": "sop_jobdesk",
-    "tingkat_kesulitan": "Mudah",
-    "kode_sop": "HC-SOP-HLP-05",
-    "pertanyaan": "Saat mengepel lantai area makan yang terkena tumpahan minyak atau es teh (HC-SOP-HLP-05), prosedur keselamatan apa yang wajib dipasang?",
+    "tingkat_kesulitan": "Sedang",
+    "kode_sop": "HC-SOP-11-PKP",
+    "pertanyaan": "Sesuai HC-SOP-11-PKP Hal. 16, bagaimana pembagian fungsi 4 jenis lap resmi yang wajib digunakan di outlet HARA Chicken?",
     "opsi": [
       {
         "label": "A",
-        "teks": "Tidak perlu pengamanan apa pun."
+        "teks": "Semua jenis lap bebas dipakai bergantian untuk piring dan lantai dapur."
       },
       {
         "label": "B",
-        "teks": "Wajib meletakkan papan peringatan kerucut \"HATI-HATI LANTAI LICIN / CAUTION WET FLOOR\" di lokasi dan gunakan cairan degreaser khusus."
+        "teks": "Kanebo: khusus piring makan; Lap Orange: lap meja/kaca/kursi + glass cleaner; Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer; Lap Kering Kotak: khusus tangan saat dusting."
       },
       {
         "label": "C",
-        "teks": "Menutup seluruh outlet dan mematikan lampu."
+        "teks": "Lap Orange untuk piring makan, Kanebo untuk mengeringkan minyak deep fryer."
       },
       {
         "label": "D",
-        "teks": "Menyiram lantai dengan minyak goreng agar mengkilap."
+        "teks": "Lap Basah Kotak untuk tangan kru, Lap Kering Kotak untuk mengelap lantai."
       }
     ],
     "jawaban_benar": "B",
-    "pembahasan_sop": "Pemasangan wet floor sign adalah standar K3 mutlak untuk mencegah pelanggan atau sesama kru terpeleset jatuh.",
+    "pembahasan_sop": "Standar Resmi HC-SOP-11-PKP Hal. 16: 1) Kanebo: khusus piring makan, 2) Lap Orange: meja/kaca/kursi, 3) Lap Basah Kotak: meja dapur/geprek/minuman & kuras fryer, 4) Lap Kering Kotak: tangan saat penepungan dusting.",
     "bobot": 4
   },
   {

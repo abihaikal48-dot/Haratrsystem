@@ -116,7 +116,7 @@ Terkait topik **"${prompt}"**, berikut panduan operasional terstandarisasi untuk
    * Lakukan briefing 5 menit sebelum shift untuk mengonfirmasi pemahaman titik kendali kritis (CCP).
 
 2. **Evaluasi Berkala 4 Pilar Terpadu:**
-   * Lakukan pengujian berkala melalui 4 pilar uji: Teori SOP (25%), Praktik SOS (35%), Lisan HACCP (20%), dan Observasi Budaya HARA (20%).
+   * Lakukan pengujian berkala melalui 4 pilar uji resmi: Teori SOP (20%), Praktik SOS (40%), Lisan HACCP (15%), dan Sikap Budaya H.A.R.A (25%).
    * Kru dengan skor < 75 otomatis dijadwalkan TNA dan bimbingan 1-on-1 bersama Area Trainer.
 
 3. **Tindak Lanjut Perbaikan Berkelanjutan:**
