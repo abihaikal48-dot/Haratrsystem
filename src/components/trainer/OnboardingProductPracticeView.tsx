@@ -5,7 +5,7 @@ import {
   Filter, Check, X, ShieldAlert,
   Info, ShieldCheck, User, Users, Store, Zap, RefreshCw,
   Thermometer, Scale, BookOpen, Plus,
-  Edit2, Layers, HelpCircle, Eye, Printer, ChevronRight
+  Edit2, Edit3, Save, Trash2, Layers, HelpCircle, Eye, Printer, ChevronRight
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../lib/storage';
@@ -58,6 +58,14 @@ export const KERJASAMA_INDICATORS = [
   { id: 'ker-6', label: 'Manajemen stres & ketenangan sikap menghadapi pesanan dalam waktu terbatas', poin: 16 },
 ];
 
+export const KEAKTIFAN_INDICATORS = [
+  { id: 'akt-1', label: 'Keaktifan bertanya & berdiskusi kritis mengenai SOP, titik kritis, dan rasa produk', poin: 20 },
+  { id: 'akt-2', label: 'Inisiatif tinggi dalam persiapan alat, bahan baku, dan kerapian stasiun kerja Training Center', poin: 20 },
+  { id: 'akt-3', label: 'Fokus & konsentrasi penuh tanpa terdistraksi selama pemaparan dan instruksi trainer', poin: 20 },
+  { id: 'akt-4', label: 'Kedisiplinan pencatatan materi & keakuratan pemahaman formulir evaluasi harian', poin: 20 },
+  { id: 'akt-5', label: 'Semangat, antusiasme, & energi positif tinggi dalam simulasi Onboarding Lab RnD', poin: 20 },
+];
+
 export const DAFTAR_PENILAI_DEFAULT = [
   'Haikal (Trainer)',
   'Jihan (RnD)',
@@ -84,6 +92,7 @@ export interface AssessmentSessionTab {
   stepChecklist: { nomor: number; langkah: string; tercapai: boolean; isKritis?: boolean }[];
   kebersihanChecked: Record<string, boolean>;
   kerjasamaChecked: Record<string, boolean>;
+  keaktifanChecked: Record<string, boolean>;
   knowledgeAnswers: Record<number, boolean>;
   skorKnowledge: number;
   catatanTrainer: string;
@@ -116,6 +125,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [pickerDayFilter, setPickerDayFilter] = useState<'ALL' | 'Day 1' | 'Day 2'>('ALL');
   const [pickerStationFilter, setPickerStationFilter] = useState<string>('ALL');
 
+  // Custom SOP Products CRUD State
+  const [customProducts, setCustomProducts] = useState<OnboardingProductItem[]>(() => {
+    return db.getTable<OnboardingProductItem>('bank_sop_products') || [];
+  });
+  const [isManageProductsOpen, setIsManageProductsOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<OnboardingProductItem | null>(null);
+  const [newProdName, setNewProdName] = useState('');
+  const [newProdKode, setNewProdKode] = useState('');
+  const [newProdDay, setNewProdDay] = useState<'Day 1' | 'Day 2'>('Day 1');
+  const [newProdStation, setNewProdStation] = useState<'Station 1' | 'Station 2' | 'Station 3' | 'All Crew'>('Station 1');
+  const [newProdDivisi, setNewProdDivisi] = useState<Division>('Kitchen');
+  const [newProdStdDetik, setNewProdStdDetik] = useState(300);
+  const [newProdDeskripsi, setNewProdDeskripsi] = useState('');
+
+  const allAvailableProducts = useMemo(() => {
+    return [...HARA_ONBOARDING_PRODUCTS_MASTER, ...customProducts];
+  }, [customProducts]);
+
   // Certificate and Report Modals
   const [certificateData, setCertificateData] = useState<{
     kruNama: string;
@@ -136,7 +163,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   // Helper to initialize steps for a product
   const getInitialStepsForProduct = (productName: string) => {
-    const pDef = HARA_ONBOARDING_PRODUCTS_MASTER.find(p => p.nama === productName) || HARA_ONBOARDING_PRODUCTS_MASTER[0];
+    const pDef = allAvailableProducts.find(p => p.nama === productName) || allAvailableProducts[0];
     return pDef.langkahSOP.map(s => ({
       nomor: s.nomor,
       langkah: s.teks,
@@ -145,16 +172,33 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }));
   };
 
-  // Helper to create a new session
+  // Helper to create a new session (Consolidates Candidate Daily Global Pillars for Multi-Product Testing)
   const createNewSession = (initialKru?: Kru, defaultProduct?: string): AssessmentSessionTab => {
     const prodName = defaultProduct || 'Nasi (Rice Cooker 4 Cup D1)';
-    const prodDef = HARA_ONBOARDING_PRODUCTS_MASTER.find(p => p.nama === prodName) || HARA_ONBOARDING_PRODUCTS_MASTER[0];
+    const prodDef = allAvailableProducts.find(p => p.nama === prodName) || allAvailableProducts[0];
     const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+
+    const candidateId = initialKru?.id || (kruList[0]?.id ?? 'manual-1');
+    const candidateName = initialKru?.nama_kru || (kruList[0]?.nama_kru ?? 'Peserta Praktik 1');
+
+    // Inherit candidate's daily global pillar scores if candidate already has an active session today
+    const existingSession = sessions.find(s => s.kruId === candidateId || s.namaKru.toLowerCase().trim() === candidateName.toLowerCase().trim());
+    
+    // Default fallback scores
+    const defaultKebersihan = existingSession?.kebersihanChecked || {
+      'keb-1': true, 'keb-2': true, 'keb-3': true, 'keb-4': true, 'keb-5': true, 'keb-6': true
+    };
+    const defaultKerjasama = existingSession?.kerjasamaChecked || {
+      'ker-1': true, 'ker-2': true, 'ker-3': true, 'ker-4': true, 'ker-5': true, 'ker-6': true
+    };
+    const defaultKeaktifan = existingSession?.keaktifanChecked || {
+      'akt-1': true, 'akt-2': true, 'akt-3': true, 'akt-4': true, 'akt-5': true
+    };
 
     return {
       id: newId,
-      kruId: initialKru?.id || (kruList[0]?.id ?? 'manual-1'),
-      namaKru: initialKru?.nama_kru || (kruList[0]?.nama_kru ?? 'Peserta Praktik 1'),
+      kruId: candidateId,
+      namaKru: candidateName,
       isManualName: false,
       manualNameInput: '',
       outletCode: initialKru?.kode_outlet || (selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-BTL01'),
@@ -167,12 +211,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
       gramaturAktual: prodDef.targetGramatur || 0,
       stepChecklist: getInitialStepsForProduct(prodDef.nama),
-      kebersihanChecked: {
-        'keb-1': true, 'keb-2': true, 'keb-3': true, 'keb-4': true, 'keb-5': true, 'keb-6': true
-      },
-      kerjasamaChecked: {
-        'ker-1': true, 'ker-2': true, 'ker-3': true, 'ker-4': true, 'ker-5': true, 'ker-6': true
-      },
+      kebersihanChecked: { ...defaultKebersihan },
+      kerjasamaChecked: { ...defaultKerjasama },
+      keaktifanChecked: { ...defaultKeaktifan },
       knowledgeAnswers: { 0: true, 1: true, 2: true },
       skorKnowledge: 100,
       catatanTrainer: '',
@@ -190,14 +231,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setOutlets(o);
     setBatches(b);
 
-    setSessions(prev => {
-      if (prev.length === 0) {
-        const init = createNewSession(k[0]);
-        setActiveTabId(init.id);
-        return [init];
-      }
-      return prev;
-    });
+    const savedDrafts = db.getTable<AssessmentSessionTab>('draft_assessment_sessions');
+    if (Array.isArray(savedDrafts) && savedDrafts.length > 0) {
+      setSessions(savedDrafts);
+      setActiveTabId(prev => (prev && savedDrafts.some(s => s.id === prev) ? prev : savedDrafts[0].id));
+    } else {
+      setSessions(prev => {
+        if (prev.length === 0) {
+          const init = createNewSession(k[0]);
+          setActiveTabId(init.id);
+          return [init];
+        }
+        return prev;
+      });
+    }
   };
 
   useEffect(() => {
@@ -205,6 +252,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const unsub = db.subscribe('*', refreshData);
     return () => unsub();
   }, []);
+
+  // Continuous Live Auto-Save to LocalStorage & Cloud Firestore
+  useEffect(() => {
+    if (sessions.length > 0) {
+      const saveTimer = setTimeout(() => {
+        try {
+          db.setDirect('draft_assessment_sessions', sessions);
+        } catch (err) {
+          console.warn('Auto-save draft error:', err);
+        }
+      }, 500);
+      return () => clearTimeout(saveTimer);
+    }
+  }, [sessions]);
 
   // Concurrent Background Stopwatch Tick
   useEffect(() => {
@@ -235,9 +296,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   // Current product definition for active session
   const currentProductDef = useMemo(() => {
-    if (!activeSession) return HARA_ONBOARDING_PRODUCTS_MASTER[0];
-    return HARA_ONBOARDING_PRODUCTS_MASTER.find(p => p.nama === activeSession.productNama) || HARA_ONBOARDING_PRODUCTS_MASTER[0];
-  }, [activeSession?.productNama]);
+    if (!activeSession) return allAvailableProducts[0];
+    return allAvailableProducts.find(p => p.nama === activeSession.productNama) || allAvailableProducts[0];
+  }, [activeSession?.productNama, allAvailableProducts]);
 
   // Update a field in the active session
   const updateActiveSession = (updates: Partial<AssessmentSessionTab>) => {
@@ -269,6 +330,75 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     });
     setIsProductPickerOpen(false);
     showToast(`Produk diganti ke: ${product.nama} (${product.stationLabel})`);
+  };
+
+  // Product CRUD Handlers
+  const handleSaveProductCRUD = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProdName.trim()) return;
+
+    if (editingProduct) {
+      const updatedItem: OnboardingProductItem = {
+        ...editingProduct,
+        nama: newProdName.trim(),
+        kode: newProdKode.trim() || `HC-SOP-RND-${Date.now().toString().slice(-4)}`,
+        day: newProdDay,
+        station: newProdStation,
+        stationLabel: `${newProdStation}: ${newProdName.trim()}`,
+        divisi: newProdDivisi,
+        stdDetik: Number(newProdStdDetik) || 300,
+        deskripsi: newProdDeskripsi.trim() || 'Produk SOP Onboarding kustomisasi RnD.',
+      };
+
+      const updatedList = customProducts.map(p => p.id === editingProduct.id ? updatedItem : p);
+      setCustomProducts(updatedList);
+      db.setDirect('bank_sop_products', updatedList);
+      showToast(`Produk SOP "${updatedItem.nama}" berhasil diperbarui.`);
+    } else {
+      const newItem: OnboardingProductItem = {
+        id: `prod-custom-${Date.now()}`,
+        nama: newProdName.trim(),
+        kode: newProdKode.trim() || `HC-SOP-RND-${Date.now().toString().slice(-4)}`,
+        day: newProdDay,
+        batch: 'All Batch',
+        station: newProdStation,
+        stationLabel: `${newProdStation}: ${newProdName.trim()}`,
+        divisi: newProdDivisi,
+        stdDetik: Number(newProdStdDetik) || 300,
+        requiresOilTemp: false,
+        requiresGramatur: false,
+        deskripsi: newProdDeskripsi.trim() || 'Produk SOP Onboarding kustomisasi RnD.',
+        titikKritis: ['Patuhi standar kebersihan K3 & kecepatan SOS HARA.'],
+        langkahSOP: [
+          { nomor: 1, teks: 'Siapkan peralatan dan bahan baku terstandar HARA.' },
+          { nomor: 2, teks: 'Lakukan olah/proses produk sesuai resep baku.', isKritis: true },
+          { nomor: 3, teks: 'Lakukan penyajian/packing rapi dan periksa kualitas organoleptik.' }
+        ],
+        autoQuestions: [
+          { tanya: 'Sebutkan titik kritis utama dari proses ini?', kunci: 'Kebersihan alat dan kesesuaian waktu standar' }
+        ]
+      };
+
+      const updatedList = [newItem, ...customProducts];
+      setCustomProducts(updatedList);
+      db.setDirect('bank_sop_products', updatedList);
+      showToast(`Produk SOP baru "${newItem.nama}" berhasil ditambahkan.`);
+    }
+
+    setEditingProduct(null);
+    setNewProdName('');
+    setNewProdKode('');
+    setNewProdDeskripsi('');
+    setIsManageProductsOpen(false);
+  };
+
+  const handleDeleteProductCRUD = (id: string) => {
+    if (confirm('Apakah Anda yakin ingin menghapus produk SOP ini?')) {
+      const updatedList = customProducts.filter(p => p.id !== id);
+      setCustomProducts(updatedList);
+      db.setDirect('bank_sop_products', updatedList);
+      showToast('Produk SOP berhasil dihapus.');
+    }
   };
 
   // Add new concurrent session tab
@@ -326,6 +456,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const nextVal = !activeSession.kerjasamaChecked[id];
     updateActiveSession({
       kerjasamaChecked: { ...activeSession.kerjasamaChecked, [id]: nextVal }
+    });
+  };
+
+  // Toggle Keaktifan indicator
+  const handleToggleKeaktifan = (id: string) => {
+    if (!activeSession) return;
+    const nextVal = !activeSession.keaktifanChecked?.[id];
+    updateActiveSession({
+      keaktifanChecked: { ...(activeSession.keaktifanChecked || {}), [id]: nextVal }
     });
   };
 
@@ -406,16 +545,22 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     });
     skorKerjasama = Math.min(100, skorKerjasama);
 
-    // 5. Knowledge SOP (20%)
-    const skorKnowledge = activeSession.skorKnowledge;
+    // 5. Keaktifan & Partisipasi Onboarding Lab RnD (15%)
+    let skorKeaktifan = 0;
+    KEAKTIFAN_INDICATORS.forEach(k => {
+      if (activeSession.keaktifanChecked?.[k.id]) {
+        skorKeaktifan += k.poin;
+      }
+    });
+    skorKeaktifan = Math.min(100, skorKeaktifan);
 
-    // Weighted Total: 30% Prosedur + 20% Waktu + 15% Kebersihan + 15% Kerjasama + 20% Knowledge
+    // Weighted Total: 30% Prosedur + 25% Waktu + 15% Kebersihan + 15% Kerjasama + 15% Keaktifan = 100%
     let skorAkhir = Math.round(
       skorProsedur * 0.30 +
-      skorWaktu * 0.20 +
+      skorWaktu * 0.25 +
       skorKebersihan * 0.15 +
       skorKerjasama * 0.15 +
-      skorKnowledge * 0.20
+      skorKeaktifan * 0.15
     );
 
     // Standard Passing Criteria from PDF:
@@ -437,7 +582,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       skorWaktu,
       skorKebersihan,
       skorKerjasama,
-      skorKnowledge,
+      skorKeaktifan,
+      skorKnowledge: activeSession.skorKnowledge,
       skorAkhir,
       isKompetenMandiri,
       isLulusPendampingan,
@@ -460,8 +606,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const newRecord: PenilaianPraktikOnboardingProduk = {
       id: `prak-${Date.now()}`,
       tanggal: tanggalUji,
-      batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : undefined,
-      nama_batch: selectedBatchId !== 'ALL' ? batches.find(b => b.id === selectedBatchId)?.nama_batch : undefined,
+      batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : '',
+      nama_batch: selectedBatchId !== 'ALL' ? (batches.find(b => b.id === selectedBatchId)?.nama_batch || '') : '',
       kode_outlet: activeSession.outletCode,
       kru_id: activeSession.isManualName ? `manual-${Date.now()}` : activeSession.kruId,
       nama_kru: effectiveKruNama,
@@ -473,8 +619,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       produk_nama: activeSession.productNama,
       waktu_detik: activeSession.timerSeconds,
       target_detik: currentProductDef.stdDetik,
-      suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : undefined,
-      gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : undefined,
+      suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : 0,
+      gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
       skor_prosedur: calculatedScores.skorProsedur,
       skor_waktu: calculatedScores.skorWaktu,
       skor_kebersihan: calculatedScores.skorKebersihan,
@@ -517,7 +663,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   // Filter products for Searchable Modal
   const filteredModalProducts = useMemo(() => {
-    return HARA_ONBOARDING_PRODUCTS_MASTER.filter(p => {
+    return allAvailableProducts.filter(p => {
       // Search query
       if (productSearchQuery.trim()) {
         const q = productSearchQuery.toLowerCase();
@@ -532,7 +678,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       if (pickerStationFilter !== 'ALL' && p.station !== pickerStationFilter) return false;
       return true;
     });
-  }, [productSearchQuery, pickerDayFilter, pickerStationFilter]);
+  }, [allAvailableProducts, productSearchQuery, pickerDayFilter, pickerStationFilter]);
 
   const allAssessments = db.getPenilaianPraktikProduk();
 
@@ -757,8 +903,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     }}
                     className="col-span-2 p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
                   >
-                    {kruList.map(k => (
-                      <option key={k.id} value={k.id}>
+                    {kruList.map((k, idx) => (
+                      <option key={`${k.id}-${idx}`} value={k.id}>
                         {k.nama_kru} ({k.divisi} - {k.kode_outlet})
                       </option>
                     ))}
@@ -1270,6 +1416,36 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               </div>
             </div>
 
+            {/* KEAKTIFAN & PARTISIPASI (15%) */}
+            <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
+                <div>
+                  <h4 className="font-bold text-sm text-[#181411]">Keaktifan & Partisipasi Lab RnD (15%)</h4>
+                  <p className="text-[11px] text-[#645D55]">Inisiatif, keaktifan bertanya & diskusi SOP</p>
+                </div>
+                <span className="text-xs font-mono font-bold text-[#181411]">
+                  {calculatedScores.skorKeaktifan}%
+                </span>
+              </div>
+
+              <div className="space-y-2">
+                {KEAKTIFAN_INDICATORS.map(k => (
+                  <label
+                    key={k.id}
+                    className="flex items-start gap-2.5 text-xs text-[#181411] cursor-pointer select-none"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!!activeSession.keaktifanChecked?.[k.id]}
+                      onChange={() => handleToggleKeaktifan(k.id)}
+                      className="w-4 h-4 rounded border-[#E6E1DA] text-[#96171B] focus:ring-[#96171B] mt-0.5 accent-[#96171B]"
+                    />
+                    <span className="leading-snug">{k.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
             {/* CATATAN ASESOR / TRAINER */}
             <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-2">
               <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
@@ -1305,13 +1481,29 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   <p className="text-xs text-[#645D55]">Pencarian cepat produk Day 1 & Day 2 per station</p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsProductPickerOpen(false)}
-                className="p-1 rounded-lg text-[#645D55] hover:text-[#181411] hover:bg-[#FAF8F5]"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingProduct(null);
+                    setNewProdName('');
+                    setNewProdKode('');
+                    setNewProdDeskripsi('');
+                    setIsManageProductsOpen(true);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white text-xs font-semibold flex items-center gap-1 transition-colors"
+                >
+                  <Plus size={14} />
+                  <span>Tambah / Edit SOP</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsProductPickerOpen(false)}
+                  className="p-1 rounded-lg text-[#645D55] hover:text-[#181411] hover:bg-[#FAF8F5]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             {/* Filter Controls Bar */}
@@ -1510,6 +1702,202 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             });
           }}
         />
+      )}
+
+      {/* ===================================================================
+          MODAL: KELOLA & TAMBAH/EDIT/HAPUS PRODUK SOP ONBOARDING (CRUD)
+          =================================================================== */}
+      {isManageProductsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col text-[#181411] animate-in fade-in zoom-in-95">
+            <div className="p-5 border-b border-[#E6E1DA] flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-[#96171B]/10 text-[#96171B] flex items-center justify-center">
+                  <Edit3 size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#181411]">Kelola Bank Produk SOP Onboarding</h3>
+                  <p className="text-xs text-[#645D55]">Tambah, edit, dan hapus produk SOP khusus pelatihan RnD</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageProductsOpen(false)}
+                className="p-1 rounded-lg text-[#645D55] hover:text-[#181411]"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto space-y-6">
+              {/* Form Tambah/Edit */}
+              <form onSubmit={handleSaveProductCRUD} className="p-4 bg-[#FAF8F5] rounded-xl border border-[#E6E1DA] space-y-4">
+                <h4 className="font-bold text-xs text-[#96171B] uppercase tracking-wider flex items-center gap-1.5">
+                  <Plus size={14} />
+                  <span>{editingProduct ? 'Edit Produk SOP' : 'Tambah Produk SOP Baru'}</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div>
+                    <label className="block font-semibold mb-1">Nama Produk Baku SOP *</label>
+                    <input
+                      type="text"
+                      value={newProdName}
+                      onChange={(e) => setNewProdName(e.target.value)}
+                      placeholder="misal: Geprek ORI, Bayam Krispi..."
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white font-medium"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Kode SOP *</label>
+                    <input
+                      type="text"
+                      value={newProdKode}
+                      onChange={(e) => setNewProdKode(e.target.value)}
+                      placeholder="HC-SOP-GEP-01"
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white font-medium"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Hari Pelatihan</label>
+                    <select
+                      value={newProdDay}
+                      onChange={(e) => setNewProdDay(e.target.value as any)}
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white"
+                    >
+                      <option value="Day 1">Day 1</option>
+                      <option value="Day 2">Day 2</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Stasiun Kerja</label>
+                    <select
+                      value={newProdStation}
+                      onChange={(e) => setNewProdStation(e.target.value as any)}
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white"
+                    >
+                      <option value="Station 1">Station 1</option>
+                      <option value="Station 2">Station 2</option>
+                      <option value="Station 3">Station 3</option>
+                      <option value="All Crew">All Crew</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Divisi Penanggung Jawab</label>
+                    <select
+                      value={newProdDivisi}
+                      onChange={(e) => setNewProdDivisi(e.target.value as any)}
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white"
+                    >
+                      <option value="Kitchen">Kitchen</option>
+                      <option value="Kasir">Kasir</option>
+                      <option value="Geprek">Geprek</option>
+                      <option value="Helper">Helper</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block font-semibold mb-1">Target SOS (Detik)</label>
+                    <input
+                      type="number"
+                      value={newProdStdDetik}
+                      onChange={(e) => setNewProdStdDetik(Number(e.target.value))}
+                      placeholder="300"
+                      className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold mb-1">Deskripsi Singkat / SOP Baku</label>
+                  <textarea
+                    rows={2}
+                    value={newProdDeskripsi}
+                    onChange={(e) => setNewProdDeskripsi(e.target.value)}
+                    placeholder="Jelaskan standar proses awal persiapan hingga penyajian..."
+                    className="w-full p-2 rounded-lg border border-[#E6E1DA] bg-white text-xs"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-1">
+                  {editingProduct && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingProduct(null);
+                        setNewProdName('');
+                        setNewProdKode('');
+                        setNewProdDeskripsi('');
+                      }}
+                      className="px-3 py-1.5 rounded-lg border border-[#E6E1DA] text-xs font-semibold text-gray-700"
+                    >
+                      Batal Edit
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    className="px-4 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white text-xs font-semibold flex items-center gap-1.5"
+                  >
+                    <Save size={14} />
+                    <span>{editingProduct ? 'Simpan Perubahan' : 'Simpan Produk Baru'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {/* Daftar Produk Custom Existing */}
+              <div>
+                <h4 className="font-bold text-xs text-[#181411] mb-2 uppercase tracking-wider">
+                  Daftar Produk Kustomisasi ({customProducts.length}):
+                </h4>
+                {customProducts.length === 0 ? (
+                  <p className="text-xs text-gray-500 italic p-3 bg-gray-50 rounded-lg text-center">
+                    Belum ada produk kustomisasi tambahan. Produk default sistem aktif.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    {customProducts.map(prod => (
+                      <div key={prod.id} className="p-3 rounded-lg border border-[#E6E1DA] bg-white flex items-center justify-between gap-3 text-xs">
+                        <div>
+                          <div className="font-bold text-[#181411]">{prod.nama} ({prod.kode})</div>
+                          <div className="text-[11px] text-[#645D55]">
+                            {prod.day} • {prod.station} • Divisi {prod.divisi} • Target: {prod.stdDetik}s
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingProduct(prod);
+                              setNewProdName(prod.nama);
+                              setNewProdKode(prod.kode);
+                              setNewProdDay(prod.day);
+                              setNewProdStation(prod.station);
+                              setNewProdDivisi(prod.divisi);
+                              setNewProdStdDetik(prod.stdDetik);
+                              setNewProdDeskripsi(prod.deskripsi);
+                            }}
+                            className="p-1.5 rounded-lg border border-gray-200 text-slate-700 hover:bg-slate-100"
+                            title="Edit Produk"
+                          >
+                            <Edit3 size={14} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteProductCRUD(prod.id)}
+                            className="p-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50"
+                            title="Hapus Produk"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

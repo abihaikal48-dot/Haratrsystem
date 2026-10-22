@@ -276,7 +276,7 @@ export const OfficialHaraMonitoringMatrix: React.FC<OfficialHaraMonitoringMatrix
                 const isRemedial = crew.status_keseluruhan === 'Kritis / Remedial';
 
                 return (
-                  <tr key={crew.id} className="hover:bg-slate-50/80 transition-colors">
+                  <tr key={`${crew.id}-${rowIdx}`} className="hover:bg-slate-50/80 transition-colors">
                     {/* No */}
                     <td className="py-2.5 px-2 text-left font-mono text-slate-500 border-r border-slate-200 sticky left-0 bg-white z-10">
                       {rowIdx + 1}

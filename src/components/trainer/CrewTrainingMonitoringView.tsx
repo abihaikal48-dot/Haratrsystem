@@ -967,8 +967,8 @@ export const CrewTrainingMonitoringView: React.FC<CrewTrainingMonitoringViewProp
                   }}
                   className="px-3 py-1.5 bg-white border border-slate-300 rounded-lg text-xs font-semibold text-slate-900"
                 >
-                  {monitoringList.map(k => (
-                    <option key={k.kru_id} value={k.kru_id}>
+                  {monitoringList.map((k, kIdx) => (
+                    <option key={`${k.kru_id}-${kIdx}`} value={k.kru_id}>
                       {k.nama_kru} ({k.divisi} — {k.kode_outlet})
                     </option>
                   ))}

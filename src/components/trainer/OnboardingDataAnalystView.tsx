@@ -7,7 +7,7 @@ import {
   Thermometer, Scale, CheckSquare
 } from 'lucide-react';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import { db } from '../../lib/storage';
 import { PenilaianOnboardingTC, Outlet, Division } from '../../types';
 
@@ -20,10 +20,38 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
   selectedOutletCode = 'ALL',
   onNavigateToForm,
 }) => {
-  // Master Data
-  const [dataList, setDataList] = useState<PenilaianOnboardingTC[]>(() => {
+  // Master Data (Consolidates both Onboarding TC and Multi-Product SOP Evaluations)
+  const [dataList, setDataList] = useState<any[]>(() => {
     try {
-      return db.getTable<PenilaianOnboardingTC>('penilaian_onboarding_tc');
+      const tc = db.getTable<PenilaianOnboardingTC>('penilaian_onboarding_tc') || [];
+      const prod = db.getPenilaianPraktikProduk() || [];
+      // Map product evaluations into normalized list format if needed
+      const normalizedProd = prod.map((p) => ({
+        id: p.id,
+        tanggal: p.tanggal,
+        peserta_nama: p.nama_kru,
+        peserta_outlet: p.kode_outlet,
+        peserta_divisi: p.divisi || 'Kitchen',
+        kategori_peserta: 'Reguler',
+        stasiun: p.station || 'Station SOP',
+        task_nama: p.produk_nama,
+        durasi_detik: p.durasi_detik || 600,
+        target_durasi_detik: p.standar_durasi_detik || 600,
+        deviasi_detik: (p.durasi_detik || 600) - (p.standar_durasi_detik || 600),
+        skor_total: p.skor_akhir,
+        skala_lima: Math.min(5, Number((p.skor_akhir / 20).toFixed(1))),
+        grade: p.skor_akhir >= 85 ? 'A (Sangat Baik)' : p.skor_akhir >= 80 ? 'B (Baik)' : 'C (Perlu Bimbingan)',
+        skor_ketepatan: p.skor_prosedur || 85,
+        skor_kebersihan: p.skor_kebersihan || 85,
+        skor_tim: p.skor_kerjasama || 85,
+        skor_knowledge: p.skor_knowledge || 85,
+        titik_kesalahan: p.gagal_titik_kritis ? ['Pelanggaran titik kritis SOP'] : [],
+        rekomendasi_perbaikan: p.catatan_trainer || 'Pertahankan performa sesuai resep baku HARA.',
+        status_kelulusan: p.status_kelulusan || (p.skor_akhir >= 85 ? 'Lulus Sempurna' : 'Lulus Bersyarat'),
+        trainer_nama: p.nama_trainer || 'Haikal Abi',
+        catatan_trainer: p.catatan_trainer || '-',
+      }));
+      return [...prod, ...tc, ...normalizedProd.filter(np => !tc.some(t => t.id === np.id))];
     } catch {
       return [];
     }
@@ -37,11 +65,49 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
     }
   });
 
+  // Multi-select state for Bulk Deletion & Export
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
   // Filter States
   const [searchQuery, setSearchQuery] = useState('');
   const [filterOutlet, setFilterOutlet] = useState<string>(selectedOutletCode);
   const [filterStasiun, setFilterStasiun] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+
+  const loadData = () => {
+    try {
+      const tc = db.getTable<PenilaianOnboardingTC>('penilaian_onboarding_tc') || [];
+      const prod = db.getPenilaianPraktikProduk() || [];
+      const normalizedProd = prod.map((p) => ({
+        id: p.id,
+        tanggal: p.tanggal,
+        peserta_nama: p.nama_kru,
+        peserta_outlet: p.kode_outlet,
+        peserta_divisi: p.divisi || 'Kitchen',
+        kategori_peserta: 'Reguler',
+        stasiun: p.station || 'Station SOP',
+        task_nama: p.produk_nama,
+        durasi_detik: p.durasi_detik || 600,
+        target_durasi_detik: p.standar_durasi_detik || 600,
+        deviasi_detik: (p.durasi_detik || 600) - (p.standar_durasi_detik || 600),
+        skor_total: p.skor_akhir,
+        skala_lima: Math.min(5, Number((p.skor_akhir / 20).toFixed(1))),
+        grade: p.skor_akhir >= 85 ? 'A (Sangat Baik)' : p.skor_akhir >= 80 ? 'B (Baik)' : 'C (Perlu Bimbingan)',
+        skor_ketepatan: p.skor_prosedur || 85,
+        skor_kebersihan: p.skor_kebersihan || 85,
+        skor_tim: p.skor_kerjasama || 85,
+        skor_knowledge: p.skor_knowledge || 85,
+        titik_kesalahan: p.gagal_titik_kritis ? ['Pelanggaran titik kritis SOP'] : [],
+        rekomendasi_perbaikan: p.catatan_trainer || 'Pertahankan performa sesuai resep baku HARA.',
+        status_kelulusan: p.status_kelulusan || (p.skor_akhir >= 85 ? 'Lulus Sempurna' : 'Lulus Bersyarat'),
+        trainer_nama: p.nama_trainer || 'Haikal Abi',
+        catatan_trainer: p.catatan_trainer || '-',
+      }));
+      setDataList([...prod, ...tc, ...normalizedProd.filter(np => !tc.some(t => t.id === np.id))]);
+    } catch {
+      // ignore
+    }
+  };
 
   // Selected Detail Modal
   const [detailItem, setDetailItem] = useState<PenilaianOnboardingTC | null>(null);
@@ -240,7 +306,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
       ],
     ];
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 94,
       head: [['Aspek Evaluasi Objektif', 'Bobot', 'Skor', 'Keterangan Parameter Pengukuran']],
       body: tableData,
@@ -250,7 +316,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
       margin: { left: 14, right: 14 },
     });
 
-    const finalY = (doc as any).lastAutoTable.finalY + 8;
+    const finalY = ((doc as any).lastAutoTable?.finalY ?? 130) + 8;
 
     // Titik Kesalahan Section
     doc.setTextColor(30, 41, 59);
@@ -335,7 +401,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
       (d.titik_kesalahan && d.titik_kesalahan[0]) || 'Sesuai Standar',
     ]);
 
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: 26,
       head: [[
         'No', 'Nama Kru', 'Outlet', 'Stasiun', 'Durasi (Dev)',
@@ -655,20 +721,56 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
         </div>
       </div>
 
-      {/* COMPREHENSIVE ANALYSIS TABLE ("DETAIL MENIT, SALAH DI MANA, YANG KURANG APA, OUTLET APA") */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+      {/* COMPREHENSIVE ANALYSIS TABLE WITH BULK ACTIONS */}
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden space-y-0">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white">
           <div>
-            <h3 className="text-base font-bold text-slate-900 tracking-tight">
-              Tabel Diagnostik Detail Onboarding Kru
+            <h3 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-2">
+              <span>Tabel Diagnostik Detail Onboarding Kru</span>
+              <span className="text-[10px] bg-slate-100 text-slate-700 font-extrabold px-2 py-0.5 rounded-md">
+                {filteredData.length} Data
+              </span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Menampilkan rincian durasi menit, analisis kesalahan, kekurangan, dan status rekomendasi penempatan
+              Rincian durasi menit, analisis kesalahan, rekomendasi, serta fitur pencadangan dan hapus massal
             </p>
           </div>
-          <span className="text-xs font-mono font-medium text-slate-500">
-            {filteredData.length} Data Ditampilkan
-          </span>
+
+          <div className="flex flex-wrap items-center gap-2">
+            {selectedIds.size > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.size} data evaluasi terdaftar?`)) {
+                    db.deletePenilaianPraktikProdukBulk(Array.from(selectedIds));
+                    setSelectedIds(new Set());
+                    loadData();
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+              >
+                <span>Hapus {selectedIds.size} Terpilih</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => {
+                const jsonStr = db.exportBackupDataJSON();
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `CADANGAN_EVALUASI_ONBOARDING_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer"
+            >
+              <Download size={13} />
+              <span>Ekspor JSON</span>
+            </button>
+          </div>
         </div>
 
         {filteredData.length === 0 ? (
@@ -680,6 +782,20 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
             <table className="w-full text-xs text-left">
               <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
                 <tr>
+                  <th className="py-3 px-3 w-8 text-center">
+                    <input
+                      type="checkbox"
+                      checked={filteredData.length > 0 && selectedIds.size === filteredData.length}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedIds(new Set(filteredData.map(i => i.id)));
+                        } else {
+                          setSelectedIds(new Set());
+                        }
+                      }}
+                      className="rounded border-slate-300 cursor-pointer"
+                    />
+                  </th>
                   <th className="py-3 px-3">Kru & Kategori</th>
                   <th className="py-3 px-3">Outlet Asal</th>
                   <th className="py-3 px-3">Stasiun Uji</th>
@@ -693,7 +809,20 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {filteredData.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <tr key={item.id} className={`hover:bg-slate-50/70 transition-colors ${selectedIds.has(item.id) ? 'bg-amber-50/40' : ''}`}>
+                    <td className="py-3 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={(e) => {
+                          const next = new Set(selectedIds);
+                          if (e.target.checked) next.add(item.id);
+                          else next.delete(item.id);
+                          setSelectedIds(next);
+                        }}
+                        className="rounded border-slate-300 cursor-pointer"
+                      />
+                    </td>
                     {/* Kru Name */}
                     <td className="py-3 px-3 whitespace-nowrap">
                       <div className="font-bold text-slate-900">{item.peserta_nama}</div>

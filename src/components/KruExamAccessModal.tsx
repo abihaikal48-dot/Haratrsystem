@@ -284,7 +284,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-1">
-                    {outletKruList.map((kru) => {
+                    {outletKruList.map((kru, idx) => {
                       const isChosen = selectedKru?.id === kru.id;
                       const initials = kru.nama_kru
                         .split(' ')
@@ -294,7 +294,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
 
                       return (
                         <button
-                          key={kru.id}
+                          key={`${kru.id}-${idx}`}
                           type="button"
                           onClick={() => handlePickKru(kru)}
                           className={`p-3 rounded-2xl border text-left transition-all flex items-center justify-between cursor-pointer ${

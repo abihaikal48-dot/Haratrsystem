@@ -62,6 +62,32 @@ const STORAGE_KEYS = {
   AUTH_STATE: 'hara_pd_auth_state_v2',
 };
 
+/**
+ * Recursively removes any keys with `undefined` values from an object or array.
+ * Firestore strictly rejects undefined values with:
+ * "FirebaseError: Function setDoc() called with invalid data. Unsupported field value: undefined"
+ */
+export function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) {
+    return null as any;
+  }
+  if (typeof data !== 'object') {
+    return data;
+  }
+  if (Array.isArray(data)) {
+    return data
+      .filter((v) => v !== undefined)
+      .map((v) => sanitizeForFirestore(v)) as any;
+  }
+  const result: Record<string, any> = {};
+  for (const [key, val] of Object.entries(data as Record<string, any>)) {
+    if (val !== undefined) {
+      result[key] = sanitizeForFirestore(val);
+    }
+  }
+  return result as any;
+}
+
 // Seed Data
 const INITIAL_OUTLETS: Outlet[] = [
   {
@@ -1952,7 +1978,7 @@ class StorageDatabase {
     // Async write to Firestore audit logs collection
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'logs', newLog.id), newLog, { merge: true }).catch(() => {});
+        setDoc(doc(firestore, 'logs', newLog.id), sanitizeForFirestore(newLog), { merge: true }).catch(() => {});
       });
     }).catch(() => {});
   }
@@ -1985,12 +2011,33 @@ class StorageDatabase {
   public getTable<T>(tableName: string): T[] {
     const key = this.mapKey(tableName);
     const data = this.get<T[]>(key, []);
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null && 'id' in data[0]) {
+      const seen = new Set<string>();
+      return data.filter((item: any) => {
+        if (!item || !item.id) return true;
+        const idStr = String(item.id);
+        if (seen.has(idStr)) return false;
+        seen.add(idStr);
+        return true;
+      });
+    }
     return data;
   }
 
   public setDirect(tableName: string, data: any[]): void {
     const key = this.mapKey(tableName);
-    this.set(key, data);
+    let sanitizedData = data;
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null && 'id' in data[0]) {
+      const seen = new Set<string>();
+      sanitizedData = data.filter((item: any) => {
+        if (!item || !item.id) return true;
+        const idStr = String(item.id);
+        if (seen.has(idStr)) return false;
+        seen.add(idStr);
+        return true;
+      });
+    }
+    this.set(key, sanitizedData);
   }
 
   public insertRow<T = any>(tableName: string, payload: any): T {
@@ -2035,7 +2082,7 @@ class StorageDatabase {
       setCloudSyncStatus('syncing');
       import('./firebase').then(({ firestore }) => {
         import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(firestore, tableName, id), newRow, { merge: true })
+          setDoc(doc(firestore, tableName, id), sanitizeForFirestore(newRow), { merge: true })
             .then(() => setCloudSyncStatus('online'))
             .catch(() => {
               if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -2151,7 +2198,7 @@ class StorageDatabase {
       setCloudSyncStatus('syncing');
       import('./firebase').then(({ firestore }) => {
         import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(firestore, tableName, id), updated, { merge: true })
+          setDoc(doc(firestore, tableName, id), sanitizeForFirestore(updated), { merge: true })
             .then(() => setCloudSyncStatus('online'))
             .catch(() => {
               if (typeof navigator !== 'undefined' && !navigator.onLine) {
@@ -2812,7 +2859,7 @@ class StorageDatabase {
     // Real-time online write to Firestore
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'hasil_ujian_mingguan', result.id), result, { merge: true }).catch(() => {});
+        setDoc(doc(firestore, 'hasil_ujian_mingguan', result.id), sanitizeForFirestore(result), { merge: true }).catch(() => {});
       });
     }).catch(() => {});
   }
@@ -2858,7 +2905,7 @@ class StorageDatabase {
     // Async write to Firestore
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'onboarding_batches', batch.id), batch, { merge: true }).catch(() => {});
+        setDoc(doc(firestore, 'onboarding_batches', batch.id), sanitizeForFirestore(batch), { merge: true }).catch(() => {});
       });
     }).catch(() => {});
   }
@@ -2892,8 +2939,9 @@ class StorageDatabase {
     // Dual-layer Firestore sync
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', item.id), item, { merge: true }).catch(() => {});
-        setDoc(doc(firestore, 'penilaian_onboarding_rnd', item.id), item, { merge: true }).catch(() => {});
+        const cleanPayload = sanitizeForFirestore(item);
+        setDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', item.id), cleanPayload, { merge: true }).catch(() => {});
+        setDoc(doc(firestore, 'penilaian_onboarding_rnd', item.id), cleanPayload, { merge: true }).catch(() => {});
       });
     }).catch(() => {});
 
@@ -2932,6 +2980,97 @@ class StorageDatabase {
         deleteDoc(doc(firestore, 'penilaian_onboarding_rnd', id)).catch(() => {});
       });
     }).catch(() => {});
+  }
+
+  public deletePenilaianPraktikProdukBulk(ids: string[]): void {
+    if (!ids || ids.length === 0) return;
+    const list = this.getPenilaianPraktikProduk();
+    const idSet = new Set(ids);
+    const updated = list.filter(p => !idSet.has(p.id));
+    this.set(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, updated);
+    this.set(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, updated);
+    this.addLog('HAPUS', 'Penilaian Praktik Produk SOP', `Hapus massal ${ids.length} data evaluasi onboarding`);
+
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, writeBatch }) => {
+        const batch = writeBatch(firestore);
+        ids.forEach(id => {
+          batch.delete(doc(firestore, 'penilaian_praktik_onboarding_produk', id));
+          batch.delete(doc(firestore, 'penilaian_onboarding_rnd', id));
+        });
+        batch.commit().catch(() => {});
+      });
+    }).catch(() => {});
+  }
+
+  public exportBackupDataJSON(): string {
+    const backupObj = {
+      appName: 'HARA_TRAINER_PRO_SYSTEM',
+      exportDate: new Date().toISOString(),
+      version: '2.0.0',
+      tables: {
+        penilaian_praktik_onboarding_produk: this.getPenilaianPraktikProduk(),
+        onboarding_batches: this.getOnboardingBatches(),
+        bank_sop_products: this.getTable('bank_sop_products'),
+        kru: this.getTable('kru'),
+        outlets: this.getTable('outlets'),
+        ojt_monitoring: this.getTable('ojt_monitoring'),
+        hasil_ujian_mingguan: this.getTable('hasil_ujian_mingguan'),
+      }
+    };
+    return JSON.stringify(backupObj, null, 2);
+  }
+
+  public restoreBackupDataJSON(jsonStr: string): { success: boolean; message: string; restoredCount: number } {
+    try {
+      const parsed = JSON.parse(jsonStr);
+      if (!parsed || typeof parsed !== 'object') {
+        return { success: false, message: 'Format berkas JSON tidak valid.', restoredCount: 0 };
+      }
+
+      let count = 0;
+      const tables = parsed.tables || parsed;
+
+      if (Array.isArray(tables.penilaian_praktik_onboarding_produk)) {
+        const existing = this.getPenilaianPraktikProduk();
+        const existingIds = new Set(existing.map(x => x.id));
+        const merged = [...existing];
+        tables.penilaian_praktik_onboarding_produk.forEach((item: any) => {
+          if (item && item.id && !existingIds.has(item.id)) {
+            merged.push(item);
+            count++;
+          }
+        });
+        this.set(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, merged);
+        this.set(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, merged);
+      }
+
+      if (Array.isArray(tables.onboarding_batches)) {
+        const existing = this.getOnboardingBatches();
+        const existingIds = new Set(existing.map(x => x.id));
+        const merged = [...existing];
+        tables.onboarding_batches.forEach((item: any) => {
+          if (item && item.id && !existingIds.has(item.id)) {
+            merged.push(item);
+            count++;
+          }
+        });
+        this.set(STORAGE_KEYS.ONBOARDING_BATCHES, merged);
+      }
+
+      if (Array.isArray(tables.bank_sop_products)) {
+        this.set('bank_sop_products', tables.bank_sop_products);
+      }
+
+      this.addLog('TAMBAH', 'Cadangan Data', `Pemulihan cadangan data berhasil (${count} catatan baru)`);
+      return {
+        success: true,
+        message: `Berhasil memulihkan ${count} catatan evaluasi baru ke dalam sistem.`,
+        restoredCount: count,
+      };
+    } catch (err: any) {
+      return { success: false, message: `Gagal memulihkan cadangan: ${err?.message || 'Error parsing'}`, restoredCount: 0 };
+    }
   }
 
   private friendlyTableName(name: string): string {

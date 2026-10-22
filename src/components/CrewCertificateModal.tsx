@@ -82,7 +82,7 @@ export const CrewCertificateModal: React.FC<CrewCertificateModalProps> = ({
 
             <div className="pt-2">
               <span className="text-[10px] tracking-[0.3em] uppercase font-black text-amber-700 bg-amber-50 px-3 py-1 rounded-full border border-amber-200">
-                PT HARA CHICKEN INDONESIA &bull; PEOPLE DEVELOPMENT
+                HARA CHICKEN &bull; RnD Penilai (Tim Penilai)
               </span>
             </div>
 
@@ -153,7 +153,7 @@ export const CrewCertificateModal: React.FC<CrewCertificateModalProps> = ({
               </div>
               <div className="border-t border-stone-400 w-32 mx-auto pt-1">
                 <b className="block text-stone-900 font-bold">Haikal Abi</b>
-                <span className="text-[10px] text-stone-500">Lead Trainer & People Dev</span>
+                <span className="text-[10px] text-stone-500 font-semibold">RnD Penilai (Tim Penilai)</span>
               </div>
             </div>
 

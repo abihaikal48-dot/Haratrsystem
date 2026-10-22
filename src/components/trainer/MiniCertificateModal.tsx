@@ -73,7 +73,7 @@ export const MiniCertificateModal: React.FC<MiniCertificateModalProps> = ({
           <div className="flex flex-col items-center justify-center gap-1.5">
             <HaraLogo size="md" variant="full" />
             <div className="text-[10px] font-bold text-[#645D55] tracking-widest uppercase mt-1">
-              PT HARA CHICKEN INDONESIA • TRAINING & OPERATIONS
+              HARA CHICKEN • TRAINING & OPERATIONS
             </div>
           </div>
 
@@ -139,7 +139,7 @@ export const MiniCertificateModal: React.FC<MiniCertificateModalProps> = ({
                   {trainerNama || 'Haikal Abi'}
                 </span>
               </div>
-              <span className="text-[10px] text-[#645D55] block">Divisi People Development</span>
+              <span className="text-[10px] text-[#645D55] block font-semibold">RnD Penilai (Tim Penilai)</span>
             </div>
           </div>
         </div>

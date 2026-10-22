@@ -1132,7 +1132,7 @@ export const OnboardingAnalyticsDashboard: React.FC<OnboardingAnalyticsDashboard
               </thead>
               <tbody className="divide-y divide-[#E6E1DA]">
                 {crewDiagnostics.map((c, idx) => (
-                  <tr key={c.kruId} className={`hover:bg-[#FAF8F5] transition-colors ${c.statusPredikat === 'Remedial Kritis' ? 'bg-rose-50/20' : ''}`}>
+                  <tr key={`${c.kruId}-${idx}`} className={`hover:bg-[#FAF8F5] transition-colors ${c.statusPredikat === 'Remedial Kritis' ? 'bg-rose-50/20' : ''}`}>
                     <td className="p-3 font-bold text-[#645D55]">#{idx + 1}</td>
                     <td className="p-3 font-bold text-[#181411]">
                       {c.nama}

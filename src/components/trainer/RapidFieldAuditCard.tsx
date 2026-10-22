@@ -372,7 +372,7 @@ Semangat bertumbuh bersama Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif)! #
             </div>
           ) : (
             <div className="space-y-3">
-              {outletKru.map(kru => {
+              {outletKru.map((kru, idx) => {
                 const s = crewScores[kru.id] || {
                   praktikSOS: 88,
                   lisanHACCP: 85,
@@ -385,7 +385,7 @@ Semangat bertumbuh bersama Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif)! #
 
                 return (
                   <div
-                    key={kru.id}
+                    key={`${kru.id}-${idx}`}
                     className="p-3.5 rounded-xl border border-stone-200 bg-[#FAF8F5]/60 hover:bg-white transition-all space-y-3"
                   >
                     {/* Header Row: Info Kru & Live Score */}

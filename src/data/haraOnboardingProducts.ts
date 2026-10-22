@@ -189,31 +189,41 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
   },
   {
     id: 'd1-b1-s2-spinach',
-    nama: 'Spinach (Bayam Krispi)',
+    nama: 'Bayam Krispi',
     kode: 'HC-SOP-KIT-16',
     day: 'Day 1',
     batch: 'Batch 1',
     station: 'Station 2',
-    stationLabel: 'Station 2: Goreng Ayam, Scramble, Spinach, Indomie',
+    stationLabel: 'Station 2: Goreng Ayam, Scramble, Bayam Krispi, Indomie',
     divisi: 'Kitchen',
-    stdDetik: 90,
+    stdDetik: 480,
     requiresOilTemp: true,
     targetSuhuMinyak: 160,
-    deskripsi: 'Suhu minyak 160°C, daun bayam balur tepung encer tipis, goreng cepat 90 detik tiris tuntas.',
+    requiresGramatur: true,
+    targetGramatur: 50,
+    gramaturLabel: 'Gramasi Bayam Segar (50g)',
+    deskripsi: 'Proses lengkap: petik daun bayam segar, timbang 50g, cuci bersih & tiriskan, adonan tepung encer tipis, cek suhu 160°C, goreng 90-120 dtk, tiriskan tuntas.',
     titikKritis: [
-      'Suhu minyak deep fryer tepat 160°C agar bayam langsung mekar renyah',
-      'Durasi goreng tepat 90 detik (jangan lebih agar bayam tidak gosong pahit)',
-      'Tiriskan minyak tuntas di atas rak tiris berpori'
+      'Sortir daun bayam segar bebas layu, petik daun utuh tanpa tangkai batang keras',
+      'Timbang gramatur tepat 50g & cuci bersih 2x bilas lalu tiriskan kering agar minyak tidak meletup',
+      'Suhu minyak deep fryer tepat 160°C sebelum bayam dimasukkan',
+      'Goreng satu per satu 90-120 detik agar mekar tidak menumpuk menggumpal, tiriskan tuntas di rak'
     ],
     langkahSOP: [
-      { nomor: 1, teks: 'Pastikan suhu minyak di angka 160°C.', isKritis: true },
-      { nomor: 2, teks: 'Celupkan lembaran daun bayam segar ke adonan tepung basah encer tipis.' },
-      { nomor: 3, teks: 'Masukkan ke minyak panas satu per satu agar tidak menggumpal.' },
-      { nomor: 4, teks: 'Goreng selama 90 detik tepat hingga garing renyah kehijauan.', isKritis: true },
-      { nomor: 5, teks: 'Angkat dan tiriskan minyak hingga benar-benar kering.' }
+      { nomor: 1, teks: 'Sortir dan petik lembaran daun bayam segar pilihan (buang tangkai batang keras).' },
+      { nomor: 2, teks: 'Timbang porsi daun bayam tepat 50 gram pada timbangan digital.', isKritis: true },
+      { nomor: 3, teks: 'Cuci bersih pada air mengalir minimal 2x bilasan dan tiriskan hingga kering.', isKritis: true },
+      { nomor: 4, teks: 'Siapkan adonan tepung bumbu encer tipis dengan air dingin steril.' },
+      { nomor: 5, teks: 'Periksa suhu minyak deep fryer berada stabil di 160°C.', isKritis: true },
+      { nomor: 6, teks: 'Celupkan lembaran daun bayam satu per satu ke adonan tepung encer tipis.' },
+      { nomor: 7, teks: 'Masukkan ke minyak panas satu per satu agar menyebar dan tidak menumpuk menggumpal.', isKritis: true },
+      { nomor: 8, teks: 'Goreng selama 90-120 detik hingga mekar renyah keemasan (tidak gosong).' },
+      { nomor: 9, teks: 'Angkat ke rak penirisan kawat berpori minimal 60 detik sebelum dipindahkan ke wadah saji.', isKritis: true }
     ],
     autoQuestions: [
-      { tanya: 'Berapa suhu minyak dan durasi penggorengan spinach?', kunci: 'Suhu 160°C selama 90 detik tepat' }
+      { tanya: 'Mengapa bayam wajib dicuci bersih dan ditiriskan kering sebelum dibalur adonan?', kunci: 'Agar adonan menempel merata dan minyak tidak meletup hebat saat digoreng' },
+      { tanya: 'Berapa suhu minyak dan estimasi durasi penggorengan bayam krispi?', kunci: 'Suhu 160°C digoreng 90 sampai 120 detik hingga mekar renyah keemasan' },
+      { tanya: 'Berapa gramasi porsi baku daun bayam segar?', kunci: '50 gram' }
     ]
   },
   {

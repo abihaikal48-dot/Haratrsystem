@@ -805,7 +805,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                     </thead>
                     <tbody className="divide-y divide-stone-200 text-stone-700">
                       {filteredKru.slice(0, 8).map((kru, idx) => (
-                        <tr key={kru.id} className={idx % 2 === 1 ? 'bg-[#FAF8F5]' : ''}>
+                        <tr key={`${kru.id}-${idx}`} className={idx % 2 === 1 ? 'bg-[#FAF8F5]' : ''}>
                           <td className="p-2 text-center text-stone-500">{idx + 1}</td>
                           <td className="p-2 font-bold text-stone-900">{kru.nama_kru}</td>
                           <td className="p-2 text-stone-600">{kru.divisi}</td>

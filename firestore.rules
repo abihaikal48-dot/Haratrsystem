@@ -213,6 +213,24 @@ service cloud.firestore {
       allow get, write: if isValidId(id);
     }
 
+    // Draft assessment sessions for live form auto-save sync
+    match /draft_assessment_sessions/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    // Active presence tracking across devices
+    match /active_presences/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    // Custom bank SOP products
+    match /bank_sop_products/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
     // Default deny for unhandled paths
     match /{document=**} {
       allow read, write: if false;

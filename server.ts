@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
@@ -194,12 +195,26 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
   });
 });
 
-// Serve frontend in production
-app.use(express.static(path.join(__dirname, 'dist')));
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// Health checks for Cloud Run & container orchestration
+app.get(['/healthz', '/_health', '/api/health'], (_req, res) => {
+  res.status(200).json({ status: 'ok', uptime: process.uptime() });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on port ${PORT}`);
+// Serve frontend in production
+const distPath = path.join(__dirname, 'dist');
+app.use(express.static(distPath));
+
+app.get('*', (_req, res) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).send('HARA Chicken Trainer & Ops starting up...');
+  }
 });
+
+const portNumber = Number(PORT) || 3000;
+app.listen(portNumber, '0.0.0.0', () => {
+  console.log(`Server listening on 0.0.0.0:${portNumber}`);
+});
+

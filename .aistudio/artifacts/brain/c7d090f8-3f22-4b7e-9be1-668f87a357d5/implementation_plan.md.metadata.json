@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi menyeluruh untuk pembaruan HARA Chicken Onboarding: integrasi analitik analitis sesuai PDF 29 halaman, pemisahan ketat produk Day 1 & Day 2 per station dan batch, pembuatan akun 4 penilai (Haikal, Jihan, Feri, Ari) dengan password default hara123, penghapusan akun lain kecuali admin, pencarian produk cepat tanpa dropdown hitam, auto-generate pertanyaan knowledge per produk, canvas sertifikat kelulusan sederhana, dan laporan kru komprehensif.",
-  "updatedAt":  "2026-10-22T12:27:14.117247513Z",
+  "summary":  "Rencana kerja terperinci untuk penambahan fitur pencadangan/penghapusan data, integrasi Kurikulum & RnD, konsolidasi skor harian multi-produk, penyelarasan SOP resmi HARA, dan peningkatan visualisasi grafik analitik RnD.",
+  "updatedAt":  "2026-10-22T23:47:44.814581620Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

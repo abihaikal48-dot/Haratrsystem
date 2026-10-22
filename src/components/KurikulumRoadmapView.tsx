@@ -493,10 +493,10 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#E6E1DA]">
-                      {activeBatch.peserta.map((p) => {
+                      {activeBatch.peserta.map((p, pIdx) => {
                         const hadirCount = Object.values(p.absensi).filter(Boolean).length;
                         return (
-                          <tr key={p.kru_id} className="hover:bg-[#FAF8F5]/60 transition-colors">
+                          <tr key={`${p.kru_id}-${pIdx}`} className="hover:bg-[#FAF8F5]/60 transition-colors">
                             <td className="py-3 px-3">
                               <div className="font-bold text-[#181411]">{p.nama_kru}</div>
                               <div className="text-[11px] text-[#645D55]">{p.divisi} • {p.kode_outlet}</div>
@@ -728,8 +728,8 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E6E1DA]">
-                    {(activeBatch?.peserta || []).map((p) => (
-                      <tr key={p.kru_id} className="hover:bg-[#FAF8F5]/60 transition-colors">
+                    {(activeBatch?.peserta || []).map((p, pIdx) => (
+                      <tr key={`${p.kru_id}-${pIdx}`} className="hover:bg-[#FAF8F5]/60 transition-colors">
                         <td className="py-2 px-2">
                           <div className="font-bold text-[#181411] truncate">{p.nama_kru}</div>
                           <div className="text-[10px] text-[#645D55]">{p.divisi}</div>

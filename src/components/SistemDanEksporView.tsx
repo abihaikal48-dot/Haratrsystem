@@ -5,7 +5,7 @@ import {
   ShieldCheck, HardDrive, Trash2, Copy, Check, Sparkles,
   ExternalLink, Printer, Layers, Activity, Lock, ArrowRight,
   Sliders, Shield, Mail, Phone, Building2, User, Award,
-  CheckCheck, Search, Filter, HelpCircle, Flame, Clock
+  CheckCheck, Search, Filter, HelpCircle, Flame, Clock, CheckSquare
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../lib/storage';
@@ -498,6 +498,15 @@ _Generated via HARA TRAINING & OPERATIONS System_
                   icon: CheckCheck,
                   color: 'text-purple-700 bg-purple-50 border-purple-200',
                   fetch: () => db.getTable('bank_soal'),
+                },
+                {
+                  id: 'penilaian_onboarding_produk',
+                  title: 'Evaluasi Onboarding Multi-Produk',
+                  desc: 'Data penilaian praktik 25 SOP produk, skor 5 pilar, & status KKM',
+                  count: db.getPenilaianPraktikProduk().length,
+                  icon: CheckSquare,
+                  color: 'text-rose-700 bg-rose-50 border-rose-200',
+                  fetch: () => db.getPenilaianPraktikProduk(),
                 },
                 {
                   id: 'kompetensi_summary',

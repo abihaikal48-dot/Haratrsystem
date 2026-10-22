@@ -9,7 +9,7 @@ import {
   where
 } from 'firebase/firestore';
 import { firestore, handleFirestoreError, OperationType } from './firebase';
-import { db } from './storage';
+import { db, sanitizeForFirestore } from './storage';
 import { AppUser } from '../types';
 import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
 import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
@@ -111,6 +111,8 @@ export const ALL_SYNCABLE_TABLES = [
   'retraining_records',
   'jadwal_kunjungan',
   'rapid_audits',
+  'active_presences',
+  'draft_assessment_sessions',
   'settings',
   'logs'
 ];
@@ -169,7 +171,7 @@ export async function syncAllToFirestore(): Promise<SyncStats> {
           for (const item of chunk) {
             const docId = String(item.id || `${table}-${i}-${Math.random().toString(36).slice(2, 6)}`);
             const docRef = doc(firestore, table, docId);
-            batch.set(docRef, item, { merge: true });
+            batch.set(docRef, sanitizeForFirestore(item), { merge: true });
             count++;
           }
 
@@ -269,11 +271,8 @@ export function setupFirestoreRealtimeSync(): () => void {
                 }
               }
 
-              // Only update if there is a substantive diff to prevent reactive re-render loops
-              if (
-                finalDocs.length !== currentLocal.length ||
-                JSON.stringify(finalDocs.map((d) => d.id).sort()) !== JSON.stringify(currentLocal.map((d) => d.id).sort())
-              ) {
+              // Compare actual JSON string representation to detect field-level updates instantly
+              if (JSON.stringify(finalDocs) !== JSON.stringify(currentLocal)) {
                 db.setDirect(colName, finalDocs);
               }
             }
@@ -365,7 +364,7 @@ export function startPresenceTracking(
 
       lastPresenceWriteTime = Date.now();
       const ref = doc(firestore, 'online_presence', currentSessionId);
-      await setDoc(ref, presenceDoc, { merge: true });
+      await setDoc(ref, sanitizeForFirestore(presenceDoc), { merge: true });
     } catch {
       // Ignore transient errors
     }
