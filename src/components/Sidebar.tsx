@@ -86,6 +86,20 @@ export const ROLE_PERMISSIONS: Record<string, {
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
+  'RnD': {
+    label: 'Research & Development (RnD)',
+    allowedTabs: [
+      'dashboard', 'analitik-radar', 'stasiun-kerja', 'kurikulum-onboarding',
+      'monitoring-training', 'budaya-hara', 'bank-sop-soal', 'evaluasi-kompetensi',
+      'supervisi-lapangan', 'tna-rencana', 'laporan-resmi', 'master', 'bantuan',
+      'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
+      'laporan-diagnostik', 'penilaian-teori', 'penilaian-praktik',
+      'penilaian-lisan', 'kompetensi', 'bank-sop', 'bank-soal', 'observasi', 'coaching',
+      'tna', 'gap', 'rencana', 'laporan'
+    ],
+    defaultTab: 'dashboard',
+    badgeColor: 'bg-amber-100 text-amber-900 border-amber-200',
+  },
   'Kepala Outlet': {
     label: 'Kepala Outlet (Store Manager)',
     allowedTabs: [

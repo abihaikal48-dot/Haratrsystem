@@ -238,6 +238,7 @@ export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged:
                   options={[
                     { value: 'Admin', label: 'Admin (Akses Penuh Semua Fitur)' },
                     { value: 'Trainer', label: 'Trainer (Kurikulum & Penilaian Kompetensi)' },
+                    { value: 'RnD', label: 'RnD (Research & Development / Penilai Onboarding)' },
                     { value: 'Area Supervisor', label: 'Area Supervisor (Audit & Monitoring Wilayah)' },
                     { value: 'Kepala Outlet', label: 'Kepala Outlet (Operasional Cabang)' },
                     { value: 'SPV Rekrutmen', label: 'SPV Rekrutmen (Talent Tracker & Penempatan Kru)' },

@@ -984,7 +984,7 @@ const INITIAL_USERS: AppUser[] = [
     id: 'usr-jihan',
     nama: 'Jihan',
     email: 'jihan@harachicken.com',
-    role: 'Trainer',
+    role: 'RnD',
     status_aktif: 'Aktif',
     created_at: '2026-01-01T00:00:00.000Z',
   },
@@ -992,7 +992,7 @@ const INITIAL_USERS: AppUser[] = [
     id: 'usr-feri',
     nama: 'Feri',
     email: 'feri@harachicken.com',
-    role: 'Trainer',
+    role: 'RnD',
     status_aktif: 'Aktif',
     created_at: '2026-01-01T00:00:00.000Z',
   },
@@ -1829,6 +1829,9 @@ class StorageDatabase {
         if (u && u.nama === 'Haikal Abi' && u.role === 'Admin') {
           u.role = 'Trainer';
           localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(u));
+        } else if (u && (u.email === 'feri@harachicken.com' || u.email === 'jihan@harachicken.com')) {
+          u.role = 'RnD';
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(u));
         }
       }
       // Sync app_users strictly to only keep Administrator HQ and 4 official evaluators (Haikal, Jihan, Feri, Ari)
@@ -1838,6 +1841,16 @@ class StorageDatabase {
           const list: AppUser[] = JSON.parse(storedAppUsers);
           const validEmails = ['admin@harachicken.com', 'haikal@harachicken.com', 'jihan@harachicken.com', 'feri@harachicken.com', 'ari@harachicken.com'];
           const filtered = list.filter(u => validEmails.includes(u.email.toLowerCase()));
+          // Ensure Feri and Jihan have role RnD, Haikal & Ari have Trainer, Admin has Admin
+          filtered.forEach(u => {
+            if (u.email.toLowerCase() === 'feri@harachicken.com' || u.email.toLowerCase() === 'jihan@harachicken.com') {
+              u.role = 'RnD';
+            } else if (u.email.toLowerCase() === 'haikal@harachicken.com' || u.email.toLowerCase() === 'ari@harachicken.com') {
+              u.role = 'Trainer';
+            } else if (u.email.toLowerCase() === 'admin@harachicken.com') {
+              u.role = 'Admin';
+            }
+          });
           INITIAL_USERS.forEach(iu => {
             if (!filtered.some(f => f.email.toLowerCase() === iu.email.toLowerCase())) {
               filtered.push(iu);

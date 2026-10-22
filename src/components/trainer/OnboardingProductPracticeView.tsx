@@ -59,11 +59,11 @@ export const KERJASAMA_INDICATORS = [
 ];
 
 export const DAFTAR_PENILAI_DEFAULT = [
-  'Haikal',
-  'Jihan',
-  'Feri',
-  'Ari',
-  'Administrator HQ'
+  'Haikal (Trainer)',
+  'Jihan (RnD)',
+  'Feri (RnD)',
+  'Ari (Trainer)',
+  'Administrator HQ (Admin)'
 ];
 
 export interface AssessmentSessionTab {

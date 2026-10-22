@@ -4,7 +4,7 @@ export type Prioritas = 'Tinggi' | 'Sedang' | 'Rendah';
 export type StatusTNA = 'Belum' | 'Proses' | 'Selesai';
 export type StatusTraining = 'Direncanakan' | 'Berjalan' | 'Selesai' | 'Dibatalkan';
 export type StatusKeluhan = 'Dalam kajian' | 'Selesai' | 'Eskalasi';
-export type UserRole = 'Admin' | 'Trainer' | 'Area Supervisor' | 'Kepala Outlet' | 'SPV Rekrutmen' | 'Kru / Trainee';
+export type UserRole = 'Admin' | 'Trainer' | 'RnD' | 'Area Supervisor' | 'Kepala Outlet' | 'SPV Rekrutmen' | 'Kru / Trainee';
 export type CompetencyBadge = 'Mahir' | 'Terampil' | 'Pemula' | 'Belum Ada Data';
 
 export interface HaraCultureValueItem {
