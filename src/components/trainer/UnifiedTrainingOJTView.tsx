@@ -1,56 +1,91 @@
 import React, { useState } from 'react';
 import {
   CalendarCheck, Users, BookOpen, Award, CheckCircle2,
-  Clock, Shield, Layers, HelpCircle, RefreshCw, FileText, Flame
+  Clock, Shield, Layers, HelpCircle, RefreshCw, FileText, Flame, BarChart3, TrendingUp
 } from 'lucide-react';
 import { CrewTrainingMonitoringView } from './CrewTrainingMonitoringView';
 import { ProgramOJT30HariView } from './ProgramOJT30HariView';
 import { SimulasiPraktikRnDView } from './SimulasiPraktikRnDView';
+import { PenilaianOnboardingTCView } from './PenilaianOnboardingTCView';
+import { OnboardingDataAnalystView } from './OnboardingDataAnalystView';
 import { PageHeaderBanner } from '../PageHeaderBanner';
+
+export type TrainingOJTSubTab =
+  | 'penilaian-onboarding'
+  | 'analisis-onboarding'
+  | 'monitoring'
+  | 'panduan'
+  | 'simulasi-rnd';
 
 interface UnifiedTrainingOJTViewProps {
   selectedOutletCode?: string;
   onOpenRaporKru?: (kruName: string) => void;
-  initialSubTab?: 'monitoring' | 'panduan' | 'simulasi-rnd';
+  initialSubTab?: TrainingOJTSubTab;
 }
 
 export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
   selectedOutletCode = 'ALL',
   onOpenRaporKru,
-  initialSubTab = 'monitoring',
+  initialSubTab = 'penilaian-onboarding',
 }) => {
-  const [activeTab, setActiveTab] = useState<'monitoring' | 'panduan' | 'simulasi-rnd'>(initialSubTab);
+  const [activeTab, setActiveTab] = useState<TrainingOJTSubTab>(initialSubTab);
 
   return (
     <div className="space-y-6">
       {/* Top Banner Navigation */}
       <PageHeaderBanner
         category="PELATIHAN & ON-THE-JOB TRAINING"
-        title="Monitoring Kru Training & Program OJT 30 Hari Terpadu"
-        description="Satu modul terintegrasi untuk memantau progres harian kru baru, verifikasi checklist tugas, silabus materi 30 hari, simulasi praktik RnD Batch 1 & 2, dan 4 Gate Evaluation berkala standar HARA Chicken."
+        title="Pusat Onboarding TC & Monitoring Kru Training Terpadu"
+        description="Modul terintegrasi penilaian objektif onboarding 4 kriteria (Ketepatan SOS, Kebersihan 5S, Kerjasama Tim, Knowledge), dashboard Data Analyst evaluasi stasiun, matriks monitoring OJT gerai, dan silabus kurikulum."
         icon={<CalendarCheck size={22} />}
         tabs={[
           {
+            id: 'penilaian-onboarding',
+            label: 'Penilaian Onboarding TC (4 Kriteria)',
+            icon: Award,
+          },
+          {
+            id: 'analisis-onboarding',
+            label: 'Data Analyst & Rapor Onboarding TC',
+            icon: BarChart3,
+          },
+          {
             id: 'monitoring',
-            label: 'Matriks Monitoring & Evaluasi Gate (H1 - H30)',
+            label: 'Matriks Monitoring OJT (H1 - H45)',
             icon: Users,
           },
           {
             id: 'panduan',
-            label: 'Silabus & Panduan Materi Harian (30 Hari)',
+            label: 'Silabus & Panduan OJT Harian',
             icon: BookOpen,
           },
           {
             id: 'simulasi-rnd',
-            label: 'Simulasi Praktik Batch 1 & Batch 2 (RnD)',
+            label: 'Simulasi Praktik R&D (RnD)',
             icon: Flame,
           },
         ]}
         activeTab={activeTab}
-        onSelectTab={(id) => setActiveTab(id as 'monitoring' | 'panduan' | 'simulasi-rnd')}
+        onSelectTab={(id) => setActiveTab(id as TrainingOJTSubTab)}
       />
 
-      {/* Tab Content */}
+      {/* Tab 1: Form Penilaian Onboarding TC */}
+      {activeTab === 'penilaian-onboarding' && (
+        <PenilaianOnboardingTCView
+          selectedOutletCode={selectedOutletCode}
+          onNavigateToAnalisis={() => setActiveTab('analisis-onboarding')}
+        />
+      )}
+
+      {/* Tab 2: Data Analyst & Rapor Onboarding TC */}
+      {activeTab === 'analisis-onboarding' && (
+        <OnboardingDataAnalystView
+          selectedOutletCode={selectedOutletCode}
+          onNavigateToForm={() => setActiveTab('penilaian-onboarding')}
+        />
+      )}
+
+      {/* Tab 3: Matriks Monitoring OJT Gerai */}
       {activeTab === 'monitoring' && (
         <CrewTrainingMonitoringView
           selectedOutletCode={selectedOutletCode}
@@ -58,12 +93,14 @@ export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
         />
       )}
 
+      {/* Tab 4: Panduan Silabus */}
       {activeTab === 'panduan' && (
         <ProgramOJT30HariView
           selectedOutletCode={selectedOutletCode}
         />
       )}
 
+      {/* Tab 5: Simulasi R&D */}
       {activeTab === 'simulasi-rnd' && (
         <SimulasiPraktikRnDView
           selectedOutletCode={selectedOutletCode}

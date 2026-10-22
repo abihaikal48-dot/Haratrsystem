@@ -484,20 +484,20 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 28 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Side Dish',
-    is_deep_fryer: true, // WAJIB SUHU DEEP FRYER 160°C
+    is_deep_fryer: true, // DEEP FRYER 150°C
     is_thermal: true,
-    target_temp: 160,
-    toleransi_temp_label: 'Deep Fryer 150°C - 160°C',
-    takaran_standar: 'Terong ungu dipotong serong tebal 1.5 cm + tepung breader.',
+    target_temp: 150,
+    toleransi_temp_label: 'Deep Fryer 150°C (Marinasi 10 mnt, Goreng 5 mnt)',
+    takaran_standar: 'Terong ungu dipotong serong tebal 1.5 cm + marinasi 10 mnt.',
     is_bebas_timbangan: true,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'SOP Terong Krispi: Cuci terong, potong serong 1.5 cm, balur tepung breader, goreng di Deep Fryer 150°C-160°C hingga kuning keemasan renyah luar lembut dalam.',
-    alat_bahan: 'Deep Fryer, Pisau, Talenan, Keranjang Fryer, Tepung Breader, Piring Saji',
+    keterangan: 'SOP Terong Krispi: Cuci terong, potong serong 1.5 cm, marinasi 10 mnt, balur tepung breader, goreng di Deep Fryer 150°C selama 5 mnt hingga kuning keemasan renyah luar lembut dalam.',
+    alat_bahan: 'Deep Fryer 150°C, Pisau, Talenan, Keranjang Fryer, Tepung Breader, Piring Saji',
     langkah_ringkas: [
       'Cuci bersih terong ungu segar di bawah air mengalir.',
-      'Potong serong dengan ketebalan 1.5 cm merata (tidak terlalu tipis agar tidak lembek).',
+      'Potong serong dengan ketebalan 1.5 cm merata (marinasi 10 menit).',
       'Balur ke tepung breader krispi HARA tipis merata.',
-      'Goreng di minyak deep fryer suhu 150°C - 160°C hingga warna kuning keemasan mekar.',
+      'Goreng di minyak deep fryer suhu 150°C selama 5 menit hingga warna kuning keemasan mekar.',
       'Angkat keranjang, tiriskan hingga bebas minyak berlebih, sajikan krispi renyah.'
     ]
   },
@@ -516,16 +516,16 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     kategori_sop: 'Sambal & Prep',
     is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: 'Cabai rawit merah segar + bawang putih kupas + garam mix HARA.',
+    takaran_standar: 'Cabai rawit merah 150g + baput 35g (goreng 3-5 mnt) + 7g garam + 60ml minyak panas, 30g/porsi.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'SOP Sambal: Buang tangkai cabai, cuci bersih, timbang takaran resep, ulek kasar seragam cobek besar, siram minyak panas berkualitas.',
-    alat_bahan: 'Cobek Batu Besar, Ulekan Batu, Timbangan Gram, Wadah Stainless Sambal',
+    keterangan: 'SOP Sambal Bawang: 150g cabai + 35g baput goreng 3-5 mnt, uleg kasar di cobek + 7g garam + 60ml minyak panas, 30g per porsi (Dilarang diblender).',
+    alat_bahan: 'Cobek Batu Besar, Ulekan Batu, Timbangan Gram Zero/Tare, Wadah Stainless Sambal',
     langkah_ringkas: [
-      'Pilih cabai rawit merah segar, bersihkan tangkai dan cuci higienis.',
-      'Timbang proporsi cabai dan bawang putih sesuai resep batch resmi.',
-      'Ulek di cobek besar dengan tekstur kasar berkarakter (tidak diblender halus jus).',
-      'Siram minyak panas kelapa/sawit berkualitas, aduk rata aroma harum keluar, simpan di wadah rapat.'
+      'Pilih cabai rawit merah segar 150g dan bawang putih 35g, bersihkan tangkai.',
+      'Goreng cabai dan baput selama 3–5 menit dalam minyak panas.',
+      'Ulek kasar di cobek batu bersama 7g garam mix HARA (Kill-Switch: DILARANG diblender!).',
+      'Siram 60 ml minyak panas berkualitas, aduk rata aroma wangi, sajikan standar 30g/porsi.'
     ]
   },
   {
@@ -541,28 +541,28 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 50 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Kitchen & Frying',
-    is_deep_fryer: true, // WAJIB SUHU DEEP FRYER 155°C
+    is_deep_fryer: true, // DEEP FRYER 150°C
     is_thermal: true,
-    target_temp: 155,
-    toleransi_temp_label: 'Deep Fryer 150°C - 155°C stabil',
-    takaran_standar: 'Kulit ayam mentah 500 gr dipotong 4x4 cm -> hasil goreng krispi mekar.',
+    target_temp: 150,
+    toleransi_temp_label: 'Deep Fryer 150°C (Mentah 50g -> Matang 60g, 12 mnt)',
+    takaran_standar: 'Kulit ayam mentah 50g dipotong 4x4 cm -> hasil goreng krispi matang 60g (12 mnt).',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 (40 mnt)',
-    keterangan: 'SOP Menggoreng Kulit: Bersihkan lemak, potong 4x4 cm, penepungan tipis, goreng di deep fryer suhu 150°C-155°C api terkontrol agar mekar garing tahan lama.',
-    alat_bahan: 'Deep Fryer 155°C, Pisau, Talenan, Keranjang Peniris, Tepung Bumbu Kulit',
+    keterangan: 'SOP Menggoreng Kulit: Bersihkan lemak, potong 4x4 cm, penepungan tipis, goreng di deep fryer suhu 150°C selama 12 mnt agar mekar garing tahan lama (mentah 50g -> matang 60g).',
+    alat_bahan: 'Deep Fryer 150°C, Pisau, Talenan, Keranjang Peniris, Tepung Bumbu Kulit, Timbangan',
     langkah_ringkas: [
-      'Bersihkan lemak berlebih pada kulit ayam mentah (bobot 500 gr).',
+      'Bersihkan lemak berlebih pada kulit ayam mentah, timbang 50 gr.',
       'Potong kulit ayam ukuran seragam 4x4 cm.',
       'Balur ke dalam tepung bumbu tipis merata tanpa menggumpal.',
-      'Goreng di deep fryer suhu 150°C - 155°C sambil dibalik berkala agar tidak menempel.',
-      'Angkat saat buih minyak mengecil dan warna cokelat keemasan cerah mekar garing.'
+      'Goreng di deep fryer suhu 150°C selama 12 menit sambil dibalik berkala agar tidak menempel.',
+      'Angkat saat buih minyak mengecil dan warna cokelat keemasan mekar garing (target matang 60g).'
     ]
   },
   {
     id: 'd1-st3-nasgor-geprek',
     day: 1,
     station: 'Station 3',
-    nama_tugas: 'Nasgor Geprek',
+    nama_tugas: 'Nasi Goreng Revisi 02',
     kode_sop_ref: 'HC-SOP-KIT-24',
     durasi_menit: 15,
     durasi_detik: 15 * 60,
@@ -573,16 +573,17 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     kategori_sop: 'Kitchen & Wok',
     is_deep_fryer: false,
     is_thermal: false,
-    takaran_standar: '1 Porsi nasi dingin pulen (1 centong besar) + pasta bumbu nasgor HARA.',
-    is_bebas_timbangan: true,
+    takaran_standar: 'Nasi 170g (wajib timbang) + Bumbu ECO 20g (wajib timbang) + 15ml minyak + 30g mix sayur + Telur Dadar + 2 slice timun.',
+    is_bebas_timbangan: false,
     batch_info: 'Batch 2 (30-40 mnt)',
-    keterangan: 'SOP Nasi Goreng Geprek: Panaskan minyak wajan wok, tumis pasta bumbu nasgor hingga wangi, aduk nasi cepat, sajikan bersama ayam geprek.',
-    alat_bahan: 'Wajan Wok, Spatula Wok, Kompor Gas Wok, Mangkuk Cetak Nasi, Piring Saji',
+    keterangan: 'SOP Nasi Goreng Revisi 02: Wajib timbang Nasi 170g & Bumbu ECO 20g (Zero/Tare). Panaskan 15ml minyak di wok, tumis sayur 30g & bumbu ECO 20g, masukkan nasi 170g aduk cepat, topping telur dadar & 2 slice timun.',
+    alat_bahan: 'Timbangan Digital Zero/Tare, Wajan Wok, Spatula Wok, Kompor Gas Wok, Piring Saji',
     langkah_ringkas: [
-      'Panaskan sedikit minyak di wajan wok dengan api sedang.',
-      'Tumis bumbu racik nasi goreng HARA hingga aroma rempah wangi tercium.',
-      'Masukkan 1 centong besar nasi dingin pulen, aduk cepat dengan spatula agar bulir nasi terpisah rata.',
-      'Cetak nasi di mangkuk, sajikan di piring bersama ayam geprek sambal dan lalapan timun.'
+      'Wajib timbang Zero/Tare: Nasi putih 170g dan Bumbu ECO 20g (Kill-Switch jika tidak menimbang).',
+      'Panaskan 15 ml minyak di wajan wok dengan api sedang.',
+      'Tumis mix sayur 30 gr dan bumbu ECO 20 gr hingga harum sedap.',
+      'Masukkan nasi 170 gr, aduk cepat dengan spatula hingga bulir nasi terpisah dan bumbu merata.',
+      'Plating rapi dengan telur dadar dan 2 slice timun segar.'
     ]
   },
   {
@@ -654,18 +655,18 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     kategori_sop: 'Kitchen Knowledge',
     is_deep_fryer: true,
     is_thermal: true,
-    target_temp: 160,
-    toleransi_temp_label: 'Deep fryer 160°C kontrol karkas ayam utuh',
+    target_temp: 150,
+    toleransi_temp_label: 'Deep Fryer 150°C (12 mnt, bolak-balik tiap 3 mnt)',
     takaran_standar: '1 Ekor karkas ayam utuh marinasi standar HARA.',
     is_bebas_timbangan: true,
     batch_info: 'Knowledge Sesi',
-    keterangan: 'SOP Knowledge Ayam Utuh: Pahami anatomi potong 9 karkas, marinasi 12-24 jam di chiller 1-4°C, dan teknik penggorengan karkas utuh matang ke tulang.',
-    alat_bahan: 'Karkas Ayam Utuh, Wadah Marinasi Chiller, Deep Fryer, Pisau Potong 9 Bagian',
+    keterangan: 'SOP Knowledge Ayam Utuh: Pahami anatomi potong 9 karkas, marinasi 12-24 jam di chiller 1-4°C, dan teknik penggorengan karkas utuh suhu 150°C (12 menit, bolak-balik tiap 3 menit) matang ke tulang.',
+    alat_bahan: 'Karkas Ayam Utuh, Wadah Marinasi Chiller, Deep Fryer 150°C, Pisau Potong 9 Bagian',
     langkah_ringkas: [
       'Pahami spesifikasi berat karkas ayam standar HARA.',
       'Pelajari teknik pemotongan presisi 9 bagian (dada, paha atas, paha bawah, sayap).',
       'Pahami batas holding time marinasi 12–24 jam pada suhu chiller 1–4°C.',
-      'Observasi teknik penggorengan ayam utuh agar matang sempurna hingga ke tulang.'
+      'Penggorengan suhu 150°C selama 12 menit dengan bolak-balik tiap 3 menit agar matang sempurna.'
     ]
   },
 
@@ -823,20 +824,20 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
     max_toleransi_detik: 18 * 60,
     divisi_terkait: 'Kitchen',
     kategori_sop: 'Snack & Side Dish',
-    is_deep_fryer: true, // DEEP FRYER 165°C
+    is_deep_fryer: true, // DEEP FRYER 150°C
     is_thermal: true,
-    target_temp: 165,
-    toleransi_temp_label: 'Deep Fryer 165°C kentang & jamur garing keemasan',
-    takaran_standar: '1 Porsi French Fries (120g) & Jamur Tiram Krispi (100g).',
+    target_temp: 150,
+    toleransi_temp_label: 'Deep Fryer 150°C (Jamur Enoki 50g 3 mnt + 2.5g bumbu / Kentang 100g 5 mnt)',
+    takaran_standar: 'Jamur Enoki Krispi 50g (+ 2.5g bumbu kentang) & French Fries 100g.',
     is_bebas_timbangan: false,
     batch_info: 'Batch 1 All Crew (40 mnt)',
-    keterangan: 'SOP Goreng Kentang & Jamur: Goreng kentang beku di deep fryer suhu 165°C selama 3-4 mnt, goreng jamur tiram berlapis tepung breader hingga kuning keemasan.',
-    alat_bahan: 'Deep Fryer 165°C, Keranjang Fryer, Bumbu Tabur, Pouch Kemasan',
+    keterangan: 'SOP Goreng Kentang & Jamur: Goreng di suhu 150°C: Jamur Enoki Krispi (50g, 3 mnt + 2.5g bumbu kentang); Kentang Goreng (100g, 5 mnt + 2.5g bumbu kentang).',
+    alat_bahan: 'Deep Fryer 150°C, Keranjang Fryer, Bumbu Kentang 2.5g, Pouch Kemasan',
     langkah_ringkas: [
-      'Goreng kentang beku langsung di suhu deep fryer 165°C selama 3–4 menit.',
-      'Goreng jamur tiram berlapis tepung krispi hingga kuning keemasan.',
-      'Tiriskan di peniris berlubang, taburi bumbu tabur jika diminta.',
-      'Sajikan hangat di pouch kemasan HARA.'
+      'Goreng jamur enoki krispi (50g) di suhu 150°C selama 3 menit hingga renyah garing.',
+      'Goreng kentang (100g) di suhu 150°C selama 5 menit hingga keemasan.',
+      'Tiriskan di peniris berlubang, campur bumbu kentang 2.5g merata.',
+      'Sajikan rapi di pouch kemasan HARA.'
     ]
   },
   {
@@ -894,33 +895,6 @@ export const AGENDA_STATION_TASKS: TrainingStationTask[] = [
       'Lakukan penepungan teknik 2x celup ringan tanpa ditekan padat.',
       'Masukkan ayam ke minyak panas, goreng 12 menit.',
       'Tiriskan di holding display 2 menit, periksa core temperature ≥ 74°C.'
-    ]
-  },
-  {
-    id: 'd2-st3-milkshake',
-    day: 2,
-    station: 'Station 3',
-    nama_tugas: 'Milkshake All Variant (Day 2)',
-    kode_sop_ref: 'HC-SOP-GPK-08',
-    durasi_menit: 10,
-    durasi_detik: 10 * 60,
-    toleransi_waktu_label: '10 Menit (Toleransi 8–12 mnt)',
-    min_toleransi_detik: 8 * 60,
-    max_toleransi_detik: 12 * 60,
-    divisi_terkait: 'Kasir',
-    kategori_sop: 'Beverage Bar',
-    is_deep_fryer: false,
-    is_thermal: false,
-    takaran_standar: 'Bubuk milkshake all variant + susu cair dingin + es kristal + sealer.',
-    is_bebas_timbangan: true,
-    batch_info: 'Batch 1 & 2 Day 2',
-    keterangan: 'SOP Milkshake Day 2: Shake racikan milkshake aneka rasa (coklat/vanilla/strawberry), seal rapi presisi anti-bocor.',
-    alat_bahan: 'Cup Sealer Otomatis, Shaker, Jigger, Cup Plastik',
-    langkah_ringkas: [
-      'Ambil bubuk rasa milkshake pesanan, campur dengan 100ml air hangat untuk melarutkan.',
-      'Tambahkan susu cair dingin dan es batu kristal.',
-      'Shake hingga tekstur mengembang lembut.',
-      'Seal dengan mesin press cup otomatis, pastikan segel rapat 100%.'
     ]
   },
   {

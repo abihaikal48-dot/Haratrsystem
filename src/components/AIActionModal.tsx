@@ -171,23 +171,23 @@ export const AIActionModal: React.FC<AIActionModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden border border-[#E2E0D8] animate-in zoom-in-95"
+        className="bg-white rounded-xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-xl overflow-hidden border border-[#E6E1DA]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-4 md:px-6 bg-gradient-to-r from-[#12100E] via-[#2A1517] to-[#A21D21] text-white flex items-center justify-between shrink-0">
+        <div className="p-4 md:px-6 bg-[#181411] text-white flex items-center justify-between shrink-0 border-b border-[#2A2420]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#A21D21] to-[#D9A027] flex items-center justify-center text-white shadow-md">
-              <Sparkles size={16} className="animate-pulse" />
+            <div className="w-8 h-8 rounded-lg bg-[#96171B] flex items-center justify-center text-white">
+              <Sparkles size={16} strokeWidth={1.75} />
             </div>
             <div>
-              <div className="font-black text-sm md:text-base flex items-center gap-2">
+              <div className="font-bold text-sm md:text-base flex items-center gap-2 font-['Outfit']">
                 <span>{data.title}</span>
-                <span className="text-[9.5px] bg-[#D9A027] text-black px-2 py-0.5 rounded-full font-black uppercase tracking-wider">
+                <span className="text-[9.5px] bg-[#FAF8F5] text-[#181411] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider font-['JetBrains_Mono']">
                   AI Generator
                 </span>
               </div>
-              <p className="text-[11px] text-slate-300">
+              <p className="text-[11px] text-stone-300">
                 Penyusunan otomatis berbasis standar Trainer Operasional Hara Chicken
               </p>
             </div>
@@ -195,9 +195,9 @@ export const AIActionModal: React.FC<AIActionModalProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 text-white/70 hover:text-white rounded-xl hover:bg-white/10 transition-colors"
+            className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.75} />
           </button>
         </div>
 

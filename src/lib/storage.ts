@@ -8,7 +8,7 @@ import {
   OfficialAuditReport, OfficialRaporKru, LaporanTrainerKeuanganAtasan,
   OJTCrewMonitoringRecord, GateEvaluationRecord, UserRole,
   AuditAttitudeHara, HasilUjianKruMingguan, TrainerExamConfig,
-  OnboardingBatch
+  OnboardingBatch, PenilaianPraktikOnboardingProduk
 } from '../types';
 import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
 import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
@@ -20,6 +20,7 @@ import {
   OFFICIAL_HARA_TRAINER_FINANCIAL_REPORTS
 } from './officialAuditData';
 import { INITIAL_HASIL_UJIAN_MINGGUAN } from '../data/bankSoalMingguan';
+import { INITIAL_PENILAIAN_ONBOARDING_TC } from '../data/onboardingAssessmentData';
 
 const STORAGE_KEYS = {
   OUTLETS: 'hara_pd_outlets_v2',
@@ -38,6 +39,12 @@ const STORAGE_KEYS = {
   PENILAIAN_TEORI: 'hara_pd_penilaian_teori_v2',
   PENILAIAN_PRAKTIK: 'hara_pd_penilaian_praktik_v2',
   PENILAIAN_LISAN: 'hara_pd_penilaian_lisan_v2',
+  PENILAIAN_ONBOARDING_TC: 'hara_pd_penilaian_onboarding_tc_v1',
+  PENILAIAN_PRAKTIK_ONBOARDING_PRODUK: 'hara_pd_penilaian_praktik_onboarding_produk_v1',
+  PENILAIAN_ONBOARDING_RND: 'hara_pd_penilaian_onboarding_rnd_v1',
+  RETRAINING_RECORDS: 'hara_pd_retraining_records_v1',
+  JADWAL_KUNJUNGAN: 'hara_pd_jadwal_kunjungan_v1',
+  RAPID_AUDITS: 'hara_pd_rapid_audits_v1',
   PENUGASAN_TRAINER: 'hara_pd_penugasan_trainer_v2',
   TRAINEE_OUTLET: 'hara_pd_trainee_outlet_v2',
   LAPORAN_TRAINER: 'hara_pd_laporan_trainer_v2',
@@ -958,14 +965,6 @@ const INITIAL_ATTITUDE_HARA: AuditAttitudeHara[] = [
 
 const INITIAL_USERS: AppUser[] = [
   {
-    id: 'usr-1',
-    nama: 'Haikal Abi',
-    email: 'haikal@harachicken.com',
-    role: 'Trainer',
-    status_aktif: 'Aktif',
-    created_at: '2026-01-01T00:00:00.000Z',
-  },
-  {
     id: 'usr-admin',
     nama: 'Administrator HQ',
     email: 'admin@harachicken.com',
@@ -974,36 +973,36 @@ const INITIAL_USERS: AppUser[] = [
     created_at: '2026-01-01T00:00:00.000Z',
   },
   {
-    id: 'usr-2',
-    nama: 'Bambang Kusuma',
-    email: 'bambang.spv@harachicken.com',
-    role: 'Area Supervisor',
-    status_aktif: 'Aktif',
-    created_at: '2026-01-05T00:00:00.000Z',
-  },
-  {
-    id: 'usr-rian',
-    nama: 'Rian Hidayat',
-    email: 'rian.kepala@harachicken.com',
-    role: 'Kepala Outlet',
-    status_aktif: 'Aktif',
-    created_at: '2026-01-08T00:00:00.000Z',
-  },
-  {
-    id: 'usr-3',
-    nama: 'Siti Sarah',
-    email: 'siti.sarah@harachicken.com',
+    id: 'usr-haikal',
+    nama: 'Haikal Abi',
+    email: 'haikal@harachicken.com',
     role: 'Trainer',
     status_aktif: 'Aktif',
-    created_at: '2026-01-10T00:00:00.000Z',
+    created_at: '2026-01-01T00:00:00.000Z',
   },
   {
-    id: 'usr-rekrutmen',
-    nama: 'Dina Putri',
-    email: 'rekrutmen@harachicken.com',
-    role: 'SPV Rekrutmen',
+    id: 'usr-jihan',
+    nama: 'Jihan',
+    email: 'jihan@harachicken.com',
+    role: 'Trainer',
     status_aktif: 'Aktif',
-    created_at: '2026-01-12T00:00:00.000Z',
+    created_at: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-feri',
+    nama: 'Feri',
+    email: 'feri@harachicken.com',
+    role: 'Trainer',
+    status_aktif: 'Aktif',
+    created_at: '2026-01-01T00:00:00.000Z',
+  },
+  {
+    id: 'usr-ari',
+    nama: 'Ari',
+    email: 'ari@harachicken.com',
+    role: 'Trainer',
+    status_aktif: 'Aktif',
+    created_at: '2026-01-01T00:00:00.000Z',
   },
 ];
 
@@ -1635,6 +1634,148 @@ const INITIAL_SETTINGS: SystemSettings = {
   lead_trainer: 'Haikal Abi (Trainer Operasional)',
 };
 
+export const INITIAL_PENILAIAN_PRAKTIK_PRODUK: PenilaianPraktikOnboardingProduk[] = [
+  {
+    id: 'prak-prod-01',
+    tanggal: '2026-03-24',
+    kru_id: 'kru-1',
+    nama_kru: 'Ahmad Fauzi',
+    kode_outlet: 'HC-JTS01',
+    nama_outlet: 'Hara Chicken Jatiasih',
+    batch_id: 'batch-01',
+    nama_batch: 'Batch 01 - Onboarding Kru Baru Q1 2026',
+    divisi: 'Kitchen',
+    produk_nama: 'Goreng Ayam',
+    kode_sop: 'HC-SOP-KIT-02',
+    skor_ketepatan: 92,
+    skor_kerjasama: 88,
+    skor_kecepatan: 95,
+    durasi_detik: 720,
+    standar_durasi_detik: 720,
+    skor_knowledge: 90,
+    skor_kebersihan: 88,
+    skor_keaktifan: 90,
+    skor_langkah_sop: 94,
+    skor_akhir: 91.5,
+    status_kelulusan: 'Lulus Kompeten',
+    checklist_langkah: [
+      { nomor: 1, langkah: 'Nyalakan api kompor deep fryer dan putar pengatur suhu ke 175°C.', tercapai: true },
+      { nomor: 2, langkah: 'Cek suhu minyak dengan termometer hingga mencapai 160°C.', tercapai: true },
+      { nomor: 3, langkah: 'Lakukan penepungan ayam (dusting): celup air 1 detik, cubit lembut agar keriting mekar.', tercapai: true },
+      { nomor: 4, langkah: 'Masukkan ayam ke dalam minyak minimal 2 kg dan maksimal 3 kg per batch.', tercapai: true },
+      { nomor: 5, langkah: 'Goyangkan keranjang setiap 3 menit agar ayam tidak lengket dan matang merata.', tercapai: true },
+      { nomor: 6, langkah: 'Goreng selama 12 menit tepat.', tercapai: true },
+      { nomor: 7, langkah: 'Angkat ayam, tiriskan minyak 1 menit, lalu pindahkan dengan jepitan ke warmer.', tercapai: true },
+      { nomor: 8, langkah: 'Kuras dan saring remah minyak secara berkala pergantian shift.', tercapai: true }
+    ],
+    catatan_trainer: 'Keriting kriuk mekar sempurna, kematangan merata hingga ke tulang paha.',
+    nama_trainer: 'Haikal Abi (Lead Trainer)',
+    created_at: '2026-03-24T09:30:00.000Z',
+  },
+  {
+    id: 'prak-prod-02',
+    tanggal: '2026-03-24',
+    kru_id: 'kru-2',
+    nama_kru: 'Siti Nurhaliza',
+    kode_outlet: 'HC-JTS01',
+    nama_outlet: 'Hara Chicken Jatiasih',
+    batch_id: 'batch-01',
+    nama_batch: 'Batch 01 - Onboarding Kru Baru Q1 2026',
+    divisi: 'Kitchen',
+    produk_nama: 'Nasi',
+    kode_sop: 'HC-SOP-KIT-01',
+    skor_ketepatan: 95,
+    skor_kerjasama: 90,
+    skor_kecepatan: 90,
+    durasi_detik: 900,
+    standar_durasi_detik: 900,
+    skor_knowledge: 92,
+    skor_kebersihan: 94,
+    skor_keaktifan: 92,
+    skor_langkah_sop: 96,
+    skor_akhir: 93.2,
+    status_kelulusan: 'Lulus Kompeten',
+    checklist_langkah: [
+      { nomor: 1, langkah: 'Ambil maksimal 6 cup beras (Merk Miyako).', tercapai: true },
+      { nomor: 2, langkah: 'Cuci bersih beras minimal 3 kali bilas hingga air jernih.', tercapai: true },
+      { nomor: 3, langkah: 'Masukkan beras ke wadah rice cooker gas dengan rasio takaran air baku.', tercapai: true },
+      { nomor: 4, langkah: 'Nyalakan api kecil lalu tekan tombol COOK ke bawah.', tercapai: true },
+      { nomor: 5, langkah: 'Biarkan tanak 15 menit setelah tombol kembali ke posisi awal sebelum dipindah ke magicom.', tercapai: true }
+    ],
+    catatan_trainer: 'Nasi pulen matang sempurna, teknik centong bulat rapi.',
+    nama_trainer: 'Haikal Abi (Lead Trainer)',
+    created_at: '2026-03-24T10:15:00.000Z',
+  },
+  {
+    id: 'prak-prod-03',
+    tanggal: '2026-03-25',
+    kru_id: 'kru-3',
+    nama_kru: 'Budi Santoso',
+    kode_outlet: 'HC-BTL01',
+    nama_outlet: 'Hara Chicken Bantul',
+    batch_id: 'batch-02',
+    nama_batch: 'Batch 02 - Onboarding & Standarisasi Bantul',
+    divisi: 'Geprek',
+    produk_nama: 'Sambal Bawang',
+    kode_sop: 'HC-SOP-GEP-03',
+    skor_ketepatan: 88,
+    skor_kerjasama: 84,
+    skor_kecepatan: 88,
+    durasi_detik: 165,
+    standar_durasi_detik: 180,
+    skor_knowledge: 86,
+    skor_kebersihan: 82,
+    skor_keaktifan: 85,
+    skor_langkah_sop: 88,
+    skor_akhir: 86.4,
+    status_kelulusan: 'Lulus Kompeten',
+    checklist_langkah: [
+      { nomor: 1, langkah: 'Timbang cabai rawit merah dan bawang putih sesuai porsi standar porsi HARA.', tercapai: true },
+      { nomor: 2, langkah: 'Ulek kasar bawang dan cabai rawit (tidak boleh terlalu halus).', tercapai: true },
+      { nomor: 3, langkah: 'Tambahkan takaran garam dan penyedap rasa terstandar.', tercapai: true },
+      { nomor: 4, langkah: 'Siram minyak panas mendidih tepat dari deep fryer ke atas sambal.', tercapai: true },
+      { nomor: 5, langkah: 'Aduk rata hingga layu harum semerbak.', tercapai: true }
+    ],
+    catatan_trainer: 'Aroma harum bawang layu merata, pedas gurih standar HARA.',
+    nama_trainer: 'Haikal Abi (Lead Trainer)',
+    created_at: '2026-03-25T11:00:00.000Z',
+  },
+  {
+    id: 'prak-prod-04',
+    tanggal: '2026-03-25',
+    kru_id: 'kru-4',
+    nama_kru: 'Dewi Anggraini',
+    kode_outlet: 'HC-BTL01',
+    nama_outlet: 'Hara Chicken Bantul',
+    batch_id: 'batch-02',
+    nama_batch: 'Batch 02 - Onboarding & Standarisasi Bantul',
+    divisi: 'Geprek',
+    produk_nama: 'Ayam Utuh Nashville',
+    kode_sop: 'HC-SOP-KIT-15',
+    skor_ketepatan: 90,
+    skor_kerjasama: 88,
+    skor_kecepatan: 86,
+    durasi_detik: 120,
+    standar_durasi_detik: 120,
+    skor_knowledge: 92,
+    skor_kebersihan: 90,
+    skor_keaktifan: 88,
+    skor_langkah_sop: 92,
+    skor_akhir: 90.0,
+    status_kelulusan: 'Lulus Kompeten',
+    checklist_langkah: [
+      { nomor: 1, langkah: 'Siapkan minyak bumbu Nashville hangat dengan takaran rempah resmi.', tercapai: true },
+      { nomor: 2, langkah: 'Celupkan ayam utuh crispy hangat ke dalam minyak bumbu secara merata.', tercapai: true },
+      { nomor: 3, langkah: 'Tiriskan kelebihan minyak selama 15 detik.', tercapai: true },
+      { nomor: 4, langkah: 'Taburkan Nashville seasoning powder secara merata di kedua sisi.', tercapai: true },
+      { nomor: 5, langkah: 'Tata rapi di wadah saji dengan garnish khas HARA.', tercapai: true }
+    ],
+    catatan_trainer: 'Warna merah khas Nashville merata mengkilap, taburan bumbu rapi.',
+    nama_trainer: 'Haikal Abi (Lead Trainer)',
+    created_at: '2026-03-25T13:45:00.000Z',
+  }
+];
+
 // Generic Database Engine
 class StorageDatabase {
   private listeners: Map<string, Set<() => void>> = new Map();
@@ -1647,8 +1788,8 @@ class StorageDatabase {
     if (typeof window === 'undefined') return;
     this.ensureSeed(STORAGE_KEYS.OUTLETS, INITIAL_OUTLETS);
     this.ensureSeed(STORAGE_KEYS.KRU, INITIAL_KRU);
-    this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP, true);
-    this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL, true);
+    this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
+    this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL);
     this.ensureSeed(STORAGE_KEYS.TNA, INITIAL_TNA);
     this.ensureSeed(STORAGE_KEYS.RENCANA_TRAINING, INITIAL_RENCANA_TRAINING);
     this.ensureSeed(STORAGE_KEYS.OBSERVASI, INITIAL_OBSERVASI);
@@ -1659,15 +1800,17 @@ class StorageDatabase {
     this.ensureSeed(STORAGE_KEYS.PENILAIAN_TEORI, INITIAL_PENILAIAN_TEORI);
     this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK, INITIAL_PENILAIAN_PRAKTIK);
     this.ensureSeed(STORAGE_KEYS.PENILAIAN_LISAN, INITIAL_PENILAIAN_LISAN);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, INITIAL_PENILAIAN_ONBOARDING_TC);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, INITIAL_PENILAIAN_PRAKTIK_PRODUK);
     this.ensureSeed(STORAGE_KEYS.PENUGASAN_TRAINER, INITIAL_PENUGASAN_TRAINER);
     this.ensureSeed(STORAGE_KEYS.TRAINEE_OUTLET, INITIAL_TRAINEE_OUTLET);
     this.ensureSeed(STORAGE_KEYS.LAPORAN_TRAINER, INITIAL_LAPORAN_TRAINER);
     this.ensureSeed(STORAGE_KEYS.ONBOARDING_PROGRESS, INITIAL_ONBOARDING_PROGRESS);
-    this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL], true);
-    this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS, true);
-    this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES, true);
-    this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING, true);
-    this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA, true);
+    this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL]);
+    this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS);
+    this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+    this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING);
+    this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA);
     this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
     this.ensureSeed(STORAGE_KEYS.LOG_AKTIVITAS, INITIAL_LOGS);
     this.ensureSeed(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
@@ -1688,36 +1831,36 @@ class StorageDatabase {
           localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(u));
         }
       }
+      // Sync app_users strictly to only keep Administrator HQ and 4 official evaluators (Haikal, Jihan, Feri, Ari)
+      const storedAppUsers = localStorage.getItem(STORAGE_KEYS.APP_USERS);
+      if (storedAppUsers) {
+        try {
+          const list: AppUser[] = JSON.parse(storedAppUsers);
+          const validEmails = ['admin@harachicken.com', 'haikal@harachicken.com', 'jihan@harachicken.com', 'feri@harachicken.com', 'ari@harachicken.com'];
+          const filtered = list.filter(u => validEmails.includes(u.email.toLowerCase()));
+          INITIAL_USERS.forEach(iu => {
+            if (!filtered.some(f => f.email.toLowerCase() === iu.email.toLowerCase())) {
+              filtered.push(iu);
+            }
+          });
+          localStorage.setItem(STORAGE_KEYS.APP_USERS, JSON.stringify(filtered));
+        } catch {
+          localStorage.setItem(STORAGE_KEYS.APP_USERS, JSON.stringify(INITIAL_USERS));
+        }
+      }
     } catch {
       // ignore
     }
     this.ensureSeed(STORAGE_KEYS.CURRENT_USER, INITIAL_USERS[0]);
   }
 
-  private ensureSeed<T>(key: string, defaultData: T, autoUpgradeIfFewer: boolean = false) {
+  private ensureSeed<T>(key: string, defaultData: T) {
     try {
       const existing = localStorage.getItem(key);
-      if (!existing) {
+      // Strictly only seed if the key does NOT exist at all in localStorage.
+      // Never overwrite existing data, empty tables, or user inputs when page refreshes!
+      if (existing === null || existing === undefined) {
         localStorage.setItem(key, JSON.stringify(defaultData));
-      } else if (autoUpgradeIfFewer && Array.isArray(defaultData)) {
-        try {
-          const parsed = JSON.parse(existing);
-          const defaultArr = defaultData as any[];
-          const isBankSop = key === STORAGE_KEYS.BANK_SOP;
-          const missingDivisions =
-            isBankSop &&
-            Array.isArray(parsed) &&
-            (!parsed.some((s: any) => s.divisi === 'Kasir') ||
-              !parsed.some((s: any) => s.divisi === 'Geprek') ||
-              !parsed.some((s: any) => s.divisi === 'Helper') ||
-              !parsed.some((s: any) => s.divisi === 'Kitchen'));
-
-          if (Array.isArray(parsed) && (parsed.length < defaultArr.length || missingDivisions)) {
-            localStorage.setItem(key, JSON.stringify(defaultData));
-          }
-        } catch {
-          localStorage.setItem(key, JSON.stringify(defaultData));
-        }
       }
     } catch {
       // ignore
@@ -1829,30 +1972,6 @@ class StorageDatabase {
   public getTable<T>(tableName: string): T[] {
     const key = this.mapKey(tableName);
     const data = this.get<T[]>(key, []);
-    if (tableName === 'bank_sop') {
-      const arr = data as any[];
-      const missingDivisions =
-        !arr.some((s) => s.divisi === 'Kasir') ||
-        !arr.some((s) => s.divisi === 'Geprek') ||
-        !arr.some((s) => s.divisi === 'Helper') ||
-        !arr.some((s) => s.divisi === 'Kitchen');
-      if (arr.length < OFFICIAL_HARA_SOP_DATABASE.length || missingDivisions) {
-        this.set(key, OFFICIAL_HARA_SOP_DATABASE as any);
-        return OFFICIAL_HARA_SOP_DATABASE as any;
-      }
-    }
-    if (tableName === 'bank_soal') {
-      const arr = data as any[];
-      const missingDivisions =
-        !arr.some((s) => s.divisi === 'Kasir') ||
-        !arr.some((s) => s.divisi === 'Geprek') ||
-        !arr.some((s) => s.divisi === 'Helper') ||
-        !arr.some((s) => s.divisi === 'Kitchen');
-      if (arr.length < OFFICIAL_HARA_BANK_SOAL.length || missingDivisions) {
-        this.set(key, OFFICIAL_HARA_BANK_SOAL as any);
-        return OFFICIAL_HARA_BANK_SOAL as any;
-      }
-    }
     return data;
   }
 
@@ -1898,11 +2017,22 @@ class StorageDatabase {
     this.set(key, [newRow, ...list]);
     this.addLog('TAMBAH', this.friendlyTableName(tableName), `Menambahkan data baru di ${tableName}: ${JSON.stringify(payload).slice(0, 60)}...`);
 
-    // Async write to Firestore so database is populated online
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, tableName, id), newRow, { merge: true }).catch(() => {});
-      });
+    // Async write to Firestore so database is populated online real-time
+    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+      setCloudSyncStatus('syncing');
+      import('./firebase').then(({ firestore }) => {
+        import('firebase/firestore').then(({ doc, setDoc }) => {
+          setDoc(doc(firestore, tableName, id), newRow, { merge: true })
+            .then(() => setCloudSyncStatus('online'))
+            .catch(() => {
+              if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                setCloudSyncStatus('offline');
+              } else {
+                setCloudSyncStatus('online');
+              }
+            });
+        });
+      }).catch(() => {});
     }).catch(() => {});
 
     return newRow as unknown as T;
@@ -2003,11 +2133,22 @@ class StorageDatabase {
     this.set(key, list);
     this.addLog('UBAH', this.friendlyTableName(tableName), `Memperbarui data ID ${id}`);
 
-    // Async write to Firestore
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, tableName, id), updated, { merge: true }).catch(() => {});
-      });
+    // Async write to Firestore real-time
+    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+      setCloudSyncStatus('syncing');
+      import('./firebase').then(({ firestore }) => {
+        import('firebase/firestore').then(({ doc, setDoc }) => {
+          setDoc(doc(firestore, tableName, id), updated, { merge: true })
+            .then(() => setCloudSyncStatus('online'))
+            .catch(() => {
+              if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                setCloudSyncStatus('offline');
+              } else {
+                setCloudSyncStatus('online');
+              }
+            });
+        });
+      }).catch(() => {});
     }).catch(() => {});
 
     return true;
@@ -2021,11 +2162,22 @@ class StorageDatabase {
     this.set(key, filtered);
     this.addLog('HAPUS', this.friendlyTableName(tableName), `Menghapus data ID ${id}`);
 
-    // Async delete from Firestore
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, deleteDoc }) => {
-        deleteDoc(doc(firestore, tableName, id)).catch(() => {});
-      });
+    // Async delete from Firestore real-time
+    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+      setCloudSyncStatus('syncing');
+      import('./firebase').then(({ firestore }) => {
+        import('firebase/firestore').then(({ doc, deleteDoc }) => {
+          deleteDoc(doc(firestore, tableName, id))
+            .then(() => setCloudSyncStatus('online'))
+            .catch(() => {
+              if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                setCloudSyncStatus('offline');
+              } else {
+                setCloudSyncStatus('online');
+              }
+            });
+        });
+      }).catch(() => {});
     }).catch(() => {});
 
     return true;
@@ -2412,6 +2564,23 @@ class StorageDatabase {
         return STORAGE_KEYS.PENILAIAN_PRAKTIK;
       case 'penilaian_lisan':
         return STORAGE_KEYS.PENILAIAN_LISAN;
+      case 'penilaian_onboarding_tc':
+      case 'penilaian_onboarding':
+      case 'onboarding_tc':
+        return STORAGE_KEYS.PENILAIAN_ONBOARDING_TC;
+      case 'penilaian_onboarding_rnd':
+      case 'penilaian_rnd':
+      case 'onboarding_rnd':
+        return STORAGE_KEYS.PENILAIAN_ONBOARDING_RND;
+      case 'retraining_records':
+      case 'retraining':
+        return STORAGE_KEYS.RETRAINING_RECORDS;
+      case 'jadwal_kunjungan':
+      case 'jadwal':
+        return STORAGE_KEYS.JADWAL_KUNJUNGAN;
+      case 'rapid_audits':
+      case 'rapid_audit':
+        return STORAGE_KEYS.RAPID_AUDITS;
       case 'penugasan_trainer':
       case 'penugasan':
         return STORAGE_KEYS.PENUGASAN_TRAINER;
@@ -2655,7 +2824,11 @@ class StorageDatabase {
   // MANAJEMEN ONBOARDING & RETRAINING 3 HARI
   // ==========================================
   public getOnboardingBatches(): OnboardingBatch[] {
-    return this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+    const raw = this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+    return (raw || []).map(b => ({
+      ...b,
+      peserta: Array.isArray(b?.peserta) ? b.peserta : [],
+    }));
   }
 
   public saveOnboardingBatch(batch: OnboardingBatch): void {
@@ -2682,6 +2855,70 @@ class StorageDatabase {
     const updated = list.filter(b => b.id !== batchId);
     this.set(STORAGE_KEYS.ONBOARDING_BATCHES, updated);
     this.addLog('HAPUS', 'Onboarding 3 Hari', `Batch ID ${batchId} dihapus dari sistem.`);
+  }
+
+  public getPenilaianPraktikProduk(): PenilaianPraktikOnboardingProduk[] {
+    return this.get<PenilaianPraktikOnboardingProduk[]>(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, INITIAL_PENILAIAN_PRAKTIK_PRODUK);
+  }
+
+  public savePenilaianPraktikProduk(item: PenilaianPraktikOnboardingProduk): void {
+    const list = this.getPenilaianPraktikProduk();
+    const idx = list.findIndex(p => p.id === item.id);
+    let updated: PenilaianPraktikOnboardingProduk[];
+    if (idx >= 0) {
+      updated = [...list];
+      updated[idx] = item;
+      this.addLog('UBAH', 'Penilaian Praktik Produk SOP', `Update evaluasi ${item.produk_nama} kru ${item.nama_kru}`);
+    } else {
+      updated = [item, ...list];
+      this.addLog('TAMBAH', 'Penilaian Praktik Produk SOP', `Input evaluasi baru ${item.produk_nama} kru ${item.nama_kru} (Skor: ${item.skor_akhir})`);
+    }
+    this.set(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, updated);
+    this.set(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, updated);
+
+    // Dual-layer Firestore sync
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', item.id), item, { merge: true }).catch(() => {});
+        setDoc(doc(firestore, 'penilaian_onboarding_rnd', item.id), item, { merge: true }).catch(() => {});
+      });
+    }).catch(() => {});
+
+    // Free Google Sheets Webhook Sync (Cadangan Gratis Selamanya)
+    try {
+      const settings = this.get<SystemSettings>(STORAGE_KEYS.SETTINGS, {} as any);
+      const webhookUrl = settings?.google_sheets_webhook_url || (typeof localStorage !== 'undefined' ? localStorage.getItem('hara_google_sheets_webhook_url') : null);
+      if (webhookUrl && webhookUrl.trim().startsWith('http')) {
+        fetch(webhookUrl.trim(), {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'PENILAIAN_ONBOARDING_SAVED',
+            source: 'HARA_TRAINER_PRO_SYSTEM',
+            timestamp: new Date().toISOString(),
+            payload: item,
+          }),
+        }).catch((err) => console.warn('Google Sheets Webhook notice:', err));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  public deletePenilaianPraktikProduk(id: string): void {
+    const list = this.getPenilaianPraktikProduk();
+    const target = list.find(p => p.id === id);
+    const updated = list.filter(p => p.id !== id);
+    this.set(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, updated);
+    this.addLog('HAPUS', 'Penilaian Praktik Produk SOP', `Hapus evaluasi ${target ? target.produk_nama : id}`);
+
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, deleteDoc }) => {
+        deleteDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', id)).catch(() => {});
+        deleteDoc(doc(firestore, 'penilaian_onboarding_rnd', id)).catch(() => {});
+      });
+    }).catch(() => {});
   }
 
   private friendlyTableName(name: string): string {

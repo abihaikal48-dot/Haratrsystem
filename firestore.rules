@@ -43,6 +43,12 @@ service cloud.firestore {
       allow get, write: if isValidId(praktikId);
     }
 
+    // Penilaian Praktik Onboarding & RnD Produk
+    match /penilaian_praktik_onboarding_produk/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
     // Penilaian Lisan
     match /penilaian_lisan/{lisanId} {
       allow list: if true;
@@ -132,6 +138,21 @@ service cloud.firestore {
 
     // Onboarding & Retraining Kru 3 Hari
     match /onboarding_batches/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    match /penilaian_onboarding_rnd/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    match /penilaian_praktik_onboarding_produk/{id} {
+      allow list: if true;
+      allow get, write: if isValidId(id);
+    }
+
+    match /jadwal_kunjungan/{id} {
       allow list: if true;
       allow get, write: if isValidId(id);
     }

@@ -18,6 +18,7 @@ import { PenugasanTrainerView } from './components/PenugasanTrainerView';
 import { TrainerJobdeskView } from './components/TrainerJobdeskView';
 import { KurikulumRoadmapView } from './components/KurikulumRoadmapView';
 import { JadwalKunjunganView } from './components/JadwalKunjunganView';
+import { FieldToolkitVisitView } from './components/FieldToolkitVisitView';
 import { AICoachModal } from './components/AICoachModal';
 import { CommandPaletteModal } from './components/CommandPaletteModal';
 import { AIActionModal, AIActionModalData, AIActionType } from './components/AIActionModal';
@@ -507,11 +508,11 @@ export function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#FAF8F5] text-[#1F1813]">
+    <div className="flex min-h-screen bg-[#F8F9FA] text-[#111827]">
       {/* Toast Notification */}
       {globalToast && (
-        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border border-slate-800 animate-in fade-in slide-in-from-bottom-3">
-          <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+        <div className="fixed bottom-20 sm:bottom-6 right-5 z-50 bg-neutral-900 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-neutral-800 animate-in fade-in slide-in-from-bottom-2">
+          <CheckCircle2 size={16} className="text-[#96171B] shrink-0" />
           <span>{globalToast}</span>
         </div>
       )}
@@ -532,19 +533,14 @@ export function App() {
 
       {/* Main Content Viewport */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Command & Status Header */}
+        {/* Command & Status Header (Minimalist 1-Row) */}
         <Header
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
           currentUser={currentUser}
-          onOpenAICoach={() => setAiCoachOpen(true)}
           onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-          onOpenGoogleWorkspace={() => setGoogleWorkspaceOpen(true)}
-          onlineCount={onlineUsers.length}
-          onOpenPresenceModal={() => setPresenceModalOpen(true)}
           selectedOutletCode={selectedOutletCode}
           onSelectOutletCode={setSelectedOutletCode}
           outlets={outlets}
-          onOpenPublicExam={navigateToUjian}
           onLogout={handleLogout}
           onLockSession={() => {
             setIsSessionLocked(true);
@@ -553,7 +549,7 @@ export function App() {
         />
 
         {/* Viewport Router */}
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6 pb-24 md:pb-8">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto space-y-6 pb-12">
           {currentTab === 'dashboard' && (
             <DashboardView
               onNavigate={setCurrentTab}
@@ -585,6 +581,12 @@ export function App() {
             <AnalitikRadarView
               selectedOutletCode={selectedOutletCode}
               onNavigateToTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'kurikulum-onboarding' && (
+            <KurikulumRoadmapView
+              selectedOutletCode={selectedOutletCode}
             />
           )}
 
@@ -668,19 +670,22 @@ export function App() {
             />
           )}
 
-          {/* 1. SUPERVISI LAPANGAN & COACHING (Consolidating observasi, coaching, keluhan, talent) */}
-          {(currentTab === 'supervisi-lapangan' ||
-            currentTab === 'observasi' ||
+          {/* 1. ASISTEN KUNJUNGAN OUTLET (FIELD TOOLKIT) */}
+          {currentTab === 'supervisi-lapangan' && (
+            <FieldToolkitVisitView
+              selectedOutletCode={selectedOutletCode}
+              onSelectOutletCode={setSelectedOutletCode}
+            />
+          )}
+
+          {/* Legacy sub-tabs fallback for observasi, coaching, keluhan, talent */}
+          {(currentTab === 'observasi' ||
             currentTab === 'coaching' ||
             currentTab === 'keluhan' ||
             currentTab === 'talent') && (
             <OperasionalLapanganView
               allowedSubTabs={['observasi', 'coaching', 'keluhan', 'talent']}
-              initialSubTab={
-                currentTab === 'supervisi-lapangan'
-                  ? 'observasi'
-                  : (currentTab as OperasionalSubTab)
-              }
+              initialSubTab={currentTab as OperasionalSubTab}
               customCategory="SUPERVISI OPERASIONAL"
               customTitle="Supervisi Lapangan & Coaching Kru"
               customDescription="Audit kepatuhan SOP 5S shift restoran, bimbingan GROW coaching 1-on-1, penanganan keluhan konsumen RCA, dan talent tracker promosi."
@@ -780,90 +785,6 @@ export function App() {
 
           {currentTab === 'bantuan' && <BantuanView />}
         </main>
-
-        {/* ===================================================================
-            MOBILE BOTTOM QUICK-NAVIGATION BAR (MD:HIDDEN)
-            Memudahkan Trainer berpindah cepat antar 5 pilar menu operasional
-            =================================================================== */}
-        <nav
-          aria-label="Mobile Navigation"
-          className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E6E1DA] px-2 py-1.5 shadow-[0_-4px_20px_rgba(24,20,17,0.06)]"
-        >
-          <div className="grid grid-cols-5 gap-1 items-center max-w-md mx-auto">
-            {/* 1. Dashboard */}
-            <button
-              type="button"
-              onClick={() => setCurrentTab('dashboard')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
-                currentTab === 'dashboard'
-                  ? 'text-[#96171B] font-bold'
-                  : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <LayoutDashboard size={18} className={currentTab === 'dashboard' ? 'stroke-[2.5]' : ''} />
-              <span className="text-[10px] mt-0.5 tracking-tight">Dashboard</span>
-            </button>
-
-            {/* 2. Training & Retraining */}
-            <button
-              type="button"
-              onClick={() => setCurrentTab('monitoring-training')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
-                currentTab === 'monitoring-training'
-                  ? 'text-[#96171B] font-bold'
-                  : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <CalendarCheck size={18} className={currentTab === 'monitoring-training' ? 'stroke-[2.5]' : ''} />
-              <span className="text-[10px] mt-0.5 tracking-tight">Training</span>
-            </button>
-
-            {/* 3. Evaluasi 4 Pilar */}
-            <button
-              type="button"
-              onClick={() => setCurrentTab('evaluasi-kompetensi')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all relative ${
-                currentTab === 'evaluasi-kompetensi' || currentTab === 'evaluasi-kru'
-                  ? 'text-[#96171B] font-bold'
-                  : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <div className="relative">
-                <Award size={18} className={currentTab === 'evaluasi-kompetensi' ? 'stroke-[2.5]' : ''} />
-                <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#96171B]" />
-              </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">Evaluasi</span>
-            </button>
-
-            {/* 4. Inspeksi & Tools Dapur */}
-            <button
-              type="button"
-              onClick={() => setCurrentTab('stasiun-kerja')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
-                currentTab === 'stasiun-kerja'
-                  ? 'text-[#96171B] font-bold'
-                  : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <UtensilsCrossed size={18} className={currentTab === 'stasiun-kerja' ? 'stroke-[2.5]' : ''} />
-              <span className="text-[10px] mt-0.5 tracking-tight">Tools Dapur</span>
-            </button>
-
-            {/* 5. Laporan PDF */}
-            <button
-              type="button"
-              onClick={() => setCurrentTab('laporan-resmi')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl transition-all ${
-                currentTab === 'laporan-resmi'
-                  ? 'text-[#96171B] font-bold'
-                  : 'text-stone-500 hover:text-stone-800'
-              }`}
-            >
-              <FileCheck size={18} className={currentTab === 'laporan-resmi' ? 'stroke-[2.5]' : ''} />
-              <span className="text-[10px] mt-0.5 tracking-tight">Laporan</span>
-            </button>
-          </div>
-        </nav>
       </div>
 
       {/* Dedicated Interactive AI Action Modal */}

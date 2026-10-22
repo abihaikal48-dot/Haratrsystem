@@ -7,7 +7,7 @@ import {
   Brain, TrendingUp, AlertCircle, RefreshCw, BarChart2,
   Users, Store, Info, Edit3, MessageSquare, Star, Zap,
   Compass, Eye, CheckSquare, Layers, Download, Search,
-  Scale, Thermometer
+  Scale, Thermometer, UtensilsCrossed
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../lib/storage';
@@ -22,17 +22,27 @@ import {
 } from '../data/onboardingCurriculumData';
 import { PageHeaderBanner } from './PageHeaderBanner';
 import { generateOnboardingBatchPDF } from '../lib/pdfGenerator';
+import { OnboardingAnalyticsDashboard } from './OnboardingAnalyticsDashboard';
+import { OnboardingProductPracticeView } from './trainer/OnboardingProductPracticeView';
+import { OnboardingActivityLogView } from './trainer/OnboardingActivityLogView';
 
 interface KurikulumRoadmapViewProps {
   selectedOutletCode: string;
 }
 
-type OnboardingViewSubTab = 'kurikulum' | 'batches' | 'radar_kru' | 'absensi_nilai';
+type OnboardingViewSubTab =
+  | 'penilaian_praktik_produk'
+  | 'log_aktivitas'
+  | 'analitik_diagnostik'
+  | 'kurikulum'
+  | 'batches'
+  | 'radar_kru'
+  | 'absensi_nilai';
 
 export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
   selectedOutletCode,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<OnboardingViewSubTab>('batches');
+  const [activeSubTab, setActiveSubTab] = useState<OnboardingViewSubTab>('penilaian_praktik_produk');
   const [batches, setBatches] = useState<OnboardingBatch[]>([]);
   const [kruList, setKruList] = useState<Kru[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -76,14 +86,19 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
   }, []);
 
   const activeBatch = useMemo(() => {
-    return batches.find(b => b.id === selectedBatchId) || batches[0] || null;
+    const found = batches.find(b => b.id === selectedBatchId) || batches[0] || null;
+    if (!found) return null;
+    return {
+      ...found,
+      peserta: Array.isArray(found.peserta) ? found.peserta : [],
+    };
   }, [batches, selectedBatchId]);
 
   // Classified Kru List
   const kruOnboardingStatus = useMemo(() => {
     return kruList.map(k => {
       const cls = klasifikasiKruOnboarding(k);
-      const isAlreadyInBatch = activeBatch?.peserta.some(p => p.kru_id === k.id);
+      const isAlreadyInBatch = (activeBatch?.peserta || []).some(p => p.kru_id === k.id);
       return {
         ...k,
         ...cls,
@@ -95,7 +110,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
   // Capacity validation for active batch
   const capacityInfo = useMemo(() => {
     if (!activeBatch) return null;
-    return evaluasiKapasitasBatch(activeBatch.peserta.length);
+    return evaluasiKapasitasBatch((activeBatch.peserta || []).length);
   }, [activeBatch]);
 
   // Handle Create New Batch
@@ -266,10 +281,11 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
         description="Master Kurikulum Baku 10 Materi (Total 25 Jam) dengan Uji Praktik RnD 16 Jam, indikator kuota kelas 11–17 peserta, dan deteksi otomatis karyawan baru (1–45 hari)."
         icon={<GraduationCapIcon size={22} />}
         tabs={[
-          { id: 'batches', label: 'Manajemen Batch Kelas', icon: Users, count: batches.length },
-          { id: 'radar_kru', label: 'Radar Kelayakan Kru (1-45 Hari)', icon: UserCheck },
-          { id: 'absensi_nilai', label: 'Absensi & Nilai RnD 16 Jam', icon: Award },
-          { id: 'kurikulum', label: 'Master Kurikulum 10 Sesi', icon: BookOpen },
+          { id: 'penilaian_praktik_produk', label: 'Form Penilaian Praktik R&D (SOP)', icon: UtensilsCrossed },
+          { id: 'log_aktivitas', label: 'Log Aktivitas Penilaian (Audit Trail)', icon: FileText },
+          { id: 'analitik_diagnostik', label: 'Analitik & Evaluasi R&D', icon: TrendingUp },
+          { id: 'kurikulum', label: 'Kurikulum & Koreografi Gerai', icon: BookOpen },
+          { id: 'batches', label: 'Database Peserta & Onboarding', icon: Users, count: batches.length },
         ]}
         activeTab={activeSubTab}
         onSelectTab={(id) => setActiveSubTab(id as OnboardingViewSubTab)}
@@ -298,7 +314,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     }`}
                   >
                     <span>{b.nomor_batch}</span>
-                    <span className="ml-1.5 text-[10px] opacity-80">({b.peserta.length} Kru)</span>
+                    <span className="ml-1.5 text-[10px] opacity-80">({b.peserta?.length || 0} Kru)</span>
                   </button>
                 ))}
               </div>
@@ -308,7 +324,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
               <button
                 type="button"
                 onClick={handleExportPDF}
-                disabled={!activeBatch || activeBatch.peserta.length === 0}
+                disabled={!activeBatch || (activeBatch.peserta?.length || 0) === 0}
                 className="btn-secondary-enterprise text-xs inline-flex items-center gap-1.5"
                 title="Ekspor Laporan Batch ke PDF Vektor Resmi"
               >
@@ -558,6 +574,26 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       )}
 
       {/* ===================================================================
+          SUB-TAB: PENILAIAN PRAKTIK PRODUK SOP (MULTI-KRU TAB & STOPWATCH)
+          =================================================================== */}
+      {activeSubTab === 'penilaian_praktik_produk' && (
+        <OnboardingProductPracticeView
+          selectedOutletCode={selectedOutletCode}
+          onOpenFullAuditLog={() => setActiveSubTab('log_aktivitas')}
+        />
+      )}
+
+      {/* ===================================================================
+          SUB-TAB: LOG AKTIVITAS PENILAIAN (AUDIT TRAIL RESMI)
+          =================================================================== */}
+      {activeSubTab === 'log_aktivitas' && (
+        <OnboardingActivityLogView
+          selectedOutletCode={selectedOutletCode}
+          onNavigateToPractice={() => setActiveSubTab('penilaian_praktik_produk')}
+        />
+      )}
+
+      {/* ===================================================================
           SUB-TAB 2: RADAR KELAYAKAN KRU (DETEKSI KARYAWAN BARU 1-45 HARI)
           =================================================================== */}
       {activeSubTab === 'radar_kru' && (
@@ -663,11 +699,11 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
               </div>
 
               <div className="text-xs font-bold text-[#96171B]">
-                Batch: {activeBatch?.nomor_batch} ({activeBatch?.peserta.length} Peserta)
+                Batch: {activeBatch?.nomor_batch} ({(activeBatch?.peserta?.length || 0)} Peserta)
               </div>
             </div>
 
-            {(!activeBatch || activeBatch.peserta.length === 0) ? (
+            {(!activeBatch || (activeBatch?.peserta?.length || 0) === 0) ? (
               <div className="py-12 text-center text-xs text-[#645D55]">
                 Belum ada peserta di batch ini. Tambahkan peserta dari tab "Radar Kelayakan Kru".
               </div>
@@ -692,7 +728,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#E6E1DA]">
-                    {activeBatch.peserta.map((p) => (
+                    {(activeBatch?.peserta || []).map((p) => (
                       <tr key={p.kru_id} className="hover:bg-[#FAF8F5]/60 transition-colors">
                         <td className="py-2 px-2">
                           <div className="font-bold text-[#181411] truncate">{p.nama_kru}</div>
@@ -807,6 +843,18 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          SUB-TAB 2: ANALITIK & DIAGNOSTIK ONBOARDING MULTI-PERIODE
+          =================================================================== */}
+      {activeSubTab === 'analitik_diagnostik' && (
+        <div className="space-y-6">
+          <OnboardingAnalyticsDashboard
+            initialOutletCode={selectedOutletCode}
+            onSelectProductForPractice={() => setActiveSubTab('penilaian_praktik_produk')}
+          />
         </div>
       )}
 

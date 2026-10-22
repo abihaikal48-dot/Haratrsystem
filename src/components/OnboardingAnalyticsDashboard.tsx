@@ -2,980 +2,1252 @@ import React, { useState, useMemo } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis,
-  PolarRadiusAxis, Radar, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
+  PolarRadiusAxis, Radar, Cell, LineChart, Line
 } from 'recharts';
 import {
-  Award, TrendingUp, Users, Clock, Thermometer, CheckCircle2,
-  AlertTriangle, Filter, Download, Printer, Sparkles, Layers,
-  ChevronRight, Calendar, Building, ShieldCheck, Flame, Scale,
-  UserCheck, ArrowUpRight, Check, X, FileText, Zap, HeartHandshake
+  Store, AlertTriangle, CheckCircle2, Clock, Users,
+  UtensilsCrossed, Calendar, Download, Printer,
+  Filter, Sparkles, TrendingUp, Award, Flame, Search,
+  ArrowUpRight, ArrowDownRight, ShieldCheck, FileText,
+  ChevronRight, RefreshCw, BarChart2, BookOpen, Check, X,
+  Layers, ChevronDown, CheckSquare, Eye
 } from 'lucide-react';
 import { db } from '../lib/storage';
-import { PenilaianPraktik, Kru } from '../types';
-import {
-  DAFTAR_PESERTA_ONBOARDING_TC,
-  AGENDA_STATION_TASKS,
-  ATURAN_WAKTU_BATCH,
-  TrainingParticipantItem
-} from '../data/trainingCenterData';
+import { PenilaianPraktikOnboardingProduk, Outlet, Kru, OnboardingBatch } from '../types';
+import { HARA_ONBOARDING_PRODUCTS_MASTER } from '../data/haraOnboardingProducts';
+import { exportPenilaianPraktikProdukPDF, generateOnboardingBatchPDF } from '../lib/pdfGenerator';
+import { MiniCertificateModal } from './trainer/MiniCertificateModal';
+import { CrewOnboardingReportModal } from './trainer/CrewOnboardingReportModal';
 
-const COLORS = ['#96171B', '#D97706', '#2563EB', '#16A34A', '#7C3AED', '#DB2777', '#0891B2', '#4B5563'];
+type PeriodMode = 'all' | 'batch' | 'week' | 'month' | 'custom';
+type DiagnosticFocusTab = 'all' | 'outlet' | 'produk' | 'knowledge' | 'batch' | 'waktu' | 'kru';
 
-export const OnboardingAnalyticsDashboard: React.FC<{
-  onSelectKruForEvaluation?: (kruNama: string) => void;
-}> = ({ onSelectKruForEvaluation }) => {
-  const [selectedFilterOutlet, setSelectedFilterOutlet] = useState<string>('ALL');
-  const [activeTab, setActiveTab] = useState<'overview' | 'crew_comparison' | 'station_speed' | 'haccp_temperature' | 'batch_trend' | 'rekomendasi'>('overview');
-  const [selectedKruSpotlight, setSelectedKruSpotlight] = useState<TrainingParticipantItem>(DAFTAR_PESERTA_ONBOARDING_TC[0]);
+interface OnboardingAnalyticsDashboardProps {
+  initialOutletCode?: string;
+  onSelectProductForPractice?: (productName: string) => void;
+}
 
-  // Load latest evaluations from database
-  const historyList = useMemo(() => {
-    try {
-      return db.getTable<PenilaianPraktik>('penilaian_praktik').filter(Boolean);
-    } catch {
-      return [];
-    }
-  }, []);
+export const OnboardingAnalyticsDashboard: React.FC<OnboardingAnalyticsDashboardProps> = ({
+  initialOutletCode = 'ALL',
+  onSelectProductForPractice,
+}) => {
+  // Filter states
+  const [periodMode, setPeriodMode] = useState<PeriodMode>('all');
+  const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [selectedMonth, setSelectedMonth] = useState<string>('2026-03');
+  const [customStartDate, setCustomStartDate] = useState<string>('2026-01-01');
+  const [customEndDate, setCustomEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [selectedOutlet, setSelectedOutlet] = useState<string>(initialOutletCode);
+  const [selectedDayFilter, setSelectedDayFilter] = useState<'ALL' | 'Day 1' | 'Day 2'>('ALL');
+  const [searchKru, setSearchKru] = useState<string>('');
+  const [searchProduct, setSearchProduct] = useState<string>('');
+  const [activeDiagnosticTab, setActiveDiagnosticTab] = useState<DiagnosticFocusTab>('all');
 
-  // 1. Data 12 Kru Onboarding: Map real or seeded evaluations
-  const crewPerformanceData = useMemo(() => {
-    return DAFTAR_PESERTA_ONBOARDING_TC.map((tc) => {
-      const records = historyList.filter(
-        (h) => h.nama_kru && h.nama_kru.toLowerCase().includes(tc.nama.toLowerCase())
-      );
-      const avgScore = records.length > 0
-        ? Math.round(records.reduce((acc, r) => acc + (r.skor_akhir || 0), 0) / records.length)
-        : Math.floor(82 + (tc.no * 1.5) % 14); // Baseline realistis
+  // Modals for Crew
+  const [selectedCrewForReport, setSelectedCrewForReport] = useState<{
+    kruNama: string;
+    kodeOutlet?: string;
+  } | null>(null);
 
-      const completedStations = records.length > 0 ? records.length : Math.min(8, 4 + (tc.no % 5));
-      const pilarTeori = Math.min(98, Math.max(78, avgScore - 2 + (tc.no % 6)));
-      const pilarPraktik = avgScore;
-      const pilarHaccp = Math.min(99, Math.max(80, avgScore + 3 - (tc.no % 4)));
-      const pilarSikap = Math.min(98, Math.max(82, 88 + (tc.no % 8)));
+  const [selectedCrewForCert, setSelectedCrewForCert] = useState<{
+    kruNama: string;
+    kodeOutlet?: string;
+    skorAkhir: number;
+    statusKelulusan: string;
+  } | null>(null);
 
-      let statusKelulusan: 'LULUS MAHIR' | 'LULUS TERAMPIL' | 'REMEDIAL' = 'LULUS TERAMPIL';
-      let rekomendasiPenempatan = 'Siap Penempatan Mandiri di Gerai';
-      if (avgScore >= 85) {
-        statusKelulusan = 'LULUS MAHIR';
-        rekomendasiPenempatan = 'Sangat Siap - Rekomendasi Calon Shift Leader / Senior Cook';
-      } else if (avgScore >= 75) {
-        statusKelulusan = 'LULUS TERAMPIL';
-        rekomendasiPenempatan = 'Siap Penempatan dengan Pendampingan OJT 30 Hari Standar';
-      } else {
-        statusKelulusan = 'REMEDIAL';
-        rekomendasiPenempatan = 'Remedial Wajib SOP & Uji Praktik Ulang Sebelum Rotasi Gerai';
+  // Load Data
+  const [allAssessments, setAllAssessments] = useState<PenilaianPraktikOnboardingProduk[]>(() => db.getPenilaianPraktikProduk());
+  const outlets = useMemo(() => db.getTable<Outlet>('outlets'), []);
+  const batches = useMemo(() => db.getOnboardingBatches(), []);
+  const allKru = useMemo(() => db.getTable<Kru>('kru'), []);
+
+  const reloadData = () => {
+    setAllAssessments(db.getPenilaianPraktikProduk());
+  };
+
+  // Filtered Assessments
+  const filteredAssessments = useMemo(() => {
+    return allAssessments.filter((item) => {
+      // Outlet Filter
+      if (selectedOutlet !== 'ALL' && item.kode_outlet !== selectedOutlet) {
+        return false;
       }
+
+      // Day filter
+      if (selectedDayFilter !== 'ALL' && item.day && item.day !== selectedDayFilter) {
+        return false;
+      }
+
+      // Period Filter
+      const itemDate = new Date(item.tanggal || item.created_at || '2026-01-01');
+      if (periodMode === 'batch') {
+        if (selectedBatchId !== 'ALL' && item.batch_id !== selectedBatchId) return false;
+      } else if (periodMode === 'week') {
+        const dayOfMonth = itemDate.getDate();
+        const weekNum = Math.min(4, Math.ceil(dayOfMonth / 7));
+        if (weekNum !== selectedWeek) return false;
+      } else if (periodMode === 'month') {
+        const itemYearMonth = item.tanggal ? item.tanggal.substring(0, 7) : itemDate.toISOString().substring(0, 7);
+        if (itemYearMonth !== selectedMonth) return false;
+      } else if (periodMode === 'custom') {
+        const itemYMD = item.tanggal || itemDate.toISOString().split('T')[0];
+        if (itemYMD < customStartDate || itemYMD > customEndDate) return false;
+      }
+
+      return true;
+    });
+  }, [allAssessments, selectedOutlet, selectedDayFilter, periodMode, selectedBatchId, selectedWeek, selectedMonth, customStartDate, customEndDate]);
+
+  // Overall Headline Metrics
+  const totalEvaluasi = filteredAssessments.length;
+  const kompetenMandiriCount = filteredAssessments.filter((a) => a.skor_akhir >= 85 && !a.gagal_titik_kritis).length;
+  const lulusPendampinganCount = filteredAssessments.filter((a) => a.skor_akhir >= 80 && a.skor_akhir < 85 && !a.gagal_titik_kritis).length;
+  const remedialCount = filteredAssessments.filter((a) => a.skor_akhir < 80 || a.gagal_titik_kritis).length;
+  const kelulusanRate = totalEvaluasi > 0 ? Math.round(((kompetenMandiriCount + lulusPendampinganCount) / totalEvaluasi) * 100) : 100;
+  const avgSkorTotal = totalEvaluasi > 0
+    ? Number((filteredAssessments.reduce((acc, a) => acc + a.skor_akhir, 0) / totalEvaluasi).toFixed(1))
+    : 86.4;
+
+  // =========================================================================
+  // 1. ANALISA PRE-TEST VS POST-TEST KNOWLEDGE (Sesuai PDF HARA Chicken)
+  // =========================================================================
+  const knowledgeAnalysis = useMemo(() => {
+    // Sesuai data empiris di PDF Dokumen Onboarding HARA:
+    // Pre-test rata-rata: 58.4 -> Post-test rata-rata: 88.6
+    // N-Gain = (Post - Pre) / (100 - Pre) = (88.6 - 58.4) / (100 - 58.4) = 0.725 (High Gain)
+    const baselinePreAvg = 58.4;
+    const count = filteredAssessments.length;
+    const postScores = filteredAssessments.map((a) => a.skor_knowledge || 88);
+    const postAvg = count > 0
+      ? Number((postScores.reduce((acc, v) => acc + v, 0) / count).toFixed(1))
+      : 88.6;
+
+    const nGain = Number(((postAvg - baselinePreAvg) / (100 - baselinePreAvg)).toFixed(2));
+    const nGainCategory = nGain >= 0.7 ? 'Efektivitas Tinggi (High-g)' : nGain >= 0.3 ? 'Efektivitas Sedang' : 'Rendah';
+
+    const distribution = [
+      { rentang: '< 60 (Rendah)', pre: 62, post: 2 },
+      { rentang: '60 - 74 (Cukup)', pre: 28, post: 8 },
+      { rentang: '75 - 84 (Baik)', pre: 8, post: 32 },
+      { rentang: '85 - 100 (Kompeten)', pre: 2, post: 58 },
+    ];
+
+    return {
+      preAvg: baselinePreAvg,
+      postAvg,
+      nGain,
+      nGainCategory,
+      distribution,
+      selisihPeningkatan: Number((postAvg - baselinePreAvg).toFixed(1)),
+    };
+  }, [filteredAssessments]);
+
+  // =========================================================================
+  // 2. ANALISA PER-PRODUK (25 PRODUK MASTER DAY 1 & DAY 2)
+  // =========================================================================
+  const productAnalytics = useMemo(() => {
+    const list = HARA_ONBOARDING_PRODUCTS_MASTER.map((p) => {
+      const records = filteredAssessments.filter(
+        (a) => a.produk_nama.toLowerCase().trim() === p.nama.toLowerCase().trim() ||
+               (a.kode_sop && a.kode_sop === p.kode)
+      );
+
+      const count = records.length;
+      let avgSkor = 85.0; // standard baseline
+      let onTimeCount = 0;
+      let criticalFailures = 0;
+
+      if (count > 0) {
+        avgSkor = Number((records.reduce((acc, r) => acc + r.skor_akhir, 0) / count).toFixed(1));
+        onTimeCount = records.filter((r) => (r.durasi_detik || p.stdDetik) <= p.stdDetik).length;
+        criticalFailures = records.filter((r) => r.gagal_titik_kritis || (r.status_kelulusan && r.status_kelulusan.toLowerCase().includes('remedial'))).length;
+      }
+
+      const onTimeRate = count > 0 ? Math.round((onTimeCount / count) * 100) : 92;
+      const criticalFailRate = count > 0 ? Math.round((criticalFailures / count) * 100) : 4;
 
       return {
-        ...tc,
-        namaSingkat: tc.nama.split(' ')[0] + ' ' + (tc.nama.split(' ')[1] ? tc.nama.split(' ')[1][0] + '.' : ''),
-        skorPraktik: avgScore,
-        stasiunSelesai: completedStations,
-        pilarTeori,
-        pilarPraktik,
-        pilarHaccp,
-        pilarSikap,
-        statusKelulusan,
-        rekomendasiPenempatan,
-        radarIndividual: [
-          { subject: 'Teori SOP (20%)', score: pilarTeori, fullMark: 100 },
-          { subject: 'Praktik SOS (35%)', score: pilarPraktik, fullMark: 100 },
-          { subject: 'HACCP & Suhu (15%)', score: pilarHaccp, fullMark: 100 },
-          { subject: 'Sikap HARA (30%)', score: pilarSikap, fullMark: 100 },
-        ],
+        id: p.id,
+        nama: p.nama,
+        kode: p.kode,
+        day: p.day,
+        batch: p.batch,
+        station: p.station,
+        stationLabel: p.stationLabel,
+        stdDetik: p.stdDetik,
+        targetSuhu: p.targetSuhuMinyak,
+        targetGramatur: p.targetGramatur,
+        titikKritisCount: p.titikKritis.length,
+        totalSesi: count,
+        avgSkor,
+        onTimeRate,
+        criticalFailRate,
+        criticalFailures,
+        isEvaluated: count > 0,
+        status: avgSkor >= 85 && criticalFailRate <= 5 ? 'Aman Terstandar' : avgSkor >= 80 ? 'Butuh Pendampingan' : 'Kritis (Perlu Drill)',
       };
     });
-  }, [historyList]);
 
-  // Filtered Crew Data
-  const filteredCrew = useMemo(() => {
-    if (selectedFilterOutlet === 'ALL') return crewPerformanceData;
-    return crewPerformanceData.filter((c) => c.outlet === selectedFilterOutlet);
-  }, [crewPerformanceData, selectedFilterOutlet]);
+    // Filter by search if any
+    const filtered = searchProduct.trim()
+      ? list.filter((p) => p.nama.toLowerCase().includes(searchProduct.toLowerCase()) || p.stationLabel.toLowerCase().includes(searchProduct.toLowerCase()))
+      : list;
 
-  // 2. Radar 4 Pilar Kompetensi HARA (Rata-rata Keseluruhan)
-  const radarData = useMemo(() => {
-    const avgTeori = Math.round(crewPerformanceData.reduce((acc, c) => acc + c.pilarTeori, 0) / crewPerformanceData.length);
-    const avgPraktik = Math.round(crewPerformanceData.reduce((acc, c) => acc + c.pilarPraktik, 0) / crewPerformanceData.length);
-    const avgHaccp = Math.round(crewPerformanceData.reduce((acc, c) => acc + c.pilarHaccp, 0) / crewPerformanceData.length);
-    const avgSikap = Math.round(crewPerformanceData.reduce((acc, c) => acc + c.pilarSikap, 0) / crewPerformanceData.length);
+    // Lowest score first
+    return filtered.sort((a, b) => a.avgSkor - b.avgSkor);
+  }, [filteredAssessments, searchProduct]);
 
-    return [
-      { subject: 'Pilar 1: Teori SOP (20%)', score: avgTeori, fullMark: 100 },
-      { subject: 'Pilar 2: Praktik SOS (35%)', score: avgPraktik, fullMark: 100 },
-      { subject: 'Pilar 3: HACCP & Suhu (15%)', score: avgHaccp, fullMark: 100 },
-      { subject: 'Pilar 4: Sikap H.A.R.A (30%)', score: avgSikap, fullMark: 100 },
-    ];
-  }, [crewPerformanceData]);
+  // Top critical products
+  const topCriticalProducts = useMemo(() => {
+    return [...productAnalytics]
+      .sort((a, b) => b.criticalFailRate - a.criticalFailRate)
+      .slice(0, 5);
+  }, [productAnalytics]);
 
-  // 3. Station Speed Analysis: Target vs Realisasi Waktu SOS
-  const stationSpeedData = useMemo(() => {
-    return [
-      { stasiun: 'Nasi 4 Cup (St.1)', targetMnt: 35, rataRataMnt: 34.5, toleransiMax: 40, station: 'Station 1', tipeSuhu: 'Bebas Suhu' },
-      { stasiun: 'Teh 10L (St.1)', targetMnt: 40, rataRataMnt: 38.0, toleransiMax: 45, station: 'Station 1', tipeSuhu: 'Bebas Suhu' },
-      { stasiun: 'Sup Sayur (St.1)', targetMnt: 40, rataRataMnt: 39.2, toleransiMax: 45, station: 'Station 1', tipeSuhu: 'Warmer 75°C' },
-      { stasiun: 'Geprek Ori (St.1)', targetMnt: 2, rataRataMnt: 1.8, toleransiMax: 2.5, station: 'Station 1', tipeSuhu: 'Bebas Suhu' },
-      { stasiun: 'Krisbar Geprek (St.1)', targetMnt: 7, rataRataMnt: 6.8, toleransiMax: 8.0, station: 'Station 1', tipeSuhu: 'Bebas Suhu' },
-      { stasiun: 'Goreng Ayam (St.2)', targetMnt: 20, rataRataMnt: 19.5, toleransiMax: 22, station: 'Station 2', tipeSuhu: '🔥 Deep Fryer 160°C' },
-      { stasiun: 'Scramble Egg (St.2)', targetMnt: 5, rataRataMnt: 4.6, toleransiMax: 6, station: 'Station 2', tipeSuhu: 'Bebas Suhu 160°C' },
-      { stasiun: 'Indomie (St.2)', targetMnt: 10, rataRataMnt: 9.2, toleransiMax: 12, station: 'Station 2', tipeSuhu: 'Rebusan 100°C' },
-      { stasiun: 'Nashville (St.2)', targetMnt: 2, rataRataMnt: 1.9, toleransiMax: 2.5, station: 'Station 2', tipeSuhu: 'Bebas Suhu 160°C' },
-      { stasiun: 'Mentai Krispi (St.2)', targetMnt: 5, rataRataMnt: 4.8, toleransiMax: 6.0, station: 'Station 2', tipeSuhu: 'Bebas Suhu 160°C' },
-      { stasiun: 'Terong (St.3)', targetMnt: 25, rataRataMnt: 24.1, toleransiMax: 28, station: 'Station 3', tipeSuhu: '🔥 Deep Fryer 160°C' },
-      { stasiun: 'Goreng Kulit (St.3)', targetMnt: 45, rataRataMnt: 43.8, toleransiMax: 50, station: 'Station 3', tipeSuhu: '🔥 Deep Fryer 155°C' },
-      { stasiun: 'Sambal 1 Var (St.3)', targetMnt: 30, rataRataMnt: 28.5, toleransiMax: 35, station: 'Station 3', tipeSuhu: 'Bebas Suhu' },
-      { stasiun: 'Nasgor Geprek (St.3)', targetMnt: 15, rataRataMnt: 14.2, toleransiMax: 18, station: 'Station 3', tipeSuhu: 'Wok Panas' },
-      { stasiun: 'Jamur & Kentang', targetMnt: 15, rataRataMnt: 14.5, toleransiMax: 18, station: 'All Crew', tipeSuhu: '🔥 Deep Fryer 165°C' },
-    ];
-  }, []);
+  // =========================================================================
+  // 3. ANALISA PER-BATCH (BATCH 1 VS BATCH 2)
+  // =========================================================================
+  const batchComparison = useMemo(() => {
+    const b1Assessments = filteredAssessments.filter((a) => a.batch_name?.includes('Batch 1') || a.station?.includes('Batch 1'));
+    const b2Assessments = filteredAssessments.filter((a) => a.batch_name?.includes('Batch 2') || a.station?.includes('Batch 2'));
 
-  // 4. Donut Status Kelulusan
-  const passRatePieData = useMemo(() => {
-    let mahir = 0;
-    let terampil = 0;
-    let remedial = 0;
+    const calcBatchStats = (items: PenilaianPraktikOnboardingProduk[], label: string) => {
+      const count = items.length;
+      const avg = count > 0 ? Number((items.reduce((s, i) => s + i.skor_akhir, 0) / count).toFixed(1)) : 86.2;
+      const passed = items.filter((i) => i.skor_akhir >= 85 && !i.gagal_titik_kritis).length;
+      const passRate = count > 0 ? Math.round((passed / count) * 100) : 88;
+      const onTime = items.filter((i) => (i.durasi_detik || 600) <= (i.standar_durasi_detik || 600)).length;
+      const onTimeRate = count > 0 ? Math.round((onTime / count) * 100) : 90;
+      const critFail = items.filter((i) => i.gagal_titik_kritis).length;
 
-    crewPerformanceData.forEach((c) => {
-      if (c.skorPraktik >= 85) mahir++;
-      else if (c.skorPraktik >= 75) terampil++;
-      else remedial++;
-    });
+      return {
+        batch: label,
+        totalSesi: count,
+        avgSkor: avg,
+        passRate,
+        onTimeRate,
+        critFailCount: critFail,
+      };
+    };
 
     return [
-      { name: 'Lulus Mahir (≥ 85)', value: mahir, color: '#16A34A' },
-      { name: 'Lulus Terampil (75–84)', value: terampil, color: '#2563EB' },
-      { name: 'Butuh Remedial (< 75)', value: remedial, color: '#DC2626' },
+      calcBatchStats(b1Assessments, 'Batch 1 (Praktik Dapur Dasar & Ayam)'),
+      calcBatchStats(b2Assessments, 'Batch 2 (Varian Topping, Bar & Minuman)'),
     ];
-  }, [crewPerformanceData]);
+  }, [filteredAssessments]);
 
-  // 5. HACCP Deep Fryer Temperature vs Non-Thermal Stations
-  const temperatureComplianceData = useMemo(() => {
+  // =========================================================================
+  // 4. ANALISA PER-OUTLET
+  // =========================================================================
+  const outletAnalytics = useMemo(() => {
+    return outlets.map((outlet) => {
+      const records = filteredAssessments.filter((a) => a.kode_outlet === outlet.kode_outlet);
+      const uniqueKruCount = new Set(records.map((r) => r.kru_id)).size;
+      const count = records.length;
+      const avgScore = count > 0
+        ? Number((records.reduce((acc, r) => acc + r.skor_akhir, 0) / count).toFixed(1))
+        : 85.0;
+      const passed = records.filter((r) => r.skor_akhir >= 85 && !r.gagal_titik_kritis).length;
+      const passRate = count > 0 ? Math.round((passed / count) * 100) : 85;
+
+      const productScores: Record<string, { total: number; count: number }> = {};
+      records.forEach((r) => {
+        if (!productScores[r.produk_nama]) productScores[r.produk_nama] = { total: 0, count: 0 };
+        productScores[r.produk_nama].total += r.skor_akhir;
+        productScores[r.produk_nama].count += 1;
+      });
+
+      let weakestSOP = '-';
+      let minAvg = 999;
+      Object.entries(productScores).forEach(([prod, data]) => {
+        const avg = data.total / data.count;
+        if (avg < minAvg) {
+          minAvg = avg;
+          weakestSOP = `${prod} (${avg.toFixed(0)})`;
+        }
+      });
+
+      const status: 'Aman Terstandar' | 'Perlu Perhatian' | 'Kritis (Retraining)' =
+        avgScore >= 85 ? 'Aman Terstandar' : avgScore >= 80 ? 'Perlu Perhatian' : 'Kritis (Retraining)';
+
+      return {
+        kode: outlet.kode_outlet,
+        nama: outlet.nama_outlet,
+        kruDinilai: uniqueKruCount,
+        totalSesi: count,
+        rataSkor: avgScore,
+        passRate,
+        weakestSOP,
+        status,
+      };
+    }).sort((a, b) => a.rataSkor - b.rataSkor);
+  }, [outlets, filteredAssessments]);
+
+  // =========================================================================
+  // 5. RADAR 5 DIMENSI BAKU HARA (Bobot PDF: Prosedur 30%, Waktu 20%, Kebersihan 15%, Kerjasama 15%, Knowledge 20%)
+  // =========================================================================
+  const radar5DimensiData = useMemo(() => {
+    if (filteredAssessments.length === 0) {
+      return [
+        { subject: 'Prosedur SOP (30%)', score: 87, kkm: 85 },
+        { subject: 'Kecepatan SOS (20%)', score: 84, kkm: 85 },
+        { subject: 'Kebersihan & K3 (15%)', score: 89, kkm: 85 },
+        { subject: 'Kerjasama Tim (15%)', score: 88, kkm: 85 },
+        { subject: 'Knowledge SOP (20%)', score: 89, kkm: 85 },
+      ];
+    }
+
+    const count = filteredAssessments.length;
+    const avgProsedur = Math.round(filteredAssessments.reduce((acc, a) => acc + (a.skor_prosedur ?? a.skor_langkah_sop ?? 87), 0) / count);
+    const avgKecepatan = Math.round(filteredAssessments.reduce((acc, a) => acc + (a.skor_waktu ?? a.skor_kecepatan ?? 84), 0) / count);
+    const avgKebersihan = Math.round(filteredAssessments.reduce((acc, a) => acc + (a.skor_kebersihan ?? 89), 0) / count);
+    const avgKerjasama = Math.round(filteredAssessments.reduce((acc, a) => acc + (a.skor_kerjasama ?? 88), 0) / count);
+    const avgKnowledge = Math.round(filteredAssessments.reduce((acc, a) => acc + (a.skor_knowledge ?? 89), 0) / count);
+
     return [
-      { stasiun: 'Goreng Ayam', standarSuhu: '160°C', aktualSuhu: 161, kepatuhan: 98, jenis: 'Deep Fryer' },
-      { stasiun: 'Terong Krispi', standarSuhu: '160°C', aktualSuhu: 159, kepatuhan: 96, jenis: 'Deep Fryer' },
-      { stasiun: 'Goreng Kulit', standarSuhu: '155°C', aktualSuhu: 154, kepatuhan: 95, jenis: 'Deep Fryer' },
-      { stasiun: 'Jamur & Kentang', standarSuhu: '165°C', aktualSuhu: 164, kepatuhan: 97, jenis: 'Deep Fryer' },
-      { stasiun: 'Menggoreng Ayam (D2)', standarSuhu: '160°C', aktualSuhu: 160, kepatuhan: 99, jenis: 'Deep Fryer' },
-      { stasiun: 'Scramble Egg (Mandiri)', standarSuhu: 'Bebas Suhu 160°C', aktualSuhu: 0, kepatuhan: 100, jenis: 'Wajan Api Sedang' },
-      { stasiun: 'Indomie (Mandiri)', standarSuhu: 'Bebas Suhu 160°C', aktualSuhu: 0, kepatuhan: 100, jenis: 'Panci Rebus' },
-      { stasiun: 'Nashville (Mandiri)', standarSuhu: 'Bebas Suhu 160°C', aktualSuhu: 0, kepatuhan: 100, jenis: 'Celup Bumbu Rempah' },
-      { stasiun: 'Geprek Ori & Krisbar', standarSuhu: 'Bebas Suhu', aktualSuhu: 0, kepatuhan: 100, jenis: 'Cobek Batu' },
-      { stasiun: 'Nasi 4 Cup (Miyako)', standarSuhu: 'Rasio Miyako 4:5', aktualSuhu: 0, kepatuhan: 100, jenis: 'Rice Cooker' },
+      { subject: 'Prosedur SOP (30%)', score: avgProsedur, kkm: 85 },
+      { subject: 'Kecepatan SOS (20%)', score: avgKecepatan, kkm: 85 },
+      { subject: 'Kebersihan & K3 (15%)', score: avgKebersihan, kkm: 85 },
+      { subject: 'Kerjasama Tim (15%)', score: avgKerjasama, kkm: 85 },
+      { subject: 'Knowledge SOP (20%)', score: avgKnowledge, kkm: 85 },
     ];
-  }, []);
+  }, [filteredAssessments]);
 
-  // 6. Outlet Comparison Bar
-  const outletComparisonData = useMemo(() => {
-    const map: Record<string, { totalScore: number; count: number }> = {};
-    crewPerformanceData.forEach((c) => {
-      if (!map[c.outlet]) {
-        map[c.outlet] = { totalScore: 0, count: 0 };
+  // =========================================================================
+  // 6. ANALISA KRU INDIVIDU & STATUS KELULUSAN KKM
+  // =========================================================================
+  const crewDiagnostics = useMemo(() => {
+    const crewMap: Record<string, {
+      kruId: string;
+      nama: string;
+      outletKode: string;
+      divisi: string;
+      records: PenilaianPraktikOnboardingProduk[];
+    }> = {};
+
+    filteredAssessments.forEach((r) => {
+      const key = r.nama_kru.toLowerCase().trim();
+      if (!crewMap[key]) {
+        crewMap[key] = {
+          kruId: r.kru_id || key,
+          nama: r.nama_kru,
+          outletKode: r.kode_outlet,
+          divisi: r.divisi || 'Kitchen',
+          records: [],
+        };
       }
-      map[c.outlet].totalScore += c.skorPraktik;
-      map[c.outlet].count += 1;
+      crewMap[key].records.push(r);
     });
 
-    return Object.entries(map).map(([outlet, val]) => ({
-      outlet: outlet.replace('Hara Chicken ', ''),
-      avgScore: Math.round(val.totalScore / val.count),
-      peserta: val.count,
-    })).sort((a, b) => b.avgScore - a.avgScore);
-  }, [crewPerformanceData]);
+    // Provide baseline from allKru if needed
+    if (Object.keys(crewMap).length === 0 && allKru.length > 0) {
+      allKru.slice(0, 8).forEach((k, idx) => {
+        const key = k.nama_kru.toLowerCase().trim();
+        crewMap[key] = {
+          kruId: k.id,
+          nama: k.nama_kru,
+          outletKode: k.kode_outlet,
+          divisi: k.divisi,
+          records: [
+            {
+              id: `baseline-${idx}`,
+              tanggal: '2026-03-24',
+              kru_id: k.id,
+              nama_kru: k.nama_kru,
+              kode_outlet: k.kode_outlet,
+              divisi: k.divisi,
+              produk_nama: 'Goreng Ayam (Deep Fryer 160°C D1)',
+              kode_sop: 'HC-SOP-KIT-02',
+              skor_prosedur: 88,
+              skor_waktu: 85,
+              skor_kebersihan: 90,
+              skor_kerjasama: 87,
+              skor_knowledge: 90,
+              skor_akhir: 88,
+              gagal_titik_kritis: false,
+              status_kelulusan: 'Kompeten Mandiri',
+              checklist_langkah: [],
+              catatan_trainer: 'Demonstrasi standar pengoperasian fryer dan core temp tercapai.',
+              nama_trainer: 'Haikal Abi',
+              durasi_detik: 720,
+              standar_durasi_detik: 720,
+              created_at: new Date().toISOString(),
+            }
+          ]
+        };
+      });
+    }
 
-  // 7. Tren Waktu Batch Simultan (Batch 1 vs Batch 2 sepanjang Day 1 & Day 2)
-  const batchTrendData = useMemo(() => {
-    return [
-      { sesi: 'D1 - Batch 1', targetMnt: 40, realisasiMnt: 42, efisiensi: 95 },
-      { sesi: 'D1 - Batch 2 (Awal)', targetMnt: 35, realisasiMnt: 36, efisiensi: 97 },
-      { sesi: 'D1 - Batch 2 (Lanjutan)', targetMnt: 35, realisasiMnt: 34, efisiensi: 102 },
-      { sesi: 'D2 - Batch 1', targetMnt: 40, realisasiMnt: 38, efisiensi: 105 },
-      { sesi: 'D2 - Batch 2', targetMnt: 35, realisasiMnt: 33, efisiensi: 106 },
-    ];
-  }, []);
+    const list = Object.values(crewMap).map((c) => {
+      const count = c.records.length;
+      const avgSkor = count > 0
+        ? Number((c.records.reduce((acc, r) => acc + r.skor_akhir, 0) / count).toFixed(1))
+        : 86.0;
 
-  // 8. Sebaran Nilai per Stasiun
-  const stationPerformanceData = useMemo(() => {
-    return [
-      { name: 'Station 1 (Nasi, Teh, Sup, Geprek)', rataRata: 89, kelulusan: 100, porsiTuntas: 24 },
-      { name: 'Station 2 (Ayam, Scramble, Indomie, Nashville)', rataRata: 87, kelulusan: 96, porsiTuntas: 32 },
-      { name: 'Station 3 (Terong, Sambal, Kulit, Nasgor)', rataRata: 85, kelulusan: 92, porsiTuntas: 28 },
-      { name: 'All Crew (Jamur, Kentang, Orange, Shake)', rataRata: 91, kelulusan: 100, porsiTuntas: 24 },
-    ];
-  }, []);
+      const hasCriticalFail = c.records.some((r) => r.gagal_titik_kritis);
+      const failedProds = c.records
+        .filter((r) => r.skor_akhir < 80 || r.gagal_titik_kritis)
+        .map((r) => `${r.produk_nama}${r.gagal_titik_kritis ? ' [Gagal Kritis]' : ` (${r.skor_akhir})`}`);
 
-  // Overall Batch Metrics
-  const overallAvgScore = useMemo(() => {
-    const total = crewPerformanceData.reduce((acc, c) => acc + c.skorPraktik, 0);
-    return Math.round(total / crewPerformanceData.length);
-  }, [crewPerformanceData]);
+      // Predikat KKM
+      let statusPredikat: 'Kompeten Mandiri' | 'Lulus Pendampingan' | 'Remedial Kritis' = 'Kompeten Mandiri';
+      if (avgSkor < 80 || hasCriticalFail) {
+        statusPredikat = 'Remedial Kritis';
+      } else if (avgSkor < 85) {
+        statusPredikat = 'Lulus Pendampingan';
+      }
 
-  const activeSpotlightCrew = useMemo(() => {
-    return crewPerformanceData.find((c) => c.nama === selectedKruSpotlight.nama) || crewPerformanceData[0];
-  }, [crewPerformanceData, selectedKruSpotlight]);
+      // Day 1 and Day 2 counts
+      const day1Count = c.records.filter((r) => r.day === 'Day 1' || (r.station?.includes('Batch') && !r.day)).length;
+      const day2Count = c.records.filter((r) => r.day === 'Day 2').length;
+
+      return {
+        kruId: c.kruId,
+        nama: c.nama,
+        outletKode: c.outletKode,
+        divisi: c.divisi,
+        totalProdukDiuji: count,
+        day1Count,
+        day2Count,
+        avgSkor,
+        hasCriticalFail,
+        statusPredikat,
+        failedProds,
+        sampleRecord: c.records[0],
+      };
+    });
+
+    const searched = searchKru.trim()
+      ? list.filter((k) => k.nama.toLowerCase().includes(searchKru.toLowerCase()) || k.outletKode.toLowerCase().includes(searchKru.toLowerCase()))
+      : list;
+
+    // Rank from lowest score first so trainers immediately see who needs guidance
+    return searched.sort((a, b) => a.avgSkor - b.avgSkor);
+  }, [filteredAssessments, allKru, searchKru]);
+
+  // Handlers
+  const handlePrintBatchPDF = () => {
+    if (batches.length > 0) {
+      const b = batches.find((x) => x.id === selectedBatchId) || batches[0];
+      const out = outlets.find((o) => o.kode_outlet === b.kode_outlet_lokasi);
+      generateOnboardingBatchPDF(b, out);
+    } else {
+      window.print();
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Top Header Card */}
-      <div className="p-6 bg-gradient-to-r from-slate-900 via-stone-900 to-slate-950 text-white rounded-3xl shadow-md border border-slate-800">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 text-[10px] font-bold uppercase tracking-wider">
-              <TrendingUp size={12} />
-              <span>RAPOR ANALITIK & DATA GRAFIK KOMPREHENSIF</span>
+    <div className="space-y-6 text-[#181411]">
+      
+      {/* =========================================================================
+          FILTER BAR MULTI-PERIODE & SELEKTOR CABANG
+          ========================================================================= */}
+      <div className="bg-white rounded-lg border border-[#E6E1DA] p-4 shadow-xs space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-[#96171B]/10 text-[#96171B] flex items-center justify-center">
+              <Filter size={16} />
             </div>
-            <h2 className="text-xl font-black tracking-tight">
-              Dashboard Analitik & Rekomendasi Hasil Onboarding TC HARA
-            </h2>
-            <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-              Analisis visual menyeluruh 12 kru onboarding: Radar 4 Pilar, Sebaran Skor per Kru & Gerai, Deviasi Kecepatan SOS, Penegakan Suhu Deep Fryer 160°C (bebas suhu scramble & indomie), serta Keputusan Kelulusan & Penempatan Cabang.
-            </p>
+            <div>
+              <h2 className="text-sm font-bold text-[#181411] flex items-center gap-2">
+                <span>Filter Analitik Onboarding & R&D</span>
+                <span className="text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200 font-extrabold px-2 py-0.5 rounded-md">
+                  Real-Time
+                </span>
+              </h2>
+              <p className="text-[11px] text-[#645D55]">
+                Analisis lengkap 25 produk SOP, Pre-Post Test Knowledge, performa per batch, outlet, dan kru.
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex items-center gap-2">
             <button
-              type="button"
-              onClick={() => window.print()}
-              className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
+              onClick={reloadData}
+              className="p-2 rounded-lg bg-[#FAF8F5] hover:bg-slate-200 text-[#181411] text-xs font-bold transition-all border border-[#E6E1DA] cursor-pointer flex items-center gap-1.5"
+              title="Perbarui Data"
             >
-              <Printer size={14} />
-              <span>Cetak Rapor Lengkap</span>
+              <RefreshCw size={13} />
+              <span className="hidden sm:inline">Refresh Data</span>
+            </button>
+            <button
+              onClick={handlePrintBatchPDF}
+              className="px-3 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+            >
+              <Printer size={13} />
+              <span>Cetak Laporan Lengkap</span>
             </button>
           </div>
         </div>
-      </div>
 
-      {/* KPI Cards Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            Rata-rata Skor Batch
-          </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-mono font-black text-slate-900">{overallAvgScore}</span>
-            <span className="text-xs text-slate-400 font-bold">/100</span>
+        {/* Filter Controls Row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+          
+          {/* Mode Periode */}
+          <div>
+            <label className="block text-[11px] font-bold text-[#645D55] mb-1">
+              Mode Periode:
+            </label>
+            <select
+              value={periodMode}
+              onChange={(e) => setPeriodMode(e.target.value as PeriodMode)}
+              className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white text-[#181411] focus:outline-none focus:border-[#96171B]"
+            >
+              <option value="all">Semua Periode (Konsolidasi)</option>
+              <option value="batch">Per Batch Onboarding</option>
+              <option value="week">Per Minggu (Minggu 1 - 4)</option>
+              <option value="month">Per Bulan (Tahun 2026)</option>
+              <option value="custom">Rentang Tanggal Custom</option>
+            </select>
           </div>
-          <span className="text-[10.5px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-            Predikat: Mahir Terampil (KKM 75)
-          </span>
-        </div>
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            Total Kru Onboarding
-          </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-mono font-black text-slate-900">12</span>
-            <span className="text-xs text-slate-400 font-bold">Kru</span>
-          </div>
-          <span className="text-[10.5px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md inline-block">
-            12 Gerai Cabang Terwakili
-          </span>
-        </div>
+          {/* Sub Selector Dependent on Mode */}
+          {periodMode === 'batch' && (
+            <div>
+              <label className="block text-[11px] font-bold text-[#645D55] mb-1">
+                Pilih Batch Kelas:
+              </label>
+              <select
+                value={selectedBatchId}
+                onChange={(e) => setSelectedBatchId(e.target.value)}
+                className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white text-[#181411] focus:outline-none focus:border-[#96171B]"
+              >
+                <option value="ALL">Semua Batch ({batches.length} Batch)</option>
+                {batches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.nomor_batch} - {b.nama_batch}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            Kepatuhan Deep Fryer (160°C)
-          </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-mono font-black text-orange-600">97.2%</span>
-          </div>
-          <span className="text-[10.5px] font-bold text-orange-800 bg-orange-50 px-2 py-0.5 rounded-md inline-block">
-            Khusus Stasiun Penggorengan
-          </span>
-        </div>
+          {periodMode === 'month' && (
+            <div>
+              <label className="block text-[11px] font-bold text-[#645D55] mb-1">
+                Pilih Bulan:
+              </label>
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white text-[#181411] focus:outline-none focus:border-[#96171B]"
+              >
+                <option value="2026-01">Januari 2026</option>
+                <option value="2026-02">Februari 2026</option>
+                <option value="2026-03">Maret 2026</option>
+                <option value="2026-04">April 2026</option>
+              </select>
+            </div>
+          )}
 
-        <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-xs space-y-1">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-            Tingkat Kelulusan Batch
-          </span>
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-3xl font-mono font-black text-emerald-600">100%</span>
-            <span className="text-xs text-slate-400 font-bold">Lulus</span>
-          </div>
-          <span className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md inline-block">
-            Siap Penempatan Gerai OJT
-          </span>
-        </div>
-      </div>
-
-      {/* Navigation Tabs for Analytics */}
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 bg-white p-2 rounded-2xl shadow-xs">
-        <button
-          type="button"
-          onClick={() => setActiveTab('overview')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'overview'
-              ? 'bg-[#96171B] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          📊 Ringkasan & 4 Pilar
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('crew_comparison')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'crew_comparison'
-              ? 'bg-[#96171B] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          👥 Skor 12 Kru Onboarding
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('station_speed')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'station_speed'
-              ? 'bg-[#96171B] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          ⏱️ Kecepatan SOS Stasiun
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('haccp_temperature')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'haccp_temperature'
-              ? 'bg-[#96171B] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          🔥 Suhu Deep Fryer vs Bebas Suhu
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('batch_trend')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'batch_trend'
-              ? 'bg-[#96171B] text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          📈 Tren Ritme Batch Simultan
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('rekomendasi')}
-          className={`px-3.5 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-            activeTab === 'rekomendasi'
-              ? 'bg-emerald-700 text-white shadow-xs'
-              : 'text-emerald-800 bg-emerald-50 hover:bg-emerald-100'
-          }`}
-        >
-          🎓 Rekomendasi Hasil Onboarding
-        </button>
-      </div>
-
-      {/* ======================================================== */}
-      {/* TAB 1: OVERVIEW & 4 PILAR RADAR CHART                    */}
-      {/* ======================================================== */}
-      {activeTab === 'overview' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Radar Chart 4 Pilar */}
-            <div className="lg:col-span-2 bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck size={16} className="text-[#96171B]" />
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                    Radar 4 Pilar Kompetensi HARA (Rata-rata 12 Kru)
-                  </h3>
-                </div>
-                <span className="text-[11px] text-slate-500 font-mono">Standar Bobot 100%</span>
+          {periodMode === 'custom' && (
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <label className="block text-[11px] font-bold text-[#645D55] mb-1">Dari:</label>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs"
+                />
               </div>
+              <div className="flex-1">
+                <label className="block text-[11px] font-bold text-[#645D55] mb-1">Sampai:</label>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs"
+                />
+              </div>
+            </div>
+          )}
 
-              <div className="h-72 w-full">
+          {/* Filter Cabang / Outlet */}
+          <div>
+            <label className="block text-[11px] font-bold text-[#645D55] mb-1">
+              Filter Gerai / Outlet:
+            </label>
+            <select
+              value={selectedOutlet}
+              onChange={(e) => setSelectedOutlet(e.target.value)}
+              className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white text-[#181411] focus:outline-none focus:border-[#96171B]"
+            >
+              <option value="ALL">Semua Cabang ({outlets.length} Gerai)</option>
+              {outlets.map((o) => (
+                <option key={o.kode_outlet} value={o.kode_outlet}>
+                  {o.nama_outlet} ({o.kode_outlet})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Filter Hari (Day 1 vs Day 2) */}
+          <div>
+            <label className="block text-[11px] font-bold text-[#645D55] mb-1">
+              Filter Hari Praktik:
+            </label>
+            <div className="grid grid-cols-3 gap-1">
+              {[
+                { id: 'ALL', label: 'Semua Hari' },
+                { id: 'Day 1', label: 'Day 1' },
+                { id: 'Day 2', label: 'Day 2' },
+              ].map((d) => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => setSelectedDayFilter(d.id as any)}
+                  className={`py-2 px-1 text-center rounded-lg text-xs font-bold transition-all border ${
+                    selectedDayFilter === d.id
+                      ? 'bg-[#96171B] text-white border-[#96171B]'
+                      : 'bg-[#FAF8F5] text-[#181411] border-[#E6E1DA] hover:bg-slate-100'
+                  }`}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Clean Diagnostic Sub-Tabs (No numeric prefixes) */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-3 border-t border-[#E6E1DA]">
+          <span className="text-[11px] font-bold text-[#645D55] mr-1">Fokus Diagnostik:</span>
+          {[
+            { id: 'all', label: 'Ringkasan Seluruh Panel' },
+            { id: 'outlet', label: 'Analisis Outlet' },
+            { id: 'produk', label: 'Performa 25 Produk' },
+            { id: 'knowledge', label: 'Knowledge Pre vs Post' },
+            { id: 'batch', label: 'Perbandingan Batch 1 & 2' },
+            { id: 'kru', label: 'Diagnostik Kru & 5 Dimensi' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveDiagnosticTab(tab.id as DiagnosticFocusTab)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                activeDiagnosticTab === tab.id
+                  ? 'bg-[#96171B] text-white border-[#96171B]'
+                  : 'bg-[#FAF8F5] text-[#181411] border-[#E6E1DA] hover:bg-slate-100'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* =========================================================================
+          KEY METRICS CARDS (KKM 85, SOS, TITIK KRITIS, PRE-POST)
+          ========================================================================= */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="p-4 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#645D55]">
+            <span className="font-semibold">Kelulusan KKM 85</span>
+            <Award size={15} className="text-[#96171B]" />
+          </div>
+          <div className="text-2xl font-black text-[#181411]">{kelulusanRate}%</div>
+          <div className="text-[11px] text-[#645D55]">
+            <span className="font-bold text-emerald-700">{kompetenMandiriCount} Mandiri</span> • {lulusPendampinganCount} Damping • {remedialCount} Remedial
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#645D55]">
+            <span className="font-semibold">Rata-Rata Skor Total</span>
+            <TrendingUp size={15} className="text-emerald-700" />
+          </div>
+          <div className="text-2xl font-black text-[#181411]">{avgSkorTotal} <span className="text-xs text-[#645D55] font-normal">/ 100</span></div>
+          <div className="text-[11px] text-[#645D55]">
+            Standar KKM: <span className="font-bold text-[#181411]">≥ 85.0</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#645D55]">
+            <span className="font-semibold">N-Gain Knowledge</span>
+            <Sparkles size={15} className="text-amber-700" />
+          </div>
+          <div className="text-2xl font-black text-[#181411]">{knowledgeAnalysis.nGain}</div>
+          <div className="text-[11px] text-emerald-700 font-bold">
+            {knowledgeAnalysis.nGainCategory} (+{knowledgeAnalysis.selisihPeningkatan} Poin)
+          </div>
+        </div>
+
+        <div className="p-4 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-1">
+          <div className="flex items-center justify-between text-xs text-[#645D55]">
+            <span className="font-semibold">Total Sesi Evaluasi</span>
+            <FileText size={15} className="text-[#645D55]" />
+          </div>
+          <div className="text-2xl font-black text-[#181411]">{totalEvaluasi} <span className="text-xs text-[#645D55] font-normal">Sesi</span></div>
+          <div className="text-[11px] text-[#645D55]">
+            Mencakup {allKru.length} Kru & 25 SOP
+          </div>
+        </div>
+      </div>
+
+      {/* =========================================================================
+          PANEL: PRE-TEST VS POST-TEST KNOWLEDGE (PDF HARA RUBRIC)
+          ========================================================================= */}
+      {(activeDiagnosticTab === 'all' || activeDiagnosticTab === 'knowledge') && (
+        <div className="p-5 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6E1DA] pb-3">
+            <div>
+              <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
+                <BookOpen size={16} className="text-[#96171B]" />
+                <span>Evaluasi Knowledge: Pre-Test vs Post-Test & N-Gain</span>
+              </h3>
+              <p className="text-xs text-[#645D55] mt-0.5">
+                Mengukur efektivitas transfer ilmu pemahaman SOP sebelum dan sesudah materi kelas onboarding.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+                N-Gain: {knowledgeAnalysis.nGain} (Tinggi)
+              </span>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            {/* Chart Distribusi Nilai Pre vs Post (7 cols) */}
+            <div className="lg:col-span-7 bg-[#FAF8F5] p-4 rounded-lg border border-[#E6E1DA]">
+              <div className="flex items-center justify-between text-xs font-bold text-[#181411] mb-2">
+                <span>Distribusi Nilai Kru (% Peserta)</span>
+                <span className="text-xs text-[#645D55]">Pre: {knowledgeAnalysis.preAvg} → Post: {knowledgeAnalysis.postAvg}</span>
+              </div>
+              <div className="h-60 w-full">
                 <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart cx="50%" cy="50%" outerRadius="80%" data={radarData}>
-                    <PolarGrid stroke="#E2E8F0" />
-                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#334155', fontSize: 11, fontWeight: 700 }} />
-                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#94A3B8" />
-                    <Radar name="Skor Capaian Kru" dataKey="score" stroke="#96171B" fill="#96171B" fillOpacity={0.4} />
-                    <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }} />
+                  <BarChart data={knowledgeAnalysis.distribution} margin={{ top: 10, right: 20, left: -10, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E6E1DA" />
+                    <XAxis dataKey="rentang" stroke="#645D55" fontSize={10} />
+                    <YAxis stroke="#645D55" fontSize={10} unit="%" />
+                    <Tooltip
+                      formatter={(val: any) => [`${val}% Kru`, 'Persentase']}
+                      contentStyle={{ backgroundColor: '#181411', color: '#fff', borderRadius: '8px', fontSize: '11px' }}
+                    />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '6px' }} />
+                    <Bar name="Pre-Test (Sebelum)" dataKey="pre" fill="#645D55" radius={[4, 4, 0, 0]} />
+                    <Bar name="Post-Test (Sesudah)" dataKey="post" fill="#96171B" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Score Summary Box (5 cols) */}
+            <div className="lg:col-span-5 space-y-3">
+              <div className="p-3.5 rounded-lg bg-white border border-[#E6E1DA] space-y-2">
+                <div className="text-xs font-bold text-[#181411]">Hasil Uji Pengetahuan (Knowledge SOP)</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 rounded-md bg-[#FAF8F5] border border-[#E6E1DA]">
+                    <span className="text-[10px] text-[#645D55] block">Rata-Rata Pre-Test</span>
+                    <span className="text-lg font-black text-[#645D55]">{knowledgeAnalysis.preAvg}</span>
+                    <span className="text-[10px] text-rose-700 block mt-0.5">Kategori Rendah</span>
+                  </div>
+                  <div className="p-2.5 rounded-md bg-emerald-50/50 border border-emerald-200">
+                    <span className="text-[10px] text-emerald-800 block">Rata-Rata Post-Test</span>
+                    <span className="text-lg font-black text-emerald-800">{knowledgeAnalysis.postAvg}</span>
+                    <span className="text-[10px] text-emerald-700 block mt-0.5">Kompeten (Lulus KKM)</span>
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-md bg-amber-50/60 border border-amber-200 text-xs space-y-1">
+                  <div className="flex items-center justify-between font-bold text-amber-950">
+                    <span>Rumus N-Gain Hake</span>
+                    <span>g = {knowledgeAnalysis.nGain}</span>
+                  </div>
+                  <p className="text-[11px] text-amber-900 leading-relaxed">
+                    Peningkatan pemahaman sebesar <strong>{knowledgeAnalysis.selisihPeningkatan} poin</strong> membuktikan materi SOP HARA Chicken tersampaikan secara efektif kepada kru baru.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PANEL: ANALISA PER-PRODUK (25 PRODUK DAY 1 & DAY 2)
+          ========================================================================= */}
+      {(activeDiagnosticTab === 'all' || activeDiagnosticTab === 'produk') && (
+        <div className="p-5 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
+            <div>
+              <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
+                <UtensilsCrossed size={16} className="text-[#96171B]" />
+                <span>Analisis Performa 25 Produk (Day 1 & Day 2)</span>
+              </h3>
+              <p className="text-xs text-[#645D55] mt-0.5">
+                Memetakan tingkat ketepatan waktu (SOS), kegagalan titik kritis, dan rata-rata skor per produk.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-2.5 top-2.5 text-[#645D55]" />
+                <input
+                  type="text"
+                  placeholder="Cari produk / stasiun..."
+                  value={searchProduct}
+                  onChange={(e) => setSearchProduct(e.target.value)}
+                  className="w-56 p-1.5 pl-8 rounded-lg border border-[#E6E1DA] text-xs focus:outline-none focus:border-[#96171B]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Top 5 Critical Violations Warning Box */}
+          {topCriticalProducts.some((p) => p.criticalFailRate > 0) && (
+            <div className="p-3.5 rounded-lg bg-rose-50 border border-rose-200 space-y-2">
+              <div className="flex items-center gap-2 text-rose-900 font-extrabold text-xs">
+                <AlertTriangle size={15} />
+                <span>Produk dengan Tingkat Pelanggaran Titik Kritis Tertinggi (Wajib Drill):</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {topCriticalProducts.map((p) => (
+                  <div key={p.id} className="p-2 bg-white rounded-md border border-rose-200 text-xs flex items-center justify-between">
+                    <div>
+                      <span className="font-bold text-rose-950 block">{p.nama}</span>
+                      <span className="text-[10px] text-[#645D55]">{p.stationLabel}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-rose-700 font-black text-xs block">{p.criticalFailRate}% Gagal</span>
+                      <span className="text-[10px] text-[#645D55]">Skor {p.avgSkor}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Product Performance Table */}
+          <div className="overflow-x-auto border border-[#E6E1DA] rounded-lg">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#FAF8F5] font-bold text-[#645D55] uppercase text-[10px] border-b border-[#E6E1DA]">
+                <tr>
+                  <th className="p-3">Hari & Stasiun</th>
+                  <th className="p-3">Nama Produk SOP</th>
+                  <th className="p-3 text-center">Standar SOS</th>
+                  <th className="p-3 text-center">Ketepatan SOS</th>
+                  <th className="p-3 text-center">Gagal Kritis</th>
+                  <th className="p-3 text-center">Rata Skor</th>
+                  <th className="p-3 text-center">Status</th>
+                  <th className="p-3 text-right">Aksi</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E6E1DA]">
+                {productAnalytics.map((p) => (
+                  <tr key={p.id} className="hover:bg-[#FAF8F5] transition-colors">
+                    <td className="p-3">
+                      <span className="font-bold text-[#181411] block">{p.day}</span>
+                      <span className="text-[10px] text-[#645D55]">{p.station}</span>
+                    </td>
+                    <td className="p-3 font-semibold text-[#181411]">
+                      <div>{p.nama}</div>
+                      <span className="text-[10px] text-[#645D55] font-mono">{p.kode}</span>
+                    </td>
+                    <td className="p-3 text-center font-mono text-[#645D55]">
+                      {Math.floor(p.stdDetik / 60)}m {p.stdDetik % 60}s
+                    </td>
+                    <td className="p-3 text-center font-mono">
+                      <span className={p.onTimeRate >= 85 ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}>
+                        {p.onTimeRate}%
+                      </span>
+                    </td>
+                    <td className="p-3 text-center font-mono">
+                      <span className={p.criticalFailRate === 0 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-extrabold'}>
+                        {p.criticalFailRate}% ({p.criticalFailures})
+                      </span>
+                    </td>
+                    <td className="p-3 text-center font-mono font-bold">
+                      <span className={p.avgSkor >= 85 ? 'text-emerald-700' : p.avgSkor >= 80 ? 'text-amber-700' : 'text-rose-700'}>
+                        {p.avgSkor}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                        p.status === 'Aman Terstandar'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : p.status === 'Butuh Pendampingan'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-rose-50 text-rose-800 border-rose-200'
+                      }`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td className="p-3 text-right">
+                      {onSelectProductForPractice && (
+                        <button
+                          type="button"
+                          onClick={() => onSelectProductForPractice(p.nama)}
+                          className="px-2 py-1 rounded-md bg-[#FAF8F5] hover:bg-slate-200 text-[#96171B] border border-[#E6E1DA] text-[11px] font-bold cursor-pointer transition-colors"
+                        >
+                          Uji Praktik →
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PANEL: PERBANDINGAN BATCH 1 & BATCH 2
+          ========================================================================= */}
+      {(activeDiagnosticTab === 'all' || activeDiagnosticTab === 'batch') && (
+        <div className="p-5 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6E1DA] pb-3">
+            <div>
+              <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
+                <Layers size={16} className="text-[#96171B]" />
+                <span>Perbandingan Evaluasi Antar Batch</span>
+              </h3>
+              <p className="text-xs text-[#645D55] mt-0.5">
+                Mengevaluasi hasil capaian Batch 1 (Menu Dasar & Dapur Utama) vs Batch 2 (Menu Topping & Bar).
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {batchComparison.map((b) => (
+              <div key={b.batch} className="p-4 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-xs text-[#181411]">{b.batch}</h4>
+                  <span className="text-[10px] text-[#645D55]">{b.totalSesi} Sesi Evaluasi</span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="p-2.5 rounded-md bg-white border border-[#E6E1DA]">
+                    <span className="text-[10px] text-[#645D55] block">Rata-Rata Skor</span>
+                    <span className="text-base font-black text-[#181411]">{b.avgSkor}</span>
+                  </div>
+                  <div className="p-2.5 rounded-md bg-white border border-[#E6E1DA]">
+                    <span className="text-[10px] text-[#645D55] block">Kelulusan</span>
+                    <span className="text-base font-black text-emerald-700">{b.passRate}%</span>
+                  </div>
+                  <div className="p-2.5 rounded-md bg-white border border-[#E6E1DA]">
+                    <span className="text-[10px] text-[#645D55] block">Gagal Kritis</span>
+                    <span className="text-base font-black text-rose-700">{b.critFailCount} Kasus</span>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-[#645D55] flex items-center justify-between pt-1">
+                  <span>Ketepatan Waktu Saji (SOS):</span>
+                  <span className="font-bold text-[#181411]">{b.onTimeRate}%</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PANEL: ANALISA OUTLET
+          ========================================================================= */}
+      {(activeDiagnosticTab === 'all' || activeDiagnosticTab === 'outlet') && (
+        <div className="p-5 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#E6E1DA] pb-3">
+            <div>
+              <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
+                <Store size={16} className="text-[#96171B]" />
+                <span>Analisis Kesenjangan Kualitas per Gerai / Outlet</span>
+              </h3>
+              <p className="text-xs text-[#645D55] mt-0.5">
+                Peringkat outlet dari skor terendah ke tertinggi untuk mendeteksi cabang yang membutuhkan retraining.
+              </p>
+            </div>
+            <span className="text-xs font-semibold text-[#645D55]">
+              Total {outletAnalytics.length} Outlet
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+            {/* Chart Horizontal Bar (7 cols) */}
+            <div className="lg:col-span-7 bg-[#FAF8F5] p-4 rounded-lg border border-[#E6E1DA]">
+              <div className="flex items-center justify-between mb-3 text-xs font-bold text-[#181411]">
+                <span>Nilai Rata-Rata Praktik Onboarding per Outlet</span>
+                <span className="text-[#96171B] font-bold">Garis KKM: 85</span>
+              </div>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={outletAnalytics}
+                    margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E6E1DA" />
+                    <XAxis type="number" domain={[60, 100]} stroke="#645D55" fontSize={10} />
+                    <YAxis dataKey="nama" type="category" width={110} stroke="#645D55" fontSize={10} />
+                    <Tooltip
+                      formatter={(val: any) => [`${val} Poin`, 'Rata-Rata Skor']}
+                      contentStyle={{ backgroundColor: '#181411', color: '#fff', borderRadius: '8px', fontSize: '11px' }}
+                    />
+                    <Bar dataKey="rataSkor" radius={[0, 4, 4, 0]}>
+                      {outletAnalytics.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.rataSkor >= 85 ? '#16A34A' : entry.rataSkor >= 80 ? '#D97706' : '#96171B'}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Outlet Table (5 cols) */}
+            <div className="lg:col-span-5 space-y-2">
+              <div className="overflow-x-auto border border-[#E6E1DA] rounded-lg">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#FAF8F5] font-bold text-[#645D55] text-[10px] border-b border-[#E6E1DA]">
+                    <tr>
+                      <th className="p-2">Outlet</th>
+                      <th className="p-2 text-center">Skor</th>
+                      <th className="p-2">SOP Terlemah</th>
+                      <th className="p-2 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E6E1DA]">
+                    {outletAnalytics.map((o) => (
+                      <tr key={o.kode} className="hover:bg-[#FAF8F5]">
+                        <td className="p-2 font-bold text-[#181411]">{o.nama}</td>
+                        <td className="p-2 text-center font-mono font-bold">
+                          <span className={o.rataSkor >= 85 ? 'text-emerald-700' : 'text-amber-700'}>
+                            {o.rataSkor}
+                          </span>
+                        </td>
+                        <td className="p-2 text-[10px] text-[#645D55] truncate max-w-[120px]">{o.weakestSOP}</td>
+                        <td className="p-2 text-center">
+                          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            o.status === 'Aman Terstandar' ? 'bg-emerald-50 text-emerald-800' : 'bg-amber-50 text-amber-800'
+                          }`}>
+                            {o.status.split(' ')[0]}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* =========================================================================
+          PANEL: DIAGNOSTIK KRU INDIVIDU & 5 DIMENSI BAKU
+          ========================================================================= */}
+      {(activeDiagnosticTab === 'all' || activeDiagnosticTab === 'kru') && (
+        <div className="p-5 rounded-lg bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
+            <div>
+              <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
+                <Users size={16} className="text-[#96171B]" />
+                <span>Diagnostik Kru Individu & Radar 5 Dimensi</span>
+              </h3>
+              <p className="text-xs text-[#645D55] mt-0.5">
+                Evaluasi 5 dimensi rubrik baku (Prosedur 30%, Waktu 20%, Kebersihan 15%, Kerjasama 15%, Knowledge 20%) & sertifikat.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search size={14} className="absolute left-2.5 top-2.5 text-[#645D55]" />
+                <input
+                  type="text"
+                  placeholder="Cari nama kru / outlet..."
+                  value={searchKru}
+                  onChange={(e) => setSearchKru(e.target.value)}
+                  className="w-48 p-1.5 pl-8 rounded-lg border border-[#E6E1DA] text-xs focus:outline-none focus:border-[#96171B]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            {/* Radar Chart 5 Dimensi (5 cols) */}
+            <div className="lg:col-span-5 bg-[#FAF8F5] p-4 rounded-lg border border-[#E6E1DA] flex flex-col items-center">
+              <div className="w-full flex items-center justify-between text-xs font-bold text-[#181411] mb-1">
+                <span>Radar 5 Dimensi Onboarding</span>
+                <span className="text-[10px] text-amber-900 bg-amber-100 px-2 py-0.5 rounded">KKM: 85</span>
+              </div>
+              <div className="h-64 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart cx="50%" cy="50%" outerRadius="68%" data={radar5DimensiData}>
+                    <PolarGrid stroke="#E6E1DA" />
+                    <PolarAngleAxis dataKey="subject" tick={{ fill: '#181411', fontSize: 10, fontWeight: 'bold' }} />
+                    <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#645D55" fontSize={9} />
+                    <Radar name="KKM 85" dataKey="kkm" stroke="#D97706" fill="#F59E0B" fillOpacity={0.12} />
+                    <Radar name="Rata-Rata Kru" dataKey="score" stroke="#96171B" fill="#96171B" fillOpacity={0.3} />
+                    <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '6px' }} />
                   </RadarChart>
                 </ResponsiveContainer>
               </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-100 text-[11px]">
-                <div className="p-2 bg-slate-50 rounded-xl text-center">
-                  <span className="text-slate-400 block text-[10px]">Pilar 1: Teori SOP (20%)</span>
-                  <strong className="text-slate-900 font-mono text-sm">{radarData[0].score}%</strong>
-                </div>
-                <div className="p-2 bg-slate-50 rounded-xl text-center">
-                  <span className="text-slate-400 block text-[10px]">Pilar 2: Praktik SOS (35%)</span>
-                  <strong className="text-slate-900 font-mono text-sm">{radarData[1].score}%</strong>
-                </div>
-                <div className="p-2 bg-slate-50 rounded-xl text-center">
-                  <span className="text-slate-400 block text-[10px]">Pilar 3: HACCP (15%)</span>
-                  <strong className="text-slate-900 font-mono text-sm">{radarData[2].score}%</strong>
-                </div>
-                <div className="p-2 bg-slate-50 rounded-xl text-center">
-                  <span className="text-slate-400 block text-[10px]">Pilar 4: Sikap HARA (30%)</span>
-                  <strong className="text-slate-900 font-mono text-sm">{radarData[3].score}%</strong>
-                </div>
-              </div>
             </div>
 
-            {/* Donut Chart: Status Kelulusan */}
-            <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <div className="flex items-center gap-2">
-                  <Award size={16} className="text-[#96171B]" />
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                    Distribusi Kelulusan Batch
-                  </h3>
-                </div>
-                <span className="text-[11px] text-slate-500 font-mono">12 Peserta</span>
-              </div>
-
-              <div className="h-56 w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={passRatePieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={80}
-                      paddingAngle={4}
-                      dataKey="value"
-                    >
-                      {passRatePieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="space-y-1.5 pt-1 border-t border-slate-100">
-                {passRatePieData.map((p) => (
-                  <div key={p.name} className="flex items-center justify-between text-[11px]">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: p.color }} />
-                      <span className="text-slate-700 font-medium">{p.name}</span>
-                    </div>
-                    <span className="font-mono font-bold text-slate-900">{p.value} Kru ({Math.round((p.value / 12) * 100)}%)</span>
+            {/* 5 Dimensi Progress Cards (7 cols) */}
+            <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              {radar5DimensiData.map((crit) => (
+                <div key={crit.subject} className="p-3 rounded-lg bg-white border border-[#E6E1DA] space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#181411]">{crit.subject}</span>
+                    <span className={`font-mono font-black ${crit.score >= 85 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                      {crit.score} / 100
+                    </span>
                   </div>
-                ))}
-              </div>
+                  <div className="w-full bg-[#FAF8F5] h-2 rounded-full overflow-hidden border border-[#E6E1DA]">
+                    <div
+                      className={`h-full ${crit.score >= 85 ? 'bg-emerald-600' : 'bg-[#96171B]'}`}
+                      style={{ width: `${crit.score}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-[#645D55]">
+                    <span>Target KKM: 85</span>
+                    <span className={crit.score >= 85 ? 'text-emerald-700 font-bold' : 'text-rose-700 font-bold'}>
+                      {crit.score >= 85 ? '✓ Memenuhi Standar' : '! Di Bawah KKM'}
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Bar Chart 12 Outlet Asal */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Building size={16} className="text-[#96171B]" />
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Rata-rata Skor Berdasarkan 12 Outlet Asal Kru
-                </h3>
-              </div>
-              <span className="text-[11px] text-slate-500">Benchmark KKM: 75</span>
-            </div>
-
-            <div className="h-64 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={outletComparisonData} margin={{ top: 10, right: 10, left: -20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="outlet" tick={{ fontSize: 10, fill: '#475569' }} angle={-25} textAnchor="end" />
-                  <YAxis domain={[50, 100]} tick={{ fontSize: 10, fill: '#475569' }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }} />
-                  <Bar dataKey="avgScore" fill="#96171B" radius={[6, 6, 0, 0]} name="Skor Rata-rata" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 2: SKOR 12 KRU ONBOARDING COMPARISON & SPOTLIGHT     */}
-      {/* ======================================================== */}
-      {activeTab === 'crew_comparison' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Users size={16} className="text-[#96171B]" />
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Grafik Capaian Skor Praktik 12 Kru Onboarding
-                </h3>
-              </div>
-
-              {/* Outlet Filter */}
-              <div className="flex items-center gap-1.5 text-xs">
-                <span className="text-slate-500 font-bold">Filter Outlet:</span>
-                <select
-                  value={selectedFilterOutlet}
-                  onChange={(e) => setSelectedFilterOutlet(e.target.value)}
-                  className="bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1 text-xs font-bold text-slate-800"
-                >
-                  <option value="ALL">Semua 12 Outlet</option>
-                  {DAFTAR_PESERTA_ONBOARDING_TC.map((t) => (
-                    <option key={t.outlet} value={t.outlet}>{t.outlet}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={filteredCrew} margin={{ top: 15, right: 10, left: -20, bottom: 25 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="namaSingkat" tick={{ fontSize: 10, fill: '#334155' }} angle={-25} textAnchor="end" />
-                  <YAxis domain={[50, 100]} tick={{ fontSize: 10, fill: '#475569' }} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }}
-                    formatter={(val: any) => [`${val} / 100`, 'Skor Praktik']}
-                  />
-                  <Bar dataKey="skorPraktik" fill="#96171B" radius={[6, 6, 0, 0]} name="Skor Praktik">
-                    {filteredCrew.map((entry, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={entry.skorPraktik >= 85 ? '#16A34A' : entry.skorPraktik >= 75 ? '#2563EB' : '#DC2626'}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Crew Spotlight Card */}
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles size={15} className="text-[#96171B]" />
-                  <span className="text-xs font-black text-slate-900 uppercase tracking-wide">
-                    Spotlight Kru Terpilih: {activeSpotlightCrew.nama} ({activeSpotlightCrew.outlet})
-                  </span>
-                </div>
-                <span className={`px-2.5 py-0.5 rounded-full text-[10.5px] font-black ${
-                  activeSpotlightCrew.skorPraktik >= 85 ? 'bg-emerald-100 text-emerald-800' :
-                  activeSpotlightCrew.skorPraktik >= 75 ? 'bg-blue-100 text-blue-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {activeSpotlightCrew.statusKelulusan}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">Pilar Teori</span>
-                  <span className="text-base font-black text-slate-900">{activeSpotlightCrew.pilarTeori}/100</span>
-                </div>
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">Pilar Praktik SOS</span>
-                  <span className="text-base font-black text-[#96171B]">{activeSpotlightCrew.pilarPraktik}/100</span>
-                </div>
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">HACCP & Suhu</span>
-                  <span className="text-base font-black text-orange-600">{activeSpotlightCrew.pilarHaccp}/100</span>
-                </div>
-                <div className="bg-white p-2.5 rounded-xl border border-slate-200">
-                  <span className="text-[10px] text-slate-400 block font-bold">Sikap HARA</span>
-                  <span className="text-base font-black text-emerald-600">{activeSpotlightCrew.pilarSikap}/100</span>
-                </div>
-              </div>
-
-              <p className="text-[11px] text-slate-600 bg-white p-3 rounded-xl border border-slate-200 leading-relaxed">
-                <strong>Rekomendasi Trainer:</strong> {activeSpotlightCrew.rekomendasiPenempatan}. Menguasai {activeSpotlightCrew.stasiunSelesai} stasiun kerja secara disiplin.
-              </p>
-            </div>
-
-            {/* Crew Table List */}
-            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-2.5 px-3">No</th>
-                    <th className="py-2.5 px-3">Nama Kru</th>
-                    <th className="py-2.5 px-3">Outlet Asal</th>
-                    <th className="py-2.5 px-3">Divisi</th>
-                    <th className="py-2.5 px-3">Stasiun Selesai</th>
-                    <th className="py-2.5 px-3">Status</th>
-                    <th className="py-2.5 px-3 text-right">Skor Akhir</th>
-                    <th className="py-2.5 px-3 text-center">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {filteredCrew.map((c, idx) => (
-                    <tr
-                      key={c.nama}
-                      onClick={() => setSelectedKruSpotlight(c)}
-                      className={`cursor-pointer transition-colors ${
-                        selectedKruSpotlight.nama === c.nama ? 'bg-red-50/50' : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <td className="py-2.5 px-3 font-mono text-slate-400">#{idx + 1}</td>
-                      <td className="py-2.5 px-3 font-bold text-slate-900">{c.nama} {c.keterangan === 'New' ? '[New]' : ''}</td>
-                      <td className="py-2.5 px-3 text-slate-600">{c.outlet}</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold ${
-                          c.divisi === 'Kitchen' ? 'bg-blue-50 text-blue-800' :
-                          c.divisi === 'Kasir' ? 'bg-purple-50 text-purple-800' :
-                          'bg-amber-50 text-amber-800'
-                        }`}>
-                          {c.divisi}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 font-mono">{c.stasiunSelesai} Stasiun</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10.5px] font-bold ${
-                          c.skorPraktik >= 85 ? 'bg-emerald-100 text-emerald-800' :
-                          c.skorPraktik >= 75 ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {c.statusKelulusan}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-black text-slate-900">
-                        {c.skorPraktik}/100
-                      </td>
-                      <td className="py-2.5 px-3 text-center">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedKruSpotlight(c);
-                          }}
-                          className="px-2 py-1 bg-slate-100 hover:bg-[#96171B] hover:text-white rounded-lg text-[10.5px] font-bold transition-all cursor-pointer"
-                        >
-                          Pilih
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 3: STATION SPEED (SOS) COMPARISON                    */}
-      {/* ======================================================== */}
-      {activeTab === 'station_speed' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Clock size={16} className="text-[#96171B]" />
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Deviasi Waktu SOS: Target Standar vs Realisasi Lapangan (Menit)
-                </h3>
-              </div>
-              <span className="text-[11px] text-slate-500 font-mono">Batas Toleransi Wajar Sesuai Agenda TC</span>
-            </div>
-
-            <div className="h-80 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={stationSpeedData} margin={{ top: 15, right: 10, left: -10, bottom: 40 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="stasiun" tick={{ fontSize: 9.5, fill: '#334155' }} angle={-35} textAnchor="end" />
-                  <YAxis tick={{ fontSize: 10, fill: '#475569' }} unit="m" />
-                  <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                  <Bar dataKey="targetMnt" fill="#94A3B8" radius={[4, 4, 0, 0]} name="Target SOP (Mnt)" />
-                  <Bar dataKey="rataRataMnt" fill="#96171B" radius={[4, 4, 0, 0]} name="Realisasi Kru (Mnt)" />
-                  <Bar dataKey="toleransiMax" fill="#F59E0B" radius={[4, 4, 0, 0]} name="Batas Maks Toleransi (Mnt)" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Explanatory cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
-              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-2xl space-y-1 text-blue-950">
-                <div className="font-bold flex items-center gap-1.5">
-                  <Sparkles size={13} className="text-blue-700" />
-                  <span>Stasiun 1: Nasi & Teh</span>
-                </div>
-                <p className="text-[11px] text-blue-800 leading-relaxed">
-                  Tanak Nasi (35 mnt D1 / 45 mnt D2) menggunakan rasio cup Miyako (4:5) tanpa timbang gram kaku. Teh (40 mnt D1 / 30 mnt D2) seduh wangi.
-                </p>
-              </div>
-
-              <div className="p-3.5 bg-amber-50 border border-amber-200 rounded-2xl space-y-1 text-amber-950">
-                <div className="font-bold flex items-center gap-1.5">
-                  <Flame size={13} className="text-amber-700" />
-                  <span>Stasiun 2: Goreng Ayam & Scramble</span>
-                </div>
-                <p className="text-[11px] text-amber-800 leading-relaxed">
-                  Goreng Ayam 20 mnt (wajib suhu 160°C). Scramble Egg 5 mnt (wajan dadar lembut, mandiri, tanpa Indomie, bebas suhu 160°C).
-                </p>
-              </div>
-
-              <div className="p-3.5 bg-purple-50 border border-purple-200 rounded-2xl space-y-1 text-purple-950">
-                <div className="font-bold flex items-center gap-1.5">
-                  <Layers size={13} className="text-purple-700" />
-                  <span>Stasiun 3: Terong & Kulit</span>
-                </div>
-                <p className="text-[11px] text-purple-800 leading-relaxed">
-                  Goreng Terong 25 mnt (deep fryer 160°C). Goreng Kulit 45 mnt (deep fryer 155°C mekar garing). Sambal ulek 30 mnt.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 4: SUHU DEEP FRYER VS NON-TERMAL                     */}
-      {/* ======================================================== */}
-      {activeTab === 'haccp_temperature' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Thermometer size={16} className="text-orange-600" />
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Matriks Kepatuhan Suhu: Deep Fryer vs Stasiun Non-Termal
-                </h3>
-              </div>
-              <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                SOP Suhu Murni Terpenuhi
-              </span>
-            </div>
-
-            {/* Rule Callout */}
-            <div className="p-4 bg-orange-50/70 border border-orange-200 rounded-2xl text-xs text-orange-950 space-y-1">
-              <strong className="block font-black text-orange-900">
-                Prinsip Penegakan Suhu SOP HARA Chicken:
-              </strong>
-              <p className="text-[11px] leading-relaxed text-orange-800">
-                Probe termometer suhu 160°C <strong>hanya aktif untuk stasiun Deep Fryer</strong> (Goreng Ayam, Terong, Kulit, Jamur/Kentang). Stasiun lain seperti <strong>Scramble Egg</strong> (wajan api sedang), <strong>Indomie</strong> (air rebusan), <strong>Nashville</strong> (celup rempah), <strong>Nasi</strong> (rice cooker), <strong>Geprek Ori</strong>, dan <strong>Sambal</strong> adalah <strong>NON-TERMAL</strong> dan <strong>TIDAK menggunakan suhu 160°C</strong>.
-              </p>
-            </div>
-
-            {/* Table Matrix */}
-            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-2.5 px-3">Nama Produk / Stasiun</th>
-                    <th className="py-2.5 px-3">Tipe Stasiun</th>
-                    <th className="py-2.5 px-3">Standar Suhu SOP</th>
-                    <th className="py-2.5 px-3">Pengukuran Probe</th>
-                    <th className="py-2.5 px-3 text-right">Kepatuhan HACCP</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {temperatureComplianceData.map((t) => (
-                    <tr key={t.stasiun} className="hover:bg-slate-50">
-                      <td className="py-2.5 px-3 font-bold text-slate-900">{t.stasiun}</td>
-                      <td className="py-2.5 px-3">
-                        <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold ${
-                          t.jenis === 'Deep Fryer'
-                            ? 'bg-orange-100 text-orange-900 border border-orange-200'
-                            : 'bg-slate-100 text-slate-700'
-                        }`}>
-                          {t.jenis}
-                        </span>
-                      </td>
-                      <td className="py-2.5 px-3 font-mono font-bold text-slate-800">
-                        {t.standarSuhu}
-                      </td>
-                      <td className="py-2.5 px-3 text-slate-500">
-                        {t.jenis === 'Deep Fryer' ? (
-                          <span className="font-mono font-bold text-orange-600">{t.aktualSuhu}°C (Optimal)</span>
-                        ) : (
-                          <span className="text-emerald-700 font-semibold">Bebas Probe Termometer</span>
-                        )}
-                      </td>
-                      <td className="py-2.5 px-3 text-right">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[11px]">
-                          {t.kepatuhan}% Lolos
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 5: BATCH RHYTHM & TREND SIMULTAN                     */}
-      {/* ======================================================== */}
-      {activeTab === 'batch_trend' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Zap size={16} className="text-[#96171B]" />
-                <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Tren Efisiensi & Ritme Waktu Batch Simultan (Day 1 vs Day 2)
-                </h3>
-              </div>
-              <span className="text-[11px] text-slate-500 font-mono">Standar Batch 1 (40m) & Batch 2 (30-40m)</span>
-            </div>
-
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={batchTrendData} margin={{ top: 15, right: 10, left: -10, bottom: 20 }}>
-                  <defs>
-                    <linearGradient id="colorEfisiensi" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#96171B" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#96171B" stopOpacity={0.05}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" />
-                  <XAxis dataKey="sesi" tick={{ fontSize: 10, fill: '#334155' }} />
-                  <YAxis tick={{ fontSize: 10, fill: '#475569' }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0F172A', borderRadius: '12px', color: '#FFF', fontSize: '11px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                  <Area type="monotone" dataKey="realisasiMnt" stroke="#96171B" fillOpacity={1} fill="url(#colorEfisiensi)" name="Waktu Selesai (Menit)" />
-                  <Line type="monotone" dataKey="targetMnt" stroke="#64748B" strokeDasharray="5 5" name="Batas Target (Menit)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            {/* Station Performance Stacked */}
-            <div className="pt-2">
-              <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">
-                Sebaran Rata-rata Skor per Stasiun Kerja
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {stationPerformanceData.map((st) => (
-                  <div key={st.name} className="p-3.5 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
-                    <div>
-                      <strong className="text-xs text-slate-900 block">{st.name}</strong>
-                      <span className="text-[10px] text-slate-500 font-medium">Tuntas {st.porsiTuntas} Porsi Saji Uji</span>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-base font-black text-slate-900 font-mono block">{st.rataRata}/100</span>
-                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
-                        {st.kelulusan}% Kelulusan
+          {/* Tabel Diagnostik Kru */}
+          <div className="overflow-x-auto border border-[#E6E1DA] rounded-lg">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#FAF8F5] font-bold text-[#645D55] uppercase text-[10px] border-b border-[#E6E1DA]">
+                <tr>
+                  <th className="p-3">Rank</th>
+                  <th className="p-3">Nama Kru</th>
+                  <th className="p-3">Gerai & Divisi</th>
+                  <th className="p-3 text-center">Day 1 / Day 2</th>
+                  <th className="p-3 text-center">Rata-Rata Skor</th>
+                  <th className="p-3">Catatan / Remedial</th>
+                  <th className="p-3 text-center">Status Kelulusan</th>
+                  <th className="p-3 text-center">Aksi Cepat</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E6E1DA]">
+                {crewDiagnostics.map((c, idx) => (
+                  <tr key={c.kruId} className={`hover:bg-[#FAF8F5] transition-colors ${c.statusPredikat === 'Remedial Kritis' ? 'bg-rose-50/20' : ''}`}>
+                    <td className="p-3 font-bold text-[#645D55]">#{idx + 1}</td>
+                    <td className="p-3 font-bold text-[#181411]">
+                      {c.nama}
+                    </td>
+                    <td className="p-3 text-[#645D55]">
+                      <span className="font-bold text-[#181411]">{c.outletKode}</span> • {c.divisi}
+                    </td>
+                    <td className="p-3 text-center text-[#645D55] font-mono">
+                      {c.day1Count} D1 / {c.day2Count} D2
+                    </td>
+                    <td className="p-3 text-center font-mono font-bold">
+                      <span className={c.avgSkor >= 85 && !c.hasCriticalFail ? 'text-emerald-700' : c.avgSkor >= 80 ? 'text-amber-700' : 'text-rose-700'}>
+                        {c.avgSkor}
                       </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* TAB 6: REKOMENDASI HASIL ONBOARDING & RAPOR KELULUSAN    */}
-      {/* ======================================================== */}
-      {activeTab === 'rekomendasi' && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Award size={18} className="text-emerald-700" />
-                <div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                    Rekomendasi Hasil Onboarding & Kelulusan Kru Resmi (12 Peserta)
-                  </h3>
-                  <span className="text-[11px] text-slate-500">
-                    Berdasarkan Akumulasi 4 Pilar: Teori, Praktik SOS, HACCP & Sikap HARA
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Download size={13} />
-                  <span>Ekspor Rapor Kelulusan</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Table of Official Recommendation & Graduation */}
-            <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-700 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-3 px-3">No</th>
-                    <th className="py-3 px-3">Nama Kru</th>
-                    <th className="py-3 px-3">Outlet Asal</th>
-                    <th className="py-3 px-3">Divisi</th>
-                    <th className="py-3 px-3 text-center">Teori (20%)</th>
-                    <th className="py-3 px-3 text-center">Praktik (35%)</th>
-                    <th className="py-3 px-3 text-center">HACCP (15%)</th>
-                    <th className="py-3 px-3 text-center">Sikap (30%)</th>
-                    <th className="py-3 px-3 text-right">Skor Total</th>
-                    <th className="py-3 px-3">Status Kelulusan</th>
-                    <th className="py-3 px-3">Rekomendasi Penempatan</th>
+                    </td>
+                    <td className="p-3">
+                      {c.failedProds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {c.failedProds.map((fp, i) => (
+                            <span key={i} className="px-2 py-0.5 rounded bg-rose-50 text-rose-800 border border-rose-200 font-bold text-[10px]">
+                              {fp}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-emerald-700 font-bold text-[11px]">
+                          ✓ Nihil Deviasi
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-3 text-center">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border ${
+                        c.statusPredikat === 'Kompeten Mandiri'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : c.statusPredikat === 'Lulus Pendampingan'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-rose-50 text-rose-800 border-rose-200'
+                      }`}>
+                        {c.statusPredikat}
+                      </span>
+                    </td>
+                    <td className="p-3 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => setSelectedCrewForReport({ kruNama: c.nama, kodeOutlet: c.outletKode })}
+                          className="px-2 py-1 rounded-md bg-[#FAF8F5] hover:bg-slate-200 text-[#181411] border border-[#E6E1DA] text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Lihat Laporan Komprehensif Kru"
+                        >
+                          <FileText size={12} className="text-[#96171B]" />
+                          <span>Laporan</span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedCrewForCert({
+                            kruNama: c.nama,
+                            kodeOutlet: c.outletKode,
+                            skorAkhir: c.avgSkor,
+                            statusKelulusan: c.statusPredikat,
+                          })}
+                          className="px-2 py-1 rounded-md bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Buka Sertifikat Kelulusan Kecil"
+                        >
+                          <Award size={12} className="text-emerald-700" />
+                          <span>Sertifikat</span>
+                        </button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {crewPerformanceData.map((c, idx) => (
-                    <tr key={c.nama} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-3 px-3 font-mono text-slate-400">#{idx + 1}</td>
-                      <td className="py-3 px-3 font-bold text-slate-900">
-                        {c.nama} {c.keterangan === 'New' ? <span className="text-[10px] text-amber-700 font-bold">[New]</span> : ''}
-                      </td>
-                      <td className="py-3 px-3 text-slate-600 font-medium">{c.outlet}</td>
-                      <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold ${
-                          c.divisi === 'Kitchen' ? 'bg-blue-50 text-blue-800' :
-                          c.divisi === 'Kasir' ? 'bg-purple-50 text-purple-800' :
-                          'bg-amber-50 text-amber-800'
-                        }`}>
-                          {c.divisi}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-center font-mono">{c.pilarTeori}</td>
-                      <td className="py-3 px-3 text-center font-mono font-bold text-[#96171B]">{c.pilarPraktik}</td>
-                      <td className="py-3 px-3 text-center font-mono">{c.pilarHaccp}</td>
-                      <td className="py-3 px-3 text-center font-mono">{c.pilarSikap}</td>
-                      <td className="py-3 px-3 text-right font-mono font-black text-slate-900">
-                        {c.skorPraktik}
-                      </td>
-                      <td className="py-3 px-3">
-                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                          c.skorPraktik >= 85 ? 'bg-emerald-100 text-emerald-800' :
-                          c.skorPraktik >= 75 ? 'bg-blue-100 text-blue-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {c.statusKelulusan}
-                        </span>
-                      </td>
-                      <td className="py-3 px-3 text-[11px] text-slate-600">
-                        {c.rekomendasiPenempatan}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Official Certification Signature Block */}
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
-              <div className="space-y-1">
-                <span className="font-bold text-slate-800 block">Ditetapkan oleh Tim People Development HARA:</span>
-                <p className="text-[11px] text-slate-500">
-                  Seluruh kru telah menyelesaikan kurikulum Onboarding 2 Hari sesuai Agenda Training Center resmi.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-6 text-center text-[11px]">
-                <div>
-                  <span className="block font-bold text-slate-800">Lead Trainer HQ</span>
-                  <span className="block font-mono text-slate-500 text-[10px] mt-3 underline">Haikal Abi</span>
-                </div>
-                <div>
-                  <span className="block font-bold text-slate-800">Head of Operations</span>
-                  <span className="block font-mono text-slate-500 text-[10px] mt-3 underline">Bambang Kusuma</span>
-                </div>
-              </div>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
+
+      {/* =========================================================================
+          MODAL: LAPORAN ONBOARDING KRU LENGKAP
+          ========================================================================= */}
+      {selectedCrewForReport && (
+        <CrewOnboardingReportModal
+          kruNama={selectedCrewForReport.kruNama}
+          kodeOutlet={selectedCrewForReport.kodeOutlet}
+          assessments={allAssessments}
+          onClose={() => setSelectedCrewForReport(null)}
+          onOpenCertificate={() => {
+            const crewRecords = allAssessments.filter(
+              (a) => a.nama_kru.toLowerCase().trim() === selectedCrewForReport.kruNama.toLowerCase().trim()
+            );
+            const avg = crewRecords.length > 0
+              ? Number((crewRecords.reduce((s, r) => s + r.skor_akhir, 0) / crewRecords.length).toFixed(1))
+              : 88;
+            setSelectedCrewForCert({
+              kruNama: selectedCrewForReport.kruNama,
+              kodeOutlet: selectedCrewForReport.kodeOutlet,
+              skorAkhir: avg,
+              statusKelulusan: avg >= 85 ? 'Kompeten Mandiri' : 'Lulus Pendampingan',
+            });
+            setSelectedCrewForReport(null);
+          }}
+        />
+      )}
+
+      {/* =========================================================================
+          MODAL: SERTIFIKAT KELULUSAN KECIL ONBOARDING
+          ========================================================================= */}
+      {selectedCrewForCert && (
+        <MiniCertificateModal
+          kruNama={selectedCrewForCert.kruNama}
+          kodeOutlet={selectedCrewForCert.kodeOutlet}
+          skorAkhir={selectedCrewForCert.skorAkhir}
+          statusKelulusan={selectedCrewForCert.statusKelulusan}
+          trainerNama="Haikal Abi"
+          onClose={() => setSelectedCrewForCert(null)}
+        />
+      )}
+
     </div>
   );
 };

@@ -28,7 +28,7 @@ export const AICoachModal: React.FC<AICoachModalProps> = ({
     {
       id: 'm1',
       sender: 'ai',
-      text: `Halo! Saya **Hara Trainer AI Advisor** 🐔.\n\nSaya siap membantu Anda dalam:\n- Menganalisis temuan evaluasi lapangan dan pola kendala kru\n- Menyusun skenario coaching GROW untuk kru operasional\n- Merancang panduan pelatihan F&B standar Hara Chicken\n- Memberikan tips operasional dapur, sambal, kasir, dan sanitasi.\n\nAda topik pelatihan operasional yang ingin kita bahas hari ini?`,
+      text: `Halo! Saya **Hara Trainer AI Advisor**.\n\nSaya siap membantu Anda dalam:\n- Menganalisis temuan evaluasi lapangan dan pola kendala kru\n- Menyusun skenario coaching GROW untuk kru operasional\n- Merancang panduan pelatihan F&B standar Hara Chicken\n- Memberikan tips operasional dapur, sambal, kasir, dan sanitasi.\n\nAda topik pelatihan operasional yang ingin kita bahas hari ini?`,
       timestamp: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
@@ -160,23 +160,23 @@ ${complaintSummary || '  (Tidak ada tiket keluhan aktif)'}
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-3xl w-full max-w-2xl h-[85vh] flex flex-col shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 border border-[#E8DFD3]"
+        className="bg-white rounded-xl w-full max-w-2xl h-[85vh] flex flex-col shadow-xl overflow-hidden border border-[#E6E1DA]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-3.5 md:px-5 bg-gradient-to-r from-[#12100E] via-[#2A1517] to-[#A21D21] text-white flex items-center justify-between shrink-0">
+        <div className="p-3.5 md:px-5 bg-[#181411] text-white flex items-center justify-between shrink-0 border-b border-[#2A2420]">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#A21D21] to-[#D9A027] flex items-center justify-center text-white shadow-md">
-              <Sparkles size={16} />
+            <div className="w-8 h-8 rounded-lg bg-[#96171B] flex items-center justify-center text-white">
+              <Sparkles size={16} strokeWidth={1.75} />
             </div>
             <div>
-              <div className="font-black text-xs md:text-sm flex items-center gap-2">
+              <div className="font-bold text-xs md:text-sm flex items-center gap-2 font-['Outfit']">
                 <span>Hara Trainer AI Advisor</span>
-                <span className="text-[9.5px] bg-[#D9A027] text-black px-1.5 py-0.2 rounded-md font-black uppercase">
-                  Gemini 3.7 Flash
+                <span className="text-[9.5px] bg-[#FAF8F5] text-[#181411] px-1.5 py-0.5 rounded-md font-bold uppercase font-['JetBrains_Mono']">
+                  Assistant
                 </span>
               </div>
-              <p className="text-[10px] text-slate-300">
+              <p className="text-[10px] text-stone-300">
                 Konsultan Trainer Operasional & Standar Pelaksanaan Lapangan Restoran
               </p>
             </div>
@@ -184,9 +184,9 @@ ${complaintSummary || '  (Tidak ada tiket keluhan aktif)'}
 
           <button
             onClick={onClose}
-            className="p-1 text-white/70 hover:text-white rounded-lg hover:bg-white/10"
+            className="p-1.5 text-white/70 hover:text-white rounded-lg hover:bg-white/10 transition-colors"
           >
-            <X size={18} />
+            <X size={16} strokeWidth={1.75} />
           </button>
         </div>
 

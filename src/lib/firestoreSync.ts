@@ -33,6 +33,40 @@ export interface SyncStats {
   message: string;
 }
 
+export type CloudSyncStatus = 'online' | 'syncing' | 'offline';
+
+let currentCloudStatus: CloudSyncStatus = typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online';
+const statusListeners = new Set<(status: CloudSyncStatus) => void>();
+
+export function getCloudSyncStatus(): CloudSyncStatus {
+  return currentCloudStatus;
+}
+
+export function setCloudSyncStatus(status: CloudSyncStatus): void {
+  if (currentCloudStatus !== status) {
+    currentCloudStatus = status;
+    statusListeners.forEach((fn) => fn(status));
+  }
+}
+
+export function subscribeCloudSyncStatus(callback: (status: CloudSyncStatus) => void): () => void {
+  statusListeners.add(callback);
+  callback(currentCloudStatus);
+  return () => {
+    statusListeners.delete(callback);
+  };
+}
+
+// Window online/offline listener setup
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => {
+    setCloudSyncStatus('online');
+  });
+  window.addEventListener('offline', () => {
+    setCloudSyncStatus('offline');
+  });
+}
+
 let isSeeding = false;
 let hasSeeded = false;
 
@@ -45,14 +79,19 @@ let currentSessionId: string = '';
 let lastPresenceWriteTime = 0;
 let beforeUnloadHandler: (() => void) | null = null;
 
-const ALL_SYNCABLE_TABLES = [
-  'outlets',
+export const ALL_SYNCABLE_TABLES = [
+  'penilaian_onboarding_rnd',
+  'penilaian_praktik_onboarding_produk',
+  'onboarding_batches',
+  'ojt_monitoring',
+  'hasil_ujian_mingguan',
+  'penilaian_praktik',
   'kru',
+  'outlets',
   'app_users',
   'bank_sop',
   'bank_soal',
   'penilaian_teori',
-  'penilaian_praktik',
   'penilaian_lisan',
   'observasi_lapangan',
   'kartu_keluhan',
@@ -67,14 +106,16 @@ const ALL_SYNCABLE_TABLES = [
   'onboarding_progress',
   'official_audits',
   'official_rapor_kru',
-  'hasil_ujian_mingguan',
   'exam_config',
-  'ojt_monitoring',
   'attitude_hara',
-  'onboarding_batches',
+  'retraining_records',
+  'jadwal_kunjungan',
+  'rapid_audits',
   'settings',
   'logs'
 ];
+
+export const SYNCED_TABLES = ALL_SYNCABLE_TABLES;
 
 /**
  * Initialize and seed Firestore collections if empty so they immediately appear in Firebase Console.

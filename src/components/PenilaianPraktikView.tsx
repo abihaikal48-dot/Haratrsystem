@@ -1,54 +1,186 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
-  Wrench, CheckCircle2, Award, RefreshCw, FileText, ChevronRight,
-  Star, AlertTriangle, Play, Pause, RotateCcw, Clock, Thermometer,
-  Scale, ShieldAlert, Sparkles, Check, X, Flame, ArrowUpRight,
-  Calendar, Users, BookOpen, Layers, Info, CheckSquare, Plus, Trash2,
-  Zap, Eye, CheckCheck, BarChart3, TrendingUp
+  Clock, Play, Pause, RotateCcw, CheckCircle2, AlertTriangle,
+  Scale, Thermometer, ShieldCheck, Award, FileText, Search,
+  ChevronRight, ArrowUpRight, Check, X, Filter, RefreshCw,
+  UserCheck, Utensils, Sparkles, Building2, Layers, Download
 } from 'lucide-react';
 import { db } from '../lib/storage';
-import { Kru, BankSOP, PenilaianPraktik, Division } from '../types';
-import {
-  AGENDA_STATION_TASKS,
-  DAFTAR_PESERTA_ONBOARDING_TC,
-  RUNDOWN_DAY_1,
-  RUNDOWN_DAY_2,
-  ATURAN_WAKTU_BATCH,
-  TrainingStationTask
-} from '../data/trainingCenterData';
-import { OnboardingAnalyticsDashboard } from './OnboardingAnalyticsDashboard';
+import { Kru, PenilaianPraktik, Division } from '../types';
 
-export interface ActiveEvaluationSlot {
-  slotId: string;
-  stationName: 'Station 1' | 'Station 2' | 'Station 3' | 'All Crew' | string;
-  taskId: string;
-  task: TrainingStationTask;
-  kruNama: string;
-  kruOutlet: string;
-  stopwatchSeconds: number;
-  stopwatchRunning: boolean;
-  stepScores: Record<number, number>;
-  actualTemp: number;
-  actualGrams: number;
-  catatan: string;
-  isSaved: boolean;
-  savedScore: number | null;
+interface PenilaianPraktikViewProps {
+  selectedOutletCode: string;
 }
 
-export const PenilaianPraktikView: React.FC<{ selectedOutletCode: string }> = ({ selectedOutletCode }) => {
-  const [activeMainTab, setActiveMainTab] = useState<'multi_eval' | 'analytics_charts'>('multi_eval');
+interface OperationalSOPStandard {
+  divisi: Division;
+  judul: string;
+  targetSosDetik: number;
+  toleransiSosLabel: string;
+  isTempRequired: boolean;
+  targetTemp?: number;
+  isGramRequired: boolean;
+  targetGrams?: number;
+  keterangan: string;
+  rubrikLangkah: {
+    no: number;
+    judul: string;
+    deskripsi: string;
+    kunciKepatuhan: string;
+  }[];
+}
 
+const OPERATIONAL_SOP_STANDARDS: Record<Division, OperationalSOPStandard> = {
+  Kasir: {
+    divisi: 'Kasir',
+    judul: 'SOP Kasir POS ESB Lite & Speed of Service (SOS)',
+    targetSosDetik: 90,
+    toleransiSosLabel: 'Greeting < 5 dtk • Transaksi 60–90 dtk',
+    isTempRequired: false,
+    isGramRequired: false,
+    keterangan: 'Greeting ramah 5S (< 5 dtk), input POS ESB tepat, upselling promo, pembayaran non-tunai/tunai, penanganan komplain LAST.',
+    rubrikLangkah: [
+      {
+        no: 1,
+        judul: 'Greeting 5S HARA & Response Time',
+        deskripsi: 'Menyapa tamu dengan senyum, salam, sapa dalam waktu kurang dari 5 detik saat tamu tiba di depan meja kasir.',
+        kunciKepatuhan: 'Response time < 5 detik, eye contact hangat, seragam & celemek rapi.'
+      },
+      {
+        no: 2,
+        judul: 'Kecepatan & Akurasi Input POS ESB',
+        deskripsi: 'Memasukkan item pesanan, varian sambal, dan take-away/dine-in tanpa salah input menu.',
+        kunciKepatuhan: 'Durasi transaksi 60–90 detik, konfirmasi ulang item pesanan ke tamu.'
+      },
+      {
+        no: 3,
+        judul: 'Inisiatif Upselling & Penawaran Menu',
+        deskripsi: 'Menawarkan produk pendamping (Es Teh Jumbo, Ekstra Kulit, Sup Sayur) secara persuasif dan natural.',
+        kunciKepatuhan: 'Menyebutkan minimal 1 item add-on resmi promo gerai.'
+      },
+      {
+        no: 4,
+        judul: 'Penyelesaian Transaksi & Struk Belanja',
+        deskripsi: 'Menerima pembayaran tunai/QRIS, menyerahkan struk dan nomor antrean dengan sopan.',
+        kunciKepatuhan: 'Uang kembalian tepat, struk tercetak jelas, ucapan terima kasih HARA.'
+      }
+    ]
+  },
+  Geprek: {
+    divisi: 'Geprek',
+    judul: 'SOP Perakitan Ayam Geprek & Packing SOS',
+    targetSosDetik: 90,
+    toleransiSosLabel: 'Target Assembly 60–90 dtk per porsi',
+    isTempRequired: false,
+    isGramRequired: true,
+    targetGrams: 30,
+    keterangan: 'Ulek sambal cobek batu (dilarang blender), timbang sambal 30g Zero/Tare, geprek ayam 2 ketukan, 2 slice timun 45°, packing rapi.',
+    rubrikLangkah: [
+      {
+        no: 1,
+        judul: 'Teknik Ulek Sambal Otentik di Cobek',
+        deskripsi: 'Mengulek cabai rawit merah segar dan bawang putih di cobek batu secara kasar berkarakter (Kill-Switch: DILARANG diblender!).',
+        kunciKepatuhan: 'Tekstur sambal kasar berbulir, minyak panas tersiram merata.'
+      },
+      {
+        no: 2,
+        judul: 'Akurasi Gramatur Sambal 30 Gram',
+        deskripsi: 'Menimbang sambal menggunakan timbangan digital Zero/Tare sebelum dilumurkan ke ayam.',
+        kunciKepatuhan: 'Toleransi 28–32 gram per porsi, tidak menggunakan takaran kira-kira.'
+      },
+      {
+        no: 3,
+        judul: 'Teknik Geprek & Topping Resmi',
+        deskripsi: 'Menggeprek ayam krispi 2-3 ketukan hingga pipih tanpa hancur berantakan. Topping keju diparut langsung di atas piring/box (dilarang di cobek).',
+        kunciKepatuhan: 'Bentuk ayam tetap utuh estetis, saus mentai di-torch harum (angkat pakai 2 solet).'
+      },
+      {
+        no: 4,
+        judul: 'Plating Dine-In & Packing Take-Away',
+        deskripsi: 'Menata nasi pulen, ayam geprek sambal, dan wajib 2 slice timun segar potong miring 45 derajat.',
+        kunciKepatuhan: 'Piring melamin bebas cipratan minyak, box take-away beralas plastik/kertas nasi rapi.'
+      }
+    ]
+  },
+  Kitchen: {
+    divisi: 'Kitchen',
+    judul: 'SOP Penggorengan Deep Fryer & Holding Display',
+    targetSosDetik: 720,
+    toleransiSosLabel: 'Waktu Goreng 12 Mnt (Suhu 160°C stabil)',
+    isTempRequired: true,
+    targetTemp: 160,
+    isGramRequired: false,
+    keterangan: 'Suhu fryer 160°C kompor 175°C, penepungan 2x cubit berputar, goreng 12 mnt goyang tiap 3 mnt, core >= 74°C, warmer maks 120 mnt.',
+    rubrikLangkah: [
+      {
+        no: 1,
+        judul: 'Kalibrasi Suhu Minyak Deep Fryer',
+        deskripsi: 'Memastikan minyak fryer stabil pada 160°C (kompor 175°C) menggunakan termometer probe sebelum ayam masuk.',
+        kunciKepatuhan: 'Suhu minyak terukur 158–162°C, minyak disaring bebas remah gosong.'
+      },
+      {
+        no: 2,
+        judul: 'Teknik Penepungan 2x Celup Berputar',
+        deskripsi: 'Mengaduk ayam dalam tepung breader HARA 2 kali celupan dengan teknik angkat-putar tanpa ditekan bantat.',
+        kunciKepatuhan: 'Tepung keriting mekar merata, ketuk keranjang sebelum masuk minyak.'
+      },
+      {
+        no: 3,
+        judul: 'Siklus Goreng 12 Menit & Goyang Tiap 3 Menit',
+        deskripsi: 'Menggoreng ayam selama 12 menit tepat, menggoyang keranjang fryer tiap 3 menit agar ayam tidak menempel.',
+        kunciKepatuhan: 'Warna golden brown merata, buih minyak mereda saat matang.'
+      },
+      {
+        no: 4,
+        judul: 'Pemeriksaan Core Temperature & Holding Warmer',
+        deskripsi: 'Menancapkan probe termometer ke bagian daging terdalam dekat tulang. Suhu internal wajib >= 74°C tanpa darah.',
+        kunciKepatuhan: 'Core >= 74°C, holding display warmer maks 120 menit berstiker timer.'
+      }
+    ]
+  },
+  Helper: {
+    divisi: 'Helper',
+    judul: 'SOP Sanitasi 4 Warna Lap & Clean-up Meja SOS',
+    targetSosDetik: 120,
+    toleransiSosLabel: 'Clean-up Meja Tamu < 2 Menit (120 dtk)',
+    isTempRequired: false,
+    isGramRequired: false,
+    keterangan: 'Response time meja checkout < 2 mnt, disiplin 4 warna lap (Kanebo, Orange, Basah, Kering), K3 & pembuangan sampah terpilah.',
+    rubrikLangkah: [
+      {
+        no: 1,
+        judul: 'Response Time Clean-up Meja < 2 Menit',
+        deskripsi: 'Membersihkan meja dan mengangkat sisa makanan segera setelah tamu meninggalkan area makan gerai.',
+        kunciKepatuhan: 'Kecepatan response < 2 menit, tidak membiarkan meja kotor menumpuk saat rush hour.'
+      },
+      {
+        no: 2,
+        judul: 'Kepatuhan Zonasi 4 Warna Lap HARA',
+        deskripsi: 'Menggunakan lap sesuai peruntukan: Kanebo (kaca/dispenser), Orange (meja makan), Basah desinfektan, Kering (final polish).',
+        kunciKepatuhan: 'Dilarang mencampur lap meja dengan lap lantai/kaca. Lap dicuci berkala.'
+      },
+      {
+        no: 3,
+        judul: 'Sanitasi Kursi, Meja & Penataan Ulang',
+        deskripsi: 'Menyemprotkan cairan food-grade sanitizer, mengelap kering, merapikan posisi kursi dan wadah bumbu.',
+        kunciKepatuhan: 'Permukaan meja kering tidak lengket, kursi sejajar rapi.'
+      },
+      {
+        no: 4,
+        judul: 'Pengelolaan Sampah Terpilah & Lantai Bersih',
+        deskripsi: 'Membuang sisa makanan ke tempat sampah organik, sisa plastik/kertas ke anorganik, memastikan lantai kering bebas licin.',
+        kunciKepatuhan: 'Tempat sampah tertutup tidak overload, lantai bersih bebas risiko K3 terpeleset.'
+      }
+    ]
+  }
+};
+
+export const PenilaianPraktikView: React.FC<PenilaianPraktikViewProps> = ({ selectedOutletCode }) => {
+  // Master kru operasional cabang
   const [kruList, setKruList] = useState<Kru[]>(() => {
     try {
-      return db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif');
-    } catch {
-      return [];
-    }
-  });
-
-  const [sopList, setSopList] = useState<BankSOP[]>(() => {
-    try {
-      return db.getTable<BankSOP>('bank_sop').filter((s) => s && s.status_aktif === 'Aktif');
+      const all = db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif');
+      return all;
     } catch {
       return [];
     }
@@ -62,1364 +194,649 @@ export const PenilaianPraktikView: React.FC<{ selectedOutletCode: string }> = ({
     }
   });
 
-  const [showAgendaModal, setShowAgendaModal] = useState(false);
-  const [selectedDayTab, setSelectedDayTab] = useState<1 | 2>(1);
+  // Filter & Form Selection
+  const [selectedDivisi, setSelectedDivisi] = useState<Division>('Kasir');
+  const [selectedKruId, setSelectedKruId] = useState<string>('');
+  const [searchKruQuery, setSearchKruQuery] = useState<string>('');
 
-  // ========================================================
-  // MULTI-STATION SIMULTANEOUS EVALUATION SLOTS
-  // ========================================================
-  const createDefaultSlots = (): ActiveEvaluationSlot[] => [
-    {
-      slotId: 'slot-st1-nasi',
-      stationName: 'Station 1',
-      taskId: 'd1-st1-nasi',
-      task: AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st1-nasi') || AGENDA_STATION_TASKS[0],
-      kruNama: DAFTAR_PESERTA_ONBOARDING_TC[0]?.nama || 'Iqbal Muzzaki',
-      kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[0]?.outlet || 'Imogiri Barat',
-      stopwatchSeconds: 0,
-      stopwatchRunning: false,
-      stepScores: { 0: 2, 1: 2, 2: 2, 3: 2, 4: 2 },
-      actualTemp: 160,
-      actualGrams: 120,
-      catatan: '',
-      isSaved: false,
-      savedScore: null,
-    },
-    {
-      slotId: 'slot-st2-ayam',
-      stationName: 'Station 2',
-      taskId: 'd1-st2-goreng-ayam',
-      task: AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st2-goreng-ayam') || AGENDA_STATION_TASKS[6],
-      kruNama: DAFTAR_PESERTA_ONBOARDING_TC[1]?.nama || 'Dhimas Eka Ramadhani',
-      kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[1]?.outlet || 'Purworejo',
-      stopwatchSeconds: 0,
-      stopwatchRunning: false,
-      stepScores: { 0: 2, 1: 2, 2: 2, 3: 2, 4: 2, 5: 2 },
-      actualTemp: 160,
-      actualGrams: 120,
-      catatan: '',
-      isSaved: false,
-      savedScore: null,
-    },
-    {
-      slotId: 'slot-st3-terong',
-      stationName: 'Station 3',
-      taskId: 'd1-st3-terong',
-      task: AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st3-terong') || AGENDA_STATION_TASKS[14],
-      kruNama: DAFTAR_PESERTA_ONBOARDING_TC[7]?.nama || 'Karima Syakinata Fiddini',
-      kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[7]?.outlet || 'Parakan',
-      stopwatchSeconds: 0,
-      stopwatchRunning: false,
-      stepScores: { 0: 2, 1: 2, 2: 2, 3: 2 },
-      actualTemp: 160,
-      actualGrams: 120,
-      catatan: '',
-      isSaved: false,
-      savedScore: null,
-    },
-  ];
+  // Active SOP Standard
+  const currentStandard = OPERATIONAL_SOP_STANDARDS[selectedDivisi] || OPERATIONAL_SOP_STANDARDS.Kasir;
 
-  const [multiSlots, setMultiSlots] = useState<ActiveEvaluationSlot[]>(createDefaultSlots);
+  // Filter kru by outlet & division
+  const filteredKruList = useMemo(() => {
+    return kruList.filter((k) => {
+      const matchOutlet = selectedOutletCode === 'ALL' || k.kode_outlet === selectedOutletCode;
+      const matchDivisi = k.divisi === selectedDivisi;
+      const matchSearch = searchKruQuery
+        ? k.nama_kru.toLowerCase().includes(searchKruQuery.toLowerCase())
+        : true;
+      return matchOutlet && matchDivisi && matchSearch;
+    });
+  }, [kruList, selectedOutletCode, selectedDivisi, searchKruQuery]);
 
-  // Single Master Timer Interval for All Active Running Slots
+  // Set default selected kru
   useEffect(() => {
-    const hasRunning = multiSlots.some((s) => s.stopwatchRunning && !s.isSaved);
-    if (!hasRunning) return;
+    if (filteredKruList.length > 0) {
+      if (!filteredKruList.some((k) => k.id === selectedKruId)) {
+        setSelectedKruId(filteredKruList[0].id);
+      }
+    } else {
+      setSelectedKruId('');
+    }
+  }, [filteredKruList, selectedKruId]);
 
-    const timer = setInterval(() => {
-      setMultiSlots((prev) =>
-        prev.map((slot) => {
-          if (!slot.stopwatchRunning || slot.isSaved) return slot;
-          return { ...slot, stopwatchSeconds: slot.stopwatchSeconds + 1 };
-        })
-      );
-    }, 1000);
+  const activeKru = useMemo(() => {
+    return kruList.find((k) => k.id === selectedKruId) || null;
+  }, [kruList, selectedKruId]);
 
-    return () => clearInterval(timer);
-  }, [multiSlots]);
+  // Stopwatch SOS State
+  const [seconds, setSeconds] = useState<number>(0);
+  const [isRunning, setIsRunning] = useState<boolean>(false);
+  const timerRef = useRef<any>(null);
 
-  // Master Batch Controls
-  const startAllStopwatches = () => {
-    setMultiSlots((prev) =>
-      prev.map((s) => (s.isSaved ? s : { ...s, stopwatchRunning: true }))
-    );
+  useEffect(() => {
+    if (isRunning) {
+      timerRef.current = setInterval(() => {
+        setSeconds((prev) => prev + 1);
+      }, 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [isRunning]);
+
+  const handleResetTimer = () => {
+    setIsRunning(false);
+    setSeconds(0);
   };
 
-  const pauseAllStopwatches = () => {
-    setMultiSlots((prev) =>
-      prev.map((s) => ({ ...s, stopwatchRunning: false }))
-    );
+  // Rubrik Langkah Scores (Skala 1 - 3 per langkah)
+  const [stepScores, setStepScores] = useState<Record<number, number>>({
+    0: 3,
+    1: 3,
+    2: 3,
+    3: 3
+  });
+
+  // Technical Measurements
+  const [measuredTemp, setMeasuredTemp] = useState<number>(160);
+  const [measuredGrams, setMeasuredGrams] = useState<number>(30);
+  const [catatanTrainer, setCatatanTrainer] = useState<string>('');
+  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+
+  // Perhitungan Skor Akhir Komposit (0 - 100 pt)
+  const calculatedScore = useMemo(() => {
+    const scoreValues: number[] = Object.values(stepScores);
+    if (scoreValues.length === 0) return 0;
+    const totalEarned = scoreValues.reduce((sum: number, v: number) => sum + v, 0);
+    const maxEarned = currentStandard.rubrikLangkah.length * 3;
+    let baseScore = Math.round((totalEarned / maxEarned) * 100);
+
+    // Penalti Waktu SOS jika melebihi batas toleransi
+    if (seconds > 0 && seconds > currentStandard.targetSosDetik * 1.3) {
+      baseScore = Math.max(0, baseScore - 10);
+    }
+
+    // Penalti Suhu Minyak jika di luar rentang standar pada Kitchen
+    if (currentStandard.isTempRequired && (measuredTemp < 155 || measuredTemp > 165)) {
+      baseScore = Math.max(0, baseScore - 10);
+    }
+
+    // Penalti Gramatur jika di luar rentang standar pada Geprek
+    if (currentStandard.isGramRequired && (measuredGrams < 25 || measuredGrams > 35)) {
+      baseScore = Math.max(0, baseScore - 10);
+    }
+
+    return Math.min(100, Math.max(0, baseScore));
+  }, [stepScores, seconds, currentStandard, measuredTemp, measuredGrams]);
+
+  // Status & Grade Operasional
+  const evaluationGrade = useMemo(() => {
+    if (calculatedScore >= 85) {
+      return { grade: 'Grade A', label: 'Mahir (Kandidat Promosi / Leader)', badge: 'bg-emerald-50 text-emerald-800 border-emerald-300' };
+    }
+    if (calculatedScore >= 75) {
+      return { grade: 'Grade B', label: 'Kompeten (Lulus Standar QSR / PKWT)', badge: 'bg-sky-50 text-sky-800 border-sky-300' };
+    }
+    if (calculatedScore >= 60) {
+      return { grade: 'Grade C', label: 'Pembinaan (Pipeline Retraining & GROW)', badge: 'bg-amber-50 text-amber-800 border-amber-300' };
+    }
+    return { grade: 'Remedial', label: 'Remedial (Wajib Evaluasi Ulang Pre/Post)', badge: 'bg-rose-50 text-rose-800 border-rose-300' };
+  }, [calculatedScore]);
+
+  // Format detik ke MM:SS
+  const formatTime = (totalSec: number) => {
+    const mins = Math.floor(totalSec / 60);
+    const secs = totalSec % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const resetAllStopwatches = () => {
-    setMultiSlots((prev) =>
-      prev.map((s) => (s.isSaved ? s : { ...s, stopwatchSeconds: 0, stopwatchRunning: false }))
-    );
-  };
+  // Simpan Penilaian Praktik
+  const handleSaveEvaluation = () => {
+    if (!activeKru) {
+      alert('Pilih personil kru yang dinilai terlebih dahulu.');
+      return;
+    }
 
-  // Add new evaluation slot
-  const addNewSlot = (task?: TrainingStationTask) => {
-    const pickedTask = task || AGENDA_STATION_TASKS[multiSlots.length % AGENDA_STATION_TASKS.length];
-    const unusedKru = DAFTAR_PESERTA_ONBOARDING_TC.find(
-      (tc) => !multiSlots.some((s) => s.kruNama === tc.nama)
-    ) || DAFTAR_PESERTA_ONBOARDING_TC[0];
-
-    const newSlot: ActiveEvaluationSlot = {
-      slotId: `slot-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-      stationName: pickedTask.station,
-      taskId: pickedTask.id,
-      task: pickedTask,
-      kruNama: unusedKru?.nama || 'Peserta Onboarding',
-      kruOutlet: unusedKru?.outlet || 'Outlet HARA',
-      stopwatchSeconds: 0,
-      stopwatchRunning: false,
-      stepScores: {},
-      actualTemp: 160,
-      actualGrams: 120,
-      catatan: '',
-      isSaved: false,
-      savedScore: null,
+    const newRecord: Partial<PenilaianPraktik> = {
+      tanggal: new Date().toISOString(),
+      nama_kru: activeKru.nama_kru,
+      kru_id: activeKru.id,
+      kode_outlet: activeKru.kode_outlet,
+      sop_terkait: currentStandard.judul,
+      detail_skor_langkah: Object.values(stepScores),
+      waktu_detik: seconds > 0 ? seconds : currentStandard.targetSosDetik,
+      target_detik: currentStandard.targetSosDetik,
+      suhu_minyak: currentStandard.isTempRequired ? measuredTemp : undefined,
+      gramatur: currentStandard.isGramRequired ? measuredGrams : undefined,
+      skor_akhir: calculatedScore,
+      catatan: catatanTrainer || `Uji Praktik SOS ${selectedDivisi}: Skor ${calculatedScore}/100 (${evaluationGrade.grade}).`,
     };
 
-    setMultiSlots((prev) => [...prev, newSlot]);
-  };
+    // 1. Simpan ke storage tabel penilaian_praktik (otomatis sinkron ke Cloud Firestore)
+    const saved = db.insertRow<PenilaianPraktik>('penilaian_praktik', newRecord);
+    setHistory((prev) => [saved, ...prev]);
 
-  // Remove slot
-  const removeSlot = (slotId: string) => {
-    if (multiSlots.length <= 1) {
-      alert('Minimal harus ada 1 slot stasiun penilaian yang aktif.');
-      return;
-    }
-    setMultiSlots((prev) => prev.filter((s) => s.slotId !== slotId));
-  };
-
-  // Update specific slot state
-  const updateSlot = (slotId: string, updates: Partial<ActiveEvaluationSlot>) => {
-    setMultiSlots((prev) =>
-      prev.map((slot) => (slot.slotId === slotId ? { ...slot, ...updates } : slot))
-    );
-  };
-
-  // Preset batch loaders
-  const loadBatchPreset = (type: 'day1-batch1' | 'day1-batch2' | 'day2-batch1') => {
-    if (type === 'day1-batch1') {
-      const st1 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st1-nasi')!;
-      const st2 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st2-goreng-ayam')!;
-      const st3 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st3-terong')!;
-      setMultiSlots([
-        {
-          slotId: 'slot-d1b1-st1',
-          stationName: 'Station 1',
-          taskId: st1.id,
-          task: st1,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[0].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[0].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2, 4: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d1b1-st2',
-          stationName: 'Station 2',
-          taskId: st2.id,
-          task: st2,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[1].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[1].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2, 4: 2, 5: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d1b1-st3',
-          stationName: 'Station 3',
-          taskId: st3.id,
-          task: st3,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[7].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[7].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-      ]);
-    } else if (type === 'day1-batch2') {
-      const st1 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st1-geprek-ori')!;
-      const st2 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st2-scramble')!;
-      const st3 = AGENDA_STATION_TASKS.find((t) => t.id === 'd1-st3-nasgor-geprek')!;
-      setMultiSlots([
-        {
-          slotId: 'slot-d1b2-st1',
-          stationName: 'Station 1',
-          taskId: st1.id,
-          task: st1,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[3].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[3].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d1b2-st2',
-          stationName: 'Station 2',
-          taskId: st2.id,
-          task: st2,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[4].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[4].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d1b2-st3',
-          stationName: 'Station 3',
-          taskId: st3.id,
-          task: st3,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[5].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[5].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-      ]);
-    } else if (type === 'day2-batch1') {
-      const st1 = AGENDA_STATION_TASKS.find((t) => t.id === 'd2-st1-nasi-45')!;
-      const st2 = AGENDA_STATION_TASKS.find((t) => t.id === 'd2-st2-teh-8lt')!;
-      const st3 = AGENDA_STATION_TASKS.find((t) => t.id === 'd2-all-jamur-kentang')!;
-      setMultiSlots([
-        {
-          slotId: 'slot-d2b1-st1',
-          stationName: 'Station 1',
-          taskId: st1.id,
-          task: st1,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[9].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[9].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2, 3: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d2b1-st2',
-          stationName: 'Station 2',
-          taskId: st2.id,
-          task: st2,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[10].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[10].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2 },
-          actualTemp: 160,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-        {
-          slotId: 'slot-d2b1-st3',
-          stationName: 'All Crew',
-          taskId: st3.id,
-          task: st3,
-          kruNama: DAFTAR_PESERTA_ONBOARDING_TC[11].nama,
-          kruOutlet: DAFTAR_PESERTA_ONBOARDING_TC[11].outlet,
-          stopwatchSeconds: 0,
-          stopwatchRunning: false,
-          stepScores: { 0: 2, 1: 2, 2: 2 },
-          actualTemp: 165,
-          actualGrams: 120,
-          catatan: '',
-          isSaved: false,
-          savedScore: null,
-        },
-      ]);
-    }
-  };
-
-  // Calculate final score for a slot
-  const calculateSlotScore = (slot: ActiveEvaluationSlot): number => {
-    const steps = slot.task.langkah_ringkas || [
-      'Persiapan alat, higienitas & area kerja',
-      'Kepatuhan takaran & resep resmi HARA',
-      'Ketepatan timer & penanganan produk',
-      'Kebersihan, kerapian saji & sanitasi akhir'
-    ];
-    let totalScoreObtained = 0;
-    const maxScorePossible = steps.length * 3;
-
-    for (let i = 0; i < steps.length; i++) {
-      const s = slot.stepScores[i] ?? 2;
-      totalScoreObtained += s;
-    }
-
-    let finalPercent = Math.round((totalScoreObtained / maxScorePossible) * 100);
-
-    // SOS Time Adjustment (Bertoleransi wajar, tidak kaku)
-    if (slot.stopwatchSeconds > 0) {
-      if (slot.stopwatchSeconds > slot.task.max_toleransi_detik + 60) {
-        finalPercent = Math.max(0, finalPercent - 5);
-      } else if (
-        slot.stopwatchSeconds >= slot.task.min_toleransi_detik &&
-        slot.stopwatchSeconds <= slot.task.max_toleransi_detik
-      ) {
-        finalPercent = Math.min(100, finalPercent + 3);
-      }
-    }
-
-    // Suhu Kondisional: HANYA jika DEEP FRYER
-    if (slot.task.is_deep_fryer) {
-      if (slot.actualTemp < 150 || slot.actualTemp > 185) {
-        finalPercent = Math.max(0, finalPercent - 10);
-      }
-    }
-
-    return finalPercent;
-  };
-
-  // Save single slot evaluation to DB
-  const saveSlotEvaluation = (slotId: string) => {
-    const slot = multiSlots.find((s) => s.slotId === slotId);
-    if (!slot) return;
-    if (!slot.kruNama) {
-      alert('Pilih nama kru yang diuji terlebih dahulu!');
-      return;
-    }
-
-    const finalPercent = calculateSlotScore(slot);
-    const kruObj = kruList.find((k) => k.nama_kru === slot.kruNama);
-    const resolvedOutletCode = kruObj?.kode_outlet || (selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-IMG01');
-
-    const steps = slot.task.langkah_ringkas || [];
-    const scoresArr = steps.map((_, idx) => slot.stepScores[idx] ?? 2);
-
-    db.insertRow<PenilaianPraktik>('penilaian_praktik', {
-      tanggal: new Date().toISOString(),
-      nama_kru: slot.kruNama,
-      kru_id: kruObj?.id,
-      kode_outlet: resolvedOutletCode,
-      sop_terkait: `${slot.task.nama_tugas} (${slot.task.station} D${slot.task.day})`,
-      detail_skor_langkah: scoresArr,
-      waktu_detik: slot.stopwatchSeconds || slot.task.durasi_detik,
-      target_detik: slot.task.durasi_detik,
-      suhu_minyak: slot.task.is_deep_fryer ? slot.actualTemp : undefined,
-      gramatur: !slot.task.is_bebas_timbangan && !slot.task.is_nasi_cup ? slot.actualGrams : undefined,
-      skor_akhir: finalPercent,
-      catatan: slot.catatan || `Uji Simultan Batch TC: ${slot.task.station} - ${slot.task.nama_tugas}. Waktu SOS: ${formatTime(slot.stopwatchSeconds || slot.task.durasi_detik)} (Target: ${slot.task.toleransi_waktu_label}), ${slot.task.is_deep_fryer ? `Deep Fryer Suhu: ${slot.actualTemp}°C` : 'Bebas Suhu 160°C (Non-Deepfryer)'}, ${slot.task.is_nasi_cup ? 'Rasio Cup Miyako 4:5 Tanpa Timbang Gram' : slot.task.is_bebas_timbangan ? 'Bebas Timbangan' : `Gramatur: ${slot.actualGrams}g`}. Skor: ${finalPercent}/100`,
-    });
-
-    if (finalPercent < 75) {
+    // 2. Jika skor < 75, otomatis picu Auto-Trigger Remedial & TNA (Closed-Loop Workflow)
+    if (calculatedScore < 75) {
       db.triggerAutoRemedialAndTNA({
-        kru_id: kruObj?.id,
-        nama_kru: slot.kruNama,
-        kode_outlet: resolvedOutletCode,
-        divisi: slot.task.divisi_terkait || 'Kitchen',
-        skor: finalPercent,
-        topikSalah: [slot.task.nama_tugas],
-        sumberTemuan: `Uji Praktik Simultan (${slot.task.nama_tugas} - Skor ${finalPercent}/100)`,
-        catatan: `Praktik di bawah KKM 75. Perlu bimbingan langkah teknis ${slot.task.station}.`,
+        nama_kru: activeKru.nama_kru,
+        kru_id: activeKru.id,
+        kode_outlet: activeKru.kode_outlet,
+        divisi: selectedDivisi,
+        skor: calculatedScore,
+        sumberTemuan: `Uji Praktik SOS Stasiun ${selectedDivisi}`,
+        catatan: `Evaluasi praktik operasional belum memenuhi KKM (Skor: ${calculatedScore}/100, Waktu: ${seconds}s). Butuh retraining dan coaching GROW.`
       });
     }
 
-    updateSlot(slotId, { isSaved: true, savedScore: finalPercent, stopwatchRunning: false });
-    loadData();
+    setSaveFeedback(`Hasil evaluasi praktik untuk "${activeKru.nama_kru}" berhasil disimpan ke sistem Cloud! Skor: ${calculatedScore}/100.`);
+    setTimeout(() => setSaveFeedback(null), 4000);
+
+    // Reset Stopwatch
+    setIsRunning(false);
+    setSeconds(0);
+    setCatatanTrainer('');
   };
-
-  // Save all active slots simultaneously
-  const saveAllActiveSlots = () => {
-    const unsaved = multiSlots.filter((s) => !s.isSaved);
-    if (unsaved.length === 0) {
-      alert('Semua slot stasiun telah tersimpan sebelumnya.');
-      return;
-    }
-
-    let savedCount = 0;
-    unsaved.forEach((slot) => {
-      saveSlotEvaluation(slot.slotId);
-      savedCount++;
-    });
-
-    alert(`Berhasil menyimpan ${savedCount} hasil penilaian praktik stasiun secara bersamaan ke rekam medis kru!`);
-  };
-
-  // Quick fill all steps in a slot with 3 (Sempurna) or 2 (Standar)
-  const quickFillSteps = (slotId: string, val: number) => {
-    const slot = multiSlots.find((s) => s.slotId === slotId);
-    if (!slot || slot.isSaved) return;
-
-    const steps = slot.task.langkah_ringkas || [];
-    const nextScores: Record<number, number> = {};
-    steps.forEach((_, idx) => {
-      nextScores[idx] = val;
-    });
-
-    updateSlot(slotId, { stepScores: nextScores });
-  };
-
-  const formatTime = (secs: number) => {
-    const mins = Math.floor(secs / 60);
-    const remainder = secs % 60;
-    return `${mins.toString().padStart(2, '0')}:${remainder.toString().padStart(2, '0')}`;
-  };
-
-  const loadData = () => {
-    setKruList(db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif'));
-    setSopList(db.getTable<BankSOP>('bank_sop').filter((s) => s && s.status_aktif === 'Aktif'));
-    setHistory(db.getTable<PenilaianPraktik>('penilaian_praktik').filter(Boolean));
-  };
-
-  useEffect(() => {
-    loadData();
-    const unsub = db.subscribe('*', loadData);
-    return () => unsub();
-  }, []);
-
-  const activeKruList = selectedOutletCode === 'ALL'
-    ? kruList
-    : kruList.filter((k) => k.kode_outlet === selectedOutletCode);
-
-  const runningCount = multiSlots.filter((s) => s.stopwatchRunning && !s.isSaved).length;
-  const savedCount = multiSlots.filter((s) => s.isSaved).length;
 
   return (
-    <div className="space-y-6">
-      {/* Top Main Navigation: Multi-Penilaian Simultan vs Dashboard Grafik */}
-      <div className="flex items-center justify-between p-2 bg-slate-100 rounded-2xl border border-slate-200">
-        <div className="flex items-center gap-2">
+    <div className="space-y-6 animate-in fade-in duration-200">
+      {/* Feedback Banner */}
+      {saveFeedback && (
+        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-semibold flex items-center justify-between shadow-xs">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+            <span>{saveFeedback}</span>
+          </div>
           <button
             type="button"
-            onClick={() => setActiveMainTab('multi_eval')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
-              activeMainTab === 'multi_eval'
-                ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-200/60'
-            }`}
+            onClick={() => setSaveFeedback(null)}
+            className="text-emerald-700 hover:text-emerald-900 text-[11px] font-bold"
           >
-            <Zap size={15} />
-            <span>⚡ Multi-Penilaian Simultan (Stasiun Bersamaan)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveMainTab('analytics_charts')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 transition-all cursor-pointer ${
-              activeMainTab === 'analytics_charts'
-                ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-200/60'
-            }`}
-          >
-            <BarChart3 size={15} />
-            <span>📊 Dashboard Analitik & Rapor Grafik Lengkap</span>
+            Tutup
           </button>
         </div>
+      )}
 
-        <button
-          type="button"
-          onClick={() => setShowAgendaModal(true)}
-          className="px-3.5 py-2 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-        >
-          <Calendar size={13} className="text-[#96171B]" />
-          <span>Agenda Fisik TC</span>
-        </button>
-      </div>
-
-      {/* ======================================================== */}
-      {/* MODE 1: MULTI-PENILAIAN SIMULTAN STASIUN BERSAMAAN       */}
-      {/* ======================================================== */}
-      {activeMainTab === 'multi_eval' && (
-        <div className="space-y-6">
-          {/* Header Banner */}
-          <div className="p-6 bg-gradient-to-r from-slate-900 via-stone-900 to-slate-950 text-white rounded-3xl shadow-md border border-slate-800">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold uppercase tracking-wider">
-                  <Zap size={12} className="text-amber-400" />
-                  <span>SOP RESMI HARA • PRODUK MANDIRI & SUHU DEEP FRYER 160°C</span>
-                </div>
-                <h2 className="text-xl font-black tracking-tight">
-                  Penilaian Praktik Bersamaan (Multi-Station Simultan)
-                </h2>
-                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
-                  Menilai beberapa stasiun kerja sekaligus secara bersamaan (Station 1 Nasi & Teh, Station 2 Goreng Ayam & Scramble, Station 3 Terong & Sambal) dengan stopwatch mandiri, produk terpisah murni sesuai SOP, dan suhu 160°C hanya untuk deep fryer.
-                </p>
+      {/* Main Workspace Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Kolom Kiri: Form Observasi & Stopwatch SOS (8 Cols) */}
+        <div className="lg:col-span-8 space-y-5">
+          {/* 1. Pemilihan Divisi & Kru Operasional */}
+          <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E6E1DA]">
+              <div>
+                <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider font-['Outfit']">
+                  Pilar 2 • Praktik Lapangan (Bobot 40%)
+                </span>
+                <h3 className="font-bold text-[#181411] text-base font-['Outfit'] mt-0.5">
+                  Observasi Praktik Stasiun & Stopwatch SOS
+                </h3>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setMultiSlots(createDefaultSlots())}
-                  className="px-3.5 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <RefreshCw size={13} />
-                  <span>Reset Slot</span>
-                </button>
+              {/* Division Selector Pills */}
+              <div className="flex items-center gap-1 bg-[#FAF8F5] p-1 rounded-xl border border-[#E6E1DA]">
+                {(['Kasir', 'Geprek', 'Kitchen', 'Helper'] as Division[]).map((div) => (
+                  <button
+                    key={div}
+                    type="button"
+                    onClick={() => {
+                      setSelectedDivisi(div);
+                      handleResetTimer();
+                    }}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      selectedDivisi === div
+                        ? 'bg-[#96171B] text-white shadow-xs'
+                        : 'text-[#57504A] hover:text-[#181411]'
+                    }`}
+                  >
+                    {div}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Kru Selection */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label className="block text-[11px] font-bold text-[#57504A] uppercase mb-1">
+                  Pilih Kru Operasional ({selectedDivisi})
+                </label>
+                {filteredKruList.length > 0 ? (
+                  <select
+                    value={selectedKruId}
+                    onChange={(e) => setSelectedKruId(e.target.value)}
+                    className="w-full bg-white border border-[#E6E1DA] rounded-xl px-3 py-2 text-xs font-bold text-[#181411] focus:outline-none focus:border-[#96171B]"
+                  >
+                    {filteredKruList.map((kru) => (
+                      <option key={kru.id} value={kru.id}>
+                        {kru.nama_kru} ({kru.kode_outlet} • Level: {kru.level_kompetensi || 'Trainee'})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] font-medium">
+                    Tidak ada kru aktif divisi {selectedDivisi} pada outlet ini.
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-[#57504A] uppercase mb-1">
+                  Cari Nama Personil
+                </label>
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    placeholder="Ketik nama personil..."
+                    value={searchKruQuery}
+                    onChange={(e) => setSearchKruQuery(e.target.value)}
+                    className="w-full bg-white border border-[#E6E1DA] rounded-xl pl-8 pr-3 py-2 text-xs text-[#181411] focus:outline-none focus:border-[#96171B]"
+                  />
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Master Batch Control Panel */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
-              <div className="flex items-center gap-2">
-                <Layers size={18} className="text-[#96171B]" />
-                <div>
-                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                    Konsol Pengendali Batch Simultan ({multiSlots.length} Stasiun Aktif)
-                  </h3>
-                  <span className="text-[11px] text-slate-500">
-                    {runningCount} Stopwatch Berjalan • {savedCount} Tersimpan
-                  </span>
-                </div>
+          {/* 2. Stopwatch Speed of Service (SOS) */}
+          <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-bold text-[#57504A] uppercase tracking-wider">
+                  Target Speed of Service (SOS)
+                </span>
+                <h4 className="text-sm font-bold text-[#181411] mt-0.5">
+                  {currentStandard.toleransiSosLabel}
+                </h4>
               </div>
 
-              {/* Quick Preset Buttons for Batches */}
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[11px] font-bold text-slate-500 mr-1 hidden md:inline">Preset Batch:</span>
-                <button
-                  type="button"
-                  onClick={() => loadBatchPreset('day1-batch1')}
-                  className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-900 border border-blue-200 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  Day 1: Nasi + Ayam + Terong
-                </button>
-                <button
-                  type="button"
-                  onClick={() => loadBatchPreset('day1-batch2')}
-                  className="px-2.5 py-1.5 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  Day 1: Geprek Ori + Scramble + Nasgor
-                </button>
-                <button
-                  type="button"
-                  onClick={() => loadBatchPreset('day2-batch1')}
-                  className="px-2.5 py-1.5 bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 rounded-xl text-[11px] font-bold transition-all cursor-pointer"
-                >
-                  Day 2: Nasi 45m + Teh 8L + Jamur
-                </button>
-              </div>
-            </div>
-
-            {/* Global Action Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={startAllStopwatches}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Play size={13} />
-                  <span>Mulai Semua Timer</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={pauseAllStopwatches}
-                  className="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95"
-                >
-                  <Pause size={13} />
-                  <span>Jeda Semua</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={resetAllStopwatches}
-                  className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-                >
-                  <RotateCcw size={13} />
-                  <span>Reset Semua Timer</span>
-                </button>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => addNewSlot()}
-                  className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all cursor-pointer shadow-xs active:scale-95"
-                >
-                  <Plus size={14} className="text-[#96171B]" />
-                  <span>Tambah Stasiun</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={saveAllActiveSlots}
-                  className="px-4 py-2 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all shadow-md shadow-[#96171B]/20 cursor-pointer active:scale-95"
-                >
-                  <CheckCheck size={14} />
-                  <span>Simpan Semua Stasiun</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Multi-Station Evaluation Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {multiSlots.map((slot, sIdx) => {
-              const finalScore = calculateSlotScore(slot);
-              const isDeepFryer = slot.task.is_deep_fryer === true;
-              const isNasi = slot.task.is_nasi_cup === true;
-
-              return (
-                <div
-                  key={slot.slotId}
-                  className={`bg-white rounded-3xl border transition-all shadow-xs flex flex-col justify-between overflow-hidden ${
-                    slot.isSaved
-                      ? 'border-emerald-300 ring-2 ring-emerald-500/20 bg-emerald-50/10'
-                      : slot.stopwatchRunning
-                      ? 'border-[#96171B] ring-2 ring-[#96171B]/15'
-                      : 'border-slate-200 hover:border-slate-300'
+              {/* Status Durasi SOS */}
+              <div className="text-right">
+                <span
+                  className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${
+                    seconds === 0
+                      ? 'bg-stone-100 text-stone-600 border-stone-200'
+                      : seconds <= currentStandard.targetSosDetik
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                      : seconds <= currentStandard.targetSosDetik * 1.3
+                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                      : 'bg-rose-50 text-rose-800 border-rose-300'
                   }`}
                 >
-                  {/* Card Header */}
-                  <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-lg uppercase tracking-wide ${
-                        slot.stationName === 'Station 1' ? 'bg-blue-100 text-blue-900 border border-blue-200' :
-                        slot.stationName === 'Station 2' ? 'bg-amber-100 text-amber-900 border border-amber-200' :
-                        slot.stationName === 'Station 3' ? 'bg-purple-100 text-purple-900 border border-purple-200' :
-                        'bg-emerald-100 text-emerald-900 border border-emerald-200'
-                      }`}>
-                        {slot.stationName} (D{slot.task.day})
-                      </span>
+                  {seconds === 0
+                    ? 'Timer Siap'
+                    : seconds <= currentStandard.targetSosDetik
+                    ? 'Sesuai Standar SOS'
+                    : seconds <= currentStandard.targetSosDetik * 1.3
+                    ? 'Toleransi Waktu'
+                    : 'Overdue / Lambat'}
+                </span>
+              </div>
+            </div>
 
-                      <span className="text-xs font-black text-slate-800">
-                        Slot #{sIdx + 1}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {slot.isSaved && (
-                        <span className="text-[10px] font-black bg-emerald-600 text-white px-2 py-0.5 rounded-md flex items-center gap-1">
-                          <Check size={10} />
-                          <span>Tersimpan {slot.savedScore}</span>
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeSlot(slot.slotId)}
-                        className="p-1 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all cursor-pointer"
-                        title="Hapus slot stasiun ini"
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
+            {/* Stopwatch Display */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+              <div className="flex items-center gap-3">
+                <div className="p-3 rounded-xl bg-white border border-[#E6E1DA] text-[#96171B] shadow-2xs">
+                  <Clock size={24} />
+                </div>
+                <div>
+                  <div className="text-3xl sm:text-4xl font-black font-['JetBrains_Mono'] text-[#181411] tracking-tight">
+                    {formatTime(seconds)}
                   </div>
-
-                  {/* Card Body */}
-                  <div className="p-4 space-y-4 flex-1">
-                    {/* Task & Kru Selectors */}
-                    <div className="space-y-2">
-                      {/* Task Selector */}
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
-                          Tugas Stasiun (SOP Mandiri Resmi):
-                        </label>
-                        <select
-                          value={slot.taskId}
-                          disabled={slot.isSaved}
-                          onChange={(e) => {
-                            const newTask = AGENDA_STATION_TASKS.find((t) => t.id === e.target.value);
-                            if (newTask) {
-                              updateSlot(slot.slotId, {
-                                taskId: newTask.id,
-                                task: newTask,
-                                stationName: newTask.station,
-                                stopwatchSeconds: 0,
-                                stopwatchRunning: false,
-                                stepScores: {},
-                              });
-                            }
-                          }}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#96171B]/20"
-                        >
-                          <optgroup label="📋 Station 1">
-                            {AGENDA_STATION_TASKS.filter((t) => t.station === 'Station 1').map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.nama_tugas} ({t.durasi_menit} mnt) - D{t.day}
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="📋 Station 2">
-                            {AGENDA_STATION_TASKS.filter((t) => t.station === 'Station 2').map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.nama_tugas} ({t.durasi_menit} mnt) - D{t.day}
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="📋 Station 3 & All Crew">
-                            {AGENDA_STATION_TASKS.filter((t) => t.station === 'Station 3' || t.station === 'All Crew').map((t) => (
-                              <option key={t.id} value={t.id}>
-                                {t.nama_tugas} ({t.durasi_menit} mnt) - D{t.day}
-                              </option>
-                            ))}
-                          </optgroup>
-                        </select>
-                      </div>
-
-                      {/* Kru Selector */}
-                      <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-wider text-slate-500 block">
-                          Kru yang Diuji Praktik:
-                        </label>
-                        <select
-                          value={slot.kruNama}
-                          disabled={slot.isSaved}
-                          onChange={(e) => {
-                            const tc = DAFTAR_PESERTA_ONBOARDING_TC.find((t) => t.nama === e.target.value);
-                            updateSlot(slot.slotId, {
-                              kruNama: e.target.value,
-                              kruOutlet: tc?.outlet || 'Outlet HARA',
-                            });
-                          }}
-                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#96171B]/20"
-                        >
-                          <optgroup label="📋 12 Kru Onboarding Training Center Resmi">
-                            {DAFTAR_PESERTA_ONBOARDING_TC.map((tc) => (
-                              <option key={tc.no} value={tc.nama}>
-                                #{tc.no} {tc.nama} ({tc.outlet} • {tc.divisi})
-                              </option>
-                            ))}
-                          </optgroup>
-                          <optgroup label="🏢 Kru Cabang Lainnya">
-                            {activeKruList
-                              .filter((k) => !DAFTAR_PESERTA_ONBOARDING_TC.some((t) => t.nama.toLowerCase() === k.nama_kru.toLowerCase()))
-                              .map((k) => (
-                                <option key={k.id} value={k.nama_kru}>
-                                  {k.nama_kru} ({k.kode_outlet} • {k.divisi})
-                                </option>
-                              ))}
-                          </optgroup>
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Independent Stopwatch for this Slot */}
-                    <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                          <Clock size={13} className="text-[#96171B]" />
-                          <span>SOS Stopwatch</span>
-                        </div>
-                        <span className="font-mono text-[10px] font-semibold text-slate-500">
-                          Target: {slot.task.durasi_menit} mnt
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="text-3xl font-mono font-black text-slate-900 tracking-tight">
-                          {formatTime(slot.stopwatchSeconds)}
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          {!slot.stopwatchRunning ? (
-                            <button
-                              type="button"
-                              disabled={slot.isSaved}
-                              onClick={() => updateSlot(slot.slotId, { stopwatchRunning: true })}
-                              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer disabled:opacity-50"
-                            >
-                              <Play size={12} />
-                              <span>Mulai</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => updateSlot(slot.slotId, { stopwatchRunning: false })}
-                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition-all shadow-xs cursor-pointer"
-                            >
-                              <Pause size={12} />
-                              <span>Jeda</span>
-                            </button>
-                          )}
-
-                          <button
-                            type="button"
-                            disabled={slot.isSaved}
-                            onClick={() => updateSlot(slot.slotId, { stopwatchSeconds: 0, stopwatchRunning: false })}
-                            className="p-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-600 rounded-xl cursor-pointer disabled:opacity-50"
-                            title="Reset Timer Slot Ini"
-                          >
-                            <RotateCcw size={12} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="text-[10px] text-slate-500 flex items-center justify-between font-medium">
-                        <span>Toleransi: {slot.task.toleransi_waktu_label}</span>
-                        <span className={`px-1.5 py-0.5 rounded font-bold ${
-                          slot.stopwatchSeconds === 0
-                            ? 'text-slate-400 bg-white'
-                            : slot.stopwatchSeconds >= slot.task.min_toleransi_detik && slot.stopwatchSeconds <= slot.task.max_toleransi_detik
-                            ? 'text-emerald-700 bg-emerald-100'
-                            : slot.stopwatchSeconds < slot.task.min_toleransi_detik
-                            ? 'text-blue-700 bg-blue-100'
-                            : 'text-amber-700 bg-amber-100'
-                        }`}>
-                          {slot.stopwatchSeconds === 0 ? 'Siap' : slot.stopwatchSeconds >= slot.task.min_toleransi_detik && slot.stopwatchSeconds <= slot.task.max_toleransi_detik ? 'Ideal' : slot.stopwatchSeconds < slot.task.min_toleransi_detik ? 'Cepat' : 'Toleransi'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Adaptive Instrument: Suhu HANYA untuk Deep Fryer */}
-                    <div className="text-xs">
-                      {isNasi ? (
-                        <div className="p-2.5 rounded-xl bg-blue-50 border border-blue-200 text-blue-950 space-y-1">
-                          <div className="flex items-center gap-1 font-bold text-[11px] text-blue-900">
-                            <Sparkles size={12} />
-                            <span>Rasio Cup Miyako & Centong Saji (Non-Gram)</span>
-                          </div>
-                          <div className="text-[10.5px] text-blue-800 leading-snug">
-                            Takar 4 cup beras : 5 cup air baku. Sajikan 1 centong porsi penuh bulat rapi tanpa timbang gram di meja saji.
-                          </div>
-                        </div>
-                      ) : isDeepFryer ? (
-                        <div className="p-2.5 rounded-xl bg-orange-50 border border-orange-200 text-orange-950 space-y-1.5">
-                          <div className="flex items-center justify-between text-[11px] font-bold text-orange-900">
-                            <div className="flex items-center gap-1">
-                              <Thermometer size={12} />
-                              <span>Suhu Deep Fryer (160°C):</span>
-                            </div>
-                            <span className="font-mono text-xs font-black">{slot.actualTemp}°C</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="140"
-                            max="185"
-                            value={slot.actualTemp}
-                            disabled={slot.isSaved}
-                            onChange={(e) => updateSlot(slot.slotId, { actualTemp: Number(e.target.value) })}
-                            className="w-full accent-orange-600 h-1.5 bg-orange-200 rounded cursor-pointer"
-                          />
-                          <div className="flex justify-between text-[9px] text-orange-700">
-                            <span>140°C</span>
-                            <span className="font-bold">160°C (Deep Fryer Standar)</span>
-                            <span>185°C</span>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 text-[10.5px] text-slate-500 flex items-center gap-1.5">
-                          <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
-                          <span>
-                            {slot.task.id === 'd1-st2-scramble'
-                              ? 'Wajan Dadar Telur Mandiri • Bebas Suhu 160°C (Non-Deepfryer)'
-                              : slot.task.id === 'd1-st2-indomie'
-                              ? 'Panci Rebus Mie Mandiri • Bebas Suhu 160°C (Non-Deepfryer)'
-                              : 'Station Non-Deepfryer • Bebas Probe Termometer 160°C'}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Step Scoring Rubric */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
-                        <span>Langkah SOP Murni:</span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            disabled={slot.isSaved}
-                            onClick={() => quickFillSteps(slot.slotId, 3)}
-                            className="text-[10px] text-emerald-700 hover:underline cursor-pointer disabled:opacity-50"
-                          >
-                            All 3 (Sempurna)
-                          </button>
-                          <span>•</span>
-                          <button
-                            type="button"
-                            disabled={slot.isSaved}
-                            onClick={() => quickFillSteps(slot.slotId, 2)}
-                            className="text-[10px] text-blue-700 hover:underline cursor-pointer disabled:opacity-50"
-                          >
-                            All 2 (Standar)
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
-                        {(slot.task.langkah_ringkas || [
-                          'Persiapan alat & sanitasi higienis',
-                          'Kepatuhan takaran & resep baku',
-                          'Ketepatan timer operasional',
-                          'Kerapian penyajian akhir'
-                        ]).map((step, idx) => {
-                          const curVal = slot.stepScores[idx] ?? 2;
-                          return (
-                            <div
-                              key={idx}
-                              className="p-1.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-2 text-[11px]"
-                            >
-                              <span className="truncate text-slate-700 leading-tight">
-                                {idx + 1}. {step}
-                              </span>
-
-                              <div className="flex items-center gap-1 shrink-0">
-                                {[1, 2, 3].map((val) => (
-                                  <button
-                                    key={val}
-                                    type="button"
-                                    disabled={slot.isSaved}
-                                    onClick={() => {
-                                      const next = { ...slot.stepScores, [idx]: val };
-                                      updateSlot(slot.slotId, { stepScores: next });
-                                    }}
-                                    className={`w-6 h-6 rounded-lg text-[10px] font-black transition-all cursor-pointer flex items-center justify-center ${
-                                      curVal === val
-                                        ? val === 3
-                                          ? 'bg-emerald-600 text-white'
-                                          : val === 2
-                                          ? 'bg-blue-600 text-white'
-                                          : 'bg-red-600 text-white'
-                                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-                                    } ${slot.isSaved ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                  >
-                                    {val}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Score Summary & Save Button */}
-                    <div className="pt-2 border-t border-slate-100 flex items-center justify-between gap-2">
-                      <div>
-                        <div className="text-[10px] text-slate-400 font-bold uppercase">Estimasi Skor</div>
-                        <div className="text-lg font-black text-slate-900 leading-tight">
-                          {slot.isSaved ? slot.savedScore : finalScore}
-                          <span className="text-xs font-normal text-slate-500">/100</span>
-                        </div>
-                      </div>
-
-                      {!slot.isSaved ? (
-                        <button
-                          type="button"
-                          onClick={() => saveSlotEvaluation(slot.slotId)}
-                          className="px-3.5 py-2 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer transition-all shadow-xs active:scale-95"
-                        >
-                          <CheckCircle2 size={13} />
-                          <span>Simpan Slot Ini</span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => updateSlot(slot.slotId, { isSaved: false, savedScore: null })}
-                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold cursor-pointer"
-                        >
-                          Ubah Penilaian
-                        </button>
-                      )}
-                    </div>
+                  <div className="text-[11px] text-[#57504A] font-medium">
+                    Target Baku: {formatTime(currentStandard.targetSosDetik)} ({currentStandard.targetSosDetik} dtk)
                   </div>
                 </div>
-              );
-            })}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRunning(!isRunning)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs ${
+                    isRunning
+                      ? 'bg-amber-600 hover:bg-amber-700 text-white'
+                      : 'bg-[#96171B] hover:bg-[#7A1215] text-white'
+                  }`}
+                >
+                  {isRunning ? <Pause size={14} /> : <Play size={14} />}
+                  <span>{isRunning ? 'Pause Timer' : 'Mulai Stopwatch'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleResetTimer}
+                  className="px-3 py-2 rounded-xl border border-[#E6E1DA] bg-white hover:bg-stone-50 text-[#57504A] text-xs font-bold transition-colors flex items-center gap-1"
+                  title="Reset Stopwatch"
+                >
+                  <RotateCcw size={14} />
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Input Parameter Teknis (Suhu / Gramatur) */}
+            {(currentStandard.isTempRequired || currentStandard.isGramRequired) && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                {currentStandard.isTempRequired && (
+                  <div className="p-3.5 rounded-xl border border-stone-200 bg-white space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
+                      <span className="flex items-center gap-1 text-amber-700">
+                        <Thermometer size={14} /> Suhu Probe Minyak Deep Fryer
+                      </span>
+                      <span className="font-['JetBrains_Mono'] font-bold text-amber-800">
+                        {measuredTemp}°C
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={140}
+                      max={180}
+                      value={measuredTemp}
+                      onChange={(e) => setMeasuredTemp(Number(e.target.value))}
+                      className="w-full accent-amber-600 cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                      <span>Batas Bawah 155°C</span>
+                      <span className="font-bold text-amber-800">Target Resmi 160°C</span>
+                      <span>Batas Atas 165°C</span>
+                    </div>
+                  </div>
+                )}
+
+                {currentStandard.isGramRequired && (
+                  <div className="p-3.5 rounded-xl border border-stone-200 bg-white space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
+                      <span className="flex items-center gap-1 text-[#96171B]">
+                        <Scale size={14} /> Timbangan Sambal Bawang (Zero/Tare)
+                      </span>
+                      <span className="font-['JetBrains_Mono'] font-bold text-[#96171B]">
+                        {measuredGrams}g
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={20}
+                      max={45}
+                      value={measuredGrams}
+                      onChange={(e) => setMeasuredGrams(Number(e.target.value))}
+                      className="w-full accent-[#96171B] cursor-pointer"
+                    />
+                    <div className="flex justify-between text-[10px] text-stone-500 font-medium">
+                      <span>Min 25g</span>
+                      <span className="font-bold text-[#96171B]">Standar Porsi 30g</span>
+                      <span>Maks 35g</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Quick Add Custom Station Floating Action */}
-          <div className="p-4 bg-slate-50 border border-slate-200 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <div className="flex items-center gap-2 text-slate-600">
-              <Sparkles size={16} className="text-[#96171B]" />
-              <span>
-                Ingin menambah stasiun lain? Klik tombol untuk menambahkan slot evaluasi stasiun simultan baru.
+          {/* 3. Rubrik Penilaian Langkah Kerja (Skala 1 - 3 per Langkah) */}
+          <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
+              <div>
+                <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider font-['Outfit']">
+                  Rubrik Penilaian Objektif
+                </span>
+                <h4 className="font-bold text-[#181411] text-sm font-['Outfit'] mt-0.5">
+                  Langkah Baku Pelaksanaan SOP {selectedDivisi}
+                </h4>
+              </div>
+              <span className="text-[11px] font-bold text-stone-500">
+                Skala Nilai: 1 (Kurang) • 2 (Standar) • 3 (Mahir)
               </span>
             </div>
 
+            <div className="space-y-3">
+              {currentStandard.rubrikLangkah.map((langkah, idx) => {
+                const currentScore = stepScores[idx] || 3;
+                return (
+                  <div
+                    key={langkah.no}
+                    className="p-3.5 rounded-xl border border-[#E6E1DA] bg-[#FAF8F5] space-y-2"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-[#96171B] text-white font-bold text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                          {langkah.no}
+                        </span>
+                        <div>
+                          <h5 className="font-bold text-xs text-[#181411]">
+                            {langkah.judul}
+                          </h5>
+                          <p className="text-[11px] text-[#57504A] mt-0.5 leading-relaxed">
+                            {langkah.deskripsi}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Skor Selector Pills (1, 2, 3) */}
+                      <div className="flex items-center gap-1 shrink-0 self-end sm:self-center">
+                        {[1, 2, 3].map((val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => setStepScores((prev) => ({ ...prev, [idx]: val }))}
+                            className={`w-8 h-8 rounded-lg text-xs font-bold transition-all ${
+                              currentScore === val
+                                ? val === 3
+                                  ? 'bg-emerald-600 text-white shadow-2xs'
+                                  : val === 2
+                                  ? 'bg-amber-600 text-white shadow-2xs'
+                                  : 'bg-rose-600 text-white shadow-2xs'
+                                : 'bg-white border border-[#E6E1DA] text-stone-600 hover:bg-stone-100'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="text-[10.5px] text-stone-500 font-medium bg-white p-2 rounded-lg border border-[#E6E1DA]">
+                      <b>Kunci Kepatuhan:</b> {langkah.kunciKepatuhan}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Catatan Trainer */}
+            <div className="space-y-1.5 pt-2">
+              <label className="block text-[11px] font-bold text-[#57504A] uppercase">
+                Catatan Observasi & Tindakan Perbaikan Trainer
+              </label>
+              <textarea
+                rows={2}
+                value={catatanTrainer}
+                onChange={(e) => setCatatanTrainer(e.target.value)}
+                placeholder="Catatan kelebihan atau kekurangan teknik kerja kru..."
+                className="w-full p-3 rounded-xl border border-[#E6E1DA] text-xs text-[#181411] focus:outline-none focus:border-[#96171B]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom Kanan: Rangkuman Skor & Simpan (4 Cols) */}
+        <div className="lg:col-span-4 space-y-5">
+          {/* Kartu Skor Komposit Terkalkulasi */}
+          <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-xs text-center space-y-4">
+            <span className="text-[10px] font-bold text-[#57504A] uppercase tracking-wider">
+              Skor Praktik Operasional Terkalkulasi
+            </span>
+
+            <div>
+              <div className="text-5xl font-black font-['JetBrains_Mono'] text-[#96171B]">
+                {calculatedScore}
+              </div>
+              <div className="text-xs text-stone-400 font-medium mt-1">
+                Skala Penilaian 0 - 100 pt
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <span className={`inline-block px-3 py-1.5 rounded-xl border text-xs font-bold ${evaluationGrade.badge}`}>
+                {evaluationGrade.grade} • {evaluationGrade.label}
+              </span>
+            </div>
+
+            {/* Rincian Parameter */}
+            <div className="space-y-2 pt-3 border-t border-[#E6E1DA] text-xs text-left">
+              <div className="flex items-center justify-between text-[#57504A]">
+                <span>Durasi Waktu SOS:</span>
+                <span className="font-bold text-[#181411] font-['JetBrains_Mono']">{formatTime(seconds)}</span>
+              </div>
+              {currentStandard.isTempRequired && (
+                <div className="flex items-center justify-between text-[#57504A]">
+                  <span>Suhu Deep Fryer:</span>
+                  <span className="font-bold text-[#181411] font-['JetBrains_Mono']">{measuredTemp}°C</span>
+                </div>
+              )}
+              {currentStandard.isGramRequired && (
+                <div className="flex items-center justify-between text-[#57504A]">
+                  <span>Gramatur Sambal:</span>
+                  <span className="font-bold text-[#181411] font-['JetBrains_Mono']">{measuredGrams}g</span>
+                </div>
+              )}
+              <div className="flex items-center justify-between text-[#57504A]">
+                <span>KKM Kelulusan:</span>
+                <span className="font-bold text-stone-700">75 Poin</span>
+              </div>
+            </div>
+
+            {/* Tombol Simpan */}
             <button
               type="button"
-              onClick={() => addNewSlot()}
-              className="px-4 py-2 bg-slate-900 hover:bg-black text-white font-bold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0 shadow-xs active:scale-95"
+              onClick={handleSaveEvaluation}
+              disabled={!activeKru}
+              className="w-full py-3 rounded-xl bg-[#96171B] hover:bg-[#7A1215] disabled:opacity-50 text-white font-bold text-xs transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-[0.99]"
             >
-              <Plus size={14} />
-              <span>+ Tambah Stasiun Evaluasi Baru</span>
+              <CheckCircle2 size={16} />
+              <span>Simpan Evaluasi Praktik ({activeKru?.nama_kru || 'Pilih Kru'})</span>
             </button>
           </div>
 
-          {/* Recent History Table */}
-          <div className="bg-white rounded-3xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div className="flex items-center gap-2">
-                <Award size={16} className="text-[#96171B]" />
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Riwayat Rekam Evaluasi Praktik Terakhir
-                </h4>
-              </div>
-              <span className="text-xs text-slate-500 font-medium">
-                {history.length} Sesi Praktik Tersimpan
-              </span>
+          {/* Rangkuman 4 Pilar Sistem Operasional */}
+          <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2 text-xs">
+            <div className="font-bold text-[#181411] flex items-center gap-1.5">
+              <Layers size={14} className="text-[#96171B]" />
+              <span>Struktur Bobot 4 Pilar Operasional</span>
             </div>
+            <p className="text-[11px] text-[#57504A] leading-relaxed">
+              Hasil uji praktik ini menyumbang <b>40%</b> dari nilai komposit kru cabang. Sisa 60% berasal dari Ujian Teori (20%), Uji Lisan HACCP (15%), dan Sikap Budaya H.A.R.A (25%).
+            </p>
+          </div>
+        </div>
+      </div>
 
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 text-slate-500 font-bold border-b border-slate-200">
-                  <tr>
-                    <th className="py-2.5 px-3">Tanggal</th>
-                    <th className="py-2.5 px-3">Nama Kru</th>
-                    <th className="py-2.5 px-3">Tugas / Stasiun SOP</th>
-                    <th className="py-2.5 px-3">Waktu SOS</th>
-                    <th className="py-2.5 px-3">Suhu Minyak</th>
-                    <th className="py-2.5 px-3 text-right">Skor Akhir</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                  {history.slice(0, 10).map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50">
-                      <td className="py-2.5 px-3 text-slate-500">
-                        {new Date(item.tanggal).toLocaleDateString('id-ID')}
+      {/* 4. Tabel Riwayat Penilaian Praktik Kru Cabang */}
+      <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider font-['Outfit']">
+              Database Cloud Real-Time
+            </span>
+            <h4 className="font-bold text-[#181411] text-sm font-['Outfit'] mt-0.5">
+              Riwayat Evaluasi Praktik Operasional Cabang
+            </h4>
+          </div>
+          <span className="text-xs font-bold text-stone-500 font-['JetBrains_Mono']">
+            {history.length} Catatan Tersimpan
+          </span>
+        </div>
+
+        {history.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#FAF8F5] border-y border-[#E6E1DA] text-[10px] font-bold text-[#57504A] uppercase tracking-wider font-['Outfit']">
+                <tr>
+                  <th className="py-2.5 px-3">Tanggal</th>
+                  <th className="py-2.5 px-3">Nama Kru</th>
+                  <th className="py-2.5 px-3">Outlet</th>
+                  <th className="py-2.5 px-3">SOP Terkait</th>
+                  <th className="py-2.5 px-3">Durasi SOS</th>
+                  <th className="py-2.5 px-3">Pengukuran</th>
+                  <th className="py-2.5 px-3">Skor Akhir</th>
+                  <th className="py-2.5 px-3">Status</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#E6E1DA]">
+                {history.slice(0, 15).map((item, idx) => {
+                  const isPass = item.skor_akhir >= 75;
+                  return (
+                    <tr key={item.id || idx} className="hover:bg-stone-50/60 transition-colors">
+                      <td className="py-2.5 px-3 font-['JetBrains_Mono'] text-stone-500 whitespace-nowrap">
+                        {item.tanggal ? new Date(item.tanggal).toLocaleDateString('id-ID', { day: '2-digit', month: 'short' }) : '-'}
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-slate-900">{item.nama_kru}</td>
-                      <td className="py-2.5 px-3">{item.sop_terkait}</td>
-                      <td className="py-2.5 px-3 font-mono text-slate-600">
-                        {item.waktu_detik ? `${item.waktu_detik}s` : '-'}
+                      <td className="py-2.5 px-3 font-bold text-[#181411] whitespace-nowrap">
+                        {item.nama_kru}
                       </td>
-                      <td className="py-2.5 px-3 font-mono text-slate-600">
-                        {item.suhu_minyak ? `${item.suhu_minyak}°C` : '-'}
+                      <td className="py-2.5 px-3 text-stone-600 whitespace-nowrap">
+                        {item.kode_outlet}
                       </td>
-                      <td className="py-2.5 px-3 text-right">
-                        <span className={`px-2 py-0.5 rounded-full font-bold text-[11px] ${
-                          item.skor_akhir >= 85
-                            ? 'bg-emerald-100 text-emerald-800'
-                            : item.skor_akhir >= 65
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}>
-                          {item.skor_akhir}/100
+                      <td className="py-2.5 px-3 text-[#57504A] max-w-xs truncate" title={item.sop_terkait}>
+                        {item.sop_terkait}
+                      </td>
+                      <td className="py-2.5 px-3 font-['JetBrains_Mono'] text-stone-700 whitespace-nowrap">
+                        {item.waktu_detik} dtk {item.target_detik ? `(Target ${item.target_detik}s)` : ''}
+                      </td>
+                      <td className="py-2.5 px-3 text-stone-600 whitespace-nowrap font-['JetBrains_Mono']">
+                        {item.suhu_minyak ? `${item.suhu_minyak}°C ` : ''}
+                        {item.gramatur ? `${item.gramatur}g` : ''}
+                        {!item.suhu_minyak && !item.gramatur ? '-' : ''}
+                      </td>
+                      <td className="py-2.5 px-3 font-bold font-['JetBrains_Mono'] text-[#96171B] whitespace-nowrap">
+                        {item.skor_akhir} / 100
+                      </td>
+                      <td className="py-2.5 px-3 whitespace-nowrap">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
+                            isPass
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : 'bg-rose-50 text-rose-800 border-rose-200'
+                          }`}
+                        >
+                          {isPass ? 'Kompeten' : 'Remedial'}
                         </span>
                       </td>
                     </tr>
-                  ))}
-                  {history.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="py-6 text-center text-slate-400">
-                        Belum ada riwayat uji praktik yang tercatat.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* MODE 2: DASHBOARD ANALITIK & RAPOR GRAFIK LENGKAP        */}
-      {/* ======================================================== */}
-      {activeMainTab === 'analytics_charts' && (
-        <OnboardingAnalyticsDashboard
-          onSelectKruForEvaluation={(kruNama) => {
-            const unusedSlot = multiSlots[0];
-            if (unusedSlot) {
-              updateSlot(unusedSlot.slotId, { kruNama });
-            }
-            setActiveMainTab('multi_eval');
-          }}
-        />
-      )}
-
-      {/* ======================================================== */}
-      {/* MODAL AGENDA LENGKAP TRAINING CENTER (DAY 1 & DAY 2)     */}
-      {/* ======================================================== */}
-      {showAgendaModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white w-full max-w-5xl max-h-[90vh] rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col">
-            {/* Modal Header */}
-            <div className="p-5 bg-gradient-to-r from-slate-900 to-stone-900 text-white flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center justify-center">
-                  <Calendar size={20} />
-                </div>
-                <div>
-                  <h3 className="text-base font-black tracking-tight">
-                    AGENDA TRAINING • TRAINING CENTER HARA CHICKEN
-                  </h3>
-                  <p className="text-xs text-slate-300">
-                    Pembagian Station Peserta Day 1 & Day 2, Susunan Rundown, dan 12 Peserta Kru Onboarding
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAgendaModal(false)}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-all cursor-pointer"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Modal Subnav */}
-            <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-slate-50 shrink-0">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedDayTab(1)}
-                  className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-                    selectedDayTab === 1
-                      ? 'bg-[#96171B] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  📅 Rundown & Station Day 1
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSelectedDayTab(2)}
-                  className={`px-4 py-2 text-xs font-black rounded-xl transition-all cursor-pointer ${
-                    selectedDayTab === 2
-                      ? 'bg-[#96171B] text-white shadow-xs'
-                      : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  📅 Rundown & Station Day 2
-                </button>
-              </div>
-
-              <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600">
-                <span className="font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                  Batch 1: 40 Menit
-                </span>
-                <span className="font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                  Batch 2: 30 - 40 Menit
-                </span>
-                <span className="font-bold text-purple-800 bg-purple-50 px-2.5 py-1 rounded-lg border border-purple-200">
-                  Bersih: 30 - 40 Menit
-                </span>
-              </div>
-            </div>
-
-            {/* Modal Content Scrollable */}
-            <div className="p-6 overflow-y-auto space-y-6">
-              {/* Batch Rules Notice */}
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-3 text-xs text-amber-900">
-                <Info size={18} className="text-amber-700 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <strong>Aturan Waktu Training Center Resmi:</strong>
-                  <p className="leading-relaxed">
-                    {ATURAN_WAKTU_BATCH.catatan}
-                  </p>
-                </div>
-              </div>
-
-              {/* Station Tasks Table */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                    <Layers size={14} className="text-[#96171B]" />
-                    <span>Pembagian Station Peserta Day {selectedDayTab}</span>
-                  </h4>
-                  <span className="text-[11px] text-slate-500">
-                    Klik "+ Tambah ke Grid Simultan" untuk membuka slot penilaian langsung
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Station 1 */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-black text-xs text-blue-900 uppercase">Station 1</span>
-                      <span className="text-[10px] font-bold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">
-                        {selectedDayTab === 1 ? 'Nasi & Sup' : 'Nasi & Kulit'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {AGENDA_STATION_TASKS.filter((t) => t.day === selectedDayTab && t.station === 'Station 1').map((t) => (
-                        <div
-                          key={t.id}
-                          className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-[#96171B] transition-all flex items-center justify-between gap-2"
-                        >
-                          <div>
-                            <div className="font-bold text-xs text-slate-900">{t.nama_tugas}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">{t.durasi_menit} Menit • {t.is_deep_fryer ? 'Deep Fryer 160°C' : 'Non-Deepfryer'}</div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addNewSlot(t);
-                              setShowAgendaModal(false);
-                            }}
-                            className="px-2.5 py-1 bg-[#96171B] hover:bg-[#801216] text-white text-[10px] font-bold rounded-lg cursor-pointer"
-                          >
-                            + Slot
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Station 2 */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-black text-xs text-amber-900 uppercase">Station 2</span>
-                      <span className="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
-                        {selectedDayTab === 1 ? 'Goreng Ayam & Scramble' : 'Teh & Sambal'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {AGENDA_STATION_TASKS.filter((t) => t.day === selectedDayTab && t.station === 'Station 2').map((t) => (
-                        <div
-                          key={t.id}
-                          className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-[#96171B] transition-all flex items-center justify-between gap-2"
-                        >
-                          <div>
-                            <div className="font-bold text-xs text-slate-900">{t.nama_tugas}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">{t.durasi_menit} Menit • {t.is_deep_fryer ? 'Deep Fryer 160°C' : 'Non-Deepfryer'}</div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addNewSlot(t);
-                              setShowAgendaModal(false);
-                            }}
-                            className="px-2.5 py-1 bg-[#96171B] hover:bg-[#801216] text-white text-[10px] font-bold rounded-lg cursor-pointer"
-                          >
-                            + Slot
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Station 3 / All Crew */}
-                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2.5">
-                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                      <span className="font-black text-xs text-purple-900 uppercase">
-                        {selectedDayTab === 1 ? 'Station 3' : 'Station 3 & All Crew'}
-                      </span>
-                      <span className="text-[10px] font-bold text-purple-700 bg-purple-100 px-2 py-0.5 rounded-md">
-                        {selectedDayTab === 1 ? 'Terong & Sambal' : 'Ayam, Jamur, Kentang'}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {AGENDA_STATION_TASKS.filter((t) => t.day === selectedDayTab && (t.station === 'Station 3' || t.station === 'All Crew')).map((t) => (
-                        <div
-                          key={t.id}
-                          className="p-2.5 bg-white border border-slate-200 rounded-xl hover:border-[#96171B] transition-all flex items-center justify-between gap-2"
-                        >
-                          <div>
-                            <div className="font-bold text-xs text-slate-900">{t.nama_tugas}</div>
-                            <div className="text-[10px] text-slate-500 font-mono">{t.durasi_menit} Menit • {t.is_deep_fryer ? 'Deep Fryer 160°C' : 'Non-Deepfryer'}</div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              addNewSlot(t);
-                              setShowAgendaModal(false);
-                            }}
-                            className="px-2.5 py-1 bg-[#96171B] hover:bg-[#801216] text-white text-[10px] font-bold rounded-lg cursor-pointer"
-                          >
-                            + Slot
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Rundown Schedule */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <Clock size={14} className="text-[#96171B]" />
-                  <span>Susunan Rundown Day {selectedDayTab} : Materi & Praktek (08:00 - 17:00)</span>
-                </h4>
-
-                <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-                  <table className="w-full text-left text-xs">
-                    <thead className="bg-slate-50 text-slate-600 font-bold border-b border-slate-200">
-                      <tr>
-                        <th className="py-2.5 px-4 w-36">Waktu</th>
-                        <th className="py-2.5 px-4 w-28">Durasi</th>
-                        <th className="py-2.5 px-4">Kegiatan Training</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
-                      {(selectedDayTab === 1 ? RUNDOWN_DAY_1 : RUNDOWN_DAY_2).map((r, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50">
-                          <td className="py-2.5 px-4 font-mono font-bold text-slate-900">{r.waktu}</td>
-                          <td className="py-2.5 px-4 text-slate-500 font-semibold">{r.durasi_menit} Menit</td>
-                          <td className="py-2.5 px-4">{r.kegiatan}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* 12 Kru Onboarding Participants Table */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-2">
-                  <Users size={14} className="text-[#96171B]" />
-                  <span>Daftar 12 Kru Onboarding Resmi Training Center</span>
-                </h4>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
-                  {DAFTAR_PESERTA_ONBOARDING_TC.map((p) => (
-                    <div
-                      key={p.no}
-                      className="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between gap-2"
-                    >
-                      <div>
-                        <div className="font-bold text-xs text-slate-900">
-                          #{p.no} {p.nama}
-                        </div>
-                        <div className="text-[10.5px] text-slate-500">
-                          {p.outlet} • {p.divisi}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Modal Footer */}
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
-              <button
-                type="button"
-                onClick={() => setShowAgendaModal(false)}
-                className="px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl cursor-pointer"
-              >
-                Tutup Dokumen
-              </button>
-            </div>
+        ) : (
+          <div className="p-8 text-center text-stone-400 text-xs font-medium">
+            Belum ada catatan evaluasi praktik operasional tersimpan.
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };

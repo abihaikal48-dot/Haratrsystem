@@ -1,11 +1,11 @@
 import React from 'react';
 import {
-  LayoutDashboard, Store, Search, Calendar, Eye, MessageSquare,
+  LayoutDashboard, Store, Search, Eye, MessageSquare,
   BarChart2, AlertCircle, Award, BookOpen, FileCheck, Brain,
   Wrench, Mic, Shield, FileText, Settings, Users, HelpCircle,
   ChevronLeft, ChevronRight, Sparkles, LogOut, UserCheck, Briefcase,
   GraduationCap, Target, UtensilsCrossed, BarChart3, CalendarCheck,
-  CheckCircle2, Flame, Layers, ChevronsUpDown
+  CheckCircle2, Flame, Layers, ChevronsUpDown, Building2
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { HaraLogo } from './HaraLogo';
@@ -24,7 +24,7 @@ export type NavTab =
   | 'users'
   | 'settings'
   | 'bantuan'
-  // Legacy alias tabs kept for backwards compatibility
+  // Sub-views & specific workflows
   | 'kurikulum-onboarding'
   | 'ojt-30hari'
   | 'jobdesk-trainer'
@@ -59,71 +59,69 @@ export const ROLE_PERMISSIONS: Record<string, {
   'Admin': {
     label: 'Administrator HQ & Owner',
     allowedTabs: [
-      'dashboard', 'monitoring-training', 'evaluasi-kompetensi', 'laporan-resmi', 'operasional-sop',
-      'budaya-hara', 'stasiun-kerja', 'analitik-radar', 'supervisi-lapangan',
-      'master', 'users', 'settings', 'bantuan',
-      // Legacy
-      'kurikulum-onboarding', 'ojt-30hari', 'jobdesk-trainer', 'penugasan-trainer',
-      'jadwal-kunjungan', 'tna-rencana', 'evaluasi-kru', 'bank-sop-soal', 'laporan-eksekutif',
+      'dashboard', 'analitik-radar', 'kurikulum-onboarding', 'monitoring-training',
+      'jobdesk-trainer', 'penugasan-trainer', 'jadwal-kunjungan', 'budaya-hara',
+      'stasiun-kerja', 'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan',
+      'tna-rencana', 'laporan-resmi', 'master', 'users', 'settings', 'bantuan',
+      'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'observasi', 'coaching', 'keluhan', 'talent',
       'penilaian-teori', 'penilaian-praktik', 'penilaian-lisan', 'kompetensi',
       'bank-sop', 'bank-soal', 'tna', 'gap', 'rencana', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-red-50 text-red-700 border-red-200',
+    badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
   'Trainer': {
     label: 'Lead Trainer & People Dev',
     allowedTabs: [
-      'dashboard', 'monitoring-training', 'evaluasi-kompetensi', 'laporan-resmi', 'operasional-sop',
-      'budaya-hara', 'stasiun-kerja', 'analitik-radar', 'supervisi-lapangan',
-      'bantuan',
-      // Legacy
-      'kurikulum-onboarding', 'ojt-30hari', 'jobdesk-trainer', 'penugasan-trainer',
-      'jadwal-kunjungan', 'tna-rencana', 'evaluasi-kru', 'bank-sop-soal', 'laporan-eksekutif',
+      'dashboard', 'analitik-radar', 'kurikulum-onboarding', 'monitoring-training',
+      'jobdesk-trainer', 'penugasan-trainer', 'jadwal-kunjungan', 'budaya-hara',
+      'stasiun-kerja', 'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan',
+      'tna-rencana', 'laporan-resmi', 'master', 'bantuan',
+      'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'penilaian-teori', 'penilaian-praktik',
       'penilaian-lisan', 'kompetensi', 'bank-sop', 'bank-soal', 'observasi', 'coaching',
       'tna', 'gap', 'rencana', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+    badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
   'Kepala Outlet': {
     label: 'Kepala Outlet (Store Manager)',
     allowedTabs: [
-      'dashboard', 'monitoring-training', 'budaya-hara', 'stasiun-kerja', 'supervisi-lapangan',
+      'dashboard', 'monitoring-training', 'budaya-hara', 'stasiun-kerja',
+      'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan', 'jadwal-kunjungan',
       'laporan-resmi', 'master', 'bantuan',
-      // Legacy
-      'kurikulum-onboarding', 'ojt-30hari', 'bank-sop-soal', 'laporan-eksekutif',
-      'jadwal-kunjungan', 'observasi', 'keluhan', 'bank-sop', 'laporan'
+      'kurikulum-onboarding', 'ojt-30hari', 'laporan-eksekutif',
+      'observasi', 'keluhan', 'bank-sop', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
   'Area Supervisor': {
     label: 'Area Supervisor (Pengawas Wilayah)',
     allowedTabs: [
-      'dashboard', 'monitoring-training', 'evaluasi-kompetensi', 'budaya-hara', 'stasiun-kerja', 'analitik-radar',
-      'supervisi-lapangan', 'laporan-resmi', 'master', 'bantuan',
-      // Legacy
-      'tna-rencana', 'kurikulum-onboarding', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
-      'laporan-diagnostik', 'jadwal-kunjungan', 'observasi', 'tna', 'gap', 'keluhan',
+      'dashboard', 'analitik-radar', 'kurikulum-onboarding', 'monitoring-training',
+      'penugasan-trainer', 'jadwal-kunjungan', 'budaya-hara', 'stasiun-kerja',
+      'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan', 'tna-rencana',
+      'laporan-resmi', 'master', 'bantuan',
+      'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
+      'laporan-diagnostik', 'observasi', 'tna', 'gap', 'keluhan',
       'kompetensi', 'laporan', 'bank-sop'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
+    badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
   'SPV Rekrutmen': {
     label: 'SPV Rekrutmen & Talent Acquisition',
     allowedTabs: [
-      'dashboard', 'monitoring-training', 'budaya-hara', 'stasiun-kerja', 'supervisi-lapangan',
+      'dashboard', 'kurikulum-onboarding', 'monitoring-training', 'budaya-hara',
+      'stasiun-kerja', 'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan',
       'laporan-resmi', 'master', 'bantuan',
-      // Legacy
-      'kurikulum-onboarding', 'ojt-30hari', 'bank-sop-soal', 'laporan-eksekutif',
-      'talent', 'bank-sop', 'laporan'
+      'ojt-30hari', 'laporan-eksekutif', 'talent', 'bank-sop', 'laporan'
     ],
     defaultTab: 'dashboard',
-    badgeColor: 'bg-purple-50 text-purple-700 border-purple-200',
+    badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
   },
 };
 
@@ -135,7 +133,7 @@ interface SidebarProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   currentUser: AppUser;
-  onOpenAICoach: () => void;
+  onOpenAICoach?: () => void;
   onOpenPublicExam?: () => void;
   onOpenCommandPalette?: () => void;
   onLogout?: () => void;
@@ -147,45 +145,54 @@ interface NavGroup {
     id: NavTab;
     label: string;
     icon: React.ComponentType<{ size?: number; className?: string }>;
-    badge?: string;
   }[];
 }
 
+// Standarisasi Nomenklatur Menu Sesuai SOP Resmi Hara Chicken F&B
 const GROUPS: NavGroup[] = [
   {
-    label: 'DASHBOARD & OVERVIEW',
+    label: 'Operasional Utama',
     items: [
-      { id: 'dashboard', label: 'Overview & Analitik Gerai', icon: LayoutDashboard },
+      { id: 'dashboard', label: 'Dashboard Operasional', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'STANDAR & TOOLS DAPUR',
+    label: 'Kurikulum & Onboarding',
     items: [
-      { id: 'budaya-hara', label: 'Budaya & 12 Perilaku H.A.R.A', icon: Target },
-      { id: 'stasiun-kerja', label: '4 Stasiun Kerja & Tools Dapur', icon: UtensilsCrossed },
+      { id: 'kurikulum-onboarding', label: 'Kurikulum Onboarding & R&D', icon: GraduationCap },
+      { id: 'monitoring-training', label: 'Monitoring Training Kru', icon: Users },
+      { id: 'budaya-hara', label: 'Nilai & Budaya Hara', icon: Flame },
+      { id: 'stasiun-kerja', label: 'Stasiun Kerja Kitchen & Service', icon: UtensilsCrossed },
     ],
   },
   {
-    label: 'PELATIHAN & RETRAINING',
+    label: 'Supervisi Lapangan',
     items: [
-      { id: 'monitoring-training', label: 'Training & Retraining OJT', icon: CalendarCheck, badge: 'H1-30' },
+      { id: 'supervisi-lapangan', label: 'Supervisi & Audit Shift', icon: Store },
+      { id: 'jadwal-kunjungan', label: 'Jadwal Kunjungan Gerai', icon: CalendarCheck },
     ],
   },
   {
-    label: 'EVALUASI & SUPERVISI',
+    label: 'Standar SOP & Bank Soal',
     items: [
-      { id: 'evaluasi-kompetensi', label: 'Pusat Evaluasi Kru (4 Pilar)', icon: Award, badge: '4 Pilar' },
-      { id: 'supervisi-lapangan', label: 'Supervisi & Coaching (GROW)', icon: Eye, badge: 'GROW' },
+      { id: 'bank-sop-soal', label: 'Standar SOP & Bank Soal', icon: BookOpen },
+      { id: 'evaluasi-kompetensi', label: 'Evaluasi & Ujian Kompetensi', icon: Target },
     ],
   },
   {
-    label: 'LAPORAN & SISTEM',
+    label: 'Laporan & Rapor Kru',
     items: [
-      { id: 'laporan-resmi', label: 'Pusat Rapor Resmi & PDF', icon: FileCheck, badge: 'Multi-Size' },
-      { id: 'master', label: 'Master Data Gerai & Kru', icon: Store },
-      { id: 'users', label: 'Kelola Pengguna & Akses', icon: Users },
-      { id: 'settings', label: 'Pengaturan Sistem', icon: Settings },
-      { id: 'bantuan', label: 'Bantuan & Panduan SOP', icon: HelpCircle },
+      { id: 'laporan-resmi', label: 'Rapor Kru & Cetak Laporan', icon: FileCheck },
+      { id: 'analitik-radar', label: 'Radar Kompetensi 4 Divisi', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'Master & Pengaturan',
+    items: [
+      { id: 'master', label: 'Master Gerai & Kru Cabang', icon: Building2 },
+      { id: 'settings', label: 'Pengaturan & Sinkronisasi Cloud', icon: Settings },
+      { id: 'users', label: 'Manajemen Akun Pengguna', icon: Shield },
+      { id: 'bantuan', label: 'Panduan Sistem & SOP', icon: HelpCircle },
     ],
   },
 ];
@@ -223,29 +230,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Mobile Backdrop */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs z-40 md:hidden transition-opacity"
           onClick={onCloseMobile}
         />
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white text-slate-700 flex flex-col z-50 transition-all duration-300 border-r border-slate-200/90 shadow-2xs shrink-0 select-none ${
-          collapsed ? 'w-[74px]' : 'w-[260px]'
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white text-neutral-800 flex flex-col z-50 transition-all duration-200 border-r border-neutral-200 shrink-0 select-none ${
+          collapsed ? 'w-[72px]' : 'w-[250px]'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
-        {/* Header with Official Logo & Brand */}
-        <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-200/80 h-16 shrink-0 bg-white">
+        {/* Header with Preserved Official Logo */}
+        <div className="flex items-center justify-between px-3.5 py-3 border-b border-neutral-200 h-16 shrink-0 bg-white">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-8 h-8 rounded-xl bg-amber-600 text-white flex items-center justify-center font-bold text-sm shadow-xs shrink-0">
-              H
-            </div>
+            <HaraLogo variant="icon" size={collapsed ? 'xs' : 'sm'} />
             {!collapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="text-sm font-bold text-slate-900 tracking-tight leading-none">
+                <span className="text-xs font-black text-neutral-900 tracking-tight leading-none uppercase">
                   HARA Chicken
                 </span>
-                <span className="text-[10px] text-slate-500 font-medium tracking-wide mt-0.5">
-                  Operations & People Dev
+                <span className="text-[10px] text-neutral-500 font-medium tracking-wide mt-1">
+                  Trainer & Operations
                 </span>
               </div>
             )}
@@ -253,38 +258,38 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onToggleCollapse}
-            className="hidden md:flex w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-lg items-center justify-center transition-colors cursor-pointer"
+            className="hidden md:flex w-7 h-7 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 rounded-md items-center justify-center transition-colors cursor-pointer"
             title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
-        {/* Search input with ⌘K shortcut trigger */}
-        {!collapsed && (
+        {/* Quick Search Shortcut */}
+        {!collapsed && onOpenCommandPalette && (
           <div className="px-3 pt-3 pb-1 shrink-0">
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className="w-full flex items-center justify-between px-3 py-2 rounded-xl bg-slate-50/70 border border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600 transition-all shadow-2xs cursor-pointer group"
+              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:text-neutral-900 transition-colors cursor-pointer"
             >
               <div className="flex items-center gap-2 text-xs">
-                <Search size={14} className="text-slate-400 group-hover:text-slate-600" />
-                <span className="text-slate-500">Cari menu & SOP...</span>
+                <Search size={13} className="text-neutral-400" />
+                <span>Cari menu SOP...</span>
               </div>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white text-slate-500 rounded border border-slate-200">
-                ⌘K
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white text-neutral-500 rounded border border-neutral-200">
+                Ctrl+K
               </kbd>
             </button>
           </div>
         )}
 
-        {/* Navigation List */}
-        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+        {/* Navigation List - Geometri 8px, Monochrome + Red Indicator */}
+        <nav className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-3.5">
           {authorizedGroups.map((group) => (
-            <div key={group.label} className="space-y-1">
+            <div key={group.label} className="space-y-0.5">
               {!collapsed && (
-                <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-400 px-2.5 mb-1.5">
+                <div className="text-[10px] font-semibold text-neutral-400 px-2 py-1 tracking-wider uppercase">
                   {group.label}
                 </div>
               )}
@@ -300,36 +305,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onCloseMobile();
                       }}
                       title={collapsed ? item.label : undefined}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-150 text-left cursor-pointer group relative ${
+                      className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer relative ${
                         active
-                          ? 'bg-amber-50 text-amber-900 font-bold border border-amber-200/80 shadow-2xs'
-                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                          ? 'bg-neutral-100 text-neutral-900 font-bold border border-neutral-200'
+                          : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border border-transparent'
                       } ${collapsed ? 'justify-center px-2' : ''}`}
                     >
+                      {/* Red Accent Indicator for Active Item */}
                       {active && (
-                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-amber-600 rounded-r-full" />
+                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#96171B] rounded-r-md" />
                       )}
                       <Icon
                         size={16}
                         className={`shrink-0 transition-colors ${
                           active
-                            ? 'text-amber-600'
-                            : 'text-slate-400 group-hover:text-slate-700'
+                            ? 'text-[#96171B] stroke-[2.2]'
+                            : 'text-neutral-400'
                         }`}
                       />
                       {!collapsed && (
-                        <div className="flex items-center justify-between flex-1 min-w-0">
-                          <span className="truncate">{item.label}</span>
-                          {item.badge && (
-                            <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded ${
-                              active
-                                ? 'bg-amber-100 text-amber-800'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}>
-                              {item.badge}
-                            </span>
-                          )}
-                        </div>
+                        <span className="truncate flex-1 min-w-0">
+                          {item.label}
+                        </span>
                       )}
                     </button>
                   );
@@ -338,76 +335,61 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           ))}
 
-          {/* Quick AI & Exam Actions */}
-          <div className="pt-2 border-t border-slate-200/60 space-y-1">
-            <button
-              onClick={onOpenAICoach}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/15 hover:to-orange-500/15 border border-amber-200/60 text-amber-900 cursor-pointer ${
-                collapsed ? 'justify-center px-2' : ''
-              }`}
-              title="AI Trainer Advisor"
-            >
-              <Sparkles size={15} className="text-amber-600 shrink-0" />
-              {!collapsed && <span className="truncate">AI Trainer Advisor</span>}
-            </button>
-
-            {onOpenPublicExam && (
+          {/* Quick Portal Ujian Kru Access */}
+          {onOpenPublicExam && (
+            <div className="pt-2 border-t border-neutral-200">
               <button
                 onClick={onOpenPublicExam}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors cursor-pointer ${
+                className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer ${
                   collapsed ? 'justify-center px-2' : ''
                 }`}
-                title="Portal Ujian Mandiri Kru"
+                title="Buka Portal Ujian Kru Mandiri"
               >
-                <Brain size={15} className="text-slate-400 shrink-0" />
+                <Brain size={15} className="text-[#96171B] shrink-0" />
                 {!collapsed && <span className="truncate">Portal Ujian Kru</span>}
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </nav>
 
-        {/* User Profile Card at Bottom (Nuvio UI Style) */}
-        <div className="p-3 border-t border-slate-200/80 bg-white shrink-0">
+        {/* User Profile Card at Bottom */}
+        <div className="p-2.5 border-t border-neutral-200 bg-white shrink-0">
           <div
-            className={`p-2 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center ${
+            className={`p-2 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center ${
               collapsed ? 'justify-center' : 'justify-between'
-            } gap-2.5 transition-all`}
+            } gap-2 transition-colors`}
           >
-            <div className="flex items-center gap-2.5 min-w-0">
-              {/* Avatar circle with online status dot */}
-              <div className="relative shrink-0">
-                <div className="w-8 h-8 rounded-full bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center border border-slate-300">
-                  {initials}
-                </div>
-                <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white" />
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-md bg-neutral-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                {initials}
               </div>
 
               {!collapsed && (
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-slate-900 truncate">
-                    {currentUser.nama || 'Haikal Abi'}
+                  <div className="text-xs font-bold text-neutral-900 truncate">
+                    {currentUser.nama || 'Trainer'}
                   </div>
-                  <div className="text-[10.5px] text-slate-500 truncate">
-                    {currentUser.email || 'trainer@harachicken.com'}
+                  <div className="text-[10px] text-neutral-500 truncate">
+                    {currentUser.role}
                   </div>
                 </div>
               )}
             </div>
 
             {!collapsed && (
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   onClick={() => onSelectTab('settings')}
-                  className="p-1 hover:bg-slate-200 text-slate-500 hover:text-slate-800 rounded-lg transition-colors cursor-pointer"
-                  title="Pengaturan Akun"
+                  className="p-1 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 rounded-md transition-colors cursor-pointer"
+                  title="Pengaturan Akun & Cloud"
                 >
                   <Settings size={14} />
                 </button>
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-600 rounded-lg transition-colors cursor-pointer"
-                    title="Logout / Keluar"
+                    className="p-1 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-md transition-colors cursor-pointer"
+                    title="Keluar dari Akun"
                   >
                     <LogOut size={14} />
                   </button>

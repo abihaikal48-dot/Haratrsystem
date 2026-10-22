@@ -3,7 +3,8 @@ import autoTable from 'jspdf-autotable';
 import {
   Kru, Outlet, OfficialRaporKru, OfficialAuditReport,
   CrewCompetencySummary, ObservasiLapangan, TNA, KartuKeluhan,
-  OnboardingBatch, PDFPaperSize, PDFOrientation
+  OnboardingBatch, PDFPaperSize, PDFOrientation,
+  PenilaianPraktikOnboardingProduk
 } from '../types';
 
 export type { PDFPaperSize, PDFOrientation };
@@ -971,4 +972,286 @@ export function generateOfficialOnboardingSchedulePDF(
   }
 
   doc.save(`Dossier-Onboarding-2Hari_${outletCode}_${new Date().getFullYear()}.pdf`);
+}
+
+/**
+ * Ekspor Dokumen Resmi Hasil Penilaian Praktik Onboarding Per Produk SOP
+ * Dilengkapi Grafik Radar 6 Dimensi, Diagram Batang Analitik, Timer Stopwatch, dan Checklist Langkah SOP Baku.
+ */
+export function exportPenilaianPraktikProdukPDF(
+  item: PenilaianPraktikOnboardingProduk,
+  outlet?: Outlet,
+  options?: PDFExportOptions
+): void {
+  const doc = createDynamicJsPDF(options);
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+
+  const docNo = `DOC-SOP-ONB/${new Date().getFullYear()}/${item.id.toUpperCase()}`;
+  drawCorporateHeader(
+    doc,
+    'LEMBAR EVALUASI PRAKTIK ONBOARDING PRODUK SOP',
+    docNo,
+    item.nama_outlet || outlet?.nama_outlet || 'Hara Chicken Jatiasih',
+    item.kode_outlet,
+    item.tanggal
+  );
+
+  let curY = 46;
+
+  // 1. Identitas Kru & Produk Baku Box
+  doc.setFillColor(...BG_WARM);
+  doc.setDrawColor(220, 215, 205);
+  doc.roundedRect(14, curY, pageWidth - 28, 25, 2, 2, 'FD');
+
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...BRAND_CRIMSON);
+  doc.text('INFORMASI PESERTA & PRODUK BAKU SOP', 18, curY + 5.5);
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...TEXT_CHARCOAL);
+
+  const col1X = 18;
+  const col2X = 80;
+  const col3X = 142;
+
+  doc.text(`Nama Kru: ${item.nama_kru}`, col1X, curY + 11);
+  doc.text(`Divisi: ${item.divisi}`, col1X, curY + 16);
+  doc.text(`Outlet: ${item.kode_outlet} - ${item.nama_outlet || outlet?.nama_outlet || ''}`, col1X, curY + 21);
+
+  doc.text(`Produk SOP: ${item.produk_nama}`, col2X, curY + 11);
+  doc.text(`Kode SOP: ${item.kode_sop}`, col2X, curY + 16);
+  doc.text(`Batch Pelatihan: ${item.nama_batch || 'Batch Onboarding'}`, col2X, curY + 21);
+
+  // Status & Skor Badge
+  const isLulus = item.status_kelulusan === 'Lulus Kompeten';
+  doc.setFillColor(isLulus ? 240 : 254, isLulus ? 253 : 242, isLulus ? 244 : 242);
+  doc.setDrawColor(isLulus ? 167 : 252, isLulus ? 243 : 165, isLulus ? 208 : 165);
+  doc.roundedRect(col3X, curY + 4, pageWidth - 28 - (col3X - 14) - 4, 17, 2, 2, 'FD');
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(isLulus ? 22 : 185, isLulus ? 101 : 28, isLulus ? 52 : 28);
+  doc.text(isLulus ? 'LULUS KOMPETEN' : 'REMEDIAL TERBIMBING', col3X + 4, curY + 9);
+
+  doc.setFontSize(13);
+  doc.text(`${item.skor_akhir.toFixed(1)} / 100`, col3X + 4, curY + 17);
+
+  curY += 30;
+
+  // 2. Visualisasi Analitik 6 Dimensi (Radar Chart & Diagram Batang Berdampingan)
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...BRAND_CRIMSON);
+  doc.text('ANALISIS 6 DIMENSI KOMPETENSI PRAKTIK & STOPWATCH TIMER', 14, curY);
+  curY += 4;
+
+  const chartBoxHeight = 58;
+  doc.setFillColor(255, 255, 255);
+  doc.setDrawColor(230, 225, 220);
+  doc.roundedRect(14, curY, pageWidth - 28, chartBoxHeight, 2, 2, 'FD');
+
+  // RADAR CHART (Left Column: cx = 55, cy = curY + 29, radius = 21)
+  const cx = 55;
+  const cy = curY + 29;
+  const radius = 20;
+  const dimensions = [
+    { label: 'Ketepatan', score: item.skor_ketepatan, angle: -Math.PI / 2 },
+    { label: 'Kerja Sama', score: item.skor_kerjasama, angle: -Math.PI / 6 },
+    { label: 'Kecepatan', score: item.skor_kecepatan, angle: Math.PI / 6 },
+    { label: 'Knowledge', score: item.skor_knowledge, angle: Math.PI / 2 },
+    { label: 'Kebersihan', score: item.skor_kebersihan, angle: (5 * Math.PI) / 6 },
+    { label: 'Langkah SOP', score: item.skor_langkah_sop, angle: (7 * Math.PI) / 6 },
+  ];
+
+  // Draw Concentric Hexagonal Grid Lines (20%, 40%, 60%, 80%, 100%)
+  [0.2, 0.4, 0.6, 0.8, 1.0].forEach((ratio) => {
+    doc.setDrawColor(ratio === 0.8 ? 217 : 230, ratio === 0.8 ? 160 : 230, ratio === 0.8 ? 50 : 230);
+    doc.setLineWidth(ratio === 0.8 ? 0.35 : 0.15);
+    const ringRadius = radius * ratio;
+    for (let i = 0; i < 6; i++) {
+      const a1 = dimensions[i].angle;
+      const a2 = dimensions[(i + 1) % 6].angle;
+      const x1 = cx + ringRadius * Math.cos(a1);
+      const y1 = cy + ringRadius * Math.sin(a1);
+      const x2 = cx + ringRadius * Math.cos(a2);
+      const y2 = cy + ringRadius * Math.sin(a2);
+      doc.line(x1, y1, x2, y2);
+    }
+  });
+
+  // Draw Axis Spokes and Labels
+  doc.setDrawColor(210, 205, 200);
+  doc.setLineWidth(0.2);
+  doc.setFontSize(5.5);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...ACCENT_MUTED);
+
+  dimensions.forEach((d) => {
+    const spokeX = cx + radius * Math.cos(d.angle);
+    const spokeY = cy + radius * Math.sin(d.angle);
+    doc.line(cx, cy, spokeX, spokeY);
+
+    const lblX = cx + (radius + 4) * Math.cos(d.angle);
+    const lblY = cy + (radius + 4) * Math.sin(d.angle);
+    doc.text(`${d.label} (${d.score})`, lblX, lblY, { align: 'center' });
+  });
+
+  // Draw Candidate Polygon
+  doc.setDrawColor(...BRAND_CRIMSON);
+  doc.setLineWidth(0.6);
+  for (let i = 0; i < 6; i++) {
+    const d1 = dimensions[i];
+    const d2 = dimensions[(i + 1) % 6];
+    const r1 = radius * (Math.max(10, Math.min(100, d1.score)) / 100);
+    const r2 = radius * (Math.max(10, Math.min(100, d2.score)) / 100);
+    const x1 = cx + r1 * Math.cos(d1.angle);
+    const y1 = cy + r1 * Math.sin(d1.angle);
+    const x2 = cx + r2 * Math.cos(d2.angle);
+    const y2 = cy + r2 * Math.sin(d2.angle);
+    doc.line(x1, y1, x2, y2);
+
+    doc.setFillColor(...BRAND_CRIMSON);
+    doc.circle(x1, y1, 0.8, 'F');
+  }
+
+  // DIAGRAM BATANG & STOPWATCH (Right Column: x = 110 to 196)
+  const barStartX = 110;
+  const barWidthMax = 52;
+  const barYStart = curY + 7;
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...TEXT_CHARCOAL);
+  doc.text('Skor Capaian Tiap Parameter (KKM: 80)', barStartX, barYStart - 2);
+
+  dimensions.forEach((d, idx) => {
+    const rowY = barYStart + idx * 7.2;
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...TEXT_CHARCOAL);
+    doc.text(d.label, barStartX, rowY + 3.2);
+
+    // Track
+    doc.setFillColor(245, 243, 240);
+    doc.roundedRect(barStartX + 20, rowY, barWidthMax, 4, 1, 1, 'F');
+
+    // Fill
+    const fillW = (Math.max(0, Math.min(100, d.score)) / 100) * barWidthMax;
+    doc.setFillColor(d.score >= 80 ? 46 : 217, d.score >= 80 ? 125 : 83, d.score >= 80 ? 50 : 79);
+    doc.roundedRect(barStartX + 20, rowY, fillW, 4, 1, 1, 'F');
+
+    // KKM 80 line
+    const kkmX = barStartX + 20 + barWidthMax * 0.8;
+    doc.setDrawColor(200, 138, 30);
+    doc.setLineWidth(0.3);
+    doc.line(kkmX, rowY - 1, kkmX, rowY + 5);
+
+    doc.setFontSize(6.5);
+    doc.setFont('helvetica', 'bold');
+    doc.text(String(d.score), barStartX + 20 + barWidthMax + 3, rowY + 3.2);
+  });
+
+  // Stopwatch Duration Callout
+  const durasiMin = Math.floor(item.durasi_detik / 60);
+  const durasiSec = item.durasi_detik % 60;
+  const stdMin = Math.floor(item.standar_durasi_detik / 60);
+  const stdSec = item.standar_durasi_detik % 60;
+
+  doc.setFillColor(...BG_WARM);
+  doc.setDrawColor(220, 215, 205);
+  doc.roundedRect(barStartX, curY + 49, barWidthMax + 26, 7, 1.5, 1.5, 'FD');
+  doc.setFontSize(6.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...BRAND_CRIMSON);
+  doc.text(
+    `Waktu Stopwatch: ${durasiMin}m ${durasiSec}s  |  Standar SOP: ${stdMin}m ${stdSec}s  (${durasiMin * 60 + durasiSec <= item.standar_durasi_detik ? 'Tepat Waktu' : 'Perlu Efisiensi'})`,
+    barStartX + 3,
+    curY + 53.5
+  );
+
+  curY += chartBoxHeight + 6;
+
+  // 3. Tabel Checklist Langkah Pembuatan Sesuai SOP Asli
+  doc.setFontSize(8.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...BRAND_CRIMSON);
+  doc.text('CHECKLIST VERIFIKASI LANGKAH PEMBUATAN SESUAI DOKUMEN SOP BAKU', 14, curY);
+  curY += 3;
+
+  const checklistRows = (item.checklist_langkah || []).map((step) => [
+    String(step.nomor),
+    step.langkah,
+    step.tercapai ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI',
+  ]);
+
+  autoTable(doc, {
+    startY: curY,
+    theme: 'grid',
+    head: [['No', 'Tahapan Langkah Kerja Pembuatan Sesuai SOP Dokumen', 'Status Verifikasi']],
+    body: checklistRows.length > 0 ? checklistRows : [['1', 'Seluruh langkah baku telah diverifikasi instruktur sesuai SOP.', 'TERCAPAI (SOP)']],
+    headStyles: { fillColor: BRAND_CRIMSON, textColor: 255, fontStyle: 'bold', fontSize: 7 },
+    styles: { fontSize: 6.8, cellPadding: 2, textColor: TEXT_CHARCOAL, overflow: 'linebreak' },
+    columnStyles: {
+      0: { cellWidth: 10, halign: 'center' },
+      1: { cellWidth: 135 },
+      2: { cellWidth: 37, fontStyle: 'bold', halign: 'center' },
+    },
+    didParseCell: (data) => {
+      if (data.section === 'body' && data.column.index === 2) {
+        if (data.cell.raw === 'TERCAPAI (SOP)') {
+          data.cell.styles.textColor = [46, 125, 50];
+        } else {
+          data.cell.styles.textColor = [198, 40, 40];
+        }
+      }
+    },
+  });
+
+  curY = (doc as any).lastAutoTable.finalY + 5;
+
+  // 4. Catatan & Rekomendasi Trainer
+  if (curY + 36 > pageHeight - 16) {
+    doc.addPage();
+    curY = 20;
+  }
+
+  doc.setFillColor(...BG_WARM);
+  doc.setDrawColor(220, 215, 205);
+  doc.roundedRect(14, curY, pageWidth - 28, 16, 1.5, 1.5, 'FD');
+
+  doc.setFontSize(7.5);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(...BRAND_CRIMSON);
+  doc.text('CATATAN EVALUASI & TINDAK LANJUT INSTRUKTUR:', 18, curY + 4.5);
+
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...TEXT_CHARCOAL);
+  const splitNote = doc.splitTextToSize(
+    item.catatan_trainer || 'Peserta mampu mengeksekusi tahapan produk sesuai SOP. Pertahankan konsistensi mutu dan kebersihan.',
+    pageWidth - 36
+  );
+  doc.text(splitNote, 18, curY + 9);
+
+  curY += 21;
+
+  // 5. Tanda Tangan
+  if (curY + 28 > pageHeight - 14) {
+    doc.addPage();
+    curY = 20;
+  }
+  drawSignatureBlock(doc, curY, item.nama_trainer || 'Haikal Abi (Lead Trainer)');
+
+  const totalPages = doc.getNumberOfPages();
+  for (let i = 1; i <= totalPages; i++) {
+    doc.setPage(i);
+    drawCorporateFooter(doc, i, totalPages);
+  }
+
+  const safeKru = item.nama_kru.replace(/[^a-zA-Z0-9]/g, '_');
+  const safeProd = item.produk_nama.replace(/[^a-zA-Z0-9]/g, '_');
+  doc.save(`Rapor-Praktik-SOP_${safeKru}_${safeProd}.pdf`);
 }

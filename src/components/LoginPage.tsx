@@ -36,52 +36,67 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [lockoutRemaining, setLockoutRemaining] = useState(0);
 
   // Modals
-  const [showDemoModal, setShowDemoModal] = useState(false);
   const [showHelpModal, setShowHelpModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [changePassForm, setChangePassForm] = useState({
+    identifier: '',
+    oldPass: '',
+    newPass: '',
+    confirmPass: '',
+  });
+  const [changePassStatus, setChangePassStatus] = useState<{ type: 'idle' | 'success' | 'error'; message: string }>({
+    type: 'idle',
+    message: '',
+  });
 
   const users = db.getTable<AppUser>('app_users');
   const outlets = db.getTable<any>('outlets');
 
   const officialAccounts = [
     {
-      nama: 'Haikal Abi',
-      email: 'haikal@harachicken.com',
-      pass: 'haikal123',
-      role: 'Trainer',
-      badge: 'Lead Trainer & PD',
-      deskripsi: 'Audit mutu, 360° asesmen & sertifikasi',
-    },
-    {
-      nama: 'Rian Hidayat',
-      email: 'rian.kepala@harachicken.com',
-      pass: 'rian123',
-      role: 'Kepala Outlet',
-      badge: 'Store Manager',
-      deskripsi: 'Operasional gerai & evaluasi kru shift',
-    },
-    {
-      nama: 'Bambang Kusuma',
-      email: 'bambang.spv@harachicken.com',
-      pass: 'spv123',
-      role: 'Area Supervisor',
-      badge: 'Area SPV',
-      deskripsi: 'Supervisi multi-outlet & TNA',
-    },
-    {
-      nama: 'Dina Putri',
-      email: 'rekrutmen@harachicken.com',
-      pass: 'rekrutmen123',
-      role: 'SPV Rekrutmen',
-      badge: 'Talent & HR',
-      deskripsi: 'Onboarding 3 hari & rekrutmen kru baru',
-    },
-    {
       nama: 'Administrator HQ',
       email: 'admin@harachicken.com',
-      pass: 'admin123',
+      username: 'admin',
+      pass: 'hara123',
       role: 'Admin',
-      badge: 'HQ Admin',
-      deskripsi: 'Pusat sistem & konfigurasi penuh',
+      badge: 'HQ Super Admin',
+      deskripsi: 'Pusat sistem & konfigurasi penuh HARA',
+    },
+    {
+      nama: 'Haikal Abi',
+      email: 'haikal@harachicken.com',
+      username: 'haikal',
+      pass: 'hara123',
+      role: 'Trainer',
+      badge: 'Lead Trainer & PD',
+      deskripsi: 'Penilai Onboarding & Audit Mutu Lapangan',
+    },
+    {
+      nama: 'Jihan',
+      email: 'jihan@harachicken.com',
+      username: 'jihan',
+      pass: 'hara123',
+      role: 'Trainer',
+      badge: 'Trainer Lapangan',
+      deskripsi: 'Penilai Onboarding & Asesmen Standar SOP',
+    },
+    {
+      nama: 'Feri',
+      email: 'feri@harachicken.com',
+      username: 'feri',
+      pass: 'hara123',
+      role: 'Trainer',
+      badge: 'Trainer Lapangan',
+      deskripsi: 'Penilai Onboarding & Asesmen Standar SOP',
+    },
+    {
+      nama: 'Ari',
+      email: 'ari@harachicken.com',
+      username: 'ari',
+      pass: 'hara123',
+      role: 'Trainer',
+      badge: 'Trainer Lapangan',
+      deskripsi: 'Penilai Onboarding & Asesmen Standar SOP',
     },
   ];
 
@@ -177,9 +192,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setIsSubmitting(false);
     };
 
-    const targetStaff = officialAccounts.find((a) => a.email.toLowerCase() === inputEmail);
+    const targetStaff = officialAccounts.find(
+      (a) => a.email.toLowerCase() === inputEmail || a.username.toLowerCase() === inputEmail
+    );
     if (targetStaff) {
-      const matchedInDb = users.find((u) => u.email.toLowerCase() === inputEmail);
+      const matchedInDb = users.find(
+        (u) => u.email.toLowerCase() === targetStaff.email.toLowerCase()
+      );
       const customPass = matchedInDb ? localStorage.getItem(`hara_user_pass_${matchedInDb.id}`) : null;
       const expectedPass = customPass || targetStaff.pass;
 
@@ -191,9 +210,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       let matched = matchedInDb;
       if (!matched) {
         matched = {
-          id: 'usr-' + targetStaff.role.toLowerCase().replace(/\s+/g, '-'),
+          id: 'usr-' + targetStaff.username,
           nama: targetStaff.nama,
-          email: inputEmail,
+          email: targetStaff.email,
           role: targetStaff.role as any,
           status_aktif: 'Aktif',
           created_at: new Date().toISOString(),
@@ -230,13 +249,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
     }
 
     recordFailedAttempt('Akun dengan email tersebut tidak ditemukan.');
-  };
-
-  const fillDemoAccount = (acc: typeof officialAccounts[0]) => {
-    setEmail(acc.email);
-    setPassword(acc.pass);
-    setShowDemoModal(false);
-    setErrorMsg('');
   };
 
   return (
@@ -417,13 +429,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     <label className="block text-xs font-semibold text-[#181411]">
                       Kata Sandi
                     </label>
-                    <button
-                      type="button"
-                      onClick={() => setShowHelpModal(true)}
-                      className="text-[11px] text-[#96171B] hover:underline font-medium"
-                    >
-                      Lupa sandi?
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setChangePassStatus({ type: 'idle', message: '' });
+                          setShowChangePasswordModal(true);
+                        }}
+                        className="text-[11px] text-[#645D55] hover:text-[#96171B] hover:underline font-medium"
+                      >
+                        Ganti kata sandi
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowHelpModal(true)}
+                        className="text-[11px] text-[#96171B] hover:underline font-medium"
+                      >
+                        Bantuan
+                      </button>
+                    </div>
                   </div>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#645D55]">
@@ -482,38 +506,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   )}
                 </button>
               </form>
-
-              {/* Quick Role Tester Pills */}
-              <div className="mt-6 pt-5 border-t border-[#E6E1DA]/80">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider">
-                    Quick Role Login
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowDemoModal(true)}
-                    className="text-[11px] text-[#96171B] hover:underline font-semibold"
-                  >
-                    Semua Akun ({officialAccounts.length})
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-1.5">
-                  {officialAccounts.slice(0, 4).map((acc) => (
-                    <button
-                      key={acc.email}
-                      type="button"
-                      onClick={() => fillDemoAccount(acc)}
-                      className="text-left p-2 rounded-xl border border-[#E6E1DA] hover:border-[#96171B]/50 hover:bg-red-50/40 transition-all text-xs group"
-                    >
-                      <div className="font-bold text-[#181411] group-hover:text-[#96171B] truncate">
-                        {acc.nama}
-                      </div>
-                      <div className="text-[10px] text-[#645D55] truncate">{acc.badge}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
 
             {/* Mobile-only Portal Ujian link */}
@@ -535,73 +527,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       <footer className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 text-center text-xs text-[#645D55] border-t border-[#E6E1DA]/60">
         <p>© 2026 PT HARA CHICKEN INDONESIA • Divisi People Development & Operational Excellence</p>
       </footer>
-
-      {/* Modal Daftar Lengkap Akun Staf */}
-      <AnimatePresence>
-        {showDemoModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="bg-white rounded-2xl shadow-xl border border-[#E6E1DA] max-w-md w-full p-6"
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-[#E6E1DA] mb-4">
-                <div>
-                  <h3 className="text-base font-bold text-[#181411]">Pilih Akun Staf / Trainer</h3>
-                  <p className="text-xs text-[#645D55]">Pilih peran untuk langsung menguji akses modul</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowDemoModal(false)}
-                  className="p-1 rounded-lg text-[#645D55] hover:text-[#181411] hover:bg-[#FAF8F5]"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
-                {officialAccounts.map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() => fillDemoAccount(acc)}
-                    className="w-full text-left p-3 rounded-xl border border-[#E6E1DA] hover:border-[#96171B]/50 hover:bg-red-50/40 transition-all flex items-center justify-between group"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-[#181411] group-hover:text-[#96171B]">
-                          {acc.nama}
-                        </span>
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FAF8F5] text-[#645D55] border border-[#E6E1DA]">
-                          {acc.badge}
-                        </span>
-                      </div>
-                      <p className="text-xs text-[#645D55] font-mono mt-0.5">{acc.email}</p>
-                      <p className="text-[11px] text-[#645D55] mt-0.5">{acc.deskripsi}</p>
-                    </div>
-                    <div className="text-xs text-[#96171B] font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                      <span>Pilih</span>
-                      <ArrowRight size={13} />
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-[#E6E1DA] text-right">
-                <button
-                  type="button"
-                  onClick={() => setShowDemoModal(false)}
-                  className="text-xs font-semibold text-[#645D55] hover:text-[#181411] px-3 py-1.5"
-                >
-                  Tutup
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Modal Bantuan */}
       <AnimatePresence>
@@ -626,11 +551,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
               <div className="space-y-3 text-xs text-[#645D55] leading-relaxed">
                 <p>
-                  Jika Anda lupa kata sandi atau mengalami kendala login, silakan hubungi <strong>Supervisor Area</strong> atau <strong>Trainer HQ</strong> untuk mereset kata sandi akun Anda.
+                  Akun penilai resmi terdaftar: <strong>Haikal</strong>, <strong>Jihan</strong>, <strong>Feri</strong>, dan <strong>Ari</strong> serta <strong>Administrator HQ</strong>.
                 </p>
-                <div className="p-3 bg-red-50/60 rounded-xl border border-red-200/80 text-[#96171B]">
-                  <p className="font-semibold text-xs mb-1">Proteksi Keamanan:</p>
-                  <p className="text-[11px]">Sistem secara otomatis mengunci formulir selama 60 detik jika terjadi 4 kali kesalahan kata sandi berturut-turut.</p>
+                <div className="p-3 bg-[#FAF8F5] rounded-xl border border-[#E6E1DA] text-[#181411]">
+                  <p className="font-semibold text-xs mb-1">Kata Sandi Default:</p>
+                  <p className="text-[11px] text-[#645D55]">Semua akun menggunakan kata sandi default <code className="px-1.5 py-0.5 rounded bg-white border border-[#E6E1DA] font-mono text-[#96171B]">hara123</code>. Anda dapat menggantinya kapan saja melalui menu &quot;Ganti kata sandi&quot;.</p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-[#E6E1DA] text-right">
@@ -639,9 +564,170 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   onClick={() => setShowHelpModal(false)}
                   className="text-xs font-semibold text-[#96171B] hover:underline px-3 py-1.5"
                 >
-                  Mengerti
+                  Tutup
                 </button>
               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal Ganti Kata Sandi */}
+      <AnimatePresence>
+        {showChangePasswordModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="bg-white rounded-2xl shadow-xl border border-[#E6E1DA] max-w-sm w-full p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-[#E6E1DA]">
+                <div>
+                  <h3 className="text-sm font-bold text-[#181411]">Ganti Kata Sandi</h3>
+                  <p className="text-[11px] text-[#645D55]">Ubah sandi default hara123 ke sandi pribadi Anda</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowChangePasswordModal(false)}
+                  className="p-1 rounded-lg text-[#645D55] hover:text-[#181411] hover:bg-[#FAF8F5]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {changePassStatus.message && (
+                <div
+                  className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
+                    changePassStatus.type === 'success'
+                      ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                      : 'bg-rose-50 border border-rose-200 text-rose-800'
+                  }`}
+                >
+                  {changePassStatus.type === 'success' ? (
+                    <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+                  ) : (
+                    <AlertCircle size={16} className="text-rose-600 shrink-0" />
+                  )}
+                  <span>{changePassStatus.message}</span>
+                </div>
+              )}
+
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const idInput = changePassForm.identifier.trim().toLowerCase();
+                  const targetStaff = officialAccounts.find(
+                    (a) => a.email.toLowerCase() === idInput || a.username.toLowerCase() === idInput
+                  );
+                  if (!targetStaff) {
+                    setChangePassStatus({ type: 'error', message: 'Akun penilai/staf tidak ditemukan.' });
+                    return;
+                  }
+                  const matchedInDb = users.find(
+                    (u) => u.email.toLowerCase() === targetStaff.email.toLowerCase()
+                  );
+                  const storedCustomPass = matchedInDb ? localStorage.getItem(`hara_user_pass_${matchedInDb.id}`) : null;
+                  const currentActivePass = storedCustomPass || targetStaff.pass;
+
+                  if (changePassForm.oldPass !== currentActivePass) {
+                    setChangePassStatus({ type: 'error', message: 'Kata sandi lama tidak sesuai.' });
+                    return;
+                  }
+                  if (!changePassForm.newPass || changePassForm.newPass.length < 5) {
+                    setChangePassStatus({ type: 'error', message: 'Kata sandi baru minimal 5 karakter.' });
+                    return;
+                  }
+                  if (changePassForm.newPass !== changePassForm.confirmPass) {
+                    setChangePassStatus({ type: 'error', message: 'Konfirmasi kata sandi tidak cocok.' });
+                    return;
+                  }
+
+                  let userId = matchedInDb?.id;
+                  if (!userId) {
+                    const newU: AppUser = {
+                      id: 'usr-' + targetStaff.username,
+                      nama: targetStaff.nama,
+                      email: targetStaff.email,
+                      role: targetStaff.role as any,
+                      status_aktif: 'Aktif',
+                      created_at: new Date().toISOString(),
+                    };
+                    db.insertRow('app_users', newU);
+                    userId = newU.id;
+                  }
+
+                  localStorage.setItem(`hara_user_pass_${userId}`, changePassForm.newPass);
+                  db.addLog('UBAH', 'Autentikasi', `Kata sandi akun ${targetStaff.nama} berhasil diperbarui.`);
+                  setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diubah! Silakan login.' });
+                  setTimeout(() => {
+                    setShowChangePasswordModal(false);
+                    setChangePassForm({ identifier: '', oldPass: '', newPass: '', confirmPass: '' });
+                  }, 1200);
+                }}
+                className="space-y-3 text-xs"
+              >
+                <div>
+                  <label className="block text-[#181411] font-semibold mb-1">Email atau Username</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="haikal, jihan, feri, ari, atau admin"
+                    value={changePassForm.identifier}
+                    onChange={(e) => setChangePassForm({ ...changePassForm, identifier: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#E6E1DA] focus:outline-none focus:border-[#96171B]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#181411] font-semibold mb-1">Kata Sandi Lama</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Sandi default: hara123"
+                    value={changePassForm.oldPass}
+                    onChange={(e) => setChangePassForm({ ...changePassForm, oldPass: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#E6E1DA] focus:outline-none focus:border-[#96171B]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#181411] font-semibold mb-1">Kata Sandi Baru</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Minimal 5 karakter"
+                    value={changePassForm.newPass}
+                    onChange={(e) => setChangePassForm({ ...changePassForm, newPass: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#E6E1DA] focus:outline-none focus:border-[#96171B]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#181411] font-semibold mb-1">Konfirmasi Sandi Baru</label>
+                  <input
+                    type="password"
+                    required
+                    placeholder="Ulangi kata sandi baru"
+                    value={changePassForm.confirmPass}
+                    onChange={(e) => setChangePassForm({ ...changePassForm, confirmPass: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-[#E6E1DA] focus:outline-none focus:border-[#96171B]"
+                  />
+                </div>
+                <div className="pt-2 flex justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowChangePasswordModal(false)}
+                    className="px-3.5 py-2 rounded-xl border border-[#E6E1DA] text-[#645D55] font-semibold hover:bg-slate-50"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 rounded-xl bg-[#96171B] hover:bg-[#7A1216] text-white font-semibold shadow-xs"
+                  >
+                    Simpan Kata Sandi
+                  </button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

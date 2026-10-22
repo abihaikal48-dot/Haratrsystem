@@ -541,6 +541,91 @@ _Generated via HARA TRAINING & OPERATIONS System_
             </div>
           </div>
 
+          {/* 4. Sync ke Google Sheets Gratis (Webhook URL) */}
+          <div className="card-enterprise !p-5 bg-white border border-[#E5E0D8] space-y-4 border-l-4 border-l-emerald-600">
+            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                  <FileSpreadsheet size={16} className="text-emerald-600" />
+                  <span>Sync ke Google Sheets Gratis (Webhook URL)</span>
+                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-black px-2 py-0.5 rounded-full">
+                    Cadangan Gratis Selamanya
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Setiap kali nilai evaluasi onboarding produk disimpan, sistem otomatis mengirimkan data baris via HTTP POST ke Google Spreadsheet milik Trainer.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-slate-800 mb-1">
+                  Google Apps Script Web App URL (doPost Endpoint)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+                    value={settings.google_sheets_webhook_url || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSettings({ ...settings, google_sheets_webhook_url: val });
+                      localStorage.setItem('hara_google_sheets_webhook_url', val);
+                    }}
+                    className="input-enterprise text-xs font-mono flex-1"
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const url = settings.google_sheets_webhook_url?.trim() || localStorage.getItem('hara_google_sheets_webhook_url')?.trim();
+                      if (!url) {
+                        alert('Silakan isi Google Apps Script Web App URL terlebih dahulu!');
+                        return;
+                      }
+                      try {
+                        await fetch(url, {
+                          method: 'POST',
+                          mode: 'no-cors',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            event: 'TEST_CONNECTION',
+                            source: 'HARA Trainer Pro System',
+                            timestamp: new Date().toISOString(),
+                            message: 'Tes koneksi webhook Google Sheets sukses!',
+                          }),
+                        });
+                        alert('✅ Permintaan tes webhook berhasil dikirim ke Google Sheets! Periksa tab spreadsheet Anda.');
+                      } catch (err: any) {
+                        alert('Gagal mengirim ke webhook: ' + (err?.message || err));
+                      }
+                    }}
+                    className="btn-secondary-enterprise !py-1.5 !px-3 text-xs font-bold shrink-0 text-emerald-800 border-emerald-300 hover:bg-emerald-50 cursor-pointer"
+                  >
+                    Tes Kirim
+                  </button>
+                </div>
+                <p className="text-[11px] text-slate-500 mt-1">
+                  Biarkan kosong jika hanya ingin menggunakan penyimpanan Cloud Firestore & LocalStorage.
+                </p>
+              </div>
+
+              {/* Panduan Singkat 3 Langkah */}
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-200 space-y-1.5 text-[11px] text-slate-600">
+                <div className="font-bold text-slate-800 flex items-center gap-1.5">
+                  <Sparkles size={13} className="text-amber-500" />
+                  <span>Cara Pasang Skrip Google Sheets Gratis (3 Langkah):</span>
+                </div>
+                <ol className="list-decimal list-inside space-y-1 pl-1 text-[11px]">
+                  <li>Buka Spreadsheet Google baru &gt; menu <b>Extensions</b> &gt; <b>Apps Script</b>.</li>
+                  <li>Tempel kode fungsi <code className="bg-slate-200 px-1 py-0.5 rounded font-mono text-[10px]">function doPost(e) &#123; const d = JSON.parse(e.postData.contents); SpreadsheetApp.getActiveSheet().appendRow([d.timestamp, d.payload?.nama_kru, d.payload?.produk_nama, d.payload?.skor_akhir, d.payload?.status_kelulusan]); return ContentService.createTextOutput("OK"); &#125;</code></li>
+                  <li>Klik <b>Deploy</b> &gt; <b>New deployment</b> &gt; pilih tipe <b>Web App</b> &gt; Who has access: <b>Anyone</b> &gt; salin URL-nya ke kolom di atas.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
+
           {/* 2. WhatsApp Blast Dispatch Generator */}
           <div className="card-enterprise !p-5 bg-white border border-[#E5E0D8] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">

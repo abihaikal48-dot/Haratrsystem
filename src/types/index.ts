@@ -225,6 +225,55 @@ export interface PenilaianPraktik {
   created_at: string;
 }
 
+export interface PenilaianOnboardingTC {
+  id: string;
+  tanggal: string;
+  peserta_nama: string;
+  peserta_outlet: string;
+  peserta_divisi: Division;
+  kategori_peserta: 'New' | 'Reguler';
+  stasiun: 'Station 1' | 'Station 2' | 'Station 3' | 'Station 4' | 'General';
+  task_id: string;
+  task_nama: string;
+
+  // 1. KETEPATAN (Stopwatch Durasi SOS, Suhu, Gramatur, Verifikasi Langkah SOP)
+  durasi_detik: number;
+  target_durasi_detik: number;
+  deviasi_detik: number; // durasi_detik - target_durasi_detik (positif = terlambat, negatif = lebih cepat)
+  suhu_aktual?: number;
+  target_suhu?: number;
+  gramatur_aktual?: number;
+  target_gramatur?: number;
+  checklist_langkah_kritis: { langkah: string; terpenuhi: boolean; catatan?: string }[];
+  skor_ketepatan: number; // 0 - 100
+
+  // 2. KEBERSIHAN (5S & Food Safety / Sanitasi Meja & APD)
+  checklist_kebersihan: { poin: string; terpenuhi: boolean; catatan?: string }[];
+  skor_kebersihan: number; // 0 - 100
+
+  // 3. KERJA SAMA TIM (Kitchen Callout, Handover, Saling Support)
+  checklist_tim: { poin: string; terpenuhi: boolean; catatan?: string }[];
+  skor_tim: number; // 0 - 100
+
+  // 4. KNOWLEDGE (Kuis Pemahaman SOP, HACCP, Titik Kritis)
+  checklist_knowledge: { pertanyaan: string; terjawab_benar: boolean; jawaban_peserta?: string }[];
+  skor_knowledge: number; // 0 - 100
+
+  // SKOR AKHIR & SCALING SISTEM (Hasil Skala Baku)
+  skor_total: number; // 0 - 100 (Ketepatan 35%, Kebersihan 25%, Tim 20%, Knowledge 20%)
+  skala_lima: number; // 1.00 - 5.00
+  grade: 'A' | 'B' | 'C' | 'D' | 'E';
+  status_kelulusan: 'Lulus Sempurna' | 'Lulus Bersyarat' | 'Remedial Stasiun';
+
+  // DETAIL TITIK KESALAHAN & REKOMENDASI PERBAIKAN
+  titik_kesalahan: string[];
+  rekomendasi_perbaikan: string;
+  catatan_trainer: string;
+  trainer_nama: string;
+  created_at: string;
+}
+
+
 export interface PenilaianLisan {
   id: string;
   tanggal: string;
@@ -276,6 +325,7 @@ export interface SystemSettings {
   inactivity_timeout_minutes?: number;
   supervisor_security_pin?: string;
   enforce_pin_on_critical_actions?: boolean;
+  google_sheets_webhook_url?: string;
 }
 
 export interface HaraChecklistItem {
@@ -1046,3 +1096,55 @@ export interface OnboardingBatch {
 
 export type PDFPaperSize = 'A4' | 'F4' | 'Letter' | 'A3' | 'A5';
 export type PDFOrientation = 'portrait' | 'landscape';
+
+export interface PenilaianPraktikOnboardingProduk {
+  id: string;
+  tanggal: string;
+  kru_id: string;
+  nama_kru: string;
+  kode_outlet: string;
+  nama_outlet?: string;
+  batch_id?: string;
+  nama_batch?: string;
+  divisi: Division;
+  produk_nama: string; // Exact name from SOP database
+  kode_sop?: string;
+  station?: string;
+  
+  // 5 Dimensi Baku Sesuai PDF (Prosedur 30%, Waktu 20%, Kebersihan 15%, Kerjasama 15%, Knowledge 20%)
+  day?: 'Day 1' | 'Day 2';
+  batch_name?: string;
+  station_label?: string;
+  skor_prosedur?: number;
+  skor_waktu?: number;
+  waktu_detik?: number;
+  target_detik?: number;
+  suhu_minyak_aktual?: number;
+  gramatur_aktual?: number;
+  penilai_nama?: string;
+  catatan?: string;
+  status?: string;
+
+  // Titik Kritis & Knowledge Auto-Check
+  gagal_titik_kritis?: boolean;
+  titik_kritis_gagal_detail?: string[];
+  knowledge_questions?: { question: string; answerKey: string; passed: boolean }[];
+
+  // Legacy & Alternate Aliases
+  skor_ketepatan?: number;
+  skor_langkah_sop?: number;
+  skor_kecepatan?: number;
+  skor_knowledge?: number;
+  skor_kerjasama?: number;
+  skor_kebersihan?: number;
+  skor_keaktifan?: number;
+  durasi_detik?: number;
+  standar_durasi_detik?: number;
+  suhu_minyak_probe?: number;
+  skor_akhir: number;
+  status_kelulusan?: string;
+  checklist_langkah?: { nomor: number; langkah: string; tercapai: boolean }[];
+  catatan_trainer?: string;
+  nama_trainer?: string;
+  created_at: string;
+}

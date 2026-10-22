@@ -5,7 +5,7 @@ import {
   Printer, Play, Pause, RotateCcw, ChevronRight, Eye,
   FileCheck, ShieldCheck, Utensils, Box, ArrowRight, Star,
   Download, FileSpreadsheet, Layers, BookOpen, Compass, Check,
-  Info, Coffee, PackageCheck, Timer, Zap, CookingPot
+  Info, Coffee, PackageCheck, Timer, Zap, CookingPot, ShieldAlert
 } from 'lucide-react';
 import { db } from '../../lib/storage';
 
@@ -812,10 +812,31 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
 
   const currentGradeInfo = getScoreGrade(finalCalculatedScore);
 
+  const [killSwitches, setKillSwitches] = useState<{
+    darah: boolean;
+    blender: boolean;
+    tanpaTimbang: boolean;
+    kontaminasiLantai: boolean;
+  }>({
+    darah: false,
+    blender: false,
+    tanpaTimbang: false,
+    kontaminasiLantai: false,
+  });
+
+  const isKillSwitchTriggered = useMemo(() => {
+    return (
+      killSwitches.darah ||
+      killSwitches.blender ||
+      killSwitches.tanpaTimbang ||
+      killSwitches.kontaminasiLantai
+    );
+  }, [killSwitches]);
+
   const [evaluationHistory, setEvaluationHistory] = useState<any[]>(() => {
     try {
-      const saved = localStorage.getItem('hara_rnd_simulasi_evaluations');
-      return saved ? JSON.parse(saved) : [];
+      const saved = db.getTable<any>('penilaian_onboarding_rnd');
+      return Array.isArray(saved) && saved.length > 0 ? saved : [];
     } catch {
       return [];
     }
@@ -824,8 +845,15 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
 
   const handleSaveEvaluation = () => {
+    const effectiveStatus = isKillSwitchTriggered
+      ? 'WAJIB REMEDIAL MASAK DI R&D'
+      : finalCalculatedScore >= 75
+      ? 'LULUS SIAP OJT OUTLET'
+      : 'WAJIB REMEDIAL MASAK DI R&D';
+
+    const calculatedGrade = isKillSwitchTriggered ? 'Gugur (Kill-Switch)' : currentGradeInfo.grade;
+
     const newRecord = {
-      id: `qc-${Date.now()}`,
       traineeName: selectedTraineeForScoring,
       batch: scoringBatch,
       productName: selectedProductScored,
@@ -833,35 +861,22 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
       suhuDurasi: scoreSuhuDurasi,
       plattingRasa: scorePlattingRasa,
       hygieneWalk: scoreHygieneWalk,
-      finalScore: finalCalculatedScore,
-      grade: currentGradeInfo.grade,
-      status: finalCalculatedScore >= 75 ? 'LULUS' : 'REMEDIAL',
+      finalScore: isKillSwitchTriggered ? Math.min(finalCalculatedScore, 50) : finalCalculatedScore,
+      grade: calculatedGrade,
+      status: effectiveStatus,
+      isKillSwitch: isKillSwitchTriggered,
+      killSwitches,
       notes: scoringNotes,
+      tanggal: new Date().toISOString(),
       createdAt: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
     };
 
-    const updated = [newRecord, ...evaluationHistory];
-    setEvaluationHistory(updated);
-    try {
-      localStorage.setItem('hara_rnd_simulasi_evaluations', JSON.stringify(updated));
-      // Simpan ke storage tabel penilaian praktik jika ada id matching
-      db.insertRow('penilaian_praktik', {
-        id_kru: `kru-${Date.now()}`,
-        tanggal_penilaian: new Date().toISOString().slice(0, 10),
-        station: 'Kitchen',
-        skor_kecepatan: scoreSuhuDurasi,
-        skor_kualitas_produk: scorePlattingRasa,
-        skor_kepatuhan_resep: scoreGramatur,
-        skor_sanitasi_k3: scoreHygieneWalk,
-        skor_total: finalCalculatedScore,
-        catatan_trainer: `[QC ${scoringBatch} - ${selectedProductScored}] ${scoringNotes}`
-      } as any);
-    } catch (e) {
-      console.error(e);
-    }
+    // Direct insert to Cloud Firestore via db.insertRow (Zero LocalStorage trap)
+    const saved = db.insertRow('penilaian_onboarding_rnd', newRecord);
+    setEvaluationHistory((prev) => [saved, ...prev]);
 
-    setSaveSuccessMsg(`Penilaian praktik untuk "${selectedTraineeForScoring}" berhasil disimpan ke sistem!`);
-    setTimeout(() => setSaveSuccessMsg(null), 3500);
+    setSaveSuccessMsg(`Penilaian onboarding R&D untuk "${selectedTraineeForScoring}" berhasil disimpan ke Cloud Database! Status: ${effectiveStatus}`);
+    setTimeout(() => setSaveSuccessMsg(null), 4000);
   };
 
   // Unduh Master Spreadsheet CSV
@@ -1724,32 +1739,75 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                 </div>
 
                 {/* 2. Suhu & Durasi 30% */}
-                <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <Thermometer size={16} className="text-amber-600" />
-                        <h4 className="text-xs font-bold font-['Outfit'] text-[#181411]">
-                          2. Ketepatan Suhu (Kondisional Termal) & Timer Adaptif (Bobot 30%)
-                        </h4>
+                {(() => {
+                  const pName = selectedProductScored.toLowerCase();
+                  const isFryer = pName.includes('deep fryer') || pName.includes('goreng ayam') || pName.includes('ayam utuh') || pName.includes('terong') || pName.includes('kulit') || pName.includes('jamur & kentang');
+                  const isScramble = pName.includes('scramble') || pName.includes('scrembel');
+                  const isIndomie = pName.includes('indomie');
+                  const isNasi = pName.includes('nasi');
+                  const isSambal = pName.includes('sambal');
+                  const isMinuman = pName.includes('teh') || pName.includes('lemon') || pName.includes('orange') || pName.includes('shake');
+
+                  return (
+                    <div className={`p-4 rounded-xl border space-y-2 transition-all ${
+                      isFryer
+                        ? 'border-amber-300 bg-amber-50/50'
+                        : isScramble || isIndomie
+                        ? 'border-emerald-200 bg-emerald-50/40'
+                        : 'border-stone-200 bg-white'
+                    }`}>
+                      <div className="flex items-start sm:items-center justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Thermometer size={16} className={isFryer ? 'text-amber-600' : 'text-stone-600'} />
+                            <h4 className="text-xs font-bold font-['Outfit'] text-[#181411]">
+                              2. Ketepatan Suhu (SOP Resmi) & Durasi Stopwatch (Bobot 30%)
+                            </h4>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border ${
+                              isFryer
+                                ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                : 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                            }`}>
+                              {isFryer
+                                ? '🔥 Wajib Deep Fryer 160°C'
+                                : isScramble
+                                ? '🍳 Bebas Suhu 160°C (Wajan Teflon 4 Mnt)'
+                                : isIndomie
+                                ? '🍜 Bebas Suhu 160°C (Rebusan 100°C 2 Mnt)'
+                                : isNasi
+                                ? '🍚 Bebas Suhu 160°C (Miyako Tanak 15 Mnt)'
+                                : isSambal
+                                ? '🌶️ Bebas Suhu 160°C (Cobek Ulek Batu)'
+                                : isMinuman
+                                ? '🧊 Bebas Suhu 160°C (Bar Minuman & Sealer)'
+                                : '✨ Bebas Probe Suhu 160°C'}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-stone-600 mt-1">
+                            {isFryer && '🔥 Deep Fryer: Suhu minyak wajib stabil 160°C ± 5°C (setelan kompor 175°C, waktu 12 mnt), suhu core internal ayam ≥ 74°C, goyang keranjang tiap 3 mnt.'}
+                            {isScramble && '🍳 Scramble Egg (Mandiri, Tanpa Indomie): Wajan teflon api sedang 4 mnt, 1 telur + susu UHT + mix garam, lipatan fluffy lembut. TIDAK MENGGUNAKAN SUHU 160°C.'}
+                            {isIndomie && '🍜 Indomie (Mandiri, Tanpa Scramble): Rebus air mendidih 2 mnt al dente, tiriskan uap panas, aduk bumbu di mangkok saji terpisah.'}
+                            {isNasi && '🍚 Nasi Miyako: Rasio air baku 1:1.33, tombol kiri lalu kanan COOK, tanak 15 mnt, porsi centong bulat rapi.'}
+                            {isSambal && '🌶️ Sambal Bawang: Goreng cabai & bawang 3-5 mnt api kecil, ulek kasar cobek batu + siram minyak panas 60ml.'}
+                            {isMinuman && '🧊 Minuman Bar: Ekstraksi teh 20 mnt, takar 200ml + es batu kristal, Cup Sealer 160°C rapat anti-bocor.'}
+                            {!isFryer && !isScramble && !isIndomie && !isNasi && !isSambal && !isMinuman && '✨ Non-Deep Fryer: Bebas probe suhu 160°C. Penilaian menitikberatkan pada durasi timer SOS, higienitas, dan hasil akhir.'}
+                          </p>
+                        </div>
+                        <span className="font-['JetBrains_Mono'] text-base font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shrink-0">
+                          {scoreSuhuDurasi} pt
+                        </span>
                       </div>
-                      <p className="text-[11px] text-stone-500 mt-0.5">
-                        Deep fryer 160°C ± 5°C (12 mnt ± 30 dtk), suhu core ayam ≥ 74°C, tanak nasi 15 mnt (toleransi 13–18 mnt). Station non-termal otomatis N/A bebas probe.
-                      </p>
+                      <input
+                        type="range"
+                        min={40}
+                        max={100}
+                        value={scoreSuhuDurasi}
+                        onChange={(e) => setScoreSuhuDurasi(Number(e.target.value))}
+                        className="w-full accent-amber-600 cursor-pointer"
+                      />
                     </div>
-                    <span className="font-['JetBrains_Mono'] text-base font-bold text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200">
-                      {scoreSuhuDurasi} pt
-                    </span>
-                  </div>
-                  <input
-                    type="range"
-                    min={40}
-                    max={100}
-                    value={scoreSuhuDurasi}
-                    onChange={(e) => setScoreSuhuDurasi(Number(e.target.value))}
-                    className="w-full accent-amber-600 cursor-pointer"
-                  />
-                </div>
+                  );
+                })()}
 
                 {/* 3. Platting, Packing & Rasa 25% */}
                 <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2">
@@ -1805,6 +1863,76 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                     onChange={(e) => setScoreHygieneWalk(Number(e.target.value))}
                     className="w-full accent-emerald-700 cursor-pointer"
                   />
+                </div>
+              </div>
+
+              {/* KILL-SWITCH GUGUR OTOMATIS */}
+              <div className="p-4 rounded-xl border border-rose-200 bg-rose-50/50 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-rose-800">
+                    <ShieldAlert size={16} className="text-rose-600 shrink-0" />
+                    <span className="text-xs font-bold font-['Outfit'] uppercase tracking-wider">
+                      Kill-Switch Pelanggaran Fatal (Gugur Otomatis & Wajib Masak Ulang)
+                    </span>
+                  </div>
+                  {isKillSwitchTriggered && (
+                    <span className="text-[10px] font-bold text-white bg-rose-600 px-2.5 py-0.5 rounded-full uppercase">
+                      Gugur Aktif
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-rose-700 leading-relaxed">
+                  Jika terjadi 1 saja pelanggaran di bawah ini, peserta otomatis dinyatakan gugur untuk menu ini dan wajib mengulang sesi masak di R&D:
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <label className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-rose-200 cursor-pointer hover:bg-rose-50/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={killSwitches.darah}
+                      onChange={(e) => setKillSwitches((prev) => ({ ...prev, darah: e.target.checked }))}
+                      className="mt-0.5 accent-rose-600 rounded"
+                    />
+                    <span className="text-stone-800 text-[11px]">
+                      <b>Ayam Berdarah</b>: Core internal daging ayam &lt; 74°C (tulang merah).
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-rose-200 cursor-pointer hover:bg-rose-50/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={killSwitches.blender}
+                      onChange={(e) => setKillSwitches((prev) => ({ ...prev, blender: e.target.checked }))}
+                      className="mt-0.5 accent-rose-600 rounded"
+                    />
+                    <span className="text-stone-800 text-[11px]">
+                      <b>Sambal Diblender</b>: Memblender sambal halus (wajib ulek kasar di cobek).
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-rose-200 cursor-pointer hover:bg-rose-50/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={killSwitches.tanpaTimbang}
+                      onChange={(e) => setKillSwitches((prev) => ({ ...prev, tanpaTimbang: e.target.checked }))}
+                      className="mt-0.5 accent-rose-600 rounded"
+                    />
+                    <span className="text-stone-800 text-[11px]">
+                      <b>Tidak Timbang Wajib</b>: Melewatkan timbangan Nasi 170g / ECO 20g / Sambal 30g.
+                    </span>
+                  </label>
+
+                  <label className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-rose-200 cursor-pointer hover:bg-rose-50/30 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={killSwitches.kontaminasiLantai}
+                      onChange={(e) => setKillSwitches((prev) => ({ ...prev, kontaminasiLantai: e.target.checked }))}
+                      className="mt-0.5 accent-rose-600 rounded"
+                    />
+                    <span className="text-stone-800 text-[11px]">
+                      <b>Kontaminasi K3/Lantai</b>: Bahan jatuh ke lantai atau lap tercampur kotor.
+                    </span>
+                  </label>
                 </div>
               </div>
 
