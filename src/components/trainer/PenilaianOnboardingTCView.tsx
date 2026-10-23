@@ -51,13 +51,20 @@ export const PenilaianOnboardingTCView: React.FC<PenilaianOnboardingTCViewProps>
 
   // Selected Kru
   const [selectedPesertaNama, setSelectedPesertaNama] = useState<string>(
-    DAFTAR_PESERTA_ONBOARDING_TC[0]?.nama || 'Iqbal Muzzaki'
+    DAFTAR_PESERTA_ONBOARDING_TC[0]?.nama || 'Excel Tri Anggoro'
   );
   const [selectedPesertaOutlet, setSelectedPesertaOutlet] = useState<string>(
-    DAFTAR_PESERTA_ONBOARDING_TC[0]?.outlet || 'Imogiri Barat'
+    DAFTAR_PESERTA_ONBOARDING_TC[0]?.outlet || 'Jl Paris'
   );
-  const [selectedKategori, setSelectedKategori] = useState<'New' | 'Reguler'>('Reguler');
+  const [selectedKategori, setSelectedKategori] = useState<'New' | 'Reguler'>('New');
   const [selectedDivisi, setSelectedDivisi] = useState<Division>('Kitchen');
+
+  // Auto-subscribe to database updates
+  useEffect(() => {
+    refreshHistory();
+    const unsub = db.subscribe('*', refreshHistory);
+    return () => unsub();
+  }, []);
 
   // Sync selected participant details
   const handleSelectPeserta = (nama: string) => {
@@ -197,6 +204,8 @@ export const PenilaianOnboardingTCView: React.FC<PenilaianOnboardingTCViewProps>
     };
 
     db.insertRow('penilaian_onboarding_tc', newRecord);
+    setStopwatchRunning(false);
+    setStopwatchSeconds(0);
     refreshHistory();
     setNotification({
       message: `Hasil penilaian untuk ${selectedPesertaNama} (${calculated.statusKelulusan} - Skor ${calculated.skorTotal}) berhasil disimpan ke database!`,
@@ -238,11 +247,29 @@ export const PenilaianOnboardingTCView: React.FC<PenilaianOnboardingTCViewProps>
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2 self-start md:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              db.resetToInitialSeed();
+              refreshHistory();
+              setNotification({
+                message: '12 Peserta resmi (Excel, Restu, Sabyan, Henandya, Derrel, Aini, Rintis, Yunita, Fita, Achmad, Nafisa, Akhmad) berhasil disinkronkan ke Cloud & Database!',
+                type: 'success',
+              });
+              setTimeout(() => setNotification(null), 4000);
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-[#96171B] text-white hover:bg-[#801216] transition-all shadow-xs cursor-pointer"
+            title="Satu klik untuk mereset dan menyinkronkan 12 peserta resmi Batch 23-24 Oktober 2026"
+          >
+            <RefreshCw size={13} />
+            <span>Sinkronkan 12 Peserta (Cloud)</span>
+          </button>
+
           {onNavigateToAnalisis && (
             <button
               onClick={onNavigateToAnalisis}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-2xs"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors shadow-2xs"
             >
               <TrendingUp size={15} />
               <span>Buka Data Analyst & Rapor TC</span>

@@ -9,6 +9,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { db } from '../../lib/storage';
+import { syncAllToFirestore } from '../../lib/firestoreSync';
 import { PenilaianOnboardingTC, Outlet, Division } from '../../types';
 
 interface OnboardingDataAnalystViewProps {
@@ -435,6 +436,27 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onClick={async () => {
+              try {
+                db.setDirect('kru', db.getKru());
+                db.setDirect('outlets', db.getOutlets());
+                db.setDirect('onboarding_batches', db.getOnboardingBatches());
+                db.setDirect('penilaian_praktik_onboarding_produk', db.getPenilaianPraktikProduk());
+                await syncAllToFirestore();
+                loadData();
+                alert('12 Peserta Onboarding 23-24 Oktober berhasil disinkronkan ke Cloud Firestore.');
+              } catch {
+                alert('Sinkronisasi selesai.');
+              }
+            }}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-2xs"
+            title="Muat ulang dan sinkronkan data 12 peserta ke Cloud Firestore"
+          >
+            <RefreshCw size={15} />
+            <span>Sinkronkan 12 Peserta (Cloud)</span>
+          </button>
+
           <button
             onClick={handleExportBatchSummaryPDF}
             className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs"

@@ -47,18 +47,18 @@ export interface TrainingParticipantItem {
  * Sesuai Dokumen Fisik Agenda Training Center
  */
 export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
-  { no: 1, nama: 'Iqbal Muzzaki', outlet: 'Imogiri Barat', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 2, nama: 'Dhimas Eka Ramadhani', outlet: 'Purworejo', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 3, nama: 'Wanu Azzilina', outlet: 'Wates Bendungan', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 4, nama: 'Tri Muhammad Atmojo', outlet: 'Sedayu', keterangan: 'Reguler', divisi: 'Geprek', default_status: 'Onboarding' },
-  { no: 5, nama: 'Muhammad Gohan Putra Nusa', outlet: 'Jangkang', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 6, nama: 'Rully Aditya', outlet: 'Gito-gati', keterangan: 'Reguler', divisi: 'Geprek', default_status: 'Onboarding' },
-  { no: 7, nama: 'Aulia Eka Sari', outlet: 'Wates Kemiri', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 8, nama: 'Karima Syakinata Fiddini', outlet: 'Parakan', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 9, nama: 'Shabrina Eka', outlet: 'Pandean', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 10, nama: 'Ryan Candra Kusuma', outlet: 'Godean Munggur', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 11, nama: 'Chicha Suparwati', outlet: 'Kalakijo', keterangan: 'New', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 12, nama: 'Intan Nur Khasanah', outlet: 'Mantrijeron', keterangan: 'New', divisi: 'Geprek', default_status: 'Onboarding' },
+  { no: 1, nama: 'Excel Tri Anggoro', outlet: 'Jl Paris', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 2, nama: 'Restu Satriawan', outlet: 'RSI', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 3, nama: 'Sabyan Ezzar Cantona', outlet: 'Nusa Indah', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 4, nama: 'Henandya Lova Reyza Putra', outlet: 'Kamdanen', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 5, nama: 'Derrel Fazle Mawla', outlet: 'Jl Damai', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 6, nama: 'Aini Amalia Safitri', outlet: 'Mudal', keterangan: 'New', divisi: 'Kasir', default_status: 'Onboarding' },
+  { no: 7, nama: 'Rintis Selo Mukti', outlet: 'Wates Sutijab', keterangan: 'New', divisi: 'Geprek', default_status: 'Onboarding' },
+  { no: 8, nama: 'Yunita Sari', outlet: 'Pandega', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
+  { no: 9, nama: 'Fita Febri', outlet: 'Parakan', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 10, nama: 'Achmad Luthfi Khakim', outlet: 'Kertek', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 11, nama: 'Nafisa Azzahra', outlet: 'Jl Paris', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
+  { no: 12, nama: 'Akhmad Saifudin', outlet: 'Pandean', keterangan: 'Reguler', divisi: 'Geprek', default_status: 'Onboarding' },
 ];
 
 /**

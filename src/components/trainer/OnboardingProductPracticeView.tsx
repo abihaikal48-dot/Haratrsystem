@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../lib/storage';
+import { syncAllToFirestore } from '../../lib/firestoreSync';
 import {
   Kru, Outlet, Division, OnboardingBatch,
   PenilaianPraktikOnboardingProduk
@@ -306,7 +307,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setSessions(prev =>
       prev.map(s => {
         if (s.id === activeSession.id) {
-          return { ...s, ...updates, isSaved: false };
+          const nextIsSaved = updates.isSaved !== undefined ? updates.isSaved : false;
+          return { ...s, ...updates, isSaved: nextIsSaved };
         }
         return s;
       })
@@ -650,9 +652,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     updateActiveSession({
       isSaved: true,
       isTimerRunning: false,
+      timerSeconds: 0,
     });
 
     showToast(`Penilaian "${effectiveKruNama}" untuk produk ${activeSession.productNama} berhasil disimpan (Skor: ${calculatedScores.skorAkhir}).`);
+  };
+
+  const handleSyncCohort = async () => {
+    try {
+      db.setDirect('kru', db.getKru());
+      db.setDirect('outlets', db.getOutlets());
+      db.setDirect('onboarding_batches', db.getOnboardingBatches());
+      db.setDirect('penilaian_praktik_onboarding_produk', db.getPenilaianPraktikProduk());
+      await syncAllToFirestore();
+      refreshData();
+      showToast('12 Peserta Onboarding 23-24 Oktober disinkronkan ke Cloud Firestore.');
+    } catch {
+      showToast('Sinkronisasi data selesai.');
+    }
   };
 
   const formatTime = (secs: number) => {
@@ -783,6 +800,16 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
+            onClick={handleSyncCohort}
+            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
+            title="Muat ulang dan sinkronkan data 12 peserta onboarding 23-24 Oktober ke Cloud Firestore"
+          >
+            <RefreshCw size={14} />
+            <span>Sinkronkan 12 Peserta (Cloud)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setCrewReportModalKru(activeSession?.namaKru || 'Peserta')}
             className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
           >
@@ -888,39 +915,79 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               </div>
 
               {!activeSession.isManualName ? (
-                <div className="grid grid-cols-3 gap-2">
-                  <select
-                    value={activeSession.kruId}
-                    onChange={(e) => {
-                      const selectedK = kruList.find(k => k.id === e.target.value);
-                      if (selectedK) {
-                        updateActiveSession({
-                          kruId: selectedK.id,
-                          namaKru: selectedK.nama_kru,
-                          outletCode: selectedK.kode_outlet,
-                        });
-                      }
-                    }}
-                    className="col-span-2 p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
-                  >
-                    {kruList.map((k, idx) => (
-                      <option key={`${k.id}-${idx}`} value={k.id}>
-                        {k.nama_kru} ({k.divisi} - {k.kode_outlet})
-                      </option>
-                    ))}
-                  </select>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-3 gap-2">
+                    <select
+                      value={activeSession.kruId}
+                      onChange={(e) => {
+                        const selectedK = kruList.find(k => k.id === e.target.value);
+                        if (selectedK) {
+                          updateActiveSession({
+                            kruId: selectedK.id,
+                            namaKru: selectedK.nama_kru,
+                            outletCode: selectedK.kode_outlet,
+                          });
+                        }
+                      }}
+                      className="col-span-2 p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
+                    >
+                      {kruList.map((k, idx) => (
+                        <option key={`${k.id}-${idx}`} value={k.id}>
+                          {k.nama_kru} ({k.divisi} - {k.kode_outlet}) {idx < 7 ? '[Baru]' : '[Retrain]'}
+                        </option>
+                      ))}
+                    </select>
 
-                  <select
-                    value={activeSession.outletCode}
-                    onChange={(e) => updateActiveSession({ outletCode: e.target.value })}
-                    className="p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
-                  >
-                    {outlets.map(o => (
-                      <option key={o.kode_outlet} value={o.kode_outlet}>
-                        {o.kode_outlet}
-                      </option>
-                    ))}
-                  </select>
+                    <select
+                      value={activeSession.outletCode}
+                      onChange={(e) => updateActiveSession({ outletCode: e.target.value })}
+                      className="p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
+                    >
+                      {outlets.map(o => (
+                        <option key={o.kode_outlet} value={o.kode_outlet}>
+                          {o.kode_outlet}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Quick Select Cohort Pills */}
+                  <div className="pt-1.5">
+                    <div className="text-[10px] font-bold text-[#645D55] uppercase tracking-wider mb-1 flex items-center justify-between">
+                      <span>12 Peserta Onboarding (23-24 Okt):</span>
+                      <span className="text-[9.5px] text-[#96171B] font-semibold">1-7 Karyawan Baru • 8-12 Retraining</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto p-1 bg-[#FAF8F5] rounded-lg border border-[#E6E1DA]">
+                      {kruList.map((k, idx) => {
+                        const isSelected = activeSession.kruId === k.id;
+                        const isNew = idx < 7;
+                        return (
+                          <button
+                            key={`pill-${k.id}`}
+                            type="button"
+                            onClick={() => {
+                              updateActiveSession({
+                                kruId: k.id,
+                                namaKru: k.nama_kru,
+                                outletCode: k.kode_outlet,
+                              });
+                            }}
+                            className={`px-2 py-1 rounded text-[10px] font-bold transition-all cursor-pointer flex items-center gap-1 border ${
+                              isSelected
+                                ? 'bg-[#96171B] text-white border-[#96171B]'
+                                : isNew
+                                ? 'bg-red-50 text-[#96171B] border-red-200 hover:bg-red-100'
+                                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-gray-400'
+                            }`}
+                            title={`${k.nama_kru} (${k.divisi} - ${k.kode_outlet}) ${isNew ? 'Karyawan Baru' : 'Retraining'}`}
+                          >
+                            <span>{idx + 1}. {k.nama_kru.split(' ')[0]}</span>
+                            <span className="text-[9px] opacity-80">({isNew ? 'Baru' : 'Ret'})</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-2">

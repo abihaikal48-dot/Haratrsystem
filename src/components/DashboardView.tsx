@@ -49,7 +49,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [timeframe, setTimeframe] = useState<'Hari Ini' | 'Minggu Ini' | 'Bulan Ini'>('Minggu Ini');
   const [activeTab, setActiveTab] = useState<'ujian' | 'ojt' | 'keluhan'>('ujian');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'ALL' | 'LULUS' | 'REMEDIAL'>('ALL');
   const [gradeFilter, setGradeFilter] = useState<'ALL' | 'GRADE_A' | 'GRADE_B' | 'GRADE_C' | 'REMEDIAL'>('ALL');
 
   // Modals state
@@ -78,11 +77,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
     if (selectedOutletCode !== 'ALL') {
       list = list.filter((e) => e.kode_outlet === selectedOutletCode);
     }
-    if (statusFilter === 'LULUS') {
-      list = list.filter((e) => e.status_kelulusan === 'Lulus Kompeten');
-    } else if (statusFilter === 'REMEDIAL') {
-      list = list.filter((e) => e.status_kelulusan === 'Remedial Terbimbing');
-    }
     if (gradeFilter === 'GRADE_A') {
       list = list.filter((e) => (e.skor_akhir_komposit || 0) >= 85);
     } else if (gradeFilter === 'GRADE_B') {
@@ -102,7 +96,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       );
     }
     return list;
-  }, [examResults, selectedOutletCode, statusFilter, gradeFilter, searchQuery]);
+  }, [examResults, selectedOutletCode, gradeFilter, searchQuery]);
 
   // Filtered OJT Monitoring
   const filteredOjt = useMemo(() => {
@@ -469,18 +463,6 @@ _Standar Mutu & Operasional HARA Chicken._`;
                 className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-amber-500 bg-slate-50/50 hover:bg-white focus:bg-white w-48 sm:w-60"
               />
             </div>
-
-            {activeTab === 'ujian' && (
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as any)}
-                className="px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-slate-50/50 focus:outline-none"
-              >
-                <option value="ALL">Semua Status</option>
-                <option value="LULUS">Lulus Kompeten</option>
-                <option value="REMEDIAL">Remedial</option>
-              </select>
-            )}
           </div>
         </div>
 

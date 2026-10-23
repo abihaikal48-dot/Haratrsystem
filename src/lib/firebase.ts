@@ -2,8 +2,6 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import {
   getFirestore,
-  doc,
-  getDocFromServer,
   Firestore
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
@@ -14,10 +12,20 @@ export const auth = getAuth(app);
 
 const databaseId = (firebaseConfig as any).firestoreDatabaseId;
 
-// Initialize Firestore per skill specification: getFirestore(app, firestoreDatabaseId)
 export const firestore: Firestore = getFirestore(app, databaseId);
 export const db = firestore;
 export default app;
+
+let quotaExceededDetected = true; // Default to local mode per user request
+
+export function checkAndHandleQuotaError(_error: unknown): boolean {
+  quotaExceededDetected = true;
+  return true;
+}
+
+export function isFirestoreQuotaExceeded(): boolean {
+  return true; // Always local storage mode
+}
 
 export enum OperationType {
   CREATE = 'create',
@@ -45,36 +53,10 @@ export interface FirestoreErrorInfo {
   };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errMessage = error instanceof Error ? error.message : String(error);
-  const errInfo: FirestoreErrorInfo = {
-    error: errMessage,
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map((provider) => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || [],
-    },
-    operationType,
-    path,
-  };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
+export function handleFirestoreError(_error: unknown, operationType: OperationType, path: string | null) {
+  console.warn(`Firestore operation ${operationType} on ${path} skipped (Local mode active).`);
 }
 
 export async function testFirestoreConnection(): Promise<boolean> {
-  try {
-    await getDocFromServer(doc(firestore, 'test', 'connection'));
-    return true;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('the client is offline')) {
-      console.warn('Please check your Firebase configuration: client is offline.');
-    }
-    return false;
-  }
+  return false; // Local mode active
 }

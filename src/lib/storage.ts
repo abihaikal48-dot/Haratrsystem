@@ -91,124 +91,84 @@ export function sanitizeForFirestore<T>(data: T): T {
 // Seed Data
 const INITIAL_OUTLETS: Outlet[] = [
   {
-    id: 'out-1',
-    nama_outlet: 'Hara Chicken Jatiasih',
-    kode_outlet: 'HC-JTS01',
-    alamat: 'Jl. Raya Jatiasih No. 45, Bekasi',
+    id: 'out-prs01',
+    nama_outlet: 'Hara Chicken Jl Paris',
+    kode_outlet: 'HC-PRS01',
+    alamat: 'Jl. Parangtritis No. 88, Yogyakarta',
     kepala_outlet: 'Rian Hidayat',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-01-10T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-2',
-    nama_outlet: 'Hara Chicken Bantul',
-    kode_outlet: 'HC-BTL01',
-    alamat: 'Jl. Jenderal Sudirman No. 12, Bantul, DIY',
+    id: 'out-rsi01',
+    nama_outlet: 'Hara Chicken RSI',
+    kode_outlet: 'HC-RSI01',
+    alamat: 'Jl. Mas Suharto No. 12, Yogyakarta',
     kepala_outlet: 'Dewi Lestari',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-01-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-3',
-    nama_outlet: 'Hara Chicken Malang Soehat',
-    kode_outlet: 'HC-MLG01',
-    alamat: 'Jl. Soekarno Hatta No. 88, Malang',
+    id: 'out-nsi01',
+    nama_outlet: 'Hara Chicken Nusa Indah',
+    kode_outlet: 'HC-NSI01',
+    alamat: 'Jl. Nusa Indah No. 45, Sleman',
     kepala_outlet: 'Fajar Nugroho',
     area_supervisor: 'Siti Sarah',
     status_aktif: 'Aktif',
-    created_at: '2026-02-01T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-4',
-    nama_outlet: 'Hara Chicken Rungkut Surabaya',
-    kode_outlet: 'HC-SBY01',
-    alamat: 'Jl. Raya Rungkut Madya No. 20, Surabaya',
+    id: 'out-kmd01',
+    nama_outlet: 'Hara Chicken Kamdanen',
+    kode_outlet: 'HC-KMD01',
+    alamat: 'Jl. Palagan Tentara Pelajar Km 8.5, Sleman',
     kepala_outlet: 'Andi Wijaya',
     area_supervisor: 'Siti Sarah',
     status_aktif: 'Aktif',
-    created_at: '2026-02-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-5',
-    nama_outlet: 'Hara Chicken Margonda Depok',
-    kode_outlet: 'HC-DPK01',
-    alamat: 'Jl. Margonda Raya No. 110, Depok',
+    id: 'out-dma01',
+    nama_outlet: 'Hara Chicken Jl Damai',
+    kode_outlet: 'HC-DMA01',
+    alamat: 'Jl. Damai No. 33, Ngaglik, Sleman',
     kepala_outlet: 'Hendra Saputra',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-01T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-img01',
-    nama_outlet: 'Hara Chicken Imogiri Barat',
-    kode_outlet: 'HC-IMG01',
-    alamat: 'Jl. Imogiri Barat Km 7, Bantul, DIY',
+    id: 'out-mdl01',
+    nama_outlet: 'Hara Chicken Mudal',
+    kode_outlet: 'HC-MDL01',
+    alamat: 'Jl. Palagan Mudal, Sariharjo, Sleman',
     kepala_outlet: 'Rahmat Hidayat',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-pwr01',
-    nama_outlet: 'Hara Chicken Purworejo',
-    kode_outlet: 'HC-PWR01',
-    alamat: 'Jl. Jendral Ahmad Yani No. 50, Purworejo',
-    kepala_outlet: 'Bambang Setiawan',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-wtb01',
-    nama_outlet: 'Hara Chicken Wates Bendungan',
-    kode_outlet: 'HC-WTB01',
-    alamat: 'Jl. Wates - Purworejo Km 2, Kulon Progo',
+    id: 'out-wtj01',
+    nama_outlet: 'Hara Chicken Wates Sutijab',
+    kode_outlet: 'HC-WTJ01',
+    alamat: 'Jl. Sugiman No. 10, Wates, Kulon Progo',
     kepala_outlet: 'Tri Wahyudi',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
-    id: 'out-sdy01',
-    nama_outlet: 'Hara Chicken Sedayu',
-    kode_outlet: 'HC-SDY01',
-    alamat: 'Jl. Wates Km 12, Argorejo, Sedayu, Bantul',
+    id: 'out-pdg01',
+    nama_outlet: 'Hara Chicken Pandega',
+    kode_outlet: 'HC-PDG01',
+    alamat: 'Jl. Pandega Marta No. 22, Sleman',
     kepala_outlet: 'Aris Prasetyo',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-jkg01',
-    nama_outlet: 'Hara Chicken Jangkang',
-    kode_outlet: 'HC-JKG01',
-    alamat: 'Jl. Kaliurang Km 14, Jangkang, Sleman',
-    kepala_outlet: 'Dwi Cahyono',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-gtg01',
-    nama_outlet: 'Hara Chicken Gito-gati',
-    kode_outlet: 'HC-GTG01',
-    alamat: 'Jl. Gito-Gati No. 18, Sleman, DIY',
-    kepala_outlet: 'Doni Saputra',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-wtk01',
-    nama_outlet: 'Hara Chicken Wates Kemiri',
-    kode_outlet: 'HC-WTK01',
-    alamat: 'Jl. Kemiri No. 34, Wates, Kulon Progo',
-    kepala_outlet: 'Fitri Rahayu',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
     id: 'out-prk01',
@@ -218,7 +178,17 @@ const INITIAL_OUTLETS: Outlet[] = [
     kepala_outlet: 'Agus Riyadi',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
+  },
+  {
+    id: 'out-ktk01',
+    nama_outlet: 'Hara Chicken Kertek',
+    kode_outlet: 'HC-KTK01',
+    alamat: 'Jl. Raya Parakan - Kertek, Wonosobo',
+    kepala_outlet: 'Dwi Cahyono',
+    area_supervisor: 'Bambang Kusuma',
+    status_aktif: 'Aktif',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
   {
     id: 'out-pdn01',
@@ -228,260 +198,142 @@ const INITIAL_OUTLETS: Outlet[] = [
     kepala_outlet: 'Nur Aisyah',
     area_supervisor: 'Bambang Kusuma',
     status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-gdm01',
-    nama_outlet: 'Hara Chicken Godean Munggur',
-    kode_outlet: 'HC-GDM01',
-    alamat: 'Jl. Godean Km 7.5, Munggur, Sleman',
-    kepala_outlet: 'Hadi Gunawan',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-klk01',
-    nama_outlet: 'Hara Chicken Kalakijo',
-    kode_outlet: 'HC-KLK01',
-    alamat: 'Jl. Bantul Km 9.5, Kalakijo, Guwosari, Pajangan',
-    kepala_outlet: 'Lestari Handayani',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
-  },
-  {
-    id: 'out-mnj01',
-    nama_outlet: 'Hara Chicken Mantrijeron',
-    kode_outlet: 'HC-MNJ01',
-    alamat: 'Jl. DI Panjaitan No. 67, Mantrijeron, Yogyakarta',
-    kepala_outlet: 'Rizki Pratama',
-    area_supervisor: 'Bambang Kusuma',
-    status_aktif: 'Aktif',
-    created_at: '2026-03-15T08:00:00.000Z',
+    created_at: '2026-10-01T08:00:00.000Z',
   },
 ];
 
 const INITIAL_KRU: Kru[] = [
   {
-    id: 'kru-1',
-    nama_kru: 'Budi Santoso',
-    jabatan: 'Senior Cook & Fryer Specialist',
+    id: 'kru-ob-2301',
+    nama_kru: 'Excel Tri Anggoro',
+    jabatan: 'Kru Kitchen (Onboarding Baru)',
     divisi: 'Kitchen',
-    kode_outlet: 'HC-JTS01',
-    tanggal_masuk: '2025-11-01',
+    kode_outlet: 'HC-PRS01',
+    tanggal_masuk: '2026-10-23',
     status_aktif: 'Aktif',
-    catatan: 'Senior cook, spesialisasi marinasi dan deep frying.',
-    created_at: '2025-11-01T08:00:00.000Z',
+    catatan: 'Peserta No. 1 (Karyawan Baru) - Outlet Jl Paris',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-2',
-    nama_kru: 'Siti Rahmawati',
-    jabatan: 'Senior Cashier & Front Liner',
+    id: 'kru-ob-2302',
+    nama_kru: 'Restu Satriawan',
+    jabatan: 'Kru Kitchen (Onboarding Baru)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-RSI01',
+    tanggal_masuk: '2026-10-23',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta No. 2 (Karyawan Baru) - Outlet RSI',
+    created_at: '2026-10-23T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-2303',
+    nama_kru: 'Sabyan Ezzar Cantona',
+    jabatan: 'Kru Kitchen (Onboarding Baru)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-NSI01',
+    tanggal_masuk: '2026-10-23',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta No. 3 (Karyawan Baru) - Outlet Nusa Indah',
+    created_at: '2026-10-23T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-2304',
+    nama_kru: 'Henandya Lova Reyza Putra',
+    jabatan: 'Kru Kitchen (Onboarding Baru)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-KMD01',
+    tanggal_masuk: '2026-10-23',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta No. 4 (Karyawan Baru) - Outlet Kamdanen',
+    created_at: '2026-10-23T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-2305',
+    nama_kru: 'Derrel Fazle Mawla',
+    jabatan: 'Kru Kitchen (Onboarding Baru)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-DMA01',
+    tanggal_masuk: '2026-10-23',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta No. 5 (Karyawan Baru) - Outlet Jl Damai',
+    created_at: '2026-10-23T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-2306',
+    nama_kru: 'Aini Amalia Safitri',
+    jabatan: 'Kru Kasir (Onboarding Baru)',
     divisi: 'Kasir',
-    kode_outlet: 'HC-JTS01',
-    tanggal_masuk: '2026-01-10',
+    kode_outlet: 'HC-MDL01',
+    tanggal_masuk: '2026-10-23',
     status_aktif: 'Aktif',
-    catatan: 'Pelayanan ramah, pemahaman POS kasir sangat baik.',
-    created_at: '2026-01-10T08:00:00.000Z',
+    catatan: 'Peserta No. 6 (Karyawan Baru) - Outlet Mudal',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-3',
-    nama_kru: 'Agus Pratama',
-    jabatan: 'Crew Sambal & Geprek Lead',
+    id: 'kru-ob-2307',
+    nama_kru: 'Rintis Selo Mukti',
+    jabatan: 'Kru Geprek (Onboarding Baru)',
     divisi: 'Geprek',
-    kode_outlet: 'HC-BTL01',
-    tanggal_masuk: '2025-12-15',
+    kode_outlet: 'HC-WTJ01',
+    tanggal_masuk: '2026-10-23',
     status_aktif: 'Aktif',
-    catatan: 'Cepat dalam penimbangan takaran sambal.',
-    created_at: '2025-12-15T08:00:00.000Z',
+    catatan: 'Peserta No. 7 (Karyawan Baru) - Outlet Wates Sutijab',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-4',
-    nama_kru: 'Eko Wahyudi',
-    jabatan: 'Kitchen Helper & Sanitasi',
-    divisi: 'Helper',
-    kode_outlet: 'HC-BTL01',
-    tanggal_masuk: '2026-02-01',
-    status_aktif: 'Aktif',
-    catatan: 'Kebersihan area cuci piring dan prep station.',
-    created_at: '2026-02-01T08:00:00.000Z',
-  },
-  {
-    id: 'kru-5',
-    nama_kru: 'Rina Amelia',
-    jabatan: 'Cashier Lead Candidate',
+    id: 'kru-ob-2308',
+    nama_kru: 'Yunita Sari',
+    jabatan: 'Senior Cashier (Retraining)',
     divisi: 'Kasir',
-    kode_outlet: 'HC-MLG01',
-    tanggal_masuk: '2026-01-20',
+    kode_outlet: 'HC-PDG01',
+    tanggal_masuk: '2025-08-10',
     status_aktif: 'Aktif',
-    catatan: 'Kandidat Head Cashier program talent.',
-    created_at: '2026-01-20T08:00:00.000Z',
+    catatan: 'Peserta No. 8 (Retraining Karyawan Lama) - Outlet Pandega',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-6',
-    nama_kru: 'Dimas Setiawan',
-    jabatan: 'Junior Cook (OJT)',
-    divisi: 'Kitchen',
-    kode_outlet: 'HC-MLG01',
-    tanggal_masuk: '2026-02-10',
-    status_aktif: 'Aktif',
-    catatan: 'Perlu bimbingan ketepatan suhu minyak goreng.',
-    created_at: '2026-02-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-7',
-    nama_kru: 'Nurul Hidayah',
-    jabatan: 'Crew Geprek',
-    divisi: 'Geprek',
-    kode_outlet: 'HC-SBY01',
-    tanggal_masuk: '2026-03-01',
-    status_aktif: 'Aktif',
-    catatan: 'Kru baru cabang Surabaya.',
-    created_at: '2026-03-01T08:00:00.000Z',
-  },
-  {
-    id: 'kru-8',
-    nama_kru: 'Tri Wibowo',
-    jabatan: 'Helper & Sanitation Crew',
-    divisi: 'Helper',
-    kode_outlet: 'HC-DPK01',
-    tanggal_masuk: '2026-03-05',
-    status_aktif: 'Aktif',
-    catatan: 'Disiplin dan rajin membersihkan grease trap.',
-    created_at: '2026-03-05T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-01',
-    nama_kru: 'Iqbal Muzzaki',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kitchen',
-    kode_outlet: 'HC-IMG01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Imogiri Barat',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-02',
-    nama_kru: 'Dhimas Eka Ramadhani',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kitchen',
-    kode_outlet: 'HC-PWR01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Purworejo',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-03',
-    nama_kru: 'Wanu Azzilina',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kasir',
-    kode_outlet: 'HC-WTB01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Wates Bendungan',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-04',
-    nama_kru: 'Tri Muhammad Atmojo',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Geprek',
-    kode_outlet: 'HC-SDY01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Sedayu',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-05',
-    nama_kru: 'Muhammad Gohan Putra Nusa',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kitchen',
-    kode_outlet: 'HC-JKG01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Jangkang',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-06',
-    nama_kru: 'Rully Aditya',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Geprek',
-    kode_outlet: 'HC-GTG01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Gito-gati',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-07',
-    nama_kru: 'Aulia Eka Sari',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kasir',
-    kode_outlet: 'HC-WTK01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Wates Kemiri',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-08',
-    nama_kru: 'Karima Syakinata Fiddini',
-    jabatan: 'Kru Onboarding Training Center',
+    id: 'kru-ob-2309',
+    nama_kru: 'Fita Febri',
+    jabatan: 'Senior Cook (Retraining)',
     divisi: 'Kitchen',
     kode_outlet: 'HC-PRK01',
-    tanggal_masuk: '2026-04-10',
+    tanggal_masuk: '2025-09-12',
     status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Parakan',
-    created_at: '2026-04-10T08:00:00.000Z',
+    catatan: 'Peserta No. 9 (Retraining Karyawan Lama) - Outlet Parakan',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-ob-09',
-    nama_kru: 'Shabrina Eka',
-    jabatan: 'Kru Onboarding Training Center',
-    divisi: 'Kasir',
-    kode_outlet: 'HC-PDN01',
-    tanggal_masuk: '2026-04-10',
-    status_aktif: 'Aktif',
-    catatan: 'Peserta Onboarding Training Center HARA - Outlet Pandean',
-    created_at: '2026-04-10T08:00:00.000Z',
-  },
-  {
-    id: 'kru-ob-10',
-    nama_kru: 'Ryan Candra Kusuma (New)',
-    jabatan: 'Kru Onboarding Training Center',
+    id: 'kru-ob-2310',
+    nama_kru: 'Achmad Luthfi Khakim',
+    jabatan: 'Senior Cook (Retraining)',
     divisi: 'Kitchen',
-    kode_outlet: 'HC-GDM01',
-    tanggal_masuk: '2026-04-10',
+    kode_outlet: 'HC-KTK01',
+    tanggal_masuk: '2025-07-20',
     status_aktif: 'Aktif',
-    catatan: 'Peserta Baru (New) Onboarding Training Center HARA - Outlet Godean Munggur',
-    created_at: '2026-04-10T08:00:00.000Z',
+    catatan: 'Peserta No. 10 (Retraining Karyawan Lama) - Outlet Kertek',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-ob-11',
-    nama_kru: 'Chicha Suparwati (New)',
-    jabatan: 'Kru Onboarding Training Center',
+    id: 'kru-ob-2311',
+    nama_kru: 'Nafisa Azzahra',
+    jabatan: 'Senior Cashier (Retraining)',
     divisi: 'Kasir',
-    kode_outlet: 'HC-KLK01',
-    tanggal_masuk: '2026-04-10',
+    kode_outlet: 'HC-PRS01',
+    tanggal_masuk: '2025-06-15',
     status_aktif: 'Aktif',
-    catatan: 'Peserta Baru (New) Onboarding Training Center HARA - Outlet Kalakijo',
-    created_at: '2026-04-10T08:00:00.000Z',
+    catatan: 'Peserta No. 11 (Retraining Karyawan Lama) - Outlet Jl Paris',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-ob-12',
-    nama_kru: 'Intan Nur Khasanah (New)',
-    jabatan: 'Kru Onboarding Training Center',
+    id: 'kru-ob-2312',
+    nama_kru: 'Akhmad Saifudin',
+    jabatan: 'Crew Geprek Lead (Retraining)',
     divisi: 'Geprek',
-    kode_outlet: 'HC-MNJ01',
-    tanggal_masuk: '2026-04-10',
+    kode_outlet: 'HC-PDN01',
+    tanggal_masuk: '2025-05-01',
     status_aktif: 'Aktif',
-    catatan: 'Peserta Baru (New) Onboarding Training Center HARA - Outlet Mantrijeron',
-    created_at: '2026-04-10T08:00:00.000Z',
+    catatan: 'Peserta No. 12 (Retraining Karyawan Lama) - Outlet Pandean',
+    created_at: '2026-10-23T08:00:00.000Z',
   },
 ];
 
@@ -1662,144 +1514,160 @@ const INITIAL_SETTINGS: SystemSettings = {
 
 export const INITIAL_PENILAIAN_PRAKTIK_PRODUK: PenilaianPraktikOnboardingProduk[] = [
   {
-    id: 'prak-prod-01',
-    tanggal: '2026-03-24',
-    kru_id: 'kru-1',
-    nama_kru: 'Ahmad Fauzi',
-    kode_outlet: 'HC-JTS01',
-    nama_outlet: 'Hara Chicken Jatiasih',
-    batch_id: 'batch-01',
-    nama_batch: 'Batch 01 - Onboarding Kru Baru Q1 2026',
+    id: 'prak-prod-2301',
+    tanggal: '2026-10-23',
+    kru_id: 'kru-ob-2301',
+    nama_kru: 'Excel Tri Anggoro',
+    kode_outlet: 'HC-PRS01',
+    batch_id: 'batch-ob-2026-10-23',
+    nama_batch: 'Batch Onboarding & Retraining 23-24 Oktober 2026',
     divisi: 'Kitchen',
-    produk_nama: 'Goreng Ayam',
-    kode_sop: 'HC-SOP-KIT-02',
-    skor_ketepatan: 92,
-    skor_kerjasama: 88,
-    skor_kecepatan: 95,
-    durasi_detik: 720,
-    standar_durasi_detik: 720,
-    skor_knowledge: 90,
-    skor_kebersihan: 88,
-    skor_keaktifan: 90,
-    skor_langkah_sop: 94,
-    skor_akhir: 91.5,
-    status_kelulusan: 'Lulus Kompeten',
-    checklist_langkah: [
-      { nomor: 1, langkah: 'Nyalakan api kompor deep fryer dan putar pengatur suhu ke 175°C.', tercapai: true },
-      { nomor: 2, langkah: 'Cek suhu minyak dengan termometer hingga mencapai 160°C.', tercapai: true },
-      { nomor: 3, langkah: 'Lakukan penepungan ayam (dusting): celup air 1 detik, cubit lembut agar keriting mekar.', tercapai: true },
-      { nomor: 4, langkah: 'Masukkan ayam ke dalam minyak minimal 2 kg dan maksimal 3 kg per batch.', tercapai: true },
-      { nomor: 5, langkah: 'Goyangkan keranjang setiap 3 menit agar ayam tidak lengket dan matang merata.', tercapai: true },
-      { nomor: 6, langkah: 'Goreng selama 12 menit tepat.', tercapai: true },
-      { nomor: 7, langkah: 'Angkat ayam, tiriskan minyak 1 menit, lalu pindahkan dengan jepitan ke warmer.', tercapai: true },
-      { nomor: 8, langkah: 'Kuras dan saring remah minyak secara berkala pergantian shift.', tercapai: true }
-    ],
-    catatan_trainer: 'Keriting kriuk mekar sempurna, kematangan merata hingga ke tulang paha.',
-    nama_trainer: 'Haikal Abi (Lead Trainer)',
-    created_at: '2026-03-24T09:30:00.000Z',
-  },
-  {
-    id: 'prak-prod-02',
-    tanggal: '2026-03-24',
-    kru_id: 'kru-2',
-    nama_kru: 'Siti Nurhaliza',
-    kode_outlet: 'HC-JTS01',
-    nama_outlet: 'Hara Chicken Jatiasih',
-    batch_id: 'batch-01',
-    nama_batch: 'Batch 01 - Onboarding Kru Baru Q1 2026',
-    divisi: 'Kitchen',
-    produk_nama: 'Nasi',
-    kode_sop: 'HC-SOP-KIT-01',
-    skor_ketepatan: 95,
-    skor_kerjasama: 90,
-    skor_kecepatan: 90,
-    durasi_detik: 900,
-    standar_durasi_detik: 900,
-    skor_knowledge: 92,
-    skor_kebersihan: 94,
-    skor_keaktifan: 92,
-    skor_langkah_sop: 96,
-    skor_akhir: 93.2,
-    status_kelulusan: 'Lulus Kompeten',
-    checklist_langkah: [
-      { nomor: 1, langkah: 'Ambil maksimal 6 cup beras (Merk Miyako).', tercapai: true },
-      { nomor: 2, langkah: 'Cuci bersih beras minimal 3 kali bilas hingga air jernih.', tercapai: true },
-      { nomor: 3, langkah: 'Masukkan beras ke wadah rice cooker gas dengan rasio takaran air baku.', tercapai: true },
-      { nomor: 4, langkah: 'Nyalakan api kecil lalu tekan tombol COOK ke bawah.', tercapai: true },
-      { nomor: 5, langkah: 'Biarkan tanak 15 menit setelah tombol kembali ke posisi awal sebelum dipindah ke magicom.', tercapai: true }
-    ],
-    catatan_trainer: 'Nasi pulen matang sempurna, teknik centong bulat rapi.',
-    nama_trainer: 'Haikal Abi (Lead Trainer)',
-    created_at: '2026-03-24T10:15:00.000Z',
-  },
-  {
-    id: 'prak-prod-03',
-    tanggal: '2026-03-25',
-    kru_id: 'kru-3',
-    nama_kru: 'Budi Santoso',
-    kode_outlet: 'HC-BTL01',
-    nama_outlet: 'Hara Chicken Bantul',
-    batch_id: 'batch-02',
-    nama_batch: 'Batch 02 - Onboarding & Standarisasi Bantul',
-    divisi: 'Geprek',
-    produk_nama: 'Sambal Bawang',
-    kode_sop: 'HC-SOP-GEP-03',
-    skor_ketepatan: 88,
-    skor_kerjasama: 84,
-    skor_kecepatan: 88,
-    durasi_detik: 165,
-    standar_durasi_detik: 180,
-    skor_knowledge: 86,
-    skor_kebersihan: 82,
-    skor_keaktifan: 85,
-    skor_langkah_sop: 88,
-    skor_akhir: 86.4,
-    status_kelulusan: 'Lulus Kompeten',
-    checklist_langkah: [
-      { nomor: 1, langkah: 'Timbang cabai rawit merah dan bawang putih sesuai porsi standar porsi HARA.', tercapai: true },
-      { nomor: 2, langkah: 'Ulek kasar bawang dan cabai rawit (tidak boleh terlalu halus).', tercapai: true },
-      { nomor: 3, langkah: 'Tambahkan takaran garam dan penyedap rasa terstandar.', tercapai: true },
-      { nomor: 4, langkah: 'Siram minyak panas mendidih tepat dari deep fryer ke atas sambal.', tercapai: true },
-      { nomor: 5, langkah: 'Aduk rata hingga layu harum semerbak.', tercapai: true }
-    ],
-    catatan_trainer: 'Aroma harum bawang layu merata, pedas gurih standar HARA.',
-    nama_trainer: 'Haikal Abi (Lead Trainer)',
-    created_at: '2026-03-25T11:00:00.000Z',
-  },
-  {
-    id: 'prak-prod-04',
-    tanggal: '2026-03-25',
-    kru_id: 'kru-4',
-    nama_kru: 'Dewi Anggraini',
-    kode_outlet: 'HC-BTL01',
-    nama_outlet: 'Hara Chicken Bantul',
-    batch_id: 'batch-02',
-    nama_batch: 'Batch 02 - Onboarding & Standarisasi Bantul',
-    divisi: 'Geprek',
-    produk_nama: 'Ayam Utuh Nashville',
-    kode_sop: 'HC-SOP-KIT-15',
-    skor_ketepatan: 90,
-    skor_kerjasama: 88,
-    skor_kecepatan: 86,
-    durasi_detik: 120,
-    standar_durasi_detik: 120,
-    skor_knowledge: 92,
+    day: 'Day 1',
+    batch_name: 'Batch 1',
+    station: 'Station 2',
+    station_label: 'Station 2: Deep Fryer 160°C & Penirisan Crispy',
+    produk_nama: 'Ayam Crispy (Goreng)',
+    waktu_detik: 415,
+    target_detik: 420,
+    suhu_minyak_aktual: 161,
+    gramatur_aktual: 125,
+    skor_prosedur: 92,
+    skor_waktu: 95,
     skor_kebersihan: 90,
-    skor_keaktifan: 88,
-    skor_langkah_sop: 92,
-    skor_akhir: 90.0,
-    status_kelulusan: 'Lulus Kompeten',
-    checklist_langkah: [
-      { nomor: 1, langkah: 'Siapkan minyak bumbu Nashville hangat dengan takaran rempah resmi.', tercapai: true },
-      { nomor: 2, langkah: 'Celupkan ayam utuh crispy hangat ke dalam minyak bumbu secara merata.', tercapai: true },
-      { nomor: 3, langkah: 'Tiriskan kelebihan minyak selama 15 detik.', tercapai: true },
-      { nomor: 4, langkah: 'Taburkan Nashville seasoning powder secara merata di kedua sisi.', tercapai: true },
-      { nomor: 5, langkah: 'Tata rapi di wadah saji dengan garnish khas HARA.', tercapai: true }
-    ],
-    catatan_trainer: 'Warna merah khas Nashville merata mengkilap, taburan bumbu rapi.',
-    nama_trainer: 'Haikal Abi (Lead Trainer)',
-    created_at: '2026-03-25T13:45:00.000Z',
-  }
+    skor_kerjasama: 88,
+    skor_knowledge: 90,
+    skor_akhir: 91.2,
+    status: 'KOMPETEN MANDIRI',
+    gagal_titik_kritis: false,
+    titik_kritis_gagal_detail: [],
+    penilai_nama: 'Haikal (Trainer)',
+    catatan: 'Teknik penepungan keriting rapi, suhu minyak stabil 161°C.',
+    created_at: '2026-10-23T09:00:00.000Z',
+  },
+  {
+    id: 'prak-prod-2302',
+    tanggal: '2026-10-23',
+    kru_id: 'kru-ob-2302',
+    nama_kru: 'Restu Satriawan',
+    kode_outlet: 'HC-RSI01',
+    batch_id: 'batch-ob-2026-10-23',
+    nama_batch: 'Batch Onboarding & Retraining 23-24 Oktober 2026',
+    divisi: 'Kitchen',
+    day: 'Day 1',
+    batch_name: 'Batch 1',
+    station: 'Station 1',
+    station_label: 'Station 1: Tanak Nasi Miyako & Marinasi Daging',
+    produk_nama: 'Nasi (Rice Cooker 4 Cup D1)',
+    waktu_detik: 2050,
+    target_detik: 2100,
+    suhu_minyak_aktual: 0,
+    gramatur_aktual: 120,
+    skor_prosedur: 94,
+    skor_waktu: 96,
+    skor_kebersihan: 92,
+    skor_kerjasama: 90,
+    skor_knowledge: 92,
+    skor_akhir: 93.0,
+    status: 'KOMPETEN MANDIRI',
+    gagal_titik_kritis: false,
+    titik_kritis_gagal_detail: [],
+    penilai_nama: 'Jihan (RnD)',
+    catatan: 'Nasi pulen sempurna, rasio Miyako 1:1.25 tepat.',
+    created_at: '2026-10-23T09:30:00.000Z',
+  },
+  {
+    id: 'prak-prod-2303',
+    tanggal: '2026-10-23',
+    kru_id: 'kru-ob-2303',
+    nama_kru: 'Sabyan Ezzar Cantona',
+    kode_outlet: 'HC-NSI01',
+    batch_id: 'batch-ob-2026-10-23',
+    nama_batch: 'Batch Onboarding & Retraining 23-24 Oktober 2026',
+    divisi: 'Kitchen',
+    day: 'Day 1',
+    batch_name: 'Batch 1',
+    station: 'Station 2',
+    station_label: 'Station 2: Deep Fryer 160°C & Penirisan Crispy',
+    produk_nama: 'Ayam Crispy (Goreng)',
+    waktu_detik: 410,
+    target_detik: 420,
+    suhu_minyak_aktual: 160,
+    gramatur_aktual: 126,
+    skor_prosedur: 95,
+    skor_waktu: 98,
+    skor_kebersihan: 92,
+    skor_kerjasama: 92,
+    skor_knowledge: 94,
+    skor_akhir: 94.2,
+    status: 'KOMPETEN MANDIRI',
+    gagal_titik_kritis: false,
+    titik_kritis_gagal_detail: [],
+    penilai_nama: 'Feri (RnD)',
+    catatan: 'Sangat responsif, hasil keriting ayam krispi merata emas.',
+    created_at: '2026-10-23T10:00:00.000Z',
+  },
+  {
+    id: 'prak-prod-2306',
+    tanggal: '2026-10-23',
+    kru_id: 'kru-ob-2306',
+    nama_kru: 'Aini Amalia Safitri',
+    kode_outlet: 'HC-MDL01',
+    batch_id: 'batch-ob-2026-10-23',
+    nama_batch: 'Batch Onboarding & Retraining 23-24 Oktober 2026',
+    divisi: 'Kasir',
+    day: 'Day 1',
+    batch_name: 'Batch 1',
+    station: 'Station 4',
+    station_label: 'Station 4: POS ESB, Greeting 5S & Speed of Service',
+    produk_nama: 'SOP Kasir POS ESB & Handling Complaint',
+    waktu_detik: 38,
+    target_detik: 40,
+    suhu_minyak_aktual: 0,
+    gramatur_aktual: 1,
+    skor_prosedur: 90,
+    skor_waktu: 95,
+    skor_kebersihan: 92,
+    skor_kerjasama: 90,
+    skor_knowledge: 90,
+    skor_akhir: 91.2,
+    status: 'KOMPETEN MANDIRI',
+    gagal_titik_kritis: false,
+    titik_kritis_gagal_detail: [],
+    penilai_nama: 'Ari (Trainer)',
+    catatan: 'Greeting 5S ramah, transaksi POS ESB cepat 38 detik.',
+    created_at: '2026-10-23T10:30:00.000Z',
+  },
+  {
+    id: 'prak-prod-2307',
+    tanggal: '2026-10-23',
+    kru_id: 'kru-ob-2307',
+    nama_kru: 'Rintis Selo Mukti',
+    kode_outlet: 'HC-WTJ01',
+    batch_id: 'batch-ob-2026-10-23',
+    nama_batch: 'Batch Onboarding & Retraining 23-24 Oktober 2026',
+    divisi: 'Geprek',
+    day: 'Day 1',
+    batch_name: 'Batch 1',
+    station: 'Station 3',
+    station_label: 'Station 3: Sambal Bawang Geprek & Standar Packaging',
+    produk_nama: 'Geprek Ori & Sambal Bawang',
+    waktu_detik: 42,
+    target_detik: 45,
+    suhu_minyak_aktual: 0,
+    gramatur_aktual: 25,
+    skor_prosedur: 94,
+    skor_waktu: 95,
+    skor_kebersihan: 92,
+    skor_kerjasama: 92,
+    skor_knowledge: 92,
+    skor_akhir: 93.1,
+    status: 'KOMPETEN MANDIRI',
+    gagal_titik_kritis: false,
+    titik_kritis_gagal_detail: [],
+    penilai_nama: 'Haikal (Trainer)',
+    catatan: 'Sambal bawang wangi siraman minyak panas, 2 ketukan ulek pas.',
+    created_at: '2026-10-23T11:00:00.000Z',
+  },
 ];
 
 // Generic Database Engine
@@ -1812,8 +1680,58 @@ class StorageDatabase {
 
   private init() {
     if (typeof window === 'undefined') return;
+
+    // Enforce October 23-24 2026 12-candidate cohort update
+    try {
+      const currentKruStr = localStorage.getItem(STORAGE_KEYS.KRU);
+      const currentTcStr = localStorage.getItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC);
+      if (
+        !currentKruStr ||
+        !currentKruStr.includes('Excel Tri Anggoro') ||
+        currentKruStr.includes('Budi Santoso') ||
+        currentKruStr.includes('Siti Rahmawati')
+      ) {
+        localStorage.setItem(STORAGE_KEYS.KRU, JSON.stringify(INITIAL_KRU));
+        localStorage.setItem(STORAGE_KEYS.OUTLETS, JSON.stringify(INITIAL_OUTLETS));
+        localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES, JSON.stringify(INITIAL_ONBOARDING_BATCHES));
+        localStorage.setItem(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, JSON.stringify(INITIAL_PENILAIAN_PRAKTIK_PRODUK));
+        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, JSON.stringify(INITIAL_PENILAIAN_PRAKTIK_PRODUK));
+        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, JSON.stringify(INITIAL_PENILAIAN_ONBOARDING_TC));
+      } else if (!currentTcStr || !currentTcStr.includes('Excel Tri Anggoro')) {
+        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, JSON.stringify(INITIAL_PENILAIAN_ONBOARDING_TC));
+      }
+    } catch {
+      // ignore
+    }
+
     this.ensureSeed(STORAGE_KEYS.OUTLETS, INITIAL_OUTLETS);
     this.ensureSeed(STORAGE_KEYS.KRU, INITIAL_KRU);
+    this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
+    this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL);
+    this.ensureSeed(STORAGE_KEYS.TNA, INITIAL_TNA);
+    this.ensureSeed(STORAGE_KEYS.RENCANA_TRAINING, INITIAL_RENCANA_TRAINING);
+    this.ensureSeed(STORAGE_KEYS.OBSERVASI, INITIAL_OBSERVASI);
+    this.ensureSeed(STORAGE_KEYS.COACHING, INITIAL_COACHING);
+    this.ensureSeed(STORAGE_KEYS.GAP_ANALYSIS, INITIAL_GAP_ANALYSIS);
+    this.ensureSeed(STORAGE_KEYS.KARTU_KELUHAN, INITIAL_KARTU_KELUHAN);
+    this.ensureSeed(STORAGE_KEYS.TALENT, INITIAL_TALENT);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_TEORI, INITIAL_PENILAIAN_TEORI);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK, INITIAL_PENILAIAN_PRAKTIK);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_LISAN, INITIAL_PENILAIAN_LISAN);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, INITIAL_PENILAIAN_ONBOARDING_TC);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, INITIAL_PENILAIAN_PRAKTIK_PRODUK);
+    this.ensureSeed(STORAGE_KEYS.PENUGASAN_TRAINER, INITIAL_PENUGASAN_TRAINER);
+    this.ensureSeed(STORAGE_KEYS.TRAINEE_OUTLET, INITIAL_TRAINEE_OUTLET);
+    this.ensureSeed(STORAGE_KEYS.LAPORAN_TRAINER, INITIAL_LAPORAN_TRAINER);
+    this.ensureSeed(STORAGE_KEYS.ONBOARDING_PROGRESS, INITIAL_ONBOARDING_PROGRESS);
+    this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL]);
+    this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS);
+    this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+    this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING);
+    this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA);
+    this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
+    this.ensureSeed(STORAGE_KEYS.LOG_AKTIVITAS, INITIAL_LOGS);
+    this.ensureSeed(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
     this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL);
     this.ensureSeed(STORAGE_KEYS.TNA, INITIAL_TNA);
@@ -2024,7 +1942,7 @@ class StorageDatabase {
     return data;
   }
 
-  public setDirect(tableName: string, data: any[]): void {
+  public setDirectLocalOnly(tableName: string, data: any[]): void {
     const key = this.mapKey(tableName);
     let sanitizedData = data;
     if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null && 'id' in data[0]) {
@@ -2038,6 +1956,44 @@ class StorageDatabase {
       });
     }
     this.set(key, sanitizedData);
+  }
+
+  public setDirect(tableName: string, data: any[]): void {
+    this.setDirectLocalOnly(tableName, data);
+
+    // Online Real-time Sync write to Cloud Firestore
+    if (Array.isArray(data) && data.length > 0) {
+      import('./firebase').then(({ isFirestoreQuotaExceeded, checkAndHandleQuotaError }) => {
+        if (isFirestoreQuotaExceeded()) return;
+        import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+          setCloudSyncStatus('syncing');
+          import('./firebase').then(({ firestore }) => {
+            import('firebase/firestore').then(({ doc, writeBatch }) => {
+              const batch = writeBatch(firestore);
+              let count = 0;
+              data.forEach((item) => {
+                if (item && item.id) {
+                  const docRef = doc(firestore, tableName, String(item.id));
+                  batch.set(docRef, sanitizeForFirestore(item), { merge: true });
+                  count++;
+                }
+              });
+              if (count > 0) {
+                batch.commit()
+                  .then(() => setCloudSyncStatus('online'))
+                  .catch((err) => {
+                    checkAndHandleQuotaError(err);
+                    console.warn(`setDirect firestore batch write error (${tableName}):`, err);
+                    setCloudSyncStatus(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online');
+                  });
+              } else {
+                setCloudSyncStatus('online');
+              }
+            });
+          }).catch(() => {});
+        }).catch(() => {});
+      }).catch(() => {});
+    }
   }
 
   public insertRow<T = any>(tableName: string, payload: any): T {
@@ -2078,20 +2034,24 @@ class StorageDatabase {
     this.addLog('TAMBAH', this.friendlyTableName(tableName), `Menambahkan data baru di ${tableName}: ${JSON.stringify(payload).slice(0, 60)}...`);
 
     // Async write to Firestore so database is populated online real-time
-    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
-      setCloudSyncStatus('syncing');
-      import('./firebase').then(({ firestore }) => {
-        import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(firestore, tableName, id), sanitizeForFirestore(newRow), { merge: true })
-            .then(() => setCloudSyncStatus('online'))
-            .catch(() => {
-              if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                setCloudSyncStatus('offline');
-              } else {
-                setCloudSyncStatus('online');
-              }
-            });
-        });
+    import('./firebase').then(({ isFirestoreQuotaExceeded, checkAndHandleQuotaError }) => {
+      if (isFirestoreQuotaExceeded()) return;
+      import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+        setCloudSyncStatus('syncing');
+        import('./firebase').then(({ firestore }) => {
+          import('firebase/firestore').then(({ doc, setDoc }) => {
+            setDoc(doc(firestore, tableName, id), sanitizeForFirestore(newRow), { merge: true })
+              .then(() => setCloudSyncStatus('online'))
+              .catch((err) => {
+                checkAndHandleQuotaError(err);
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                  setCloudSyncStatus('offline');
+                } else {
+                  setCloudSyncStatus('online');
+                }
+              });
+          });
+        }).catch(() => {});
       }).catch(() => {});
     }).catch(() => {});
 
@@ -2194,20 +2154,24 @@ class StorageDatabase {
     this.addLog('UBAH', this.friendlyTableName(tableName), `Memperbarui data ID ${id}`);
 
     // Async write to Firestore real-time
-    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
-      setCloudSyncStatus('syncing');
-      import('./firebase').then(({ firestore }) => {
-        import('firebase/firestore').then(({ doc, setDoc }) => {
-          setDoc(doc(firestore, tableName, id), sanitizeForFirestore(updated), { merge: true })
-            .then(() => setCloudSyncStatus('online'))
-            .catch(() => {
-              if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                setCloudSyncStatus('offline');
-              } else {
-                setCloudSyncStatus('online');
-              }
-            });
-        });
+    import('./firebase').then(({ isFirestoreQuotaExceeded, checkAndHandleQuotaError }) => {
+      if (isFirestoreQuotaExceeded()) return;
+      import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+        setCloudSyncStatus('syncing');
+        import('./firebase').then(({ firestore }) => {
+          import('firebase/firestore').then(({ doc, setDoc }) => {
+            setDoc(doc(firestore, tableName, id), sanitizeForFirestore(updated), { merge: true })
+              .then(() => setCloudSyncStatus('online'))
+              .catch((err) => {
+                checkAndHandleQuotaError(err);
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                  setCloudSyncStatus('offline');
+                } else {
+                  setCloudSyncStatus('online');
+                }
+              });
+          });
+        }).catch(() => {});
       }).catch(() => {});
     }).catch(() => {});
 
@@ -2223,20 +2187,24 @@ class StorageDatabase {
     this.addLog('HAPUS', this.friendlyTableName(tableName), `Menghapus data ID ${id}`);
 
     // Async delete from Firestore real-time
-    import('./firestoreSync').then(({ setCloudSyncStatus }) => {
-      setCloudSyncStatus('syncing');
-      import('./firebase').then(({ firestore }) => {
-        import('firebase/firestore').then(({ doc, deleteDoc }) => {
-          deleteDoc(doc(firestore, tableName, id))
-            .then(() => setCloudSyncStatus('online'))
-            .catch(() => {
-              if (typeof navigator !== 'undefined' && !navigator.onLine) {
-                setCloudSyncStatus('offline');
-              } else {
-                setCloudSyncStatus('online');
-              }
-            });
-        });
+    import('./firebase').then(({ isFirestoreQuotaExceeded, checkAndHandleQuotaError }) => {
+      if (isFirestoreQuotaExceeded()) return;
+      import('./firestoreSync').then(({ setCloudSyncStatus }) => {
+        setCloudSyncStatus('syncing');
+        import('./firebase').then(({ firestore }) => {
+          import('firebase/firestore').then(({ doc, deleteDoc }) => {
+            deleteDoc(doc(firestore, tableName, id))
+              .then(() => setCloudSyncStatus('online'))
+              .catch((err) => {
+                checkAndHandleQuotaError(err);
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                  setCloudSyncStatus('offline');
+                } else {
+                  setCloudSyncStatus('online');
+                }
+              });
+          });
+        }).catch(() => {});
       }).catch(() => {});
     }).catch(() => {});
 

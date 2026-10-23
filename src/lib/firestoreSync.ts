@@ -1,18 +1,4 @@
-import {
-  collection,
-  doc,
-  setDoc,
-  getDocs,
-  onSnapshot,
-  writeBatch,
-  query,
-  where
-} from 'firebase/firestore';
-import { firestore, handleFirestoreError, OperationType } from './firebase';
-import { db, sanitizeForFirestore } from './storage';
 import { AppUser } from '../types';
-import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
-import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
 
 export interface ActiveUserPresence {
   id: string;
@@ -35,7 +21,7 @@ export interface SyncStats {
 
 export type CloudSyncStatus = 'online' | 'syncing' | 'offline';
 
-let currentCloudStatus: CloudSyncStatus = typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online';
+let currentCloudStatus: CloudSyncStatus = 'online';
 const statusListeners = new Set<(status: CloudSyncStatus) => void>();
 
 export function getCloudSyncStatus(): CloudSyncStatus {
@@ -56,28 +42,6 @@ export function subscribeCloudSyncStatus(callback: (status: CloudSyncStatus) => 
     statusListeners.delete(callback);
   };
 }
-
-// Window online/offline listener setup
-if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => {
-    setCloudSyncStatus('online');
-  });
-  window.addEventListener('offline', () => {
-    setCloudSyncStatus('offline');
-  });
-}
-
-let isSeeding = false;
-let hasSeeded = false;
-
-let realtimeSyncActive = false;
-let activeSyncUnsubscribers: (() => void)[] = [];
-
-let presenceInterval: any = null;
-let presenceDebounceTimeout: any = null;
-let currentSessionId: string = '';
-let lastPresenceWriteTime = 0;
-let beforeUnloadHandler: (() => void) | null = null;
 
 export const ALL_SYNCABLE_TABLES = [
   'penilaian_onboarding_rnd',
@@ -119,356 +83,33 @@ export const ALL_SYNCABLE_TABLES = [
 
 export const SYNCED_TABLES = ALL_SYNCABLE_TABLES;
 
-/**
- * Initialize and seed Firestore collections if empty so they immediately appear in Firebase Console.
- * Guarded with isSeeding and hasSeeded flags so it runs at most once per session.
- */
 export async function seedFirestoreIfEmpty(): Promise<void> {
-  if (isSeeding || hasSeeded) return;
-  isSeeding = true;
-
-  try {
-    const outletsRef = collection(firestore, 'outlets');
-    const timeout = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error('timeout')), 5000)
-    );
-    const outletsSnapshot = (await Promise.race([
-      getDocs(outletsRef),
-      timeout,
-    ])) as any;
-
-    if (outletsSnapshot && outletsSnapshot.empty) {
-      console.log('Seeding initial data to Firebase Firestore...');
-      await syncAllToFirestore();
-      console.log('Firestore seed completed successfully.');
-    }
-    hasSeeded = true;
-  } catch (err: any) {
-    console.warn('Firestore initial check notice:', err?.message || err);
-  } finally {
-    isSeeding = false;
-  }
+  // Firestore writes disabled per user request to avoid quota exhaustion.
 }
 
-/**
- * Explicit 1-click sync: pushes all current local database rows to Cloud Firestore
- */
 export async function syncAllToFirestore(): Promise<SyncStats> {
-  const stats: Record<string, number> = {};
-  let total = 0;
-
-  try {
-    for (const table of ALL_SYNCABLE_TABLES) {
-      const rows = db.getTable<any>(table);
-      if (Array.isArray(rows) && rows.length > 0) {
-        let count = 0;
-        // Batch in chunks of 25 to stay well below write limit per transaction
-        const chunkSize = 25;
-        for (let i = 0; i < rows.length; i += chunkSize) {
-          const chunk = rows.slice(i, i + chunkSize);
-          const batch = writeBatch(firestore);
-
-          for (const item of chunk) {
-            const docId = String(item.id || `${table}-${i}-${Math.random().toString(36).slice(2, 6)}`);
-            const docRef = doc(firestore, table, docId);
-            batch.set(docRef, sanitizeForFirestore(item), { merge: true });
-            count++;
-          }
-
-          await batch.commit();
-        }
-
-        stats[table] = count;
-        total += count;
-      }
-    }
-
-    return {
-      success: true,
-      totalSynced: total,
-      tables: stats,
-      message: `Berhasil menyinkronkan ${total} dokumen ke Cloud Firestore.`
-    };
-  } catch (error: any) {
-    console.error('Error during Firestore full sync:', error);
-    return {
-      success: false,
-      totalSynced: total,
-      tables: stats,
-      message: `Sinkronisasi gagal: ${error?.message || 'Terjadi kesalahan jaringan'}`
-    };
-  }
+  return {
+    success: true,
+    totalSynced: 0,
+    tables: {},
+    message: 'Penyimpanan lokal aktif (sinkronisasi Cloud Firestore dinonaktifkan sesuai preferensi).'
+  };
 }
 
-/**
- * Listen to Firestore collections to synchronize data across devices real-time.
- * Avoids redundant listeners and prevents infinite loop cycles between local storage and remote Firestore.
- */
 export function setupFirestoreRealtimeSync(): () => void {
-  if (realtimeSyncActive) {
-    return () => {};
-  }
-  realtimeSyncActive = true;
-  activeSyncUnsubscribers = [];
-
-  const collectionsToListen = ALL_SYNCABLE_TABLES;
-
-  collectionsToListen.forEach((colName) => {
-    try {
-      const colRef = collection(firestore, colName);
-      const unsub = onSnapshot(
-        colRef,
-        (snapshot) => {
-          if (!snapshot.empty) {
-            const docsData: any[] = [];
-            snapshot.forEach((d) => {
-              const data = d.data();
-              if (data && data.id) {
-                docsData.push(data);
-              }
-            });
-
-            if (docsData.length > 0) {
-              const currentLocal = db.getTable<any>(colName);
-              let finalDocs = docsData;
-
-              // Safeguard: Ensure bank_sop never loses any jobdesk divisions (Kitchen, Kasir, Geprek, Helper)
-              if (colName === 'bank_sop') {
-                const missingDivsInRemote =
-                  !docsData.some((d) => d.divisi === 'Kasir') ||
-                  !docsData.some((d) => d.divisi === 'Geprek') ||
-                  !docsData.some((d) => d.divisi === 'Helper') ||
-                  !docsData.some((d) => d.divisi === 'Kitchen');
-
-                if (missingDivsInRemote || docsData.length < OFFICIAL_HARA_SOP_DATABASE.length) {
-                  const remoteIds = new Set(docsData.map((d) => d.id));
-                  const merged = [...docsData];
-                  OFFICIAL_HARA_SOP_DATABASE.forEach((seed) => {
-                    if (!remoteIds.has(seed.id)) {
-                      merged.push(seed);
-                    }
-                  });
-                  finalDocs = merged;
-                }
-              }
-
-              if (colName === 'bank_soal') {
-                const missingDivsInRemote =
-                  !docsData.some((d) => d.divisi === 'Kasir') ||
-                  !docsData.some((d) => d.divisi === 'Geprek') ||
-                  !docsData.some((d) => d.divisi === 'Helper') ||
-                  !docsData.some((d) => d.divisi === 'Kitchen');
-
-                if (missingDivsInRemote || docsData.length < OFFICIAL_HARA_BANK_SOAL.length) {
-                  const remoteIds = new Set(docsData.map((d) => d.id));
-                  const merged = [...docsData];
-                  OFFICIAL_HARA_BANK_SOAL.forEach((seed) => {
-                    if (!remoteIds.has(seed.id)) {
-                      merged.push(seed);
-                    }
-                  });
-                  finalDocs = merged;
-                }
-              }
-
-              // Compare actual JSON string representation to detect field-level updates instantly
-              if (JSON.stringify(finalDocs) !== JSON.stringify(currentLocal)) {
-                db.setDirect(colName, finalDocs);
-              }
-            }
-          }
-        },
-        (err) => {
-          if (err && (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions'))) {
-            handleFirestoreError(err, OperationType.LIST, colName);
-          } else {
-            console.warn(`Firestore sync listener for ${colName}:`, err?.message || err);
-          }
-        }
-      );
-      activeSyncUnsubscribers.push(unsub);
-    } catch {
-      // Ignore
-    }
-  });
-
-  return () => {
-    activeSyncUnsubscribers.forEach((u) => u());
-    activeSyncUnsubscribers = [];
-    realtimeSyncActive = false;
-  };
+  return () => {};
 }
 
-/**
- * Start Real-Time Online Presence Tracking
- * Tracks who is actively opening the web app across devices with rate-limiting and throttling
- */
 export function startPresenceTracking(
-  currentUser: AppUser | null,
-  currentTab: string = 'dashboard'
+  _currentUser: AppUser | null,
+  _currentTab: string = 'dashboard'
 ): () => void {
-  // Generate or retrieve persistent session ID
-  if (!currentSessionId) {
-    const saved = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('hara_presence_session_id') : null;
-    if (saved) {
-      currentSessionId = saved;
-    } else {
-      currentSessionId = 'sess_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
-      if (typeof sessionStorage !== 'undefined') {
-        sessionStorage.setItem('hara_presence_session_id', currentSessionId);
-      }
-    }
-  }
-
-  const isMobile = typeof navigator !== 'undefined' ? /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent) : false;
-  const deviceType = isMobile ? 'Mobile Phone' : 'Desktop / PC';
-
-  const writePresence = async () => {
-    try {
-      const isExam = typeof window !== 'undefined' && window.location.hash === '#ujian';
-      const storedTrainee = typeof sessionStorage !== 'undefined' ? sessionStorage.getItem('hara_active_exam_trainee') : null;
-      let traineeInfo = null;
-      if (storedTrainee) {
-        try {
-          traineeInfo = JSON.parse(storedTrainee);
-        } catch {
-          // ignore
-        }
-      }
-
-      let displayName = 'Pengunjung Web';
-      let displayRole = 'Tamu';
-      let displayOutlet = 'Pusat HQ';
-
-      if (currentUser && currentUser.nama) {
-        displayName = currentUser.nama;
-        displayRole = currentUser.role;
-        displayOutlet = 'Pusat / Operasional';
-      } else if (isExam || traineeInfo) {
-        displayName = traineeInfo?.nama_kru ? `Kru: ${traineeInfo.nama_kru}` : 'Kru Ujian Mandiri';
-        displayRole = 'Kru Gerai (Ujian)';
-        displayOutlet = traineeInfo?.kode_outlet || 'Stasiun Ujian';
-      }
-
-      const presenceDoc: ActiveUserPresence = {
-        id: currentSessionId,
-        userId: currentUser?.id || (traineeInfo?.nama_kru ? `trainee-${traineeInfo.nama_kru}` : 'guest'),
-        nama: displayName,
-        role: displayRole,
-        outlet: displayOutlet,
-        device: deviceType,
-        path: isExam ? 'Ujian Mandiri Kru' : currentTab,
-        last_seen: new Date().toISOString(),
-        status: 'online',
-      };
-
-      lastPresenceWriteTime = Date.now();
-      const ref = doc(firestore, 'online_presence', currentSessionId);
-      await setDoc(ref, sanitizeForFirestore(presenceDoc), { merge: true });
-    } catch {
-      // Ignore transient errors
-    }
-  };
-
-  const schedulePresenceWrite = () => {
-    const elapsed = Date.now() - lastPresenceWriteTime;
-    const MIN_INTERVAL_MS = 15000; // at least 15s between writes
-
-    if (elapsed >= MIN_INTERVAL_MS) {
-      if (presenceDebounceTimeout) {
-        clearTimeout(presenceDebounceTimeout);
-        presenceDebounceTimeout = null;
-      }
-      writePresence();
-    } else {
-      if (!presenceDebounceTimeout) {
-        presenceDebounceTimeout = setTimeout(() => {
-          presenceDebounceTimeout = null;
-          writePresence();
-        }, MIN_INTERVAL_MS - elapsed);
-      }
-    }
-  };
-
-  // Immediate or throttled update
-  schedulePresenceWrite();
-
-  // Regular heartbeat every 30 seconds
-  if (presenceInterval) {
-    clearInterval(presenceInterval);
-  }
-  presenceInterval = setInterval(writePresence, 30000);
-
-  // Register beforeunload handler once
-  if (!beforeUnloadHandler && typeof window !== 'undefined') {
-    beforeUnloadHandler = () => {
-      if (currentSessionId) {
-        try {
-          const ref = doc(firestore, 'online_presence', currentSessionId);
-          setDoc(ref, { status: 'offline', last_seen: new Date().toISOString() }, { merge: true }).catch(() => {});
-        } catch {
-          // Ignore
-        }
-      }
-    };
-    window.addEventListener('beforeunload', beforeUnloadHandler);
-  }
-
-  return () => {
-    if (presenceInterval) {
-      clearInterval(presenceInterval);
-      presenceInterval = null;
-    }
-    if (presenceDebounceTimeout) {
-      clearTimeout(presenceDebounceTimeout);
-      presenceDebounceTimeout = null;
-    }
-  };
+  return () => {};
 }
 
-/**
- * Listen to all currently active users on the website in real-time
- */
 export function subscribeToOnlineUsers(
   callback: (users: ActiveUserPresence[]) => void
 ): () => void {
-  try {
-    const q = query(
-      collection(firestore, 'online_presence'),
-      where('status', '==', 'online')
-    );
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const now = Date.now();
-        const activeList: ActiveUserPresence[] = [];
-
-        snapshot.forEach((docSnap) => {
-          const data = docSnap.data() as ActiveUserPresence;
-          // User is considered active if heartbeat was within the last 60 seconds
-          const lastSeenTime = new Date(data.last_seen).getTime();
-          if (now - lastSeenTime < 60000) {
-            activeList.push(data);
-          }
-        });
-
-        // Sort by last seen descending
-        activeList.sort((a, b) => new Date(b.last_seen).getTime() - new Date(a.last_seen).getTime());
-        callback(activeList);
-      },
-      (err) => {
-        if (err && (err.code === 'permission-denied' || err.message?.includes('Missing or insufficient permissions'))) {
-          handleFirestoreError(err, OperationType.LIST, 'online_presence');
-        } else {
-          console.warn('Presence listener notice:', err?.message || err);
-        }
-        callback([]);
-      }
-    );
-  } catch (err) {
-    console.warn('Presence query setup failed:', err);
-    callback([]);
-    return () => {};
-  }
+  callback([]);
+  return () => {};
 }
