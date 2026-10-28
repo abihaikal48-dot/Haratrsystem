@@ -1148,3 +1148,66 @@ export interface PenilaianPraktikOnboardingProduk {
   nama_trainer?: string;
   created_at: string;
 }
+
+export interface PenilaianJobdeskStasiun {
+  id: string;
+  tanggal: string;
+  batch_id?: string;
+  batch_name?: string;
+  kode_outlet: string;
+  nama_outlet?: string;
+  stasiun: 'Stasiun 1: Nasi, Teh, & Sup' | 'Stasiun 2: Marinate, Breading, & Fryer' | 'Stasiun 3: Sambal Cobek, Holding, Kasir/Packing';
+  shift: 'Pagi' | 'Siang/Rush' | 'Malam' | 'Closing';
+  kru_ids?: string[];
+  kru_names?: string[];
+  penilai_nama: string;
+  
+  // 5S Kebersihan & Sanitasi Stasiun (Jobdesk / Tim)
+  skor_5s_kebersihan: number; // 0 - 100
+  detail_5s: {
+    ringkas_seiri: boolean; // Pemilahan bahan & alat kerja tidak berantakan
+    rapi_seiton: boolean; // Tata letak penjepit, ladle, baskom pada tempatnya
+    resik_seiso: boolean; // Meja stainless dilap steril, lantai kering, remahan dibersihkan
+    rawat_seiketsu: boolean; // APD lengkap (celemek bersih, hairnet), zero cross-contamination
+    rajin_shitsuke: boolean; // Disiplin menjaga kebersihan mandiri tanpa ditegur
+  };
+  
+  // Kerjasama Tim & Komunikasi Jobdesk
+  skor_kerjasama_komunikasi: number; // 0 - 100
+  detail_kerjasama: {
+    calling_yes_chef: boolean; // Respon aktif "Yes Chef" / "Siap" saat koordinasi rush
+    kelancaran_handover: boolean; // Estafet produk antar stasiun lancar tanpa botol leher
+    bantu_rekan_stalling: boolean; // Tanggap membantu rekan kerja saat pesanan menumpuk
+    komunikasi_habis_stok: boolean; // Memperingatkan 15 menit sebelum bahan baku menipis
+    disiplin_alur_fifo: boolean; // Koordinasi batch display dan antrean produk rapi
+  };
+  
+  skor_akhir: number; // Rata-rata 5S & Kerjasama
+  catatan?: string;
+  created_at: string;
+}
+
+export interface PenilaianSikapKebersihanKru {
+  id: string;
+  tanggal: string;
+  kru_id: string;
+  nama_kru: string;
+  batch_id?: string;
+  batch_name?: string;
+  kode_outlet: string;
+  station?: string;
+  
+  // Dimensi Evaluasi Kebersihan & Sikap Kerja Individu
+  skor_grooming: number;      // 0 - 20 (Personal Grooming, Apron Bersih, Hairnet, Kuku)
+  skor_sanitasi: number;      // 0 - 25 (Sanitasi Meja, Clean-as-you-go, Pencegahan Kontaminasi)
+  skor_keaktifan: number;     // 0 - 25 (Inisiatif Kerja, Keaktifan, Responsif & Sigap)
+  skor_k3_disiplin: number;   // 0 - 15 (Kepatuhan K3, APD Fryer/Dapur, Disiplin Waktu)
+  skor_kerapian_alat: number; // 0 - 15 (Tata Letak Peralatan, Tong, Skimmer, Squeeze Bottle)
+  
+  skor_total: number;         // 0 - 100
+  predikat: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perlu Pembinaan';
+  status: 'Lulus' | 'Catatan Perbaikan';
+  catatan?: string;
+  penilai_nama: string;
+  created_at: string;
+}

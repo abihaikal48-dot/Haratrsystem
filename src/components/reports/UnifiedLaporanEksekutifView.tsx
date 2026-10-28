@@ -410,7 +410,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
         <div className="max-w-[850px] mx-auto bg-white rounded-2xl border border-stone-200 shadow-xl overflow-hidden print:border-none print:shadow-none print:rounded-none">
           <div className="p-6 sm:p-10 min-h-[1050px] flex flex-col justify-between space-y-6">
             <div>
-              {/* Kop Surat Merah Marun Korporat PT HARA CHICKEN INDONESIA */}
+              {/* Kop Surat Merah Marun Korporat HARA CHICKEN INDONESIA */}
               <div className="bg-gradient-to-r from-[#7a0f12] via-[#8B1418] to-[#590a0c] text-white rounded-2xl p-6 sm:p-7 relative overflow-hidden shadow-md border border-red-950/20">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
@@ -419,7 +419,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                     </div>
                     <div>
                       <div className="text-[10px] uppercase font-bold tracking-widest text-red-200">
-                        PT HARA CHICKEN INDONESIA • DIVISI PEOPLE DEVELOPMENT & QUALITY
+                        HARA CHICKEN INDONESIA • DIVISI PEOPLE DEVELOPMENT & QUALITY
                       </div>
                       <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white uppercase mt-0.5">
                         RAPOR KOMPETENSI 360° KRU
@@ -450,7 +450,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                     <div className="text-red-200 text-[10px]">Stasiun: {report.divisi_utama}</div>
                   </div>
                   <div>
-                    <div className="text-red-200 text-[10px] uppercase font-bold">CABANG GERAI</div>
+                    <div className="text-red-200 text-[10px] uppercase font-bold">CABANG OUTLET</div>
                     <div className="text-white font-bold">{report.nama_outlet}</div>
                     <div className="text-red-200 text-[10px]">Kode: {report.kode_outlet}</div>
                   </div>
@@ -698,7 +698,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                         DOSSIER AUDIT OPERASIONAL CABANG
                       </h2>
                       <p className="text-xs text-red-100 font-medium">
-                        Hasil Evaluasi Kinerja Gerai, Kepatuhan Standar Suhu, & Rekapitulasi Kompetensi Seluruh Kru
+                        Hasil Evaluasi Kinerja Outlet, Kepatuhan Standar Suhu, & Rekapitulasi Kompetensi Seluruh Kru
                       </p>
                     </div>
                   </div>
@@ -709,14 +709,14 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                       DOS-HARA/{new Date().getFullYear()}/{currentOutletObj.kode_outlet}/EXEC
                     </div>
                     <div className="text-[10px] text-red-200 mt-0.5">
-                      Gerai: {currentOutletObj.nama_outlet}
+                      Outlet: {currentOutletObj.nama_outlet}
                     </div>
                   </div>
                 </div>
 
                 <div className="mt-5 pt-4 border-t border-white/15 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <div className="text-red-200 text-[10px] uppercase font-bold">KODE GERAI</div>
+                    <div className="text-red-200 text-[10px] uppercase font-bold">KODE OUTLET</div>
                     <div className="text-white font-black text-sm">{currentOutletObj.kode_outlet}</div>
                   </div>
                   <div>
@@ -734,7 +734,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                 </div>
               </div>
 
-              {/* KPI Kinerja Gerai */}
+              {/* KPI Kinerja Outlet */}
               <div className="mt-6">
                 <h4 className="text-xs font-black text-stone-900 uppercase tracking-wider pb-2">
                   RINGKASAN INDIKATOR KINERJA CABANG (KPI QSR BAKU)
@@ -743,7 +743,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-[#96171B] text-white font-bold">
-                        <th className="p-2.5">Indikator Kinerja Gerai (KPI)</th>
+                        <th className="p-2.5">Indikator Kinerja Outlet (KPI)</th>
                         <th className="p-2.5 text-center">Standar Target QSR</th>
                         <th className="p-2.5 text-center">Capaian Aktual Cabang</th>
                         <th className="p-2.5">Status Audit Mutu</th>
@@ -932,7 +932,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                     <div className="text-white font-black text-sm">{targetBatch.nama_batch}</div>
                   </div>
                   <div>
-                    <div className="text-red-200 text-[10px] uppercase font-bold">LOKASI GERAI</div>
+                    <div className="text-red-200 text-[10px] uppercase font-bold">LOKASI OUTLET</div>
                     <div className="text-white font-bold">{targetBatch.kode_outlet_lokasi || currentOutletObj.kode_outlet}</div>
                   </div>
                   <div>
@@ -1104,7 +1104,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                   </div>
                 </div>
                 <p className="font-bold text-stone-800 text-[11px]">Head of Operations</p>
-                <p className="text-[9px] text-stone-400">PT Hara Chicken Indonesia</p>
+                <p className="text-[9px] text-stone-400">HARA Chicken Indonesia</p>
               </div>
             </div>
           </div>
@@ -1162,7 +1162,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                       <tr className="bg-[#96171B] text-white font-bold text-[11px]">
                         <th className="p-2.5 text-center w-8">No</th>
                         <th className="p-2.5">Kode</th>
-                        <th className="p-2.5">Nama Gerai</th>
+                        <th className="p-2.5">Nama Outlet</th>
                         <th className="p-2.5">Kepala Outlet</th>
                         <th className="p-2.5">Area SPV</th>
                         <th className="p-2.5 text-center">Total Kru</th>
@@ -1208,7 +1208,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                 <div>
                   <span className="font-bold text-stone-900 uppercase text-[10px]">Capaian Kunci Nasional</span>
                   <p className="text-stone-600 mt-1">
-                    Seluruh gerai mencapai indeks kelulusan di atas KKM baku 75.0 poin. Konsistensi marinasi ayam dan waktu goreng terjaga 100%.
+                    Seluruh outlet mencapai indeks kelulusan di atas KKM baku 75.0 poin. Konsistensi marinasi ayam dan waktu goreng terjaga 100%.
                   </p>
                 </div>
                 <div>
@@ -1220,7 +1220,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                 <div>
                   <span className="font-bold text-stone-900 uppercase text-[10px]">Rencana Ekspansi & Personil</span>
                   <p className="text-stone-600 mt-1">
-                    Sebanyak 8 kru telah berstatus Grade A (Mahir) dan siap didelegasikan sebagai Shift Leader untuk gerai baru.
+                    Sebanyak 8 kru telah berstatus Grade A (Mahir) dan siap didelegasikan sebagai Shift Leader untuk outlet baru.
                   </p>
                 </div>
               </div>
@@ -1245,7 +1245,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                   </div>
                 </div>
                 <p className="font-bold text-stone-800 text-[11px]">Direktur Operasional</p>
-                <p className="text-[9px] text-stone-400">PT Hara Chicken Indonesia</p>
+                <p className="text-[9px] text-stone-400">HARA Chicken Indonesia</p>
               </div>
             </div>
           </div>
@@ -1270,7 +1270,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                 <HaraLogo size="md" />
               </div>
               <h3 className="text-[11px] font-black uppercase tracking-[0.25em] text-[#C88A1E]">
-                PT HARA CHICKEN INDONESIA
+                HARA CHICKEN INDONESIA
               </h3>
               <p className="text-[10px] text-stone-500 uppercase tracking-wider mt-0.5">
                 Divisi People Development & Operational Excellence • Sertifikasi Mutu QSR
@@ -1296,7 +1296,7 @@ export const UnifiedLaporanEksekutifView: React.FC<UnifiedLaporanEksekutifViewPr
                   NIK: <span className="font-mono text-stone-900">{targetKru.id}</span> • Divisi Operasional: <span className="text-[#96171B] font-black">{targetKru.divisi}</span>
                 </p>
                 <p className="text-xs text-stone-600 max-w-xl mx-auto leading-relaxed pt-2">
-                  Ditempatkan di gerai <strong>{currentOutletObj.nama_outlet} ({currentOutletObj.kode_outlet})</strong> dan dinyatakan telah berhasil menyelesaikan seluruh rangkaian pengujian standar baku mutu QSR HARA Chicken dengan predikat:
+                  Ditempatkan di outlet <strong>{currentOutletObj.nama_outlet} ({currentOutletObj.kode_outlet})</strong> dan dinyatakan telah berhasil menyelesaikan seluruh rangkaian pengujian standar baku mutu QSR HARA Chicken dengan predikat:
                 </p>
 
                 {/* Grade Badge */}

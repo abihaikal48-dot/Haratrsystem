@@ -289,7 +289,7 @@ export const OFFICIAL_HARA_BANK_SOAL: BankSoal[] = [
     pertanyaan: 'Apa yang wajib dilakukan kasir jika driver ojek online (Grab/Gojek/Shopee) menunggu antrean order lebih dari 20 menit?',
     opsi_a: 'Meminta driver membatalkan pesanan',
     opsi_b: 'Memberikan segelas es teh manis gratis',
-    opsi_c: 'Meminta driver menunggu di luar gerai',
+    opsi_c: 'Meminta driver menunggu di luar outlet',
     opsi_d: 'Memberikan diskon tunai 50%',
     jawaban_benar: 'B',
     bobot: 20,

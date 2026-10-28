@@ -5,10 +5,22 @@ import {
   ShieldCheck, HardDrive, Trash2, Copy, Check, Sparkles,
   ExternalLink, Printer, Layers, Activity, Lock, ArrowRight,
   Sliders, Shield, Mail, Phone, Building2, User, Award,
-  CheckCheck, Search, Filter, HelpCircle, Flame, Clock, CheckSquare
+  CheckCheck, Search, Filter, HelpCircle, Flame, Clock, CheckSquare,
+  Globe, Key, Terminal, UploadCloud, DownloadCloud, Zap
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../lib/storage';
+import {
+  getSupabaseConfig,
+  getSupabaseStatus,
+  testSupabaseConnection,
+  autoSeedSupabaseIfEmpty,
+  pullAllFromSupabase,
+  saveSupabaseCredentials,
+  removeSupabaseCredentials,
+  subscribeSupabaseStatus,
+  SupabaseStatus
+} from '../lib/supabase';
 import { SystemSettings, LogAktivitas, Outlet, Kru, TNA,
   RencanaTraining, ObservasiLapangan, CoachingLog,
   BankSOP, BankSoal, PenilaianTeori, PenilaianPraktik,
@@ -17,7 +29,7 @@ import { SystemSettings, LogAktivitas, Outlet, Kru, TNA,
 import { PageHeaderBanner } from './PageHeaderBanner';
 import { ModernOptionSelector } from './ModernOptionSelector';
 
-export type SistemSubTab = 'export' | 'backup' | 'settings' | 'diagnostics' | 'logs';
+export type SistemSubTab = 'export' | 'backup' | 'supabase' | 'settings' | 'diagnostics' | 'logs';
 
 interface SistemDanEksporViewProps {
   initialSubTab?: SistemSubTab;
@@ -72,9 +84,116 @@ export const SistemDanEksporView: React.FC<SistemDanEksporViewProps> = ({
   const [waSelectedOutlet, setWaSelectedOutlet] = useState<string>('ALL');
   const [waCopied, setWaCopied] = useState(false);
 
+  // Supabase State & Actions
+  const [sbUrl, setSbUrl] = useState(() => getSupabaseConfig().url);
+  const [sbAnonKey, setSbAnonKey] = useState(() => getSupabaseConfig().anonKey);
+  const [sbStatus, setSbStatus] = useState<SupabaseStatus>(() => getSupabaseStatus());
+  const [sbLoading, setSbLoading] = useState(false);
+  const [sbMessage, setSbMessage] = useState<{ success: boolean; text: string } | null>(null);
+  const [sbCopiedSql, setSbCopiedSql] = useState(false);
+  const [sbShowSql, setSbShowSql] = useState(false);
+
+  useEffect(() => {
+    return subscribeSupabaseStatus((newStatus) => {
+      setSbStatus(newStatus);
+      const cfg = getSupabaseConfig();
+      setSbUrl(cfg.url);
+      setSbAnonKey(cfg.anonKey);
+    });
+  }, []);
+
   const showToast = (msg: string) => {
     setSavedToast(msg);
     setTimeout(() => setSavedToast(null), 3500);
+  };
+
+  const handleTestSupabase = async () => {
+    setSbLoading(true);
+    setSbMessage(null);
+    try {
+      const res = await testSupabaseConnection(sbUrl.trim(), sbAnonKey.trim());
+      setSbMessage({ success: res.success, text: res.message });
+      if (res.success) showToast('Koneksi Supabase aktif & stabil!');
+    } catch (err: any) {
+      setSbMessage({ success: false, text: err.message || 'Gagal koneksi' });
+    } finally {
+      setSbLoading(false);
+    }
+  };
+
+  const handleSaveSupabase = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSbLoading(true);
+    setSbMessage(null);
+    try {
+      const res = await saveSupabaseCredentials(sbUrl.trim(), sbAnonKey.trim());
+      setSbMessage({ success: res.success, text: res.message });
+      if (res.success) {
+        showToast('Kredensial Supabase berhasil disimpan!');
+        confetti({ particleCount: 40, spread: 60 });
+      }
+    } catch (err: any) {
+      setSbMessage({ success: false, text: err.message || 'Gagal menyimpan kredensial' });
+    } finally {
+      setSbLoading(false);
+    }
+  };
+
+  const handleDisconnectSupabase = () => {
+    if (confirm('Putuskan koneksi Supabase dari browser ini?')) {
+      removeSupabaseCredentials();
+      setSbUrl('');
+      setSbAnonKey('');
+      setSbMessage({ success: true, text: 'Koneksi Supabase diputus.' });
+      showToast('Koneksi Supabase diputus.');
+    }
+  };
+
+  const handleMigrateToSupabase = async () => {
+    setSbLoading(true);
+    setSbMessage(null);
+    try {
+      const res = await autoSeedSupabaseIfEmpty();
+      setSbMessage({ success: res.seeded || res.count > 0, text: res.message });
+      showToast(res.message);
+      if (res.seeded) confetti({ particleCount: 50, spread: 70 });
+    } catch (err: any) {
+      setSbMessage({ success: false, text: err.message || 'Gagal migrasi' });
+    } finally {
+      setSbLoading(false);
+    }
+  };
+
+  const handlePullFromSupabase = async () => {
+    setSbLoading(true);
+    setSbMessage(null);
+    try {
+      const res = await pullAllFromSupabase();
+      if (res.success) {
+        setSbMessage({ success: true, text: `Berhasil sinkron ${res.totalRecords} rekaman data dari Supabase!` });
+        showToast(`Berhasil menarik ${res.totalRecords} data dari Supabase!`);
+        loadData();
+      } else {
+        setSbMessage({ success: false, text: 'Gagal menarik data atau belum ada isi di cloud.' });
+      }
+    } catch (err: any) {
+      setSbMessage({ success: false, text: err.message || 'Gagal sinkron data' });
+    } finally {
+      setSbLoading(false);
+    }
+  };
+
+  const handleCopySql = async () => {
+    try {
+      const res = await fetch('/supabase_schema.sql');
+      const text = await res.text();
+      await navigator.clipboard.writeText(text);
+      setSbCopiedSql(true);
+      setTimeout(() => setSbCopiedSql(false), 2500);
+      showToast('Skrip SQL Schema Supabase berhasil disalin!');
+    } catch {
+      showToast('Gagal menyalin skrip SQL');
+    }
   };
 
   const loadData = () => {
@@ -298,10 +417,10 @@ export const SistemDanEksporView: React.FC<SistemDanEksporViewProps> = ({
     const coachingList = db.getTable<CoachingLog>('coaching_log');
 
     return `📢 *UPDATE STATUS TRAINER OPERASIONAL & KOMPETENSI KRU*
-🏬 *Brand:* PT HARA CHICKEN INDONESIA
+🏬 *Brand:* HARA CHICKEN INDONESIA
 📍 *Outlet:* ${
       waSelectedOutlet === 'ALL'
-        ? 'Seluruh Jaringan Gerai (All Outlets)'
+        ? 'Seluruh Jaringan Outlet (All Outlets)'
         : `${filteredOutlets[0]?.nama_outlet || waSelectedOutlet} (${waSelectedOutlet})`
     }
 📅 *Tanggal:* ${new Date().toLocaleDateString('id-ID', {
@@ -352,6 +471,13 @@ _Generated via HARA TRAINING & OPERATIONS System_
       icon: Database,
       badge: 'JSON Backup',
       desc: 'Ekspor database penuh, impor cadangan, & reset sistem',
+    },
+    {
+      id: 'supabase' as SistemSubTab,
+      label: 'Supabase Cloud Database',
+      icon: Database,
+      badge: sbStatus === 'connected' ? 'Aktif' : 'Konfigurasi',
+      desc: 'Sinkronisasi real-time multi-cabang, skema SQL, & migrasi',
     },
     {
       id: 'settings' as SistemSubTab,
@@ -430,7 +556,7 @@ _Generated via HARA TRAINING & OPERATIONS System_
                 {
                   id: 'outlets',
                   title: 'Master Data Outlet',
-                  desc: 'Data gerai, kepala outlet, supervisor, & alamat',
+                  desc: 'Data outlet, kepala outlet, supervisor, & alamat',
                   count: db.getTable('outlets').length,
                   icon: Building2,
                   color: 'text-blue-700 bg-blue-50 border-blue-200',
@@ -924,6 +1050,287 @@ _Generated via HARA TRAINING & OPERATIONS System_
               >
                 Reset Database Pabrik
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* SUPABASE CLOUD DATABASE MANAGEMENT PANEL */}
+      {/* ========================================================================= */}
+      {activeTab === 'supabase' && (
+        <div className="space-y-5">
+          {/* Status Card */}
+          <div
+            className={`card-enterprise !p-5 border transition-all ${
+              sbStatus === 'connected'
+                ? 'bg-emerald-50/70 border-emerald-300'
+                : sbStatus === 'connecting'
+                ? 'bg-amber-50/70 border-amber-300'
+                : 'bg-red-50/70 border-red-300'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-start gap-3.5">
+                <div
+                  className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 border shadow-xs ${
+                    sbStatus === 'connected'
+                      ? 'bg-emerald-600 text-white border-emerald-500'
+                      : sbStatus === 'connecting'
+                      ? 'bg-amber-500 text-white border-amber-400'
+                      : 'bg-red-600 text-white border-red-500'
+                  }`}
+                >
+                  <Database className={`w-6 h-6 ${sbStatus === 'connecting' ? 'animate-spin' : ''}`} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-black text-sm text-slate-900">
+                      {sbStatus === 'connected'
+                        ? 'Supabase Cloud: Terhubung & Sinkronisasi Aktif'
+                        : sbStatus === 'connecting'
+                        ? 'Supabase Cloud: Sedang Menghubungkan...'
+                        : 'Supabase Cloud: Belum Terhubung'}
+                    </h3>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+                        sbStatus === 'connected'
+                          ? 'bg-emerald-200 text-emerald-950'
+                          : sbStatus === 'connecting'
+                          ? 'bg-amber-200 text-amber-950'
+                          : 'bg-red-200 text-red-950'
+                      }`}
+                    >
+                      {sbStatus === 'connected' ? 'ONLINE REAL-TIME' : sbStatus === 'connecting' ? 'CONNECTING' : 'OFFLINE'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    {sbStatus === 'connected'
+                      ? 'Semua evaluasi, riwayat ujian kru, dan kartu keluhan disinkronkan secara instan ke database PostgreSQL Supabase.'
+                      : 'Hubungkan Project URL dan Anon Key Supabase untuk mengaktifkan penyimpanan data terpusat dan akses multi-pengguna serentak.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleTestSupabase}
+                  disabled={sbLoading || !sbUrl || !sbAnonKey}
+                  className="px-3 py-2 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <RefreshCw size={13} className={sbLoading ? 'animate-spin' : ''} />
+                  <span>Uji Koneksi</span>
+                </button>
+                {sbStatus === 'connected' && (
+                  <button
+                    type="button"
+                    onClick={handleDisconnectSupabase}
+                    className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-all cursor-pointer"
+                  >
+                    Putuskan
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {sbMessage && (
+              <div
+                className={`mt-4 p-3 rounded-xl text-xs font-medium flex items-center gap-2 ${
+                  sbMessage.success
+                    ? 'bg-emerald-100/80 text-emerald-900 border border-emerald-300'
+                    : 'bg-rose-100/80 text-rose-900 border border-rose-300'
+                }`}
+              >
+                {sbMessage.success ? <CheckCircle2 size={16} className="text-emerald-700 shrink-0" /> : <AlertTriangle size={16} className="text-rose-700 shrink-0" />}
+                <span>{sbMessage.text}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Configuration Form Card */}
+          <div className="card-enterprise !p-5 bg-white border border-[#E5E0D8] space-y-4">
+            <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+              <div>
+                <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                  <Key size={16} className="text-[#8C161B]" />
+                  <span>Kredensial API Supabase Project</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Kredensial ini disimpan aman di browser untuk berkomunikasi langsung dengan REST & Realtime API Supabase.
+                </p>
+              </div>
+
+              <a
+                href="https://supabase.com/dashboard"
+                target="_blank"
+                rel="noreferrer"
+                className="text-xs font-bold text-[#8C161B] hover:underline flex items-center gap-1"
+              >
+                <span>Buka Dashboard Supabase</span>
+                <ExternalLink size={12} />
+              </a>
+            </div>
+
+            <form onSubmit={handleSaveSupabase} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                  <Globe size={13} className="text-slate-500" />
+                  <span>Supabase Project URL</span>
+                  <span className="text-rose-600">*</span>
+                </label>
+                <input
+                  type="url"
+                  value={sbUrl}
+                  onChange={(e) => setSbUrl(e.target.value)}
+                  placeholder="https://xyzabcdefg.supabase.co"
+                  required
+                  className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8C161B] font-mono"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Lokasi di Supabase: Project Settings → API → Project URL
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                  <Key size={13} className="text-slate-500" />
+                  <span>Supabase Anon / Public Key</span>
+                  <span className="text-rose-600">*</span>
+                </label>
+                <textarea
+                  value={sbAnonKey}
+                  onChange={(e) => setSbAnonKey(e.target.value)}
+                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  rows={2}
+                  required
+                  className="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#8C161B] font-mono resize-none"
+                />
+                <span className="text-[11px] text-slate-400 mt-1 block">
+                  Lokasi di Supabase: Project Settings → API → Project API Keys (anon public)
+                </span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="submit"
+                  disabled={sbLoading || !sbUrl || !sbAnonKey}
+                  className="px-4 py-2 bg-[#8C161B] hover:bg-[#701014] disabled:opacity-50 text-white rounded-xl text-xs font-black transition-all shadow-xs flex items-center gap-2 cursor-pointer"
+                >
+                  {sbLoading && <RefreshCw size={13} className="animate-spin" />}
+                  <span>Simpan & Aktifkan Koneksi</span>
+                  <ArrowRight size={14} />
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Database Setup & SQL Editor Assistant */}
+          <div className="card-enterprise !p-5 bg-white border border-[#E5E0D8] space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                  <Terminal size={16} className="text-indigo-600" />
+                  <span>Skema Tabel & SQL Editor Script</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Jalankan skrip ini sekali di Supabase SQL Editor untuk membuat seluruh tabel, indeks, dan aturan keamanan RLS.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCopySql}
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold rounded-lg flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                >
+                  {sbCopiedSql ? <Check size={13} className="text-emerald-400" /> : <Copy size={13} />}
+                  <span>{sbCopiedSql ? 'Skrip Tersalin!' : 'Salin Skrip SQL'}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSbShowSql(!sbShowSql)}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-lg transition-colors cursor-pointer"
+                >
+                  {sbShowSql ? 'Tutup Kode' : 'Lihat Skrip SQL'}
+                </button>
+              </div>
+            </div>
+
+            {sbShowSql && (
+              <div className="bg-slate-900 text-emerald-400 p-4 rounded-xl font-mono text-[11px] max-h-60 overflow-y-auto leading-relaxed border border-slate-800">
+                <pre>{`-- Salin dan jalankan skrip ini di menu Supabase -> SQL Editor:
+CREATE TABLE IF NOT EXISTS outlets (id TEXT PRIMARY KEY, nama_outlet TEXT NOT NULL, kode_outlet TEXT NOT NULL UNIQUE, alamat TEXT, kepala_outlet TEXT, area_supervisor TEXT, status_aktif TEXT DEFAULT 'Aktif', created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS kru (id TEXT PRIMARY KEY, nama_kru TEXT NOT NULL, jabatan TEXT, divisi TEXT NOT NULL, kode_outlet TEXT, tanggal_masuk DATE, status_aktif TEXT DEFAULT 'Aktif', catatan TEXT, created_at TIMESTAMPTZ DEFAULT NOW(), updated_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS bank_sop (id TEXT PRIMARY KEY, kode_sop TEXT NOT NULL, judul TEXT NOT NULL, kategori TEXT, sub_kategori TEXT, versi TEXT DEFAULT '1.0', tanggal_berlaku DATE, tujuan TEXT, cakupan TEXT, langkah_langkah JSONB DEFAULT '[]'::jsonb, parameter_kritis JSONB DEFAULT '[]'::jsonb, status TEXT DEFAULT 'Aktif', created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS hasil_ujian_mingguan (id TEXT PRIMARY KEY, kru_id TEXT, nama_kru TEXT NOT NULL, kode_outlet TEXT, divisi TEXT, minggu_ke INT, tanggal_ujian TIMESTAMPTZ DEFAULT NOW(), skor NUMERIC DEFAULT 0, detail_jawaban JSONB, status_kelulusan TEXT, catatan TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS kartu_keluhan (id TEXT PRIMARY KEY, tanggal_shift TEXT, kode_outlet TEXT, tipe TEXT, deskripsi_keluhan TEXT, nama_kru_terkait TEXT, tindakan_diambil TEXT, status TEXT DEFAULT 'Dalam kajian', tindak_lanjut_training TEXT, created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS tna (id TEXT PRIMARY KEY, tanggal DATE DEFAULT CURRENT_DATE, kode_outlet TEXT, divisi TEXT, sumber_temuan TEXT, deskripsi_gap TEXT, jenis_gap TEXT, prioritas TEXT DEFAULT 'Sedang', rencana_tindak_lanjut TEXT, status TEXT DEFAULT 'Belum', created_at TIMESTAMPTZ DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS app_store (key TEXT PRIMARY KEY, value JSONB NOT NULL, updated_at TIMESTAMPTZ DEFAULT NOW());
+-- RLS Policy Public
+ALTER TABLE outlets ENABLE ROW LEVEL SECURITY; ALTER TABLE kru ENABLE ROW LEVEL SECURITY; ALTER TABLE bank_sop ENABLE ROW LEVEL SECURITY; ALTER TABLE hasil_ujian_mingguan ENABLE ROW LEVEL SECURITY; ALTER TABLE kartu_keluhan ENABLE ROW LEVEL SECURITY; ALTER TABLE tna ENABLE ROW LEVEL SECURITY; ALTER TABLE app_store ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public full access outlets" ON outlets FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access kru" ON kru FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access bank_sop" ON bank_sop FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Public full access app_store" ON app_store FOR ALL USING (true) WITH CHECK (true);`}</pre>
+              </div>
+            )}
+          </div>
+
+          {/* Data Migration & Two-Way Sync Actions */}
+          <div className="card-enterprise !p-5 bg-white border border-[#E5E0D8] space-y-4">
+            <div>
+              <h3 className="font-black text-sm text-slate-900 flex items-center gap-2">
+                <Layers size={16} className="text-emerald-700" />
+                <span>Migrasi Data Awal & Sinkronisasi Dua Arah</span>
+              </h3>
+              <p className="text-xs text-slate-500">
+                Pindahkan seluruh data peserta 12 kru (7 karyawan baru + 5 retraining), 11 cabang outlet, dan SOP ke Supabase.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-3.5">
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-black text-slate-900">
+                    <UploadCloud size={16} className="text-[#8C161B]" />
+                    <span>Migrasikan Data Master ke Supabase</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Mengunggah seluruh daftar 11 outlet, 12 peserta kru lengkap, Bank SOP resmi, dan soal evaluasi ke database Supabase.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleMigrateToSupabase}
+                  disabled={sbLoading || sbStatus !== 'connected'}
+                  className="w-full py-2 bg-[#8C161B] hover:bg-[#721115] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <UploadCloud size={14} />
+                  <span>Migrasikan Data Sekarang</span>
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 space-y-3 flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-xs font-black text-slate-900">
+                    <DownloadCloud size={16} className="text-emerald-700" />
+                    <span>Tarik Data Terbaru dari Cloud (Pull Sync)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Sinkronkan dan muat data terbaru dari Supabase yang diinput oleh supervisor outlet lain ke perangkat ini.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handlePullFromSupabase}
+                  disabled={sbLoading || sbStatus !== 'connected'}
+                  className="w-full py-2 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <DownloadCloud size={14} />
+                  <span>Tarik Data Cloud</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1522,10 +1929,10 @@ _Generated via HARA TRAINING & OPERATIONS System_
               <div className="border-b-2 border-black pb-3 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-black tracking-tight uppercase">
-                    PT HARA CHICKEN INDONESIA
+                    HARA CHICKEN INDONESIA
                   </h2>
                   <p className="text-[11px] text-gray-700">
-                    Sistem Manajemen Mutu & Standar Kompetensi Operasional Gerai
+                    Sistem Manajemen Mutu & Standar Kompetensi Operasional Outlet
                   </p>
                 </div>
                 <div className="text-right text-[10px] font-mono text-gray-600">
@@ -1537,7 +1944,7 @@ _Generated via HARA TRAINING & OPERATIONS System_
               {/* Form Metadata Fill */}
               <div className="grid grid-cols-2 gap-2 text-[11px] border border-black p-3 rounded-md">
                 <div>
-                  <b>Nama Outlet / Gerai:</b> ___________________________
+                  <b>Nama Outlet:</b> ___________________________
                 </div>
                 <div>
                   <b>Tanggal Pelaksanaan:</b> ___________________________

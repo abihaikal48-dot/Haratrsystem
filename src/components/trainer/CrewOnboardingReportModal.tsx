@@ -116,7 +116,7 @@ export const CrewOnboardingReportModal: React.FC<CrewOnboardingReportModalProps>
               <h2 className="text-lg font-extrabold text-[#96171B]">{kruNama}</h2>
               <div className="text-[11px] text-[#645D55] flex items-center gap-2">
                 <Store size={13} />
-                <span>Gerai: {kodeOutlet}</span>
+                <span>Outlet: {kodeOutlet}</span>
                 <span>•</span>
                 <span>{batchName}</span>
               </div>
@@ -334,7 +334,7 @@ export const CrewOnboardingReportModal: React.FC<CrewOnboardingReportModalProps>
             <h4 className="font-bold text-xs text-[#181411]">Evaluasi Sikap & Rekomendasi Trainer Lapangan</h4>
             <p className="text-xs text-[#645D55] leading-relaxed">
               Peserta menunjukkan pemahaman SOP yang solid, komunikasi aktif antarrekan station saat rush hour, serta kedisiplinan APD lengkap dan kebersihan meja kerja <em>clean as you go</em>.
-              {hasCriticalFail ? ' Namun kru wajib mendapatkan pendampingan khusus pada station penggorengan suhu minyak.' : ' Kru siap ditugaskan secara mandiri di gerai operasional.'}
+              {hasCriticalFail ? ' Namun kru wajib mendapatkan pendampingan khusus pada station penggorengan suhu minyak.' : ' Kru siap ditugaskan secara mandiri di outlet operasional.'}
             </p>
           </div>
         </div>

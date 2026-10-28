@@ -42,7 +42,7 @@ export const OfficialHaraSyllabusTimeline: React.FC = () => {
             <span>Rancangan & Timeline Pelatihan Pengenalan Crew HARA</span>
           </h3>
           <p className="text-[11px] text-slate-500">
-            Standar kurikulum resmi PT HARA Chicken — Siklus Onboarding In-Class 24 Jam & Pendampingan OJT Gerai 28 Hari
+            Standar kurikulum resmi HARA Chicken — Siklus Onboarding In-Class 24 Jam & Pendampingan OJT Outlet 28 Hari
           </p>
         </div>
 
@@ -147,7 +147,7 @@ export const OfficialHaraSyllabusTimeline: React.FC = () => {
           </div>
 
           <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-[11px] text-amber-900 space-y-1">
-            <p><strong>*Catatan Pelaksanaan Onboarding:</strong> Menyesuaikan minimal jumlah peserta onboarding batch gerai (11 - 17 peserta). Training karyawan baru berjalan selama 1 hari - 45 hari kerja (dengan fase intensif 30 hari pertama).</p>
+            <p><strong>*Catatan Pelaksanaan Onboarding:</strong> Menyesuaikan minimal jumlah peserta onboarding batch outlet (11 - 17 peserta). Training karyawan baru berjalan selama 1 hari - 45 hari kerja (dengan fase intensif 30 hari pertama).</p>
           </div>
         </div>
       )}
@@ -161,7 +161,7 @@ export const OfficialHaraSyllabusTimeline: React.FC = () => {
                 Training (Off Job Trainee) On Boarding Crew — In Class (Total 24 Jam)
               </h4>
               <p className="text-xs text-slate-500">
-                Pemberian fondasi teori, visi misi, regulasi gerai, food safety, K3, dan cooking lab RnD selama 3 hari
+                Pemberian fondasi teori, visi misi, regulasi outlet, food safety, K3, dan cooking lab RnD selama 3 hari
               </p>
             </div>
             <span className="px-3 py-1 rounded-full bg-amber-100 text-amber-900 font-bold text-xs border border-amber-300">
@@ -206,7 +206,7 @@ export const OfficialHaraSyllabusTimeline: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <h4 className="font-bold text-slate-900 text-sm">
-                Training (On Job Trainee) Pendampingan Crew — Out Class Gerai (28 Hari)
+                Training (On Job Trainee) Pendampingan Crew — Out Class Outlet (28 Hari)
               </h4>
               <p className="text-xs text-slate-500">
                 Kurikulum pendampingan intensif langsung di outlet dengan mentor, supervisor, dan kepala outlet

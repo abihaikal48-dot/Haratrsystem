@@ -95,7 +95,7 @@ export const LaporanDiagnostikView: React.FC<LaporanDiagnostikViewProps> = ({
               <span className="text-[10px] font-black uppercase tracking-widest bg-red-50 text-[#8B1418] border border-red-200 px-2 py-0.5 rounded font-mono">
                 DIAGNOSTIC ARCHIVE
               </span>
-              <span className="text-xs text-stone-400 font-medium">HARA Chicken Gerai Network</span>
+              <span className="text-xs text-stone-400 font-medium">HARA Chicken Outlet Network</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight mt-0.5">
               Lembar Laporan Diagnostik Resmi A4

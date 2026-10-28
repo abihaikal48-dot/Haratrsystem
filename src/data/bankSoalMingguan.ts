@@ -113,7 +113,7 @@ export function hitungProfilPsikologis(jawabanKru: Record<string, string>): Prof
   // Archetype & Station Placement
   let archetype_name = 'Guardian of Standard (Jujur & Teliti)';
   let tipe_kepribadian_kerja = 'Guardian of Standard (Jujur & Teliti)';
-  let kesimpulan_trainer = 'Memiliki etos kerja seimbang, patuh pada arahan dasar SOP gerai.';
+  let kesimpulan_trainer = 'Memiliki etos kerja seimbang, patuh pada arahan dasar SOP outlet.';
   let rekomendasi_pendampingan = 'Lanjutkan pendampingan shift rutin dengan evaluasi berkala.';
   let rekomendasi_stasiun = 'Kitchen & Fryer (Kontrol Mutu & Suhu 160°C/175°C)';
   let panduan_bimbingan_sm = 'Berikan checklist mandiri dan percayakan verifikasi suhu fryer serta pencatatan holding warmer.';

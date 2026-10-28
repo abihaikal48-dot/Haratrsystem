@@ -332,7 +332,7 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
                   <span>Ekspor ke Google Sheets</span>
                 </div>
                 <p className="text-[11px] text-stone-500 leading-snug">
-                  Membuat spreadsheet baru otomatis dengan 4 lembar kerja (Kompetensi, SOS, Keluhan, Gerai).
+                  Membuat spreadsheet baru otomatis dengan 4 lembar kerja (Kompetensi, SOS, Keluhan, Outlet).
                 </p>
               </div>
 
@@ -404,7 +404,7 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
             </strong>
             <p className="text-[11.5px] text-amber-800 leading-relaxed">
               {confirmAction === 'sheets' &&
-                'Aplikasi akan membuat spreadsheet baru di akun Google Anda dan mengisi data riwayat penilaian kru dan gerai. Lanjutkan?'}
+                'Aplikasi akan membuat spreadsheet baru di akun Google Anda dan mengisi data riwayat penilaian kru dan outlet. Lanjutkan?'}
               {confirmAction === 'drive' &&
                 'Aplikasi akan mengunggah berkas teks ringkasan evaluasi operasional ke Google Drive Anda. Lanjutkan?'}
               {confirmAction === 'firestore' &&

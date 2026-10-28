@@ -350,7 +350,7 @@ export const SettingsView: React.FC = () => {
               </div>
 
               <p className="text-xs text-stone-600 leading-relaxed">
-                Jika laptop atau perangkat Anda ditinggalkan di area gerai tanpa aktivitas, layar sistem akan terkunci secara otomatis demi melindungi kerahasiaan data operasional.
+                Jika laptop atau perangkat Anda ditinggalkan di area outlet tanpa aktivitas, layar sistem akan terkunci secara otomatis demi melindungi kerahasiaan data operasional.
               </p>
 
               <div className="space-y-2">
@@ -391,7 +391,7 @@ export const SettingsView: React.FC = () => {
               </div>
 
               <p className="text-xs text-stone-600 leading-relaxed">
-                PIN 6-digit digunakan sebagai lapis otorisasi kedua (2FA) ketika staf melakukan aksi berisiko tinggi seperti penghapusan gerai, reset nilai kru, atau perombakan hak akses peran.
+                PIN 6-digit digunakan sebagai lapis otorisasi kedua (2FA) ketika staf melakukan aksi berisiko tinggi seperti penghapusan outlet, reset nilai kru, atau perombakan hak akses peran.
               </p>
 
               <div className="space-y-3">

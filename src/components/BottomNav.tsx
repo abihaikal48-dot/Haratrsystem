@@ -32,7 +32,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
     },
     {
       id: 'kurikulum-onboarding',
-      label: 'Kurikulum',
+      label: 'Onboarding',
       icon: GraduationCap,
     },
     {
@@ -54,7 +54,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({
 
   return (
     <nav
-      aria-label="Navigasi Bawah Operasional Gerai"
+      aria-label="Navigasi Bawah Operasional Outlet"
       className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-neutral-200 shadow-[0_-1px_3px_rgba(0,0,0,0.03)] px-2 sm:px-4 py-1.5 transition-all select-none print:hidden"
     >
       <div className="max-w-xl mx-auto flex items-center justify-around gap-1">

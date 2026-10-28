@@ -1097,7 +1097,7 @@ export const SimulasiPraktikRnDView: React.FC<{ selectedOutletCode?: string }> =
                   Koreografi Menit Masuk Kompor 1 Outlet (Anti-Tabrakan Alur)
                 </h3>
                 <p className="text-xs text-rose-100/90 leading-relaxed max-w-3xl">
-                  Dalam 1 gerai HARA, peralatan dapur terbatas. Agar 11–17 kru dapat memasak secara paralel tanpa tabrakan jadwal kompor dan minyak tetap bersih higienis, ikuti urutan suhu berjenjang dan alokasi tungku berikut.
+                  Dalam 1 outlet HARA, peralatan dapur terbatas. Agar 11–17 kru dapat memasak secara paralel tanpa tabrakan jadwal kompor dan minyak tetap bersih higienis, ikuti urutan suhu berjenjang dan alokasi tungku berikut.
                 </p>
               </div>
             </div>

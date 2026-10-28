@@ -104,7 +104,7 @@ export const OfficialDiagnosticDocument: React.FC<OfficialDiagnosticDocumentProp
           </div>
         </div>
 
-        {/* DATA IDENTITAS KRU & GERAI */}
+        {/* DATA IDENTITAS KRU & OUTLET */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xl bg-stone-50 border border-stone-200 text-xs">
           <div>
             <span className="text-[10px] text-stone-400 font-bold block">NAMA KRU</span>
@@ -115,7 +115,7 @@ export const OfficialDiagnosticDocument: React.FC<OfficialDiagnosticDocumentProp
             <span className="font-bold text-[#8B1418]">{radarData.divisi}</span>
           </div>
           <div>
-            <span className="text-[10px] text-stone-400 font-bold block">CABANG GERAI</span>
+            <span className="text-[10px] text-stone-400 font-bold block">CABANG OUTLET</span>
             <span className="font-bold text-stone-800">{radarData.kode_outlet}</span>
           </div>
           <div>
@@ -233,7 +233,7 @@ export const OfficialDiagnosticDocument: React.FC<OfficialDiagnosticDocumentProp
             </span>
             <div className="border-t border-stone-400 pt-1.5 mx-auto max-w-[160px]">
               <span className="font-bold text-stone-900 block">{kepalaOutletName}</span>
-              <span className="text-[10px] text-stone-500">Penanggung Jawab Gerai</span>
+              <span className="text-[10px] text-stone-500">Penanggung Jawab Outlet</span>
             </div>
           </div>
 

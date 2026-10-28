@@ -540,7 +540,7 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                     </span>
                     <p className="text-slate-700 text-xs leading-relaxed">
                       {activeRadarCrew.skorAkhir && activeRadarCrew.skorAkhir >= 85
-                        ? `Performa sangat konsisten di atas benchmark kohort (+${activeRadarCrew.zScore || 1.1}σ). Direkomendasikan untuk promosi sebagai Shift Leader atau Trainer Pendamping OJT di gerai ${activeRadarCrew.kode_outlet}.`
+                        ? `Performa sangat konsisten di atas benchmark kohort (+${activeRadarCrew.zScore || 1.1}σ). Direkomendasikan untuk promosi sebagai Shift Leader atau Trainer Pendamping OJT di outlet ${activeRadarCrew.kode_outlet}.`
                         : activeRadarCrew.skorAkhir && activeRadarCrew.skorAkhir >= 75
                         ? `Memenuhi standar kelulusan operasional QSR. Perlu fokus pengasahan pada kecepatan layanan jam sibuk (Speed of Service) dan ketaatan gramatur bahan baku.`
                         : `Memerlukan program intervensi remedial terfokus 14 hari dengan checklist harian sebelum dapat dilepas mandiri pada shift operasional.`}
@@ -576,7 +576,7 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
           
           { key: 'M-L', title: 'Inconsistent Crew', subtitle: 'Potensi Sedang, Kinerja Rendah', rec: 'Evaluasi kesesuaian stasiun kerja & drill SOP.', bg: 'bg-rose-50/60 border-rose-200 text-rose-900' },
           { key: 'M-M', title: 'Core Contributor', subtitle: 'Potensi Sedang, Kinerja Sedang', rec: 'Pertahankan stabilitas & berikan refreshment berkala.', bg: 'bg-blue-50/60 border-blue-200 text-blue-900' },
-          { key: 'M-H', title: 'High Professional', subtitle: 'Potensi Sedang, Kinerja Tinggi', rec: 'Jadikan mentor teknis penepungan & kasir di gerai.', bg: 'bg-emerald-50/60 border-emerald-200 text-emerald-900' },
+          { key: 'M-H', title: 'High Professional', subtitle: 'Potensi Sedang, Kinerja Tinggi', rec: 'Jadikan mentor teknis penepungan & kasir di outlet.', bg: 'bg-emerald-50/60 border-emerald-200 text-emerald-900' },
 
           { key: 'L-L', title: 'Remedial Risk', subtitle: 'Potensi Rendah, Kinerja Rendah', rec: 'Karantina remedial 14 hari; re-evaluasi kelayakan.', bg: 'bg-red-100/70 border-red-300 text-red-950' },
           { key: 'L-M', title: 'Effective Specialist', subtitle: 'Potensi Rendah, Kinerja Sedang', rec: 'Pertahankan pada peran spesifik tanpa rotasi berlebih.', bg: 'bg-slate-50 border-slate-200 text-slate-800' },
@@ -1328,7 +1328,7 @@ export const KompetensiView: React.FC<KompetensiViewProps> = ({
                   <span>PILAR 3: ATTITUDE H.A.R.A (25%)</span>
                 </div>
                 <p className="text-[11px] text-rose-950 leading-relaxed">
-                  Didapat dari mana? <strong>Audit observasi perilaku nyata di gerai (*BARS Scale*)</strong>:
+                  Didapat dari mana? <strong>Audit observasi perilaku nyata di outlet (*BARS Scale*)</strong>:
                 </p>
                 <ul className="space-y-2 text-[11px] text-slate-700">
                   <li className="flex items-start gap-1.5">

@@ -76,7 +76,7 @@ export const HARA_VALUES: HaraCultureValueItem[] = [
       'Kami terus belajar dan berani berubah. Dunia bergerak cepat — dan kami tumbuh seiring setiap perubahan.',
     behaviors: [
       'Terbuka terhadap ide baru & perbaikan berkelanjutan (continuous improvement).',
-      'Menggunakan teknologi dan sistem terpadu untuk meningkatkan efisiensi gerai.',
+      'Menggunakan teknologi dan sistem terpadu untuk meningkatkan efisiensi outlet.',
       'Siap berubah demi pertumbuhan perusahaan & kesejahteraan bersama.',
     ],
   },
@@ -144,9 +144,9 @@ export const HARA_OFFICIAL_JOBDESKS: Record<Division, OfficialJobdeskDetail> = {
   },
   Helper: {
     id: 'Helper',
-    title: 'Stasiun Helper & Sanitasi Gerai',
-    subtitle: 'Persiapan Bahan, Cuci Alat & Kebersihan Lingkungan Gerai',
-    tagline: 'Penyokong Utama Kelancaran Gerai',
+    title: 'Stasiun Helper & Sanitasi Outlet',
+    subtitle: 'Persiapan Bahan, Cuci Alat & Kebersihan Lingkungan Outlet',
+    tagline: 'Penyokong Utama Kelancaran Outlet',
     focusArea: 'Pencucian alat kerja (3 bak cuci), penyiapan bahan pendukung, kebersihan meja santap & lantai, kelancaran logistik stasiun.',
     criticalParameters: [
       'Sanitasi alat dengan metode 3 bak: Sabun, Bilas Bersih, Sanitizer Desinfektan',

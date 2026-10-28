@@ -2,7 +2,7 @@ import { OnboardingSessionDef, OnboardingBatch, Kru } from '../types';
 
 /**
  * MASTER KURIKULUM RESMI ONBOARDING & RETRAINING 3 HARI
- * PT HARA CHICKEN INDONESIA (10 Sesi Baku — Total 25 Jam)
+ * HARA CHICKEN INDONESIA (10 Sesi Baku — Total 25 Jam)
  */
 export const MASTER_KURIKULUM_3HARI: OnboardingSessionDef[] = [
   // HARI KE-1 (7 Materi — Total 8 Jam)

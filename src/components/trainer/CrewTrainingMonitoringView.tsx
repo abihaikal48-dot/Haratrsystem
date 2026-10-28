@@ -300,7 +300,7 @@ export const CrewTrainingMonitoringView: React.FC<CrewTrainingMonitoringViewProp
         <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm">
           <span className="text-[11px] font-medium text-slate-500 block">Total Kru OJT</span>
           <span className="text-xl font-bold text-slate-900 mt-1 block">{stats.total} Kru</span>
-          <span className="text-[10px] text-slate-400 mt-0.5 block">Batch Aktif Gerai</span>
+          <span className="text-[10px] text-slate-400 mt-0.5 block">Batch Aktif Outlet</span>
         </div>
 
         <div className="bg-white border border-slate-200 rounded-xl p-3.5 shadow-sm">
@@ -848,7 +848,7 @@ export const CrewTrainingMonitoringView: React.FC<CrewTrainingMonitoringViewProp
                     rows={2}
                     value={catatanEvaluator}
                     onChange={e => setCatatanEvaluator(e.target.value)}
-                    placeholder="Tuliskan temuan riil saat observasi di stasiun gerai..."
+                    placeholder="Tuliskan temuan riil saat observasi di stasiun outlet..."
                     className="w-full p-2.5 border border-slate-200 rounded-xl text-xs text-slate-800 focus:outline-none focus:ring-1 focus:ring-slate-400"
                   />
                 </div>

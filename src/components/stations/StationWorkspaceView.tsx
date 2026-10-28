@@ -77,10 +77,10 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
               <span className="text-[10px] font-black uppercase tracking-widest bg-red-50 text-[#8B1418] border border-red-200 px-2 py-0.5 rounded font-mono">
                 STATION EXCELLENCE
               </span>
-              <span className="text-xs text-stone-400 font-medium">HARA Chicken Gerai Standards</span>
+              <span className="text-xs text-stone-400 font-medium">HARA Chicken Outlet Standards</span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight mt-0.5">
-              Workspace 4 Jobdesk Resmi Gerai
+              Workspace 4 Jobdesk Resmi Outlet
             </h1>
             <p className="text-xs text-stone-500">
               Pusat referensi prosedur baku, checklist mutu kritis, dan evaluasi harian stasiun kerja.
@@ -277,7 +277,7 @@ export const StationWorkspaceView: React.FC<StationWorkspaceViewProps> = ({
             {/* 3 Timbangan Digital */}
             <div className="space-y-1.5">
               <span className="text-[11px] font-bold text-stone-800 flex items-center gap-1.5">
-                <span className="text-emerald-700">⚖️</span> 3 Timbangan Digital Gerai:
+                <span className="text-emerald-700">⚖️</span> 3 Timbangan Digital Outlet:
               </span>
               <div className="grid grid-cols-1 gap-1 text-[10.5px] text-stone-600 bg-stone-50 p-2.5 rounded-xl border border-stone-200">
                 <div>• <strong className="text-stone-900 font-mono">Timbangan 5 kg:</strong> Bumbu, sambal 30g, garam, teh, gula</div>

@@ -70,7 +70,7 @@ export const Hara3DAnimationHero: React.FC = () => {
 
         <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-full text-[11px] font-medium text-stone-300 border border-white/10 backdrop-blur-xs">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Dapur & Gerai Aktif</span>
+          <span>Dapur & Outlet Aktif</span>
         </div>
       </div>
 
@@ -354,7 +354,7 @@ export const Hara3DAnimationHero: React.FC = () => {
             Semangat Juara Kru HARA Chicken
           </h2>
           <p className="text-xs text-amber-100/80 max-w-sm mx-auto leading-relaxed">
-            Standar resep emas, kebersihan dapur tanpa kompromi, dan senyum ramah melayani di seluruh gerai.
+            Standar resep emas, kebersihan dapur tanpa kompromi, dan senyum ramah melayani di seluruh outlet.
           </p>
         </div>
       </div>

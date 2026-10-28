@@ -63,7 +63,7 @@ export const WORLD_CLASS_TRAINING_METHODS: WorldClassTrainingMethod[] = [
       {
         stepNumber: 1,
         title: 'Step 1: Prepare the Trainee (Kesiapan Mental & K3)',
-        trainerAction: 'Menenangkan kru, menjelaskan arti penting stasiun bagi pelanggan dan gerai, memvalidasi pemahaman APD & grooming.',
+        trainerAction: 'Menenangkan kru, menjelaskan arti penting stasiun bagi pelanggan dan outlet, memvalidasi pemahaman APD & grooming.',
         traineeAction: 'Mempersiapkan alat & bahan, mengenakan APD lengkap, mengutarakan apa yang sudah diketahui tentang stasiun.',
         qsrApplication: 'Pengecekan suhu minyak fryer dan takaran beras Miyako sebelum proses dimulai.',
       },
@@ -287,7 +287,7 @@ export const WORLD_CLASS_TRAINING_METHODS: WorldClassTrainingMethod[] = [
     efficiencyScore: 93,
     retentionRate: 95,
     adaptationSpeed: '20 - 30 Hari ke Kemandirian Solo Shift',
-    bestFitProfile: 'Sangat cocok untuk gerai flagship beromzet tinggi, outlet bandara/mall, kru QC Internal, dan penanganan katering partai besar.',
+    bestFitProfile: 'Sangat cocok untuk outlet flagship beromzet tinggi, outlet bandara/mall, kru QC Internal, dan penanganan katering partai besar.',
     coreSteps: [
       {
         stepNumber: 1,
@@ -357,7 +357,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       'Kenakan celemek (apron) bersih dan sepatu kerja tertutup dengan sol anti-slip (non-slip footwear).'
     ],
     haccpControl: 'Bahaya Fisik (Foreign Objects): Rambut atau perhiasan jatuh ke dalam makanan dapat memicu komplain fatal dan risiko tersedak.',
-    alasanKunci: 'Penampilan yang bersih mencerminkan higienitas dapur dan membangun kepercayaan pelanggan seketika saat pertama kali melihat gerai.',
+    alasanKunci: 'Penampilan yang bersih mencerminkan higienitas dapur dan membangun kepercayaan pelanggan seketika saat pertama kali melihat outlet.',
     criticalPoints: [
       'Topi/hairnet menutup rambut 100%, celemek bersih tanpa noda minyak sisa kemarin.',
       'Sepatu tertutup bersol karet anti-slip wajib dikenakan di lantai dapur yang berpotensi licin.',
@@ -416,7 +416,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     description: 'Mengetahui letak APAR, tombol darurat pemutus arus listrik, valve regulator gas, serta prosedur dilarang menyiram air ke minyak panas menyala (Grease Fire).',
     sopRef: 'HC-SOP-GEN-03',
     langkahDetail: [
-      'Kenali lokasi tabung pemadam api (APAR jenis Chemical Foam / Powder) dan Fire Blanket di gerai.',
+      'Kenali lokasi tabung pemadam api (APAR jenis Chemical Foam / Powder) dan Fire Blanket di outlet.',
       'Pahami cara melepas regulator tabung gas jika tercium bau gas menyengat (buka ventilasi, jangan nyalakan saklar listrik).',
       'Jika minyak fryer terbakar: JANGAN PERNAH menyiram air. Tutup fryer dengan penutup logam atau fire blanket untuk memutus oksigen.',
       'Matikan tombol daya utama kompor gas dan listrik jika terjadi percikan atau kebakaran.',
@@ -493,7 +493,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       'Nyalakan mesin POS, login menggunakan akun kru terdaftar, cek koneksi internet dan status QRIS aktif.',
       'Praktikkan Greeting 5S (Senyum tulus, Salam hangat, Sapa ramah, Sopan, Santun) dengan kontak mata langsung kepada tamu.'
     ],
-    haccpControl: 'Integritas Keuangan & Customer Satisfaction: Selisih uang kas awal dan kesan pertama tamu menentukan rating gerai.',
+    haccpControl: 'Integritas Keuangan & Customer Satisfaction: Selisih uang kas awal dan kesan pertama tamu menentukan rating outlet.',
     alasanKunci: 'Senyum dan sapaan dalam 3 detik pertama meningkatkan kenyamanan belanja dan menaikkan peluang belanja hingga 28%.',
     criticalPoints: [
       'Hitung modal kas awal lembar per lembar sebelum transaksi pertama berlangsung.',
@@ -633,7 +633,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       'Sertakan sendok dan tisu, tutup kantong rapi, serahkan ke tamu dengan dua tangan dan senyum hangat.'
     ],
     haccpControl: 'Akurasi Order & Kebersihan Kemasan: Kesalahan varian sambal atau item tertinggal adalah sumber 70% komplain kasir.',
-    alasanKunci: 'Suggestive selling ramah menaikkan Average Check (nilai transaksi) gerai sebesar 15-25% tanpa membebani pelanggan.',
+    alasanKunci: 'Suggestive selling ramah menaikkan Average Check (nilai transaksi) outlet sebesar 15-25% tanpa membebani pelanggan.',
     criticalPoints: [
       'Selalu tawarkan minimal 1 menu pendamping sebelum menutup transaksi.',
       'Wajib double check isi kantong take away dengan struk sebelum diserahkan kepada pelanggan.'
@@ -699,7 +699,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     metodeTraining: 'Praktik Terbimbing',
     opsiMetodePelaksanaan: {
       hybrid_twi_spaced: 'Sidang formal 3 pihak: Trainer, Kepala Outlet, dan Kru. Pembahasan hasil observasi dan penetapan target Fase 2.',
-      buddy_apprenticeship: 'Senior buddy membacakan surat rekomendasi kemajuan keterampilan kru di hadapan kepala gerai.',
+      buddy_apprenticeship: 'Senior buddy membacakan surat rekomendasi kemajuan keterampilan kru di hadapan kepala outlet.',
       agile_gamified_sprints: 'Graduation Sprint 1: Penyerahan Badge Bronze Station Master dan perayaan kecil tim.',
       flipped_retrieval: 'Ujian lisan komprehensif 10 pertanyaan SOP acak di hadapan Kepala Outlet.',
       tqm_haccp_zerodefect: 'Pemeriksaan buku rekam jejak sanitasi dan zero insiden keselamatan kerja 30 hari.'
@@ -843,7 +843,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       buddy_apprenticeship: 'Buddy dan trainee bertukar posisi saat rush hour untuk saling menopang kecepatan kerja.',
       agile_gamified_sprints: 'Rush Hour Speed Sprint: Mempertahankan waktu saji di bawah 120 detik untuk 15 pesanan berturut-turut.',
       flipped_retrieval: 'Simulasi krisis jam sibuk: Pesanan 10 porsi tiba-tiba masuk bersamaan dengan pesanan ojek online.',
-      tqm_haccp_zerodefect: 'Pencatatan data Speed of Service (SOS) digital pada laporan harian gerai.'
+      tqm_haccp_zerodefect: 'Pencatatan data Speed of Service (SOS) digital pada laporan harian outlet.'
     }
   },
 
@@ -902,7 +902,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     opsiMetodePelaksanaan: {
       hybrid_twi_spaced: 'Sidang evaluasi 60 hari: Peninjauan grafik kecepatan saji dan pengesahan kenaikan ke Fase 3 Mandiri.',
       buddy_apprenticeship: 'Senior buddy menyerahkan tongkat estafet stasiun, menyatakan kru siap bertugas tanpa pendampingan bayangan.',
-      agile_gamified_sprints: 'Unlock Silver Badge: Penganugerahan lencana "Multi-Station Operator" pada papan prestasi gerai.',
+      agile_gamified_sprints: 'Unlock Silver Badge: Penganugerahan lencana "Multi-Station Operator" pada papan prestasi outlet.',
       flipped_retrieval: 'Uji komprehensif skenario rotasi stasiun secara tiba-tiba tanpa persiapan.',
       tqm_haccp_zerodefect: 'Audit rekonsiliasi data stock opname harian selisih 0% pada stasiun kru.'
     }
@@ -926,8 +926,8 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       'Listen: Dengarkan keluhan tamu dengan kontak mata, anggukan empati, tanpa pernah memotong atau menyanggah pembicaraan.',
       'Apologize: Sampaikan permohonan maaf yang tulus atas ketidaknyamanan, bukan menyalahkan rekan kerja atau sistem.',
       'Solve: Berikan solusi seketika: ganti produk baru yang panas dan sempurna dalam waktu < 3 menit tanpa biaya tambahan.',
-      'Thank: Ucapkan terima kasih atas masukan yang diberikan agar gerai Hara Chicken bisa terus berbenah.',
-      'Catat insiden di Buku Log Komplain Gerai dan laporkan kepada Kepala Outlet untuk perbaikan SOP.'
+      'Thank: Ucapkan terima kasih atas masukan yang diberikan agar outlet Hara Chicken bisa terus berbenah.',
+      'Catat insiden di Buku Log Komplain Outlet dan laporkan kepada Kepala Outlet untuk perbaikan SOP.'
     ],
     haccpControl: 'Customer Retention & Brand Trust: Komplain yang ditangani dengan buruk akan menyebar ke media sosial dan menghancurkan reputasi cabang.',
     alasanKunci: 'Pelanggan yang komplainnya diselesaikan tuntas dalam 3 menit memiliki tingkat loyalitas 78% lebih tinggi daripada pelanggan yang tidak pernah mengalami masalah.',
@@ -939,7 +939,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     metodeTraining: 'Simulasi / Roleplay',
     opsiMetodePelaksanaan: {
       hybrid_twi_spaced: 'Roleplay intensif 3 skenario komplain emosional, trainer menguji stabilitas nada bicara dan kecepatan penggantian produk.',
-      buddy_apprenticeship: 'Trainee mengamati kepala gerai menyelesaikan komplain riil pelanggan lalu mendiskusikan psikologi tamu.',
+      buddy_apprenticeship: 'Trainee mengamati kepala outlet menyelesaikan komplain riil pelanggan lalu mendiskusikan psikologi tamu.',
       agile_gamified_sprints: 'Quest: "Customer Hero": Menyelesaikan skenario komplain tamu hingga tamu tersenyum kembali.',
       flipped_retrieval: 'Uji refleks L.A.S.T dalam tempo 60 detik di depan seluruh tim briefing shift.',
       tqm_haccp_zerodefect: 'Pencatatan laporan insiden berbasis form CAPA (Corrective and Preventive Action).'
@@ -954,7 +954,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     divisi: 'Kitchen',
     kategori: 'Maintenance',
     title: 'SOP Pemeliharaan Preventif Deep Fryer, Rice Cooker Gas & Showcase Warmer',
-    description: 'Pembersihan mendalam (Deep Cleaning), pembersihan burner kompor gas, pengecekan lampu penghangat warmer, dan sanitasi berkala sesuai jadwal gerai.',
+    description: 'Pembersihan mendalam (Deep Cleaning), pembersihan burner kompor gas, pengecekan lampu penghangat warmer, dan sanitasi berkala sesuai jadwal outlet.',
     sopRef: 'HC-SOP-GEN-05',
     langkahDetail: [
       'Lepas bagian tungku kompor gas rice cooker, bersihkan lubang api dari kerak beras dengan jarum pembersih.',
@@ -964,7 +964,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
       'Pastikan seluruh alat stainless steel kering sempurna sebelum disimpan di rak peralatan.'
     ],
     haccpControl: 'Efisiensi Energi & K3: Lubang api tersumbat menyebabkan pembakaran gas tidak sempurna (karbon monoksida beracun dan boros gas).',
-    alasanKunci: 'Perawatan preventif memperpanjang usia alat masak hingga 3x lipat dan mencegah gerai tutup mendadak akibat kompor rusak saat jam sibuk.',
+    alasanKunci: 'Perawatan preventif memperpanjang usia alat masak hingga 3x lipat dan mencegah outlet tutup mendadak akibat kompor rusak saat jam sibuk.',
     criticalPoints: [
       'Dilarang membersihkan komponen kelistrikan warmer dengan air mengalir (risiko korsleting listrik).',
       'Pastikan saluran gas tertutup rapat sebelum membersihkan kompor gas.'
@@ -973,7 +973,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     metodeTraining: 'Praktik Terbimbing',
     opsiMetodePelaksanaan: {
       hybrid_twi_spaced: 'Trainer mendemonstrasikan cara melepas dan memasang kembali burner kompor gas tanpa merusak pemantik api.',
-      buddy_apprenticeship: 'Buddy dan kru baru bersama-sama melakukan jadwal deep cleaning mingguan saat penutupan gerai.',
+      buddy_apprenticeship: 'Buddy dan kru baru bersama-sama melakukan jadwal deep cleaning mingguan saat penutupan outlet.',
       agile_gamified_sprints: 'Quest: "Sparkling Kitchen": Deep cleaning stasiun dapur hingga mengkilap bebas noda minyak membandel.',
       flipped_retrieval: 'Kuis teknis: "Bagaimana cara mendeteksi api kompor merah dan apa tindakan perbaikannya?"',
       tqm_haccp_zerodefect: 'Pemeriksaan checklist pemeliharaan mesin 15 titik kontrol bulanan.'
@@ -1022,7 +1022,7 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     divisi: 'Semua',
     kategori: 'Station Core',
     title: 'Sidang Akhir Kelulusan Onboarding 90 Hari: Kru Mandiri Penuh & Penyerahan Sertifikat',
-    description: 'Sidang evaluasi akhir komprehensif: Uji Teori komprehensif seluruh SOP gerai, Audit Praktik Jam Sibuk, Evaluasi Sikap Kerja, dan Pengesahan Status Kru Mandiri 100%.',
+    description: 'Sidang evaluasi akhir komprehensif: Uji Teori komprehensif seluruh SOP outlet, Audit Praktik Jam Sibuk, Evaluasi Sikap Kerja, dan Pengesahan Status Kru Mandiri 100%.',
     sopRef: 'HC-SOP-GEN-01',
     criticalPoints: [
       'Nilai Evaluasi Komprehensif minimal 90 poin.',
@@ -1033,8 +1033,8 @@ export const OFFICIAL_ONBOARDING_CURRICULUM: OnboardingChecklistItem[] = [
     metodeTraining: 'Observasi Mandiri',
     opsiMetodePelaksanaan: {
       hybrid_twi_spaced: 'Sidang kelulusan formal 90 hari, penyerahan sertifikat Kru Mandiri dan badge pin emas resmi Hara Chicken.',
-      buddy_apprenticeship: 'Perayaan kelulusan bersama seluruh kru gerai dan penyerahan rekomendasi promosi ke jenjang Kru Senior.',
-      agile_gamified_sprints: 'Pencapaian Tertinggi: Unlock Lencana "Master Station Champion" dan masuk ke Wall of Fame gerai.',
+      buddy_apprenticeship: 'Perayaan kelulusan bersama seluruh kru outlet dan penyerahan rekomendasi promosi ke jenjang Kru Senior.',
+      agile_gamified_sprints: 'Pencapaian Tertinggi: Unlock Lencana "Master Station Champion" dan masuk ke Wall of Fame outlet.',
       flipped_retrieval: 'Presentasi singkat 5 menit oleh kru di hadapan Manajemen tentang komitmen menjaga standar rasa & higienitas.',
       tqm_haccp_zerodefect: 'Penerbitan dokumen audit bebas deviasi 90 hari dan pengesahan kualifikasi kru standar HACCP.'
     }

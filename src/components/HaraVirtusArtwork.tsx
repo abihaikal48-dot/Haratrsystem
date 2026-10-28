@@ -145,7 +145,7 @@ export const HaraVirtusArtwork: React.FC<HaraVirtusArtworkProps> = ({
           </h3>
 
           <p className="text-[11px] text-stone-400 leading-tight mt-0.5 line-clamp-1">
-            Standarisasi mutu rasa renyah, higienitas gerai, dan ketangkasan layanan kru HARA Chicken.
+            Standarisasi mutu rasa renyah, higienitas outlet, dan ketangkasan layanan kru HARA Chicken.
           </p>
         </div>
 
@@ -156,7 +156,7 @@ export const HaraVirtusArtwork: React.FC<HaraVirtusArtworkProps> = ({
             <span>SOP 100%</span>
           </div>
           <span className="text-[9.5px] text-stone-400 tracking-wider uppercase">
-            Standar Gerai
+            Standar Outlet
           </span>
         </div>
 

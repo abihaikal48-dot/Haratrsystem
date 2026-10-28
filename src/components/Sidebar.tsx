@@ -5,10 +5,12 @@ import {
   Wrench, Mic, Shield, FileText, Settings, Users, HelpCircle,
   ChevronLeft, ChevronRight, Sparkles, LogOut, UserCheck, Briefcase,
   GraduationCap, Target, UtensilsCrossed, BarChart3, CalendarCheck,
-  CheckCircle2, Flame, Layers, ChevronsUpDown, Building2
+  CheckCircle2, Flame, Layers, ChevronsUpDown, Building2, GitCompare
 } from 'lucide-react';
 import { AppUser } from '../types';
 import { HaraLogo } from './HaraLogo';
+
+export type WorkspaceMode = 'onboarding' | 'operasional' | 'komparasi';
 
 export type NavTab =
   | 'dashboard'
@@ -20,6 +22,7 @@ export type NavTab =
   | 'stasiun-kerja'
   | 'analitik-radar'
   | 'supervisi-lapangan'
+  | 'perbandingan-training-operasional'
   | 'master'
   | 'users'
   | 'settings'
@@ -66,7 +69,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'observasi', 'coaching', 'keluhan', 'talent',
       'penilaian-teori', 'penilaian-praktik', 'penilaian-lisan', 'kompetensi',
-      'bank-sop', 'bank-soal', 'tna', 'gap', 'rencana', 'laporan'
+      'bank-sop', 'bank-soal', 'tna', 'gap', 'rencana', 'laporan', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
@@ -81,7 +84,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'penilaian-teori', 'penilaian-praktik',
       'penilaian-lisan', 'kompetensi', 'bank-sop', 'bank-soal', 'observasi', 'coaching',
-      'tna', 'gap', 'rencana', 'laporan'
+      'tna', 'gap', 'rencana', 'laporan', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
@@ -95,7 +98,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'operasional-sop', 'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'penilaian-teori', 'penilaian-praktik',
       'penilaian-lisan', 'kompetensi', 'bank-sop', 'bank-soal', 'observasi', 'coaching',
-      'tna', 'gap', 'rencana', 'laporan'
+      'tna', 'gap', 'rencana', 'laporan', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-amber-100 text-amber-900 border-amber-200',
@@ -107,7 +110,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan', 'jadwal-kunjungan',
       'laporan-resmi', 'master', 'bantuan',
       'kurikulum-onboarding', 'ojt-30hari', 'laporan-eksekutif',
-      'observasi', 'keluhan', 'bank-sop', 'laporan'
+      'observasi', 'keluhan', 'bank-sop', 'laporan', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
@@ -121,7 +124,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'laporan-resmi', 'master', 'bantuan',
       'ojt-30hari', 'evaluasi-kru', 'laporan-eksekutif',
       'laporan-diagnostik', 'observasi', 'tna', 'gap', 'keluhan',
-      'kompetensi', 'laporan', 'bank-sop'
+      'kompetensi', 'laporan', 'bank-sop', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
@@ -132,7 +135,7 @@ export const ROLE_PERMISSIONS: Record<string, {
       'dashboard', 'kurikulum-onboarding', 'monitoring-training', 'budaya-hara',
       'stasiun-kerja', 'bank-sop-soal', 'evaluasi-kompetensi', 'supervisi-lapangan',
       'laporan-resmi', 'master', 'bantuan',
-      'ojt-30hari', 'laporan-eksekutif', 'talent', 'bank-sop', 'laporan'
+      'ojt-30hari', 'laporan-eksekutif', 'talent', 'bank-sop', 'laporan', 'perbandingan-training-operasional'
     ],
     defaultTab: 'dashboard',
     badgeColor: 'bg-neutral-100 text-neutral-800 border-neutral-200',
@@ -147,6 +150,8 @@ interface SidebarProps {
   mobileOpen: boolean;
   onCloseMobile: () => void;
   currentUser: AppUser;
+  workspaceMode?: WorkspaceMode;
+  onSelectWorkspaceMode?: (mode: WorkspaceMode) => void;
   onOpenAICoach?: () => void;
   onOpenPublicExam?: () => void;
   onOpenCommandPalette?: () => void;
@@ -155,6 +160,7 @@ interface SidebarProps {
 
 interface NavGroup {
   label: string;
+  category?: 'all' | 'onboarding' | 'operasional';
   items: {
     id: NavTab;
     label: string;
@@ -166,44 +172,51 @@ interface NavGroup {
 const GROUPS: NavGroup[] = [
   {
     label: 'Operasional Utama',
+    category: 'all',
     items: [
-      { id: 'dashboard', label: 'Dashboard Operasional', icon: LayoutDashboard },
+      { id: 'dashboard', label: 'Dashboard Utama', icon: LayoutDashboard },
     ],
   },
   {
-    label: 'Kurikulum & Onboarding',
+    label: 'Mode Onboarding (TC)',
+    category: 'onboarding',
     items: [
-      { id: 'kurikulum-onboarding', label: 'Kurikulum Onboarding & R&D', icon: GraduationCap },
+      { id: 'kurikulum-onboarding', label: 'Praktik & Batch Onboarding', icon: GraduationCap },
       { id: 'monitoring-training', label: 'Monitoring Training Kru', icon: Users },
       { id: 'budaya-hara', label: 'Nilai & Budaya Hara', icon: Flame },
       { id: 'stasiun-kerja', label: 'Stasiun Kerja Kitchen & Service', icon: UtensilsCrossed },
     ],
   },
   {
-    label: 'Supervisi Lapangan',
+    label: 'Mode Outlet Pendampingan',
+    category: 'operasional',
     items: [
       { id: 'supervisi-lapangan', label: 'Supervisi & Audit Shift', icon: Store },
-      { id: 'jadwal-kunjungan', label: 'Jadwal Kunjungan Gerai', icon: CalendarCheck },
+      { id: 'jadwal-kunjungan', label: 'Jadwal Kunjungan Outlet', icon: CalendarCheck },
     ],
   },
   {
     label: 'Standar SOP & Bank Soal',
+    category: 'all',
     items: [
       { id: 'bank-sop-soal', label: 'Standar SOP & Bank Soal', icon: BookOpen },
       { id: 'evaluasi-kompetensi', label: 'Evaluasi & Ujian Kompetensi', icon: Target },
     ],
   },
   {
-    label: 'Laporan & Rapor Kru',
+    label: 'Laporan & Analitik',
+    category: 'all',
     items: [
+      { id: 'perbandingan-training-operasional', label: 'Komparasi Training vs Ops', icon: GitCompare },
       { id: 'laporan-resmi', label: 'Rapor Kru & Cetak Laporan', icon: FileCheck },
       { id: 'analitik-radar', label: 'Radar Kompetensi 4 Divisi', icon: BarChart3 },
     ],
   },
   {
     label: 'Master & Pengaturan',
+    category: 'all',
     items: [
-      { id: 'master', label: 'Master Gerai & Kru Cabang', icon: Building2 },
+      { id: 'master', label: 'Master Outlet & Kru Cabang', icon: Building2 },
       { id: 'settings', label: 'Pengaturan & Sinkronisasi Cloud', icon: Settings },
       { id: 'users', label: 'Manajemen Akun Pengguna', icon: Shield },
       { id: 'bantuan', label: 'Panduan Sistem & SOP', icon: HelpCircle },
@@ -219,6 +232,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   onCloseMobile,
   currentUser,
+  workspaceMode = 'onboarding',
+  onSelectWorkspaceMode,
   onOpenAICoach,
   onOpenPublicExam,
   onOpenCommandPalette,
@@ -228,11 +243,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const roleConfig = ROLE_PERMISSIONS[userRole] || ROLE_PERMISSIONS['Trainer'];
   const allowedTabs = roleConfig.allowedTabs;
 
-  // Filter groups according to allowed tabs for this specific role
-  const authorizedGroups = GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => allowedTabs.includes(item.id)),
-  })).filter((group) => group.items.length > 0);
+  // Fokus pada training: arsipkan grup operasional dan komparasi
+  const authorizedGroups = GROUPS.filter((group) => group.category !== 'operasional').map((group) => {
+    return {
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.id === 'perbandingan-training-operasional') return false; // diarsipkan sementara
+        return allowedTabs.includes(item.id);
+      }),
+    };
+  }).filter((group) => group.items.length > 0);
 
   // User initials
   const initials = currentUser?.nama
@@ -250,20 +270,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed md:sticky top-0 left-0 h-screen bg-white text-neutral-800 flex flex-col z-50 transition-all duration-200 border-r border-neutral-200 shrink-0 select-none ${
-          collapsed ? 'w-[72px]' : 'w-[250px]'
+        className={`fixed md:sticky top-0 left-0 h-screen bg-white/95 backdrop-blur-md text-slate-800 flex flex-col z-50 transition-all duration-200 border-r border-slate-200/80 shrink-0 select-none ${
+          collapsed ? 'w-[76px]' : 'w-[260px]'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         {/* Header with Preserved Official Logo */}
-        <div className="flex items-center justify-between px-3.5 py-3 border-b border-neutral-200 h-16 shrink-0 bg-white">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100 h-16 shrink-0 bg-white/50">
           <div className="flex items-center gap-2.5 overflow-hidden">
             <HaraLogo variant="icon" size={collapsed ? 'xs' : 'sm'} />
             {!collapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="text-xs font-black text-neutral-900 tracking-tight leading-none uppercase">
-                  HARA Chicken
+                <span className="text-xs font-black font-['Outfit'] text-[#0F172A] tracking-wider leading-none uppercase">
+                  HARA <span className="text-[#96171B]">CHICKEN</span>
                 </span>
-                <span className="text-[10px] text-neutral-500 font-medium tracking-wide mt-1">
+                <span className="text-[10px] text-slate-400 font-medium tracking-wide mt-1">
                   Trainer & Operations
                 </span>
               </div>
@@ -272,38 +292,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           <button
             onClick={onToggleCollapse}
-            className="hidden md:flex w-7 h-7 bg-neutral-100 hover:bg-neutral-200 text-neutral-600 hover:text-neutral-900 rounded-md items-center justify-center transition-colors cursor-pointer"
+            className="hidden md:flex w-7 h-7 bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 rounded-xl items-center justify-center transition-colors cursor-pointer"
             title={collapsed ? 'Perluas Sidebar' : 'Ciutkan Sidebar'}
           >
             {collapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
           </button>
         </div>
 
+        {/* Workspace Switcher diarsipkan sementara: fokus pada Program Training Onboarding */}
+
         {/* Quick Search Shortcut */}
         {!collapsed && onOpenCommandPalette && (
-          <div className="px-3 pt-3 pb-1 shrink-0">
+          <div className="px-3.5 pt-1 pb-1 shrink-0">
             <button
               type="button"
               onClick={onOpenCommandPalette}
-              className="w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-neutral-50 border border-neutral-200 text-neutral-500 hover:border-neutral-300 hover:text-neutral-900 transition-colors cursor-pointer"
+              className="w-full flex items-center justify-between px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-900 transition-colors cursor-pointer shadow-2xs"
             >
               <div className="flex items-center gap-2 text-xs">
-                <Search size={13} className="text-neutral-400" />
+                <Search size={13} className="text-slate-400" />
                 <span>Cari menu SOP...</span>
               </div>
-              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white text-neutral-500 rounded border border-neutral-200">
-                Ctrl+K
+              <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-semibold bg-white text-slate-400 rounded-full border border-slate-200">
+                ⌘K
               </kbd>
             </button>
           </div>
         )}
 
-        {/* Navigation List - Geometri 8px, Monochrome + Red Indicator */}
-        <nav className="flex-1 overflow-y-auto px-2.5 py-2.5 space-y-3.5">
+        {/* Navigation List - Modern Rounded-xl Pills */}
+        <nav className="flex-1 overflow-y-auto px-3 py-2.5 space-y-3.5">
           {authorizedGroups.map((group) => (
             <div key={group.label} className="space-y-0.5">
               {!collapsed && (
-                <div className="text-[10px] font-semibold text-neutral-400 px-2 py-1 tracking-wider uppercase">
+                <div className="text-[10px] font-bold text-slate-400 px-2.5 py-1 tracking-wider uppercase">
                   {group.label}
                 </div>
               )}
@@ -319,22 +341,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         onCloseMobile();
                       }}
                       title={collapsed ? item.label : undefined}
-                      className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-xs font-medium transition-colors text-left cursor-pointer relative ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium transition-all text-left cursor-pointer relative ${
                         active
-                          ? 'bg-neutral-100 text-neutral-900 font-bold border border-neutral-200'
-                          : 'text-neutral-600 hover:bg-neutral-50 hover:text-neutral-900 border border-transparent'
+                          ? 'bg-red-50 text-[#96171B] font-bold border border-red-200/70 shadow-2xs'
+                          : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent'
                       } ${collapsed ? 'justify-center px-2' : ''}`}
                     >
-                      {/* Red Accent Indicator for Active Item */}
+                      {/* Crimson Dot Indicator for Active Item */}
                       {active && (
-                        <div className="absolute left-0 top-2 bottom-2 w-1 bg-[#96171B] rounded-r-md" />
+                        <div className="absolute left-1 top-2.5 bottom-2.5 w-1 bg-[#96171B] rounded-full" />
                       )}
                       <Icon
                         size={16}
                         className={`shrink-0 transition-colors ${
                           active
                             ? 'text-[#96171B] stroke-[2.2]'
-                            : 'text-neutral-400'
+                            : 'text-slate-400'
                         }`}
                       />
                       {!collapsed && (
@@ -351,39 +373,39 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Quick Portal Ujian Kru Access */}
           {onOpenPublicExam && (
-            <div className="pt-2 border-t border-neutral-200">
+            <div className="pt-2 border-t border-slate-100">
               <button
                 onClick={onOpenPublicExam}
-                className={`w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer ${
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-700 hover:bg-red-50 hover:text-[#96171B] transition-colors cursor-pointer ${
                   collapsed ? 'justify-center px-2' : ''
                 }`}
                 title="Buka Portal Ujian Kru Mandiri"
               >
                 <Brain size={15} className="text-[#96171B] shrink-0" />
-                {!collapsed && <span className="truncate">Portal Ujian Kru</span>}
+                {!collapsed && <span className="truncate">Portal Ujian Kru Mandiri</span>}
               </button>
             </div>
           )}
         </nav>
 
         {/* User Profile Card at Bottom */}
-        <div className="p-2.5 border-t border-neutral-200 bg-white shrink-0">
+        <div className="p-3 border-t border-slate-100 bg-white/50 shrink-0">
           <div
-            className={`p-2 rounded-lg bg-neutral-50 border border-neutral-200 flex items-center ${
+            className={`p-2 rounded-2xl bg-slate-50 border border-slate-200 flex items-center ${
               collapsed ? 'justify-center' : 'justify-between'
-            } gap-2 transition-colors`}
+            } gap-2 transition-colors shadow-2xs`}
           >
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-md bg-neutral-900 text-white font-bold text-xs flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-full bg-[#0F172A] text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-2xs">
                 {initials}
               </div>
 
               {!collapsed && (
                 <div className="min-w-0">
-                  <div className="text-xs font-bold text-neutral-900 truncate">
+                  <div className="text-xs font-bold font-['Outfit'] text-slate-900 truncate">
                     {currentUser.nama || 'Trainer'}
                   </div>
-                  <div className="text-[10px] text-neutral-500 truncate">
+                  <div className="text-[10px] text-slate-400 truncate">
                     {currentUser.role}
                   </div>
                 </div>
@@ -394,7 +416,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center gap-0.5 shrink-0">
                 <button
                   onClick={() => onSelectTab('settings')}
-                  className="p-1 hover:bg-neutral-200 text-neutral-500 hover:text-neutral-900 rounded-md transition-colors cursor-pointer"
+                  className="p-1.5 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
                   title="Pengaturan Akun & Cloud"
                 >
                   <Settings size={14} />
@@ -402,8 +424,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {onLogout && (
                   <button
                     onClick={onLogout}
-                    className="p-1 hover:bg-red-50 text-neutral-400 hover:text-red-600 rounded-md transition-colors cursor-pointer"
-                    title="Keluar dari Akun"
+                    className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
                   >
                     <LogOut size={14} />
                   </button>

@@ -207,73 +207,73 @@ _Standar Mutu & Operasional HARA Chicken._`;
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-in fade-in">
       
       {/* =====================================================================
-          1. HEADER DASHBOARD: UCAPAN & KONTROL CEPAT (8px Geometri)
+          1. HEADER DASHBOARD: UCAPAN & KONTROL CEPAT (REFERENCE 3 STYLE)
           ===================================================================== */}
-      <div className="bg-white rounded-lg border border-neutral-200 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
+      <div className="card-enterprise rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-5 border border-slate-200/80 shadow-xs">
         <div>
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[10.5px] font-bold text-[#96171B] uppercase tracking-wider">
-              Pusat Kendali Operasional Gerai
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-widest bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200/60">
+              Pusat Kendali Operasional Outlet
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-neutral-900 tracking-tight leading-snug">
+          <h1 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-[#0F172A] tracking-tight leading-snug">
             Selamat Datang, {currentUser?.nama || 'Haikal Abi'}
           </h1>
-          <p className="text-xs text-neutral-500 mt-0.5">
-            Pantau kepatuhan standar SOP, sertifikasi kru, dan performa gerai secara langsung
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            Pantau kepatuhan standar SOP, sertifikasi kru, dan performa outlet secara langsung
           </p>
         </div>
 
-        {/* Tombol Aksi Cepat (8px Geometri) */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Tombol Aksi Cepat (Pill Buttons) */}
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setShowShareExamModal(true)}
-            className="px-3 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7A1215] text-white text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 rounded-full bg-[#96171B] hover:bg-[#7A1215] text-white text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-md shadow-red-950/15"
           >
-            <Share2 size={13} />
+            <Share2 size={14} />
             <span>Bagikan Link Ujian Kru</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowQuickAuditModal(true)}
-            className="px-3 py-1.5 rounded-lg bg-white hover:bg-neutral-50 text-neutral-800 border border-neutral-200 text-xs font-semibold transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="px-4 py-2.5 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold transition-all flex items-center gap-2 cursor-pointer shadow-2xs"
           >
-            <Activity size={13} className="text-[#96171B]" />
-            <span>Monitor Pelatihan Lapangan Real-time per Outlet</span>
+            <Activity size={14} className="text-[#96171B]" />
+            <span>Monitor Pelatihan Real-time</span>
           </button>
         </div>
       </div>
 
       {/* =====================================================================
-          2. KARTU 4 KPI UTAMA (AT-A-GLANCE METRICS, 8px GEOMETRI)
+          2. KARTU 4 KPI UTAMA (AT-A-GLANCE METRICS, ROUNDED-3XL)
           ===================================================================== */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Kru Aktif & Terdaftar */}
         <div
           role="button"
           tabIndex={0}
           onClick={() => onNavigate('monitoring-training')}
-          className="bg-white rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 transition-colors cursor-pointer group text-left"
+          className="card-enterprise rounded-3xl p-5 sm:p-6 hover:border-[#96171B]/30 hover:shadow-md transition-all cursor-pointer group text-left border border-slate-200/80 shadow-xs"
           title="Klik untuk membuka Monitoring Training OJT"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">
-              Kru Aktif Gerai
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
+              Kru Aktif Outlet
             </span>
-            <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center border border-neutral-200 group-hover:border-neutral-400 transition-colors">
-              <Users size={16} />
+            <div className="w-9 h-9 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center border border-slate-200 group-hover:bg-red-50 group-hover:text-[#96171B] group-hover:border-red-200 transition-colors">
+              <Users size={18} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 font-mono tabular-nums">{activeKruCount}</span>
-            <span className="text-xs text-neutral-400">/ {totalKruCount} personil</span>
+            <span className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#0F172A] tabular-nums">{activeKruCount}</span>
+            <span className="text-xs text-slate-400 font-medium">/ {totalKruCount} personil</span>
           </div>
-          <div className="mt-2.5 pt-2.5 border-t border-neutral-100 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-500">{ojtKruCount} dalam OJT</span>
-            <span className="font-semibold text-neutral-800">
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500">{ojtKruCount} dalam OJT</span>
+            <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200/60">
               98% Siap Kerja
             </span>
           </div>
@@ -284,24 +284,24 @@ _Standar Mutu & Operasional HARA Chicken._`;
           role="button"
           tabIndex={0}
           onClick={() => onNavigate('evaluasi-kompetensi')}
-          className="bg-white rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 transition-colors cursor-pointer group text-left"
+          className="card-enterprise rounded-3xl p-5 sm:p-6 hover:border-[#96171B]/30 hover:shadow-md transition-all cursor-pointer group text-left border border-slate-200/80 shadow-xs"
           title="Klik untuk membuka Pusat Evaluasi Kru (4 Pilar)"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
               Rata-Rata Ujian Kru
             </span>
-            <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center border border-neutral-200 group-hover:border-neutral-400 transition-colors">
-              <Award size={16} />
+            <div className="w-9 h-9 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center border border-slate-200 group-hover:bg-red-50 group-hover:text-[#96171B] group-hover:border-red-200 transition-colors">
+              <Award size={18} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 font-mono tabular-nums">{avgExamScore}</span>
-            <span className="text-xs text-neutral-400">/ 100</span>
+            <span className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#0F172A] tabular-nums">{avgExamScore}</span>
+            <span className="text-xs text-slate-400 font-medium">/ 100</span>
           </div>
-          <div className="mt-2.5 pt-2.5 border-t border-neutral-100 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-500">{filteredExams.length} ujian masuk</span>
-            <span className="font-semibold text-neutral-800">
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500">{filteredExams.length} ujian masuk</span>
+            <span className="font-bold text-[#96171B] bg-red-50 px-2 py-0.5 rounded-full border border-red-200/60">
               {examPassRate}% Lulus
             </span>
           </div>
@@ -312,24 +312,24 @@ _Standar Mutu & Operasional HARA Chicken._`;
           role="button"
           tabIndex={0}
           onClick={() => onNavigate('stasiun-kerja')}
-          className="bg-white rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 transition-colors cursor-pointer group text-left"
+          className="card-enterprise rounded-3xl p-5 sm:p-6 hover:border-[#96171B]/30 hover:shadow-md transition-all cursor-pointer group text-left border border-slate-200/80 shadow-xs"
           title="Klik untuk membuka 4 Stasiun Kerja & Tools Dapur"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
               Kepatuhan Standar SOP
             </span>
-            <div className="w-8 h-8 rounded-lg bg-neutral-100 text-[#96171B] flex items-center justify-center border border-neutral-200 group-hover:border-neutral-400 transition-colors">
-              <Flame size={16} />
+            <div className="w-9 h-9 rounded-2xl bg-red-50 text-[#96171B] flex items-center justify-center border border-red-200 group-hover:bg-[#96171B] group-hover:text-white transition-colors">
+              <Flame size={18} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-neutral-900 font-mono tabular-nums">96.4%</span>
-            <span className="text-xs text-neutral-400">skor audit</span>
+            <span className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#0F172A] tabular-nums">96.4%</span>
+            <span className="text-xs text-slate-400 font-medium">skor audit</span>
           </div>
-          <div className="mt-2.5 pt-2.5 border-t border-neutral-100 flex items-center justify-between text-[11px]">
-            <span className="text-neutral-500">Fryer & Sanitasi</span>
-            <span className="font-semibold text-[#96171B]">
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+            <span className="text-slate-500">Fryer & Sanitasi</span>
+            <span className="font-bold text-[#96171B] bg-red-50 px-2 py-0.5 rounded-full border border-red-200/60">
               Standar 160°C
             </span>
           </div>
@@ -340,25 +340,27 @@ _Standar Mutu & Operasional HARA Chicken._`;
           role="button"
           tabIndex={0}
           onClick={() => onNavigate('supervisi-lapangan')}
-          className="bg-white rounded-lg border border-neutral-200 p-4 hover:border-neutral-400 transition-colors cursor-pointer group text-left"
+          className="card-enterprise rounded-3xl p-5 sm:p-6 hover:border-[#96171B]/30 hover:shadow-md transition-all cursor-pointer group text-left border border-slate-200/80 shadow-xs"
           title="Klik untuk membuka Supervisi & Keluhan Pelanggan"
         >
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-neutral-500 group-hover:text-neutral-900 transition-colors">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-slate-500 group-hover:text-slate-900 transition-colors">
               Keluhan Pelanggan
             </span>
-            <div className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-800 flex items-center justify-center border border-neutral-200 group-hover:border-neutral-400 transition-colors">
-              <AlertCircle size={16} />
+            <div className="w-9 h-9 rounded-2xl bg-slate-100 text-slate-800 flex items-center justify-center border border-slate-200 group-hover:bg-amber-50 group-hover:text-amber-800 group-hover:border-amber-200 transition-colors">
+              <AlertCircle size={18} />
             </div>
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-bold text-slate-900 font-mono">{pendingComplaintsCount}</span>
-            <span className="text-xs text-slate-400">perlu tindakan</span>
+            <span className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#0F172A] tabular-nums">{pendingComplaintsCount}</span>
+            <span className="text-xs text-slate-400 font-medium">perlu tindakan</span>
           </div>
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
+          <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px]">
             <span className="text-slate-500">{filteredComplaints.length} total tiket</span>
-            <span className={`font-semibold px-2 py-0.5 rounded ${
-              pendingComplaintsCount === 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+            <span className={`font-bold px-2 py-0.5 rounded-full border ${
+              pendingComplaintsCount === 0
+                ? 'bg-emerald-50 text-emerald-700 border-emerald-200/60'
+                : 'bg-rose-50 text-rose-700 border-rose-200/60'
             }`}>
               {pendingComplaintsCount === 0 ? 'Semua Beres' : 'Perlu Solusi'}
             </span>
@@ -388,13 +390,13 @@ _Standar Mutu & Operasional HARA Chicken._`;
       />
 
       {/* =====================================================================
-          4. BAGIAN UTAMA DATA OPERASIONAL (TAB KONTROL EFISIEN)
+          4. BAGIAN UTAMA DATA OPERASIONAL (ROUNDED-3XL CARD MODULE)
           ===================================================================== */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div className="card-enterprise rounded-3xl border border-slate-200/80 shadow-xs overflow-hidden">
         
         {/* Banner Filter Aktif Jika Ada */}
         {gradeFilter !== 'ALL' && (
-          <div className="bg-amber-50/80 border-b border-amber-200/80 px-4 sm:px-5 py-2.5 flex items-center justify-between text-xs text-amber-900">
+          <div className="bg-amber-50/80 border-b border-amber-200/80 px-5 sm:px-6 py-2.5 flex items-center justify-between text-xs text-amber-900">
             <div className="flex items-center gap-2">
               <Filter size={13} className="text-amber-600" />
               <span>
@@ -412,16 +414,16 @@ _Standar Mutu & Operasional HARA Chicken._`;
         )}
         
         {/* Header Tab & Filter Bar */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
           
-          {/* Tabs Selector */}
-          <div className="flex items-center gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-200/80">
+          {/* Tabs Selector (Pill capsules) */}
+          <div className="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-full border border-slate-200/80 overflow-x-auto">
             <button
               type="button"
               onClick={() => setActiveTab('ujian')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'ujian'
-                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90'
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90 font-bold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -430,9 +432,9 @@ _Standar Mutu & Operasional HARA Chicken._`;
             <button
               type="button"
               onClick={() => setActiveTab('ojt')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'ojt'
-                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90'
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90 font-bold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -441,9 +443,9 @@ _Standar Mutu & Operasional HARA Chicken._`;
             <button
               type="button"
               onClick={() => setActiveTab('keluhan')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+              className={`px-4 py-2 rounded-full text-xs font-semibold transition-all cursor-pointer ${
                 activeTab === 'keluhan'
-                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90'
+                  ? 'bg-white text-slate-900 shadow-2xs border border-slate-200/90 font-bold'
                   : 'text-slate-500 hover:text-slate-800'
               }`}
             >
@@ -454,13 +456,13 @@ _Standar Mutu & Operasional HARA Chicken._`;
           {/* Search & Filter Khusus */}
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Cari nama kru atau divisi..."
-                className="pl-8 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-amber-500 bg-slate-50/50 hover:bg-white focus:bg-white w-48 sm:w-60"
+                className="pl-9 pr-4 py-2 rounded-full border border-slate-200 text-xs text-slate-800 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-slate-50/50 hover:bg-white focus:bg-white w-52 sm:w-64 transition-all shadow-2xs"
               />
             </div>
           </div>
@@ -484,7 +486,7 @@ _Standar Mutu & Operasional HARA Chicken._`;
                 <thead className="bg-slate-50/70 border-b border-slate-200/80 text-slate-500 font-semibold uppercase tracking-wider">
                   <tr>
                     <th className="py-3 px-4">Nama Kru</th>
-                    <th className="py-3 px-4">Cabang Gerai</th>
+                    <th className="py-3 px-4">Cabang Outlet</th>
                     <th className="py-3 px-4">Divisi</th>
                     <th className="py-3 px-4">Waktu Penyerahan</th>
                     <th className="py-3 px-4 text-center">Skor Akhir</th>
@@ -748,10 +750,10 @@ _Standar Mutu & Operasional HARA Chicken._`;
             </div>
 
             <p className="text-xs text-slate-500 leading-relaxed">
-              Tautan ini dapat langsung dikirim ke kru outlet melalui WhatsApp atau dibuka pada tablet operasional gerai.
+              Tautan ini dapat langsung dikirim ke kru outlet melalui WhatsApp atau dibuka pada tablet operasional outlet.
             </p>
 
-            {/* Pemilih Cabang Gerai */}
+            {/* Pemilih Cabang Outlet */}
             <div>
               <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                 Target Cabang Outlet

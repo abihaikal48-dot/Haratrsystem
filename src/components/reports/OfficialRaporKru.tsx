@@ -304,7 +304,7 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
                         #{report.peringkat_cabang}
                       </span>
                       <span className="text-stone-500 font-semibold text-xs">
-                        dari {report.total_kru_cabang} Kru di Gerai
+                        dari {report.total_kru_cabang} Kru di Outlet
                       </span>
                     </div>
                   </div>
@@ -338,7 +338,7 @@ export const OfficialRaporKruView: React.FC<OfficialRaporKruProps> = ({
                       {report.jenjang_karir_rekomendasi === 'Retraining Wajib'
                         ? 'Wajib mengulang materi pelatihan stasiun dan dilarang solo shift.'
                         : report.jenjang_karir_rekomendasi === 'Shift Leader Trainee'
-                        ? 'Memenuhi syarat promosi kepemimpinan shift gerai.'
+                        ? 'Memenuhi syarat promosi kepemimpinan shift outlet.'
                         : 'Memenuhi standar kerja stasiun harian di bawah supervisi.'}
                     </p>
                   </div>

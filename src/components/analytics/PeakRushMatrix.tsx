@@ -22,7 +22,7 @@ export const PeakRushMatrix: React.FC<PeakRushMatrixProps> = ({ className = '' }
             <span className="text-xs text-stone-400 font-medium">Monitoring Real-Time Jam Kritis</span>
           </div>
           <h3 className="text-sm sm:text-base font-black text-stone-900 tracking-tight mt-0.5">
-            Dinamika Kecepatan (SOS) & Deviasi Per Shift Gerai
+            Dinamika Kecepatan (SOS) & Deviasi Per Shift Outlet
           </h3>
           <p className="text-[11px] text-stone-500">
             Perbandingan ketahanan prosedur pada jam santai vs jam sibuk makan siang (*lunch*) & makan malam (*dinner*).

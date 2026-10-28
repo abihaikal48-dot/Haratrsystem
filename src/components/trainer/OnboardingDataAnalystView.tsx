@@ -52,7 +52,14 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
         trainer_nama: p.nama_trainer || 'Haikal Abi',
         catatan_trainer: p.catatan_trainer || '-',
       }));
-      return [...prod, ...tc, ...normalizedProd.filter(np => !tc.some(t => t.id === np.id))];
+      const combined = [...tc, ...normalizedProd];
+      const uniqueMap = new Map<string, any>();
+      combined.forEach((item) => {
+        if (item && item.id && !uniqueMap.has(item.id)) {
+          uniqueMap.set(item.id, item);
+        }
+      });
+      return Array.from(uniqueMap.values());
     } catch {
       return [];
     }
@@ -104,7 +111,14 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
         trainer_nama: p.nama_trainer || 'Haikal Abi',
         catatan_trainer: p.catatan_trainer || '-',
       }));
-      setDataList([...prod, ...tc, ...normalizedProd.filter(np => !tc.some(t => t.id === np.id))]);
+      const combined = [...tc, ...normalizedProd];
+      const uniqueMap = new Map<string, any>();
+      combined.forEach((item) => {
+        if (item && item.id && !uniqueMap.has(item.id)) {
+          uniqueMap.set(item.id, item);
+        }
+      });
+      setDataList(Array.from(uniqueMap.values()));
     } catch {
       // ignore
     }
@@ -236,7 +250,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(14);
-    doc.text('PT HARA CHICKEN INDONESIA', 14, 10);
+    doc.text('HARA CHICKEN INDONESIA', 14, 10);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('OPERATIONAL TRAINING CENTER & PEOPLE DEVELOPMENT DIVISION', 14, 16);
@@ -381,7 +395,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
     doc.setFontSize(13);
-    doc.text('PT HARA CHICKEN INDONESIA - REKAPITULASI EVALUASI ONBOARDING TRAINING CENTER', 14, 10);
+    doc.text('HARA CHICKEN INDONESIA - REKAPITULASI EVALUASI ONBOARDING TRAINING CENTER', 14, 10);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text(`Tanggal Cetak: ${new Date().toLocaleDateString('id-ID')} | Total Peserta: ${metrics.total} Kru | Rata-rata Skor: ${metrics.avgSkor} (Skala ${metrics.avgSkala}) | Kelulusan: ${metrics.lulusRate}%`, 14, 16);
@@ -708,7 +722,7 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
             onChange={(e) => setFilterOutlet(e.target.value)}
             className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none font-medium text-slate-700"
           >
-            <option value="ALL">Semua Outlet Gerai</option>
+            <option value="ALL">Semua Outlet</option>
             {outlets.map((o) => (
               <option key={o.id} value={o.kode_outlet}>
                 {o.nama_outlet} ({o.kode_outlet})
@@ -830,8 +844,8 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredData.map((item) => (
-                  <tr key={item.id} className={`hover:bg-slate-50/70 transition-colors ${selectedIds.has(item.id) ? 'bg-amber-50/40' : ''}`}>
+                {filteredData.map((item, idx) => (
+                  <tr key={`${item.id}-${idx}`} className={`hover:bg-slate-50/70 transition-colors ${selectedIds.has(item.id) ? 'bg-amber-50/40' : ''}`}>
                     <td className="py-3 px-3 text-center">
                       <input
                         type="checkbox"

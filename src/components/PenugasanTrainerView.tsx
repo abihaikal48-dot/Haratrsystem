@@ -160,7 +160,7 @@ export const PenugasanTrainerView: React.FC<PenugasanTrainerViewProps> = ({
     jenis_kegiatan: 'Pendampingan OJT & Perbantuan Operasional Cabang',
     ringkasan_perbantuan: 'Melakukan asistensi jam sibuk (peak hour) stasiun kitchen serta melatih 2 kru baru agar mandiri.',
     kendala_outlet: 'Peralatan deep fryer perlu kalibrasi termometer berkala setiap shift pagi.',
-    rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka gerai dan pertahankan briefing 5 menit.',
+    rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka outlet dan pertahankan briefing 5 menit.',
   });
 
   // Penugasan On-Site Modal
@@ -1021,7 +1021,7 @@ _Diterbitkan secara digital oleh Sistem HARA TRAINER Pro_`;
                   jenis_kegiatan: 'Pendampingan OJT & Perbantuan Operasional Cabang',
                   ringkasan_perbantuan: 'Melakukan asistensi jam sibuk (peak hour) stasiun kitchen serta melatih 2 kru baru agar mandiri.',
                   kendala_outlet: 'Peralatan deep fryer perlu kalibrasi termometer berkala setiap shift pagi.',
-                  rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka gerai dan pertahankan briefing 5 menit.',
+                  rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka outlet dan pertahankan briefing 5 menit.',
                 });
                 setIsLaporanModalOpen(true);
               }}
@@ -1467,7 +1467,7 @@ _Diterbitkan secara digital oleh Sistem HARA TRAINER Pro_`;
                   jenis_kegiatan: 'Pendampingan OJT & Perbantuan Operasional Cabang',
                   ringkasan_perbantuan: 'Melakukan asistensi jam sibuk (peak hour) stasiun kitchen serta melatih kru baru agar mandiri.',
                   kendala_outlet: 'Peralatan deep fryer perlu kalibrasi termometer berkala setiap shift pagi.',
-                  rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka gerai dan pertahankan briefing 5 menit.',
+                  rekomendasi_kepala_outlet: 'Lakukan evaluasi checklist harian sebelum buka outlet dan pertahankan briefing 5 menit.',
                 });
                 setIsLaporanModalOpen(true);
               }}

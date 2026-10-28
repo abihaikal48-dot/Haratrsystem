@@ -132,7 +132,7 @@ export const RapidFieldAuditCard: React.FC<RapidFieldAuditCardProps> = ({
     return `*KARTU SAKU FOKUS PERBAIKAN KRU — HARA CHICKEN* 🍗
 --------------------------------------------
 👤 *Nama Kru:* ${kru.nama_kru}
-📍 *Gerai:* ${kru.kode_outlet} (${kru.divisi})
+📍 *Outlet:* ${kru.kode_outlet} (${kru.divisi})
 ⏰ *Shift:* ${activeShift} (${activeShift === 'Pagi' ? '05:30-13:30' : activeShift === 'Middle' ? '09:00-11:00' : '13:30-21:30'})
 
 📊 *Hasil Evaluasi Kunjungan Cepat (4 Pilar):*
@@ -183,12 +183,12 @@ Semangat bertumbuh bersama Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif)! #
               <span className="text-[10px] text-white/70">Mobile Friendly</span>
             </div>
             <h2 className="text-base sm:text-lg font-black tracking-tight mt-0.5">
-              Mode Inspeksi Cepat Kunjungan Gerai & Kartu Saku WA
+              Mode Inspeksi Cepat Kunjungan Outlet & Kartu Saku WA
             </h2>
           </div>
         </div>
 
-        {/* Gerai & Shift Selector */}
+        {/* Outlet & Shift Selector */}
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           <select
             value={outletCode}
@@ -220,7 +220,7 @@ Semangat bertumbuh bersama Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif)! #
         </div>
       </div>
 
-      {/* Grid: 1. Checklist Kesiapan Gerai Cepat + 2. Multi-Crew Evaluator */}
+      {/* Grid: 1. Checklist Kesiapan Outlet Cepat + 2. Multi-Crew Evaluator */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
         
         {/* Kolom Kiri: Checklist Kesiapan Outlet Cepat (HP Optimized) */}
@@ -368,7 +368,7 @@ Semangat bertumbuh bersama Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif)! #
 
           {outletKru.length === 0 ? (
             <div className="p-8 text-center text-xs text-stone-500 bg-stone-50 rounded-xl border border-dashed border-stone-200">
-              Belum ada kru terdaftar di gerai {outletCode}.
+              Belum ada kru terdaftar di outlet {outletCode}.
             </div>
           ) : (
             <div className="space-y-3">

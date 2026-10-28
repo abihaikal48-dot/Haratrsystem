@@ -1,21 +1,17 @@
 import React, { useState } from 'react';
 import {
-  CalendarCheck, Users, BookOpen, Award, CheckCircle2,
-  Clock, Shield, Layers, HelpCircle, RefreshCw, FileText, Flame, BarChart3, TrendingUp
+  CalendarCheck, Users, BookOpen, FileText, CheckCircle2,
+  Clock, Shield, Layers, HelpCircle, RefreshCw, BarChart3, TrendingUp
 } from 'lucide-react';
 import { CrewTrainingMonitoringView } from './CrewTrainingMonitoringView';
 import { ProgramOJT30HariView } from './ProgramOJT30HariView';
-import { SimulasiPraktikRnDView } from './SimulasiPraktikRnDView';
-import { PenilaianOnboardingTCView } from './PenilaianOnboardingTCView';
-import { OnboardingDataAnalystView } from './OnboardingDataAnalystView';
+import { OnboardingActivityLogView } from './OnboardingActivityLogView';
 import { PageHeaderBanner } from '../PageHeaderBanner';
 
 export type TrainingOJTSubTab =
-  | 'penilaian-onboarding'
-  | 'analisis-onboarding'
   | 'monitoring'
   | 'panduan'
-  | 'simulasi-rnd';
+  | 'logbook';
 
 interface UnifiedTrainingOJTViewProps {
   selectedOutletCode?: string;
@@ -26,7 +22,7 @@ interface UnifiedTrainingOJTViewProps {
 export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
   selectedOutletCode = 'ALL',
   onOpenRaporKru,
-  initialSubTab = 'penilaian-onboarding',
+  initialSubTab = 'monitoring',
 }) => {
   const [activeTab, setActiveTab] = useState<TrainingOJTSubTab>(initialSubTab);
 
@@ -34,21 +30,11 @@ export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
     <div className="space-y-6">
       {/* Top Banner Navigation */}
       <PageHeaderBanner
-        category="PELATIHAN & ON-THE-JOB TRAINING"
-        title="Pusat Onboarding TC & Monitoring Kru Training Terpadu"
-        description="Modul terintegrasi penilaian objektif onboarding 4 kriteria (Ketepatan SOS, Kebersihan 5S, Kerjasama Tim, Knowledge), dashboard Data Analyst evaluasi stasiun, matriks monitoring OJT gerai, dan silabus kurikulum."
+        category="MONITORING TRAINING & OJT"
+        title="Pusat Pemantauan OJT 30 Hari Kru Outlet"
+        description="Monitoring terpadu evaluasi harian kru OJT (H1-H45), tracking kepatuhan standar SOP stasiun kerja, dan rekam logbook audit supervisi operasional outlet."
         icon={<CalendarCheck size={22} />}
         tabs={[
-          {
-            id: 'penilaian-onboarding',
-            label: 'Penilaian Onboarding TC (4 Kriteria)',
-            icon: Award,
-          },
-          {
-            id: 'analisis-onboarding',
-            label: 'Data Analyst & Rapor Onboarding TC',
-            icon: BarChart3,
-          },
           {
             id: 'monitoring',
             label: 'Matriks Monitoring OJT (H1 - H45)',
@@ -56,36 +42,20 @@ export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
           },
           {
             id: 'panduan',
-            label: 'Silabus & Panduan OJT Harian',
+            label: 'Peta Kepatuhan SOP & Panduan OJT Harian',
             icon: BookOpen,
           },
           {
-            id: 'simulasi-rnd',
-            label: 'Simulasi Praktik R&D (RnD)',
-            icon: Flame,
+            id: 'logbook',
+            label: 'Logbook Observasi & Audit Lapangan',
+            icon: FileText,
           },
         ]}
         activeTab={activeTab}
         onSelectTab={(id) => setActiveTab(id as TrainingOJTSubTab)}
       />
 
-      {/* Tab 1: Form Penilaian Onboarding TC */}
-      {activeTab === 'penilaian-onboarding' && (
-        <PenilaianOnboardingTCView
-          selectedOutletCode={selectedOutletCode}
-          onNavigateToAnalisis={() => setActiveTab('analisis-onboarding')}
-        />
-      )}
-
-      {/* Tab 2: Data Analyst & Rapor Onboarding TC */}
-      {activeTab === 'analisis-onboarding' && (
-        <OnboardingDataAnalystView
-          selectedOutletCode={selectedOutletCode}
-          onNavigateToForm={() => setActiveTab('penilaian-onboarding')}
-        />
-      )}
-
-      {/* Tab 3: Matriks Monitoring OJT Gerai */}
+      {/* Tab 1: Matriks Monitoring OJT Outlet (30 Hari / H1-H45) */}
       {activeTab === 'monitoring' && (
         <CrewTrainingMonitoringView
           selectedOutletCode={selectedOutletCode}
@@ -93,16 +63,16 @@ export const UnifiedTrainingOJTView: React.FC<UnifiedTrainingOJTViewProps> = ({
         />
       )}
 
-      {/* Tab 4: Panduan Silabus */}
+      {/* Tab 2: Panduan & Peta Kepatuhan SOP Harian */}
       {activeTab === 'panduan' && (
         <ProgramOJT30HariView
           selectedOutletCode={selectedOutletCode}
         />
       )}
 
-      {/* Tab 5: Simulasi R&D */}
-      {activeTab === 'simulasi-rnd' && (
-        <SimulasiPraktikRnDView
+      {/* Tab 3: Logbook Aktivitas & Audit Lapangan */}
+      {activeTab === 'logbook' && (
+        <OnboardingActivityLogView
           selectedOutletCode={selectedOutletCode}
         />
       )}

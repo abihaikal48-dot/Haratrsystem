@@ -18,7 +18,7 @@ import { calculateCompositeScore, generateDiagnosticActionPlan } from '../../lib
 export type ReportType =
   | 'intervensi_perbantuan'
   | 'dossier_kru'
-  | 'periodik_gerai'
+  | 'periodik_outlet'
   | 'executive_hq';
 
 interface MultiPageOfficialReportProps {
@@ -141,7 +141,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
     } else {
       text = `*DOSSIER KOMPETENSI KRU RESMI*\n` +
         `Nama: ${targetCrew?.nama_kru} (${targetCrew?.jabatan})\n` +
-        `Stasiun: ${targetCrew?.divisi} | Gerai: ${targetCrew?.kode_outlet}\n` +
+        `Stasiun: ${targetCrew?.divisi} | Outlet: ${targetCrew?.kode_outlet}\n` +
         `Skor Komposit: ${composite.total_composite} / 100 (${composite.status})\n` +
         `Rekomendasi: ${actionPlan.rekomendasiUtama}\n` +
         `Diterbitkan oleh HARA Chicken Trainer & Ops.`;
@@ -226,8 +226,8 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
               icon: User,
             },
             {
-              id: 'periodik_gerai' as ReportType,
-              label: 'Laporan Periodik Gerai',
+              id: 'periodik_outlet' as ReportType,
+              label: 'Laporan Periodik Outlet',
               desc: '5 Halaman • Kepatuhan Bulanan',
               icon: Store,
             },
@@ -279,9 +279,9 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
         {/* Dynamic Filters Bar based on active report type */}
         <div className="bg-white p-4 rounded-2xl border border-stone-200 shadow-xs flex flex-wrap items-center justify-between gap-3 text-xs">
           <div className="flex flex-wrap items-center gap-3">
-            {/* Filter Gerai */}
+            {/* Filter Outlet */}
             <div className="flex items-center gap-2">
-              <span className="font-bold text-stone-600">Pilih Gerai:</span>
+              <span className="font-bold text-stone-600">Pilih Outlet:</span>
               <select
                 value={currentOutletCode}
                 onChange={(e) => setCurrentOutletCode(e.target.value)}
@@ -429,7 +429,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                   <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2 leading-relaxed text-stone-700">
                     <p>
                       Berdasarkan pemantauan indikator operasional bulanan dan laporan TNA (Training Needs Analysis),
-                      gerai <b>{targetOutlet?.nama_outlet} ({targetOutlet?.kode_outlet})</b> memerlukan perbantuan
+                      outlet <b>{targetOutlet?.nama_outlet} ({targetOutlet?.kode_outlet})</b> memerlukan perbantuan
                       teknis langsung dari tim Lead Trainer untuk memastikan konsistensi standar mutu rasa ayam krispi
                       HARA, ketepatan gramasi sambal geprek, dan kelancaran transaksi di jam sibuk (*rush hour*).
                     </p>
@@ -655,7 +655,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                         Observasi tanpa intervensi selama jam makan siang. Mengukur waktu antrean kasir (rata-rata 78 detik) dan suhu penggorengan ayam. Menemukan deviasi takaran sambal bawang dan sambal matah.
                       </p>
                       <div className="text-[10px] text-stone-500 font-bold bg-stone-50 px-2.5 py-1 rounded inline-block">
-                        Tindakan: Briefing malam bersama Kepala Gerai & evaluasi gap TNA.
+                        Tindakan: Briefing malam bersama Kepala Outlet & evaluasi gap TNA.
                       </div>
                     </div>
 
@@ -734,7 +734,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="p-4 rounded-xl border border-stone-200 bg-[#FAF8F5] space-y-2">
                       <span className="text-[10px] font-black uppercase text-stone-500 font-mono block">
-                        SKOR KEPATUHAN SOP GERAI
+                        SKOR KEPATUHAN SOP OUTLET
                       </span>
                       <div className="flex items-baseline gap-2">
                         <span className="text-sm font-bold text-stone-400 line-through">73.8%</span>
@@ -832,7 +832,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                   </div>
                 </div>
 
-                {/* Feedback Kepala Gerai */}
+                {/* Feedback Kepala Outlet */}
                 <div className="p-4 rounded-xl bg-stone-50 border border-stone-200 text-xs space-y-1.5">
                   <b className="text-stone-900 block font-bold">
                     Apresiasi & Testimoni Kepala Outlet (Store Manager):
@@ -907,7 +907,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                       <span className="text-[10px] font-bold text-stone-500 uppercase block font-mono">
                         Audit Komprehensif II (30 Hari)
                       </span>
-                      <b className="text-stone-900 block mt-0.5">Sertifikasi Ulang Mutu Gerai</b>
+                      <b className="text-stone-900 block mt-0.5">Sertifikasi Ulang Mutu Outlet</b>
                       <span className="text-[11px] text-stone-600 block mt-0.5">
                         Fokus: Verifikasi konsistensi zero customer complaint dan kecepatan SOS.
                       </span>
@@ -944,7 +944,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                         <span className="font-bold text-stone-900 block text-[11px]">
                           {targetOutlet?.kepala_outlet || 'Rian Hidayat'}
                         </span>
-                        <span className="text-[9.5px] text-stone-500 block">Store Manager Gerai</span>
+                        <span className="text-[9.5px] text-stone-500 block">Store Manager Outlet</span>
                       </div>
                     </div>
 
@@ -1021,7 +1021,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                       <span className="font-mono font-bold text-stone-900">{targetCrew?.id}</span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-stone-400 font-bold uppercase block">GERAI PENEMPATAN</span>
+                      <span className="text-[10px] text-stone-400 font-bold uppercase block">OUTLET PENEMPATAN</span>
                       <span className="font-bold text-stone-900">{targetCrew?.kode_outlet}</span>
                     </div>
                     <div>
@@ -1306,7 +1306,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                     <div className="flex justify-between items-center">
                       <div>
                         <h4 className="font-black text-sm text-stone-900">High Potential / Core Performer</h4>
-                        <p className="text-[11px] text-stone-600">Direkomendasikan untuk promosi berjenjang ke posisi Shift Leader atau Assistant Trainer Gerai.</p>
+                        <p className="text-[11px] text-stone-600">Direkomendasikan untuk promosi berjenjang ke posisi Shift Leader atau Assistant Trainer Outlet.</p>
                       </div>
                       <div className="text-right">
                         <span className="px-3 py-1 rounded-xl bg-amber-200 text-amber-900 font-bold text-xs">
@@ -1319,7 +1319,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                   <div className="p-4 rounded-xl border border-stone-200 bg-white space-y-2 leading-relaxed">
                     <b className="text-stone-900 block font-bold">Catatan Otorisasi Kepala Trainer:</b>
                     <p className="text-stone-700">
-                      Berdasarkan akumulasi skor teori, praktik, lisan, serta sikap kerja harian di gerai {targetCrew?.kode_outlet}, kru yang bersangkutan dinyatakan <b>LULUS SERTIFIKASI STANDAR EMAS HARA CHICKEN</b> dan berhak mendapatkan lencana kompetensi resmi.
+                      Berdasarkan akumulasi skor teori, praktik, lisan, serta sikap kerja harian di outlet {targetCrew?.kode_outlet}, kru yang bersangkutan dinyatakan <b>LULUS SERTIFIKASI STANDAR EMAS HARA CHICKEN</b> dan berhak mendapatkan lencana kompetensi resmi.
                     </p>
                   </div>
 
@@ -1334,7 +1334,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                     </div>
 
                     <div className="space-y-12">
-                      <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Kepala Gerai</span>
+                      <span className="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Kepala Outlet</span>
                       <div className="border-t border-stone-400 pt-1.5 mx-auto max-w-[140px]">
                         <span className="font-bold text-stone-900 block">{targetOutlet?.kepala_outlet || 'Store Manager'}</span>
                         <span className="text-[10px] text-stone-500">Penanggung Jawab Outlet</span>
@@ -1356,17 +1356,17 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
         )}
 
         {/* ======================================================================= */}
-        {/* LAPORAN TIPE 3: EVALUASI PERIODIK KINERJA GERAI BULANAN */}
+        {/* LAPORAN TIPE 3: EVALUASI PERIODIK KINERJA OUTLET BULANAN */}
         {/* ======================================================================= */}
-        {reportType === 'periodik_gerai' && (
+        {reportType === 'periodik_outlet' && (
           <>
             {(activePageTab === 'ALL' || activePageTab === 1) && (
               <A4Sheet
                 pageNumber={1}
                 totalPages={totalPages}
                 docNumber={`REP-PERIODIK-${targetOutlet?.kode_outlet}-2026`}
-                docTitle="LAPORAN EVALUASI PERIODIK KINERJA & KEPATUHAN GERAI"
-                subTitle={`Ringkasan Kepatuhan SOP Bulanan Gerai ${targetOutlet?.nama_outlet}`}
+                docTitle="LAPORAN EVALUASI PERIODIK KINERJA & KEPATUHAN OUTLET"
+                subTitle={`Ringkasan Kepatuhan SOP Bulanan Outlet ${targetOutlet?.nama_outlet}`}
               >
                 <div className="p-5 rounded-2xl bg-[#FAF8F5] border-2 border-stone-800 space-y-4">
                   <div className="flex justify-between items-center border-b border-stone-200 pb-3">
@@ -1399,10 +1399,10 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
 
                 <div className="space-y-2 text-xs">
                   <h3 className="font-black text-xs uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                    Ringkasan Eksekutif Kinerja Gerai
+                    Ringkasan Eksekutif Kinerja Outlet
                   </h3>
                   <p className="text-stone-700 leading-relaxed bg-white p-4 rounded-xl border border-stone-200">
-                    Sepanjang periode evaluasi bulan ini, gerai <b>{targetOutlet?.nama_outlet}</b> menunjukkan stabilitas operasional yang sangat baik. Tingkat kepatuhan resep sambal geprek mencapai 94%, tidak ada insiden sanitasi fatal, dan keluhan antrean kasir menurun 60% dibandingkan bulan sebelumnya.
+                    Sepanjang periode evaluasi bulan ini, outlet <b>{targetOutlet?.nama_outlet}</b> menunjukkan stabilitas operasional yang sangat baik. Tingkat kepatuhan resep sambal geprek mencapai 94%, tidak ada insiden sanitasi fatal, dan keluhan antrean kasir menurun 60% dibandingkan bulan sebelumnya.
                   </p>
                 </div>
               </A4Sheet>
@@ -1414,12 +1414,12 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                 totalPages={totalPages}
                 docNumber={`REP-PERIODIK-${targetOutlet?.kode_outlet}-2026`}
                 docTitle="AUDIT 4 STASIUN, KOMPLAIN, & REKOMENDASI TNA"
-                subTitle={`Rincian Audit Stasiun, Penanganan Komplain, & Rencana Training Gerai ${targetOutlet?.nama_outlet}`}
+                subTitle={`Rincian Audit Stasiun, Penanganan Komplain, & Rencana Training Outlet ${targetOutlet?.nama_outlet}`}
               >
                 <div className="space-y-4 text-xs">
                   <div className="p-4 rounded-xl bg-white border border-stone-200 space-y-2">
                     <b className="text-stone-900 block font-bold text-xs uppercase text-[#8B1418]">
-                      Distribusi Kepatuhan 4 Stasiun Kerja Gerai:
+                      Distribusi Kepatuhan 4 Stasiun Kerja Outlet:
                     </b>
                     <div className="grid grid-cols-4 gap-2 text-center">
                       <div className="p-2.5 rounded-lg bg-stone-50 border border-stone-200">
@@ -1462,7 +1462,7 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
             totalPages={4}
             docNumber="HQ-BOARD-OPS-2026-Q3"
             docTitle="EXECUTIVE BOARD SUMMARY: STANDAR MUTU OPERASIONAL NASIONAL"
-            subTitle="Komparasi Kinerja Seluruh Gerai HARA Chicken & Utilisasi Tim Trainer"
+            subTitle="Komparasi Kinerja Seluruh Outlet HARA Chicken & Utilisasi Tim Trainer"
           >
             <div className="space-y-4 text-xs">
               <div className="p-5 rounded-2xl bg-stone-900 text-white space-y-3">
@@ -1479,22 +1479,22 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                     <span className="text-2xl font-black font-mono text-emerald-400">{allKru.length} Kru</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-stone-400 block">Gerai Aktif Diaudit</span>
-                    <span className="text-2xl font-black font-mono text-white">{outlets.length} Gerai</span>
+                    <span className="text-[10px] text-stone-400 block">Outlet Aktif Diaudit</span>
+                    <span className="text-2xl font-black font-mono text-white">{outlets.length} Outlet</span>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <h3 className="font-black text-xs uppercase tracking-wider text-stone-900 border-b border-stone-200 pb-1">
-                  Komparasi Indeks Kinerja Gerai Nasional
+                  Komparasi Indeks Kinerja Outlet Nasional
                 </h3>
                 <div className="border border-stone-200 rounded-xl overflow-hidden">
                   <table className="w-full text-left text-xs">
                     <thead className="bg-stone-100 text-stone-700 font-bold border-b border-stone-200">
                       <tr>
                         <th className="p-2.5">Kode</th>
-                        <th className="p-2.5">Nama Gerai</th>
+                        <th className="p-2.5">Nama Outlet</th>
                         <th className="p-2.5">Area SPV</th>
                         <th className="p-2.5">Skor Kepatuhan</th>
                         <th className="p-2.5">Status Audit</th>

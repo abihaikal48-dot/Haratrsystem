@@ -149,7 +149,7 @@ export const AnalitikRadarView: React.FC<AnalitikRadarViewProps> = ({
               Radar Kompetensi Kru & Diagnostik Operasional
             </h1>
             <p className="text-xs text-stone-500">
-              Evaluasi objektif 5-axis, skor komposit terbobot 4-faktor, dan prediksi deviasi pada jam kritis gerai.
+              Evaluasi objektif 5-axis, skor komposit terbobot 4-faktor, dan prediksi deviasi pada jam kritis outlet.
             </p>
           </div>
 

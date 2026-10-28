@@ -167,13 +167,13 @@ export const HARA_OBJECTIVE_PILLARS: HaraPillarDefinition[] = [
         pilarName: 'Adaptif & Disiplin Belajar',
         kriteria: 'Mengoperasikan perangkat tablet audit, POS sistem kasir, atau formulir digital tanpa terjadi kesalahan fatal berulang',
         kode_sop: 'HC-SOP-SYS-01',
-        metode_verifikasi: 'Audit ketepatan input data pada aplikasi monitoring gerai',
+        metode_verifikasi: 'Audit ketepatan input data pada aplikasi monitoring outlet',
       },
       {
         id: 'A2_4',
         pilar: 'A2',
         pilarName: 'Adaptif & Disiplin Belajar',
-        kriteria: 'Berinisiatif mengusulkan ide perbaikan alur stasiun kerja atau efisiensi waktu penyajian pada briefing harian gerai',
+        kriteria: 'Berinisiatif mengusulkan ide perbaikan alur stasiun kerja atau efisiensi waktu penyajian pada briefing harian outlet',
         kode_sop: 'HC-SOP-OPS-04',
         metode_verifikasi: 'Catatan kontribusi ide pada buku log shift atau briefing pagi',
       },
@@ -225,3 +225,131 @@ export function calculateObjectiveHaraScores(checklist: HaraChecklistItem[]) {
     fulfilledCount: checklist.filter((i) => i.terpenuhi).length,
   };
 }
+
+/**
+ * =========================================================================
+ * RUBRIK PENILAIAN OBJEKTIF 7 KRITERIA ONBOARDING HARA CHICKEN
+ * (STANDAR MUTU OPERASIONAL - KKM 75)
+ * Sesuai Dokumen Master HARA Hal 6
+ * =========================================================================
+ */
+export interface RubrikKriteriaOnboarding {
+  nomor: number;
+  dimensi: string;
+  bobotPersen: number;
+  fokusPenilaian: string;
+  gradeA: string; // 90 - 100 Sangat Mahir
+  gradeB: string; // 75 - 89 Kompeten (Lulus KKM)
+  gradeC: string; // 60 - 74 Pembinaan / Evaluasi
+  remedial: string; // < 60 Kill-Switch / Gagal
+}
+
+export const RUBRIK_PENILAIAN_7_KRITERIA_HARA: RubrikKriteriaOnboarding[] = [
+  {
+    nomor: 1,
+    dimensi: '1. KETEPATAN',
+    bobotPersen: 20,
+    fokusPenilaian: 'Akurasi timbangan ZERO/TARE, gramatur resep, suhu kompor & deep fryer (160 C / 150 C), dan takaran bahan.',
+    gradeA: 'Timbangan selalu di-TARE 0g; gramatur tepat 100% (Nasi 170g, ECO 20g, Sambal 30g, Minyak 15ml); suhu fryer tepat 160 C / 150 C.',
+    gradeB: 'Timbangan di-TARE, deviasi gramatur sangat kecil (<5%), suhu fryer sesuai standar SOP.',
+    gradeC: 'Kadang lupa menekan TARE; gramatur meleset 5-10%; suhu minyak fryer kurang stabil (+/- 5 C).',
+    remedial: 'KILL-SWITCH: Tidak menimbang bahan wajib timbang (Nasi 170g / ECO 20g / Sambal 30g), atau memasukkan ayam pada suhu salah.'
+  },
+  {
+    nomor: 2,
+    dimensi: '2. LANGKAH SESUAI SOP',
+    bobotPersen: 20,
+    fokusPenilaian: 'Kepatuhan checklist tahapan proses kerja dari persiapan bahan, memasak, hingga penyajian dan platting.',
+    gradeA: 'Menjalankan 100% urutan langkah SOP tanpa ada tahapan yang terlompati; teknik alat tepat sempurna (2 solet mentai, garpu ayoli).',
+    gradeB: 'Menjalankan seluruh langkah esensial SOP; urutan teratur; hasil produk rapi dan terstandar.',
+    gradeC: 'Ada 1-2 langkah kecil yang terbalik urutannya namun tidak merusak keamanan pangan produk akhir.',
+    remedial: 'KILL-SWITCH: Melanggar titik kendali kritis (ayam berdarah, sambal diblender, tidak mencelup 2x krisbar).'
+  },
+  {
+    nomor: 3,
+    dimensi: '3. KECEPATAN & STOPWATCH',
+    bobotPersen: 15,
+    fokusPenilaian: 'Efisiensi durasi kerja nyata (Prep + Masak + Platting) dibandingkan Target Waktu Realistis End-to-End.',
+    gradeA: 'Waktu aktual <= Target Waktu Realistis (atau lebih cepat hingga 10% tanpa mengurangi kualitas).',
+    gradeB: 'Waktu aktual tepat sesuai target waktu realistis atau deviasi keterlambatan sangat kecil (<10%).',
+    gradeC: 'Keterlambatan waktu 10-25% dari target realistis akibat gerakan ragu-ragu saat persiapan alat/bahan.',
+    remedial: 'Keterlambatan parah (>25% dari target realistis) atau panik/bingung total saat operasional stasiun.'
+  },
+  {
+    nomor: 4,
+    dimensi: '4. KNOWLEDGE & TITIK KRITIS',
+    bobotPersen: 15,
+    fokusPenilaian: 'Penguasaan 5 pertanyaan lisan seputar titik kendali kritis (CCP), masa simpan bahan, dan alasan di balik SOP.',
+    gradeA: 'Mampu menjawab 5 dari 5 pertanyaan lisan Trainer dengan tegas, tepat, dan menjelaskan alasan ilmiahnya.',
+    gradeB: 'Mampu menjawab minimal 4 dari 5 pertanyaan lisan dengan benar dan memahami prosedur dasarnya.',
+    gradeC: 'Hanya mampu menjawab 3 dari 5 pertanyaan; pemahaman terhadap titik kritis holding time masih ragu.',
+    remedial: 'Hanya mampu menjawab <3 pertanyaan; tidak mengetahui bahaya kontaminasi silang dan K3 kebakaran minyak.'
+  },
+  {
+    nomor: 5,
+    dimensi: '5. KERJA SAMA TIM & STASIUN',
+    bobotPersen: 10,
+    fokusPenilaian: 'Komunikasi verbal saat jam sibuk, serah terima alat stasiun, kepekaan membantu rekan, dan sinergi batch.',
+    gradeA: 'Komunikasi call-out jelas ("Ayam masuk!", "Order nasgor!"); proaktif membantu stasiun lain yang overload.',
+    gradeB: 'Koordinasi baik dengan rekan satu stasiun; saling menjaga alur antrean pesanan tanpa gesekan.',
+    gradeC: 'Pasif; hanya bekerja jika disuruh; kurang melakukan komunikasi call-out saat memindahkan makanan panas.',
+    remedial: 'Individualis; memicu bottleneck stasiun kerja; menyalahkan rekan kerja saat pesanan terlambat.'
+  },
+  {
+    nomor: 6,
+    dimensi: '6. KEBERSIHAN, GROOMING & 4 LAP',
+    bobotPersen: 10,
+    fokusPenilaian: 'Standar personal grooming (kuku, rambut, seragam), prinsip Clean as you go, dan disiplin 4 jenis lap resmi.',
+    gradeA: 'Grooming 100% sesuai HC-SOP-11-PKP; meja selalu bersih; penggunaan 4 warna lap presisi tanpa salah fungsi.',
+    gradeB: 'Grooming rapi; stasiun kerja bersih; membedakan kanebo piring vs lap meja orange vs lap kotak basah/kering.',
+    gradeC: 'Grooming cukup; meja sempat kotor berceceran minyak/tepung sebelum dibersihkan; 1x tertukar fungsi lap.',
+    remedial: 'KILL-SWITCH: Kuku panjang/cat kuku; menggunakan lap lantai untuk piring; menaruh makanan jatuh ke meja.'
+  },
+  {
+    nomor: 7,
+    dimensi: '7. KEAKTIFAN & INISIATIF',
+    bobotPersen: 10,
+    fokusPenilaian: 'Antusiasme selama sesi demo Trainer, inisiatif bertanya hal teknis, dan kesigapan saat praktik mandiri.',
+    gradeA: 'Sangat antusias; aktif mencatat poin kritis; sigap mengambil inisiatif persiapan alat tanpa menunggu instruksi.',
+    gradeB: 'Fokus memperhatikan demo; aktif merespon pertanyaan Trainer; bersemangat menyelesaikan tugas praktik.',
+    gradeC: 'Cukup memperhatikan namun pasif bertanya; menunggu perintah baru bergerak menyiapkan bahan baku.',
+    remedial: 'Tidak fokus; mengantuk atau bermain handphone selama sesi materi/praktik; menunjukkan sikap apatis.'
+  }
+];
+
+export function hitungSkorKomposit7Kriteria(scores: {
+  ketepatan: number;
+  langkahSop: number;
+  kecepatan: number;
+  knowledge: number;
+  kerjaSama: number;
+  kebersihan: number;
+  keaktifan: number;
+}) {
+  const skorKomposit =
+    scores.ketepatan * 0.20 +
+    scores.langkahSop * 0.20 +
+    scores.kecepatan * 0.15 +
+    scores.knowledge * 0.15 +
+    scores.kerjaSama * 0.10 +
+    scores.kebersihan * 0.10 +
+    scores.keaktifan * 0.10;
+
+  const skorRounded = Math.round(skorKomposit * 10) / 10;
+  let status: 'LULUS MAHIR (GRADE A)' | 'LULUS KOMPETEN (KKM >=75)' | 'WAJIB REMEDIAL (<75)';
+  let grade: 'A' | 'B' | 'C' | 'Remedial';
+
+  if (skorRounded >= 85.0) {
+    status = 'LULUS MAHIR (GRADE A)';
+    grade = 'A';
+  } else if (skorRounded >= 75.0) {
+    status = 'LULUS KOMPETEN (KKM >=75)';
+    grade = 'B';
+  } else {
+    status = 'WAJIB REMEDIAL (<75)';
+    grade = 'Remedial';
+  }
+
+  return { skorKomposit: skorRounded, status, grade };
+}
+

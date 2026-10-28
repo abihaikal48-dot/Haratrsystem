@@ -47,7 +47,22 @@ export function createDynamicJsPDF(options?: PDFExportOptions): jsPDF {
 }
 
 /**
- * Kop Surat Korporat Resmi PT HARA CHICKEN INDONESIA
+ * Helper anti-crash untuk pemanggilan doc.line pada jsPDF.
+ * Mencegah uncaught exception "Invalid arguments passed to jsPDF.line" jika koordinat bernilai NaN/undefined/non-finite.
+ */
+export function safeLine(doc: jsPDF, x1: number, y1: number, x2: number, y2: number): void {
+  if (
+    typeof x1 === 'number' && Number.isFinite(x1) &&
+    typeof y1 === 'number' && Number.isFinite(y1) &&
+    typeof x2 === 'number' && Number.isFinite(x2) &&
+    typeof y2 === 'number' && Number.isFinite(y2)
+  ) {
+    doc.line(x1, y1, x2, y2);
+  }
+}
+
+/**
+ * Kop Surat Korporat Resmi HARA CHICKEN INDONESIA
  */
 function drawCorporateHeader(
   doc: jsPDF,
@@ -60,7 +75,7 @@ function drawCorporateHeader(
   const pageWidth = doc.internal.pageSize.getWidth();
   const safeTitle = String(title || 'DOKUMEN RESMI HARA CHICKEN');
   const safeDocNum = String(docNumber || 'DOC-HARA/2026/OFFICIAL');
-  const safeOutletName = String(outletName || 'Gerai Resmi HARA');
+  const safeOutletName = String(outletName || 'Outlet Resmi HARA');
   const safeKodeOutlet = String(kodeOutlet || 'HQ');
   const safeDate = String(dateStr || new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }));
 
@@ -76,7 +91,7 @@ function drawCorporateHeader(
   doc.setTextColor(...BRAND_CRIMSON);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.text('PT HARA CHICKEN INDONESIA', 14, 16);
+  doc.text('HARA CHICKEN INDONESIA', 14, 16);
 
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
@@ -107,13 +122,13 @@ function drawCorporateHeader(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
   doc.setTextColor(...ACCENT_MUTED);
-  doc.text(`Gerai: ${safeKodeOutlet} - ${safeOutletName.slice(0, 18)}`, pageWidth - boxWidth - 11, 21.5);
+  doc.text(`Outlet: ${safeKodeOutlet} - ${safeOutletName.slice(0, 18)}`, pageWidth - boxWidth - 11, 21.5);
   doc.text(`Tanggal Cetak: ${safeDate}`, pageWidth - boxWidth - 11, 24.5);
 
   // Separator Line
   doc.setDrawColor(220, 215, 208);
   doc.setLineWidth(0.4);
-  doc.line(14, 28, pageWidth - 14, 28);
+  safeLine(doc, 14, 28, pageWidth - 14, 28);
 
   // Title Banner
   doc.setFillColor(...BG_WARM);
@@ -129,12 +144,14 @@ function drawCorporateHeader(
  * Footer Korporat Resmi
  */
 function drawCorporateFooter(doc: jsPDF, pageNumber: number, totalPages: number) {
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
+  const rawPageWidth = doc.internal.pageSize.getWidth();
+  const rawPageHeight = doc.internal.pageSize.getHeight();
+  const pageWidth = Number.isFinite(rawPageWidth) ? rawPageWidth : 210;
+  const pageHeight = Number.isFinite(rawPageHeight) ? rawPageHeight : 297;
 
   doc.setDrawColor(220, 215, 208);
   doc.setLineWidth(0.3);
-  doc.line(14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
+  safeLine(doc, 14, pageHeight - 12, pageWidth - 14, pageHeight - 12);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(6.5);
@@ -159,7 +176,9 @@ function drawSignatureBlock(
   storeManager: string = 'Rian Hidayat (Kepala Outlet)',
   areaSpv: string = 'Bambang Kusuma (Area Supervisor)'
 ) {
-  const pageWidth = doc.internal.pageSize.getWidth();
+  const safeStartY = (typeof startY === 'number' && Number.isFinite(startY)) ? startY : 220;
+  const rawPageWidth = doc.internal.pageSize.getWidth();
+  const pageWidth = (typeof rawPageWidth === 'number' && Number.isFinite(rawPageWidth)) ? rawPageWidth : 210;
   const colWidth = (pageWidth - 28) / 3;
 
   doc.setFontSize(7.5);
@@ -170,28 +189,28 @@ function drawSignatureBlock(
   const col2X = 14 + colWidth + colWidth / 2;
   const col3X = 14 + colWidth * 2 + colWidth / 2;
 
-  doc.text('Lead Operational Trainer,', col1X, startY, { align: 'center' });
-  doc.text('Kepala Outlet (Store Manager),', col2X, startY, { align: 'center' });
-  doc.text('People Development / SPV,', col3X, startY, { align: 'center' });
+  doc.text('Lead Operational Trainer,', col1X, safeStartY, { align: 'center' });
+  doc.text('Kepala Outlet (Store Manager),', col2X, safeStartY, { align: 'center' });
+  doc.text('People Development / SPV,', col3X, safeStartY, { align: 'center' });
 
   // Verification Seal Mark
   doc.setDrawColor(200, 190, 180);
   doc.setFillColor(...BG_WARM);
-  doc.roundedRect(col1X - 20, startY + 3.5, 40, 12, 1.5, 1.5, 'FD');
+  doc.roundedRect(col1X - 20, safeStartY + 3.5, 40, 12, 1.5, 1.5, 'FD');
   doc.setFontSize(6);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...BRAND_CRIMSON);
-  doc.text('[TERVERIFIKASI SISTEM]', col1X, startY + 8.5, { align: 'center' });
+  doc.text('[TERVERIFIKASI SISTEM]', col1X, safeStartY + 8.5, { align: 'center' });
   doc.setFontSize(5.5);
   doc.setTextColor(...ACCENT_MUTED);
-  doc.text('HARA DIGITAL ID SECURE', col1X, startY + 12.5, { align: 'center' });
+  doc.text('HARA DIGITAL ID SECURE', col1X, safeStartY + 12.5, { align: 'center' });
 
   // Sign lines
   doc.setDrawColor(140, 130, 120);
   doc.setLineWidth(0.3);
-  doc.line(col1X - 22, startY + 20, col1X + 22, startY + 20);
-  doc.line(col2X - 22, startY + 20, col2X + 22, startY + 20);
-  doc.line(col3X - 22, startY + 20, col3X + 22, startY + 20);
+  safeLine(doc, col1X - 22, safeStartY + 20, col1X + 22, safeStartY + 20);
+  safeLine(doc, col2X - 22, safeStartY + 20, col2X + 22, safeStartY + 20);
+  safeLine(doc, col3X - 22, safeStartY + 20, col3X + 22, safeStartY + 20);
 
   const safeTrainer = String(trainerName || 'Haikal Abi (Lead Trainer)');
   const safeManager = String(storeManager || 'Rian Hidayat (Kepala Outlet)');
@@ -201,11 +220,11 @@ function drawSignatureBlock(
   doc.setTextColor(...TEXT_CHARCOAL);
 
   doc.setFontSize(safeTrainer.length > 25 ? 6.5 : 7.5);
-  doc.text(safeTrainer, col1X, startY + 24, { align: 'center' });
+  doc.text(safeTrainer, col1X, safeStartY + 24, { align: 'center' });
   doc.setFontSize(safeManager.length > 25 ? 6.5 : 7.5);
-  doc.text(safeManager, col2X, startY + 24, { align: 'center' });
+  doc.text(safeManager, col2X, safeStartY + 24, { align: 'center' });
   doc.setFontSize(safeSpv.length > 25 ? 6.5 : 7.5);
-  doc.text(safeSpv, col3X, startY + 24, { align: 'center' });
+  doc.text(safeSpv, col3X, safeStartY + 24, { align: 'center' });
 }
 
 // =========================================================================
@@ -251,7 +270,7 @@ export function generateOfficialRaporKruPDF(
         summary.badge === 'Mahir' ? 'GRADE A — MAHIR MANDIRI' : 'GRADE B — KOMPETEN TERVERIFIKASI'
       ],
       [
-        { content: 'Cabang Gerai:', styles: { fontStyle: 'bold' } },
+        { content: 'Cabang Outlet:', styles: { fontStyle: 'bold' } },
         `${summary.kode_outlet} - ${outlet?.nama_outlet || ''}`,
         { content: 'Masa Kerja:', styles: { fontStyle: 'bold' } },
         kru?.tanggal_masuk ? `Sejak ${kru.tanggal_masuk}` : 'Kru Aktif',
@@ -307,7 +326,7 @@ export function generateOfficialRaporKruPDF(
         '- Greeting 5S & Senyum ramah < 3 dtk\n- Kecepatan transaksi POS ESB (<45 dtk)\n- Rekonsiliasi kasir presisi Rp 0 selisih',
         '- Edukasi upselling menu near-expired (Spinach/Teh)\n- Penanganan komplain antrean jam rush',
         '- Goal: Upselling 10 porsi side dish/shift\n- Reality: Sering lupa tawarkan promo add-on\n- Options: Kuasai skrip upselling kasir HARA\n- Will: Konsisten tawaran di setiap struk',
-        'Senior Cashier Specialist & Duta Layanan Tamu Gerai'
+        'Senior Cashier Specialist & Duta Layanan Tamu Outlet'
       ];
     } else if (d.includes('geprek')) {
       return [
@@ -321,7 +340,7 @@ export function generateOfficialRaporKruPDF(
         '- Disiplin 4 jenis lap warna HARA\n- Sanitasi area cuci & K3 bebas genangan air\n- Rotasi stok bahan baku FIFO chiller 1-4°C',
         '- Pencatatan kartu suhu chiller 2x sehari\n- Pemisahan limbah minyak jelantah teratur',
         '- Goal: Zero cross-contamination di station\n- Reality: Lap basah sempat tertukar di wash area\n- Options: Pasang stiker identitas warna di hook lap\n- Will: Evaluasi sanitasi tiap 2 jam shift',
-        'Senior Sanitation Specialist & Inspektur Higienitas Gerai'
+        'Senior Sanitation Specialist & Inspektur Higienitas Outlet'
       ];
     } else {
       return [
@@ -425,7 +444,7 @@ export function generateBranchAuditDossierPDF(
   autoTable(doc, {
     startY: curY,
     theme: 'grid',
-    head: [['Indikator Kinerja Gerai (KPI)', 'Standar Target QSR', 'Capaian Aktual Cabang', 'Status Audit Mutu']],
+    head: [['Indikator Kinerja Outlet (KPI)', 'Standar Target QSR', 'Capaian Aktual Cabang', 'Status Audit Mutu']],
     body: [
       ['Rata-Rata Indeks 4 Pilar Kru', '>= 80.0 Poin', `${(summaries.reduce((a, b) => a + (b.skorAkhir || 85), 0) / Math.max(1, summaries.length)).toFixed(1)} Poin`, 'LULUS STANDAR QSR'],
       ['Kepatuhan Suhu Deep Fryer (175°C/160°C)', '100% Sesuai SOP', '98.5% Patuh', 'SESUAI STANDAR'],
@@ -515,7 +534,7 @@ export function generateOnboardingBatchPDF(
   const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   const docNumber = String(batch.nomor_batch || `OB-HARA/${new Date().getFullYear()}/B01`);
   const kodeOutlet = String(batch.kode_outlet_lokasi || outlet?.kode_outlet || 'HQ');
-  const outletName = String(outlet?.nama_outlet || batch.kode_outlet_lokasi || 'Gerai Resmi HARA');
+  const outletName = String(outlet?.nama_outlet || batch.kode_outlet_lokasi || 'Outlet Resmi HARA');
 
   drawCorporateHeader(
     doc,
@@ -543,7 +562,7 @@ export function generateOnboardingBatchPDF(
         String(batch.status || 'Selesai')
       ],
       [
-        { content: 'Lokasi Gerai:', styles: { fontStyle: 'bold' } },
+        { content: 'Lokasi Outlet:', styles: { fontStyle: 'bold' } },
         `${kodeOutlet} - ${outletName}`,
         { content: 'Kapasitas Peserta:', styles: { fontStyle: 'bold' } },
         `${(batch.peserta || []).length} Kru (Standar Baku: 11 - 17 Kru)`,
@@ -673,7 +692,7 @@ export function generateNetworkComparisonPDF(
   autoTable(doc, {
     startY: curY,
     theme: 'grid',
-    head: [['No', 'Kode', 'Nama Gerai', 'Kepala Outlet', 'Area SPV', 'Total Kru', 'Rata Teori', 'Rata Praktik', 'Rata Attitude', 'Indeks 4 Pilar', 'Passing Rate', 'Status Jaringan']],
+    head: [['No', 'Kode', 'Nama Outlet', 'Kepala Outlet', 'Area SPV', 'Total Kru', 'Rata Teori', 'Rata Praktik', 'Rata Attitude', 'Indeks 4 Pilar', 'Passing Rate', 'Status Jaringan']],
     body: comparisonRows,
     headStyles: { fillColor: BRAND_CRIMSON, textColor: 255, fontStyle: 'bold', fontSize: 7 },
     styles: { fontSize: 6.8, cellPadding: 1.8, textColor: TEXT_CHARCOAL },
@@ -688,7 +707,7 @@ export function generateNetworkComparisonPDF(
     drawCorporateFooter(doc, i, totalPages);
   }
 
-  doc.save(`Matriks-Komparasi-Gerai_${new Date().getFullYear()}.pdf`);
+  doc.save(`Matriks-Komparasi-Outlet_${new Date().getFullYear()}.pdf`);
 }
 
 // =========================================================================
@@ -732,7 +751,7 @@ export function generateCrewCertificatePDF(
   doc.setTextColor(...BRAND_CRIMSON);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
-  doc.text('PT HARA CHICKEN INDONESIA', pageWidth / 2, 25, { align: 'center' });
+  doc.text('HARA CHICKEN INDONESIA', pageWidth / 2, 25, { align: 'center' });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(7.5);
@@ -764,7 +783,7 @@ export function generateCrewCertificatePDF(
   // Decorative line under name
   doc.setDrawColor(...BRAND_GOLD);
   doc.setLineWidth(1);
-  doc.line(pageWidth / 2 - 60, 77, pageWidth / 2 + 60, 77);
+  safeLine(doc, pageWidth / 2 - 60, 77, pageWidth / 2 + 60, 77);
 
   // 5. Certification Body Text
   doc.setFont('helvetica', 'normal');
@@ -780,7 +799,7 @@ export function generateCrewCertificatePDF(
   doc.setFontSize(8.5);
   doc.setTextColor(...ACCENT_MUTED);
   doc.text(
-    `Ditempatkan di gerai ${outletDisplayName} dan dinyatakan LULUS KOMPETEN MANDIRI dengan predikat:`,
+    `Ditempatkan di outlet ${outletDisplayName} dan dinyatakan LULUS KOMPETEN MANDIRI dengan predikat:`,
     pageWidth / 2,
     92,
     { align: 'center' }
@@ -834,7 +853,7 @@ export function generateCrewCertificatePDF(
 
   doc.setDrawColor(160, 150, 140);
   doc.setLineWidth(0.3);
-  doc.line(signLeftX - 25, signY + 16, signLeftX + 25, signY + 16);
+  safeLine(doc, signLeftX - 25, signY + 16, signLeftX + 25, signY + 16);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
@@ -854,7 +873,7 @@ export function generateCrewCertificatePDF(
 
   doc.setDrawColor(160, 150, 140);
   doc.setLineWidth(0.3);
-  doc.line(signRightX - 25, signY + 16, signRightX + 25, signY + 16);
+  safeLine(doc, signRightX - 25, signY + 16, signRightX + 25, signY + 16);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8.5);
@@ -864,7 +883,7 @@ export function generateCrewCertificatePDF(
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(7);
   doc.setTextColor(...ACCENT_MUTED);
-  doc.text('PT Hara Chicken Indonesia', signRightX, signY + 23.5, { align: 'center' });
+  doc.text('HARA Chicken Indonesia', signRightX, signY + 23.5, { align: 'center' });
 
   doc.save(`Sertifikat-Kru_${kru.nama_kru.replace(/\s+/g, '_')}_${kru.kode_outlet}.pdf`);
 }
@@ -987,17 +1006,40 @@ export function exportPenilaianPraktikProdukPDF(
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
 
-  const docNo = `DOC-SOP-ONB/${new Date().getFullYear()}/${item.id.toUpperCase()}`;
+  const safeItemId = String(item.id || Date.now()).toUpperCase();
+  const docNo = `DOC-SOP-ONB/${new Date().getFullYear()}/${safeItemId}`;
+  const safeDate = String(item.tanggal || new Date().toISOString().split('T')[0]);
+
   drawCorporateHeader(
     doc,
     'LEMBAR EVALUASI PRAKTIK ONBOARDING PRODUK SOP',
     docNo,
     item.nama_outlet || outlet?.nama_outlet || 'Hara Chicken Jatiasih',
-    item.kode_outlet,
-    item.tanggal
+    item.kode_outlet || 'HC-JTS01',
+    safeDate
   );
 
   let curY = 46;
+
+  // Safe score helper to guarantee finite numbers (no NaN or undefined)
+  const safeScore = (val: unknown, fallback: number = 80): number => {
+    if (typeof val === 'number' && !isNaN(val) && isFinite(val)) {
+      return Math.max(0, Math.min(100, Math.round(val)));
+    }
+    const num = Number(val);
+    if (!isNaN(num) && isFinite(num)) {
+      return Math.max(0, Math.min(100, Math.round(num)));
+    }
+    return fallback;
+  };
+
+  const finalScore = safeScore(item.skor_akhir, 82);
+  const scoreProsedur = safeScore(item.skor_prosedur ?? item.skor_langkah_sop ?? item.skor_ketepatan, finalScore);
+  const scoreWaktu = safeScore(item.skor_waktu ?? item.skor_kecepatan, 85);
+  const scoreKnowledge = safeScore(item.skor_knowledge, 85);
+  const scoreKualitas = safeScore(item.skor_ketepatan, finalScore);
+  const scoreKepatuhan = item.gagal_titik_kritis ? 60 : 95;
+  const scoreKebersihan = safeScore(item.skor_kebersihan, 90);
 
   // 1. Identitas Kru & Produk Baku Box
   doc.setFillColor(...BG_WARM);
@@ -1017,16 +1059,18 @@ export function exportPenilaianPraktikProdukPDF(
   const col2X = 80;
   const col3X = 142;
 
-  doc.text(`Nama Kru: ${item.nama_kru}`, col1X, curY + 11);
-  doc.text(`Divisi: ${item.divisi}`, col1X, curY + 16);
-  doc.text(`Outlet: ${item.kode_outlet} - ${item.nama_outlet || outlet?.nama_outlet || ''}`, col1X, curY + 21);
+  doc.text(`Nama Kru: ${item.nama_kru || 'Kru HARA'}`, col1X, curY + 11);
+  doc.text(`Divisi: ${item.divisi || 'Kitchen'}`, col1X, curY + 16);
+  doc.text(`Outlet: ${item.kode_outlet || 'HQ'} - ${item.nama_outlet || outlet?.nama_outlet || 'Outlet Resmi'}`, col1X, curY + 21);
 
-  doc.text(`Produk SOP: ${item.produk_nama}`, col2X, curY + 11);
-  doc.text(`Kode SOP: ${item.kode_sop}`, col2X, curY + 16);
-  doc.text(`Batch Pelatihan: ${item.nama_batch || 'Batch Onboarding'}`, col2X, curY + 21);
+  doc.text(`Produk SOP: ${item.produk_nama || 'Produk Baku SOP'}`, col2X, curY + 11);
+  doc.text(`Stasiun: ${item.station_label || item.station || 'Stasiun Dapur'}`, col2X, curY + 16);
+  doc.text(`Batch Pelatihan: ${item.nama_batch || item.batch_name || 'Batch Onboarding'}`, col2X, curY + 21);
 
   // Status & Skor Badge
-  const isLulus = item.status_kelulusan === 'Lulus Kompeten';
+  const statusRaw = (item.status || item.status_kelulusan || '').toUpperCase();
+  const isLulus = !item.gagal_titik_kritis && (statusRaw.includes('LULUS') || statusRaw.includes('KOMPETEN') || finalScore >= 80);
+
   doc.setFillColor(isLulus ? 240 : 254, isLulus ? 253 : 242, isLulus ? 244 : 242);
   doc.setDrawColor(isLulus ? 167 : 252, isLulus ? 243 : 165, isLulus ? 208 : 165);
   doc.roundedRect(col3X, curY + 4, pageWidth - 28 - (col3X - 14) - 4, 17, 2, 2, 'FD');
@@ -1034,10 +1078,10 @@ export function exportPenilaianPraktikProdukPDF(
   doc.setFontSize(7);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(isLulus ? 22 : 185, isLulus ? 101 : 28, isLulus ? 52 : 28);
-  doc.text(isLulus ? 'LULUS KOMPETEN' : 'REMEDIAL TERBIMBING', col3X + 4, curY + 9);
+  doc.text(isLulus ? 'KOMPETEN MANDIRI' : 'REMEDIAL / PEMBINAAN', col3X + 4, curY + 9);
 
   doc.setFontSize(13);
-  doc.text(`${item.skor_akhir.toFixed(1)} / 100`, col3X + 4, curY + 17);
+  doc.text(`${finalScore.toFixed(1)} / 100`, col3X + 4, curY + 17);
 
   curY += 30;
 
@@ -1045,7 +1089,7 @@ export function exportPenilaianPraktikProdukPDF(
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...BRAND_CRIMSON);
-  doc.text('ANALISIS 6 DIMENSI KOMPETENSI PRAKTIK & STOPWATCH TIMER', 14, curY);
+  doc.text('ANALISIS KOMPETENSI PRAKTIK & STOPWATCH WAKTU PRODUK', 14, curY);
   curY += 4;
 
   const chartBoxHeight = 58;
@@ -1053,17 +1097,17 @@ export function exportPenilaianPraktikProdukPDF(
   doc.setDrawColor(230, 225, 220);
   doc.roundedRect(14, curY, pageWidth - 28, chartBoxHeight, 2, 2, 'FD');
 
-  // RADAR CHART (Left Column: cx = 55, cy = curY + 29, radius = 21)
+  // RADAR CHART (Left Column: cx = 55, cy = curY + 29, radius = 20)
   const cx = 55;
   const cy = curY + 29;
   const radius = 20;
   const dimensions = [
-    { label: 'Ketepatan', score: item.skor_ketepatan, angle: -Math.PI / 2 },
-    { label: 'Kerja Sama', score: item.skor_kerjasama, angle: -Math.PI / 6 },
-    { label: 'Kecepatan', score: item.skor_kecepatan, angle: Math.PI / 6 },
-    { label: 'Knowledge', score: item.skor_knowledge, angle: Math.PI / 2 },
-    { label: 'Kebersihan', score: item.skor_kebersihan, angle: (5 * Math.PI) / 6 },
-    { label: 'Langkah SOP', score: item.skor_langkah_sop, angle: (7 * Math.PI) / 6 },
+    { label: 'Prosedur SOP', score: scoreProsedur, angle: -Math.PI / 2 },
+    { label: 'Efisiensi Waktu', score: scoreWaktu, angle: -Math.PI / 6 },
+    { label: 'Knowledge Lisan', score: scoreKnowledge, angle: Math.PI / 6 },
+    { label: 'Kualitas Produk', score: scoreKualitas, angle: Math.PI / 2 },
+    { label: 'Kepatuhan Kritis', score: scoreKepatuhan, angle: (5 * Math.PI) / 6 },
+    { label: 'Higienitas/5S', score: scoreKebersihan, angle: (7 * Math.PI) / 6 },
   ];
 
   // Draw Concentric Hexagonal Grid Lines (20%, 40%, 60%, 80%, 100%)
@@ -1078,7 +1122,7 @@ export function exportPenilaianPraktikProdukPDF(
       const y1 = cy + ringRadius * Math.sin(a1);
       const x2 = cx + ringRadius * Math.cos(a2);
       const y2 = cy + ringRadius * Math.sin(a2);
-      doc.line(x1, y1, x2, y2);
+      safeLine(doc, x1, y1, x2, y2);
     }
   });
 
@@ -1092,7 +1136,7 @@ export function exportPenilaianPraktikProdukPDF(
   dimensions.forEach((d) => {
     const spokeX = cx + radius * Math.cos(d.angle);
     const spokeY = cy + radius * Math.sin(d.angle);
-    doc.line(cx, cy, spokeX, spokeY);
+    safeLine(doc, cx, cy, spokeX, spokeY);
 
     const lblX = cx + (radius + 4) * Math.cos(d.angle);
     const lblY = cy + (radius + 4) * Math.sin(d.angle);
@@ -1111,10 +1155,11 @@ export function exportPenilaianPraktikProdukPDF(
     const y1 = cy + r1 * Math.sin(d1.angle);
     const x2 = cx + r2 * Math.cos(d2.angle);
     const y2 = cy + r2 * Math.sin(d2.angle);
-    doc.line(x1, y1, x2, y2);
-
-    doc.setFillColor(...BRAND_CRIMSON);
-    doc.circle(x1, y1, 0.8, 'F');
+    safeLine(doc, x1, y1, x2, y2);
+    if (Number.isFinite(x1) && Number.isFinite(y1)) {
+      doc.setFillColor(...BRAND_CRIMSON);
+      doc.circle(x1, y1, 0.8, 'F');
+    }
   }
 
   // DIAGRAM BATANG & STOPWATCH (Right Column: x = 110 to 196)
@@ -1141,13 +1186,13 @@ export function exportPenilaianPraktikProdukPDF(
     // Fill
     const fillW = (Math.max(0, Math.min(100, d.score)) / 100) * barWidthMax;
     doc.setFillColor(d.score >= 80 ? 46 : 217, d.score >= 80 ? 125 : 83, d.score >= 80 ? 50 : 79);
-    doc.roundedRect(barStartX + 20, rowY, fillW, 4, 1, 1, 'F');
+    doc.roundedRect(barStartX + 20, rowY, Math.max(1, fillW), 4, 1, 1, 'F');
 
     // KKM 80 line
     const kkmX = barStartX + 20 + barWidthMax * 0.8;
     doc.setDrawColor(200, 138, 30);
     doc.setLineWidth(0.3);
-    doc.line(kkmX, rowY - 1, kkmX, rowY + 5);
+    safeLine(doc, kkmX, rowY - 1, kkmX, rowY + 5);
 
     doc.setFontSize(6.5);
     doc.setFont('helvetica', 'bold');
@@ -1155,10 +1200,13 @@ export function exportPenilaianPraktikProdukPDF(
   });
 
   // Stopwatch Duration Callout
-  const durasiMin = Math.floor(item.durasi_detik / 60);
-  const durasiSec = item.durasi_detik % 60;
-  const stdMin = Math.floor(item.standar_durasi_detik / 60);
-  const stdSec = item.standar_durasi_detik % 60;
+  const durasiSecTotal = Number(item.durasi_detik ?? item.waktu_detik ?? 0) || 0;
+  const targetSecTotal = Number(item.standar_durasi_detik ?? item.target_detik ?? 180) || 180;
+  const durasiMin = Math.floor(durasiSecTotal / 60);
+  const durasiSec = durasiSecTotal % 60;
+  const stdMin = Math.floor(targetSecTotal / 60);
+  const stdSec = targetSecTotal % 60;
+  const isOntime = durasiSecTotal <= targetSecTotal;
 
   doc.setFillColor(...BG_WARM);
   doc.setDrawColor(220, 215, 205);
@@ -1167,37 +1215,46 @@ export function exportPenilaianPraktikProdukPDF(
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...BRAND_CRIMSON);
   doc.text(
-    `Waktu Stopwatch: ${durasiMin}m ${durasiSec}s  |  Standar SOP: ${stdMin}m ${stdSec}s  (${durasiMin * 60 + durasiSec <= item.standar_durasi_detik ? 'Tepat Waktu' : 'Perlu Efisiensi'})`,
+    `Stopwatch: ${durasiMin}m ${durasiSec}s  |  Standar SOP: ${stdMin}m ${stdSec}s  (${isOntime ? 'Tepat Waktu' : 'Perlu Efisiensi'})`,
     barStartX + 3,
     curY + 53.5
   );
 
   curY += chartBoxHeight + 6;
 
-  // 3. Tabel Checklist Langkah Pembuatan Sesuai SOP Asli
+  // 3. Tabel Checklist Langkah Pembuatan Sesuai SOP Baku
   doc.setFontSize(8.5);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...BRAND_CRIMSON);
   doc.text('CHECKLIST VERIFIKASI LANGKAH PEMBUATAN SESUAI DOKUMEN SOP BAKU', 14, curY);
   curY += 3;
 
-  const checklistRows = (item.checklist_langkah || []).map((step) => [
+  let checklistRows = (item.checklist_langkah || []).map((step) => [
     String(step.nomor),
     step.langkah,
     step.tercapai ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI',
   ]);
 
+  if (checklistRows.length === 0) {
+    checklistRows = [
+      ['1', `Verifikasi Prosedur & Langkah Eksekusi Produk: ${item.produk_nama || 'Produk Baku SOP'}`, (scoreProsedur >= 80 ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI')],
+      ['2', `Akurasi Waktu Stopwatch & Ritme Kerja (${durasiMin}m ${durasiSec}s vs Standar ${stdMin}m ${stdSec}s)`, (isOntime ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI')],
+      ['3', `Penguasaan Pengetahuan Kritis & Knowledge Oral Pertanyaan SOP`, (scoreKnowledge >= 80 ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI')],
+      ['4', `Kepatuhan Titik Kritis Mutu, Suhu Fryer / Gramasi & Higienitas`, (!item.gagal_titik_kritis ? 'TERCAPAI (SOP)' : 'BELUM TERCAPAI')],
+    ];
+  }
+
   autoTable(doc, {
     startY: curY,
+    margin: { left: 14, right: 14 },
     theme: 'grid',
     head: [['No', 'Tahapan Langkah Kerja Pembuatan Sesuai SOP Dokumen', 'Status Verifikasi']],
-    body: checklistRows.length > 0 ? checklistRows : [['1', 'Seluruh langkah baku telah diverifikasi instruktur sesuai SOP.', 'TERCAPAI (SOP)']],
+    body: checklistRows,
     headStyles: { fillColor: BRAND_CRIMSON, textColor: 255, fontStyle: 'bold', fontSize: 7 },
     styles: { fontSize: 6.8, cellPadding: 2, textColor: TEXT_CHARCOAL, overflow: 'linebreak' },
     columnStyles: {
       0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 135 },
-      2: { cellWidth: 37, fontStyle: 'bold', halign: 'center' },
+      2: { cellWidth: 38, fontStyle: 'bold', halign: 'center' },
     },
     didParseCell: (data) => {
       if (data.section === 'body' && data.column.index === 2) {
@@ -1210,7 +1267,8 @@ export function exportPenilaianPraktikProdukPDF(
     },
   });
 
-  curY = (doc as any).lastAutoTable.finalY + 5;
+  const tableFinalY = (doc as any).lastAutoTable?.finalY;
+  curY = (typeof tableFinalY === 'number' && Number.isFinite(tableFinalY) ? tableFinalY : curY + 35) + 5;
 
   // 4. Catatan & Rekomendasi Trainer
   if (curY + 36 > pageHeight - 16) {
@@ -1230,10 +1288,12 @@ export function exportPenilaianPraktikProdukPDF(
   doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   doc.setTextColor(...TEXT_CHARCOAL);
-  const splitNote = doc.splitTextToSize(
-    item.catatan_trainer || 'Peserta mampu mengeksekusi tahapan produk sesuai SOP. Pertahankan konsistensi mutu dan kebersihan.',
-    pageWidth - 36
+  const trainerNoteText = item.catatan || item.catatan_trainer || (
+    isLulus
+      ? 'Peserta mampu mengeksekusi tahapan produk sesuai SOP. Pertahankan konsistensi mutu dan kebersihan.'
+      : 'Peserta membutuhkan bimbingan tambahan dan evaluasi ulang terkait titik kritis SOP.'
   );
+  const splitNote = doc.splitTextToSize(trainerNoteText, pageWidth - 36);
   doc.text(splitNote, 18, curY + 9);
 
   curY += 21;
@@ -1243,7 +1303,9 @@ export function exportPenilaianPraktikProdukPDF(
     doc.addPage();
     curY = 20;
   }
-  drawSignatureBlock(doc, curY, item.nama_trainer || 'Haikal Abi (Lead Trainer)');
+  const trainerSignName = item.penilai_nama || item.nama_trainer || 'Haikal Abi (Lead Trainer)';
+  const safeCurY = Number.isFinite(curY) ? curY : 200;
+  drawSignatureBlock(doc, safeCurY, trainerSignName);
 
   const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
@@ -1251,7 +1313,7 @@ export function exportPenilaianPraktikProdukPDF(
     drawCorporateFooter(doc, i, totalPages);
   }
 
-  const safeKru = item.nama_kru.replace(/[^a-zA-Z0-9]/g, '_');
-  const safeProd = item.produk_nama.replace(/[^a-zA-Z0-9]/g, '_');
+  const safeKru = (item.nama_kru || 'Kru').replace(/[^a-zA-Z0-9]/g, '_');
+  const safeProd = (item.produk_nama || 'Produk').replace(/[^a-zA-Z0-9]/g, '_');
   doc.save(`Rapor-Praktik-SOP_${safeKru}_${safeProd}.pdf`);
 }

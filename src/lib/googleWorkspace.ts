@@ -108,7 +108,7 @@ export async function exportToGoogleSheets(customTitle?: string): Promise<{
         { properties: { title: 'Ringkasan Kompetensi Kru' } },
         { properties: { title: 'Uji Praktik SOS' } },
         { properties: { title: 'Kartu Keluhan & RCA' } },
-        { properties: { title: 'Daftar Gerai' } },
+        { properties: { title: 'Daftar Outlet' } },
       ],
     }),
   });
@@ -205,9 +205,9 @@ export async function exportToGoogleSheets(customTitle?: string): Promise<{
       ],
     },
     {
-      range: 'Daftar Gerai!A1:E',
+      range: 'Daftar Outlet!A1:E',
       values: [
-        ['Kode Outlet', 'Nama Gerai', 'Alamat', 'Kepala Outlet', 'Area Supervisor'],
+        ['Kode Outlet', 'Nama Outlet', 'Alamat', 'Kepala Outlet', 'Area Supervisor'],
         ...outlets.map((o) => [
           o.kode_outlet,
           o.nama_outlet,

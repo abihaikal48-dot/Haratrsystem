@@ -8,6 +8,7 @@ import {
 import { PenilaianPraktikOnboardingProduk, Outlet } from '../../types';
 import { db } from '../../lib/storage';
 import { exportPenilaianPraktikProdukPDF } from '../../lib/pdfGenerator';
+import { ConfirmModal } from '../ui/ConfirmModal';
 
 interface OnboardingActivityLogViewProps {
   selectedOutletCode: string;
@@ -31,17 +32,35 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
   // Detail Modal State
   const [detailItem, setDetailItem] = useState<PenilaianPraktikOnboardingProduk | null>(null);
 
+  // In-app Delete Confirmation State
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: string;
+    namaKru: string;
+    produk: string;
+  } | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
   const outlets = useMemo(() => db.getTable<Outlet>('outlets'), []);
 
   const refreshData = () => {
     setAssessments(db.getPenilaianPraktikProduk());
   };
 
-  const handleDelete = (id: string, namaKru: string, produk: string) => {
-    if (confirm(`Hapus catatan evaluasi untuk ${namaKru} pada produk "${produk}"? Data tidak dapat dipulihkan.`)) {
-      db.deleteRow('penilaian_praktik_onboarding_produk', id);
-      refreshData();
-    }
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
+
+  const handleOpenDeleteModal = (id: string, namaKru: string, produk: string) => {
+    setDeleteTarget({ id, namaKru, produk });
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    db.deletePenilaianPraktikProduk(deleteTarget.id);
+    refreshData();
+    showToast(`Catatan evaluasi ${deleteTarget.namaKru} (${deleteTarget.produk}) berhasil dihapus.`);
+    setDeleteTarget(null);
   };
 
   const handleExportCSV = () => {
@@ -297,13 +316,13 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
 
           {/* Outlet Filter */}
           <div>
-            <label className="block text-[10px] font-bold text-[#645D55] uppercase mb-1">Cabang Gerai</label>
+            <label className="block text-[10px] font-bold text-[#645D55] uppercase mb-1">Cabang Outlet</label>
             <select
               value={filterOutlet}
               onChange={(e) => setFilterOutlet(e.target.value)}
               className="w-full p-2 rounded-xl border border-[#E6E1DA] text-xs bg-white text-[#181411] font-medium"
             >
-              <option value="ALL">Semua Gerai</option>
+              <option value="ALL">Semua Outlet</option>
               {outlets.map((o) => (
                 <option key={o.kode_outlet} value={o.kode_outlet}>
                   {o.kode_outlet} - {o.nama_outlet}
@@ -375,7 +394,7 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
                 <tr className="border-b border-[#E6E1DA] bg-[#FAF8F5] text-[#645D55] font-bold uppercase text-[10.5px]">
                   <th className="py-3 px-4">Waktu & Kru</th>
                   <th className="py-3 px-3">Produk & Stasiun</th>
-                  <th className="py-3 px-3">Gerai</th>
+                  <th className="py-3 px-3">Outlet</th>
                   <th className="py-3 px-3 text-center">Stopwatch SOS</th>
                   <th className="py-3 px-3 text-center">Suhu / Gram</th>
                   <th className="py-3 px-3 text-center">5 Dimensi</th>
@@ -385,7 +404,7 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E6E1DA]">
-                {filteredData.map((item) => {
+                {filteredData.map((item, idx) => {
                   const isDay1 = item.station === 'Station 1';
                   const dateStr = item.tanggal || item.created_at || '';
                   const formattedDate = dateStr.length >= 10 ? dateStr.substring(0, 10) : dateStr;
@@ -393,7 +412,7 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
                   const isOvertime = timeDiff > 0;
 
                   return (
-                    <tr key={item.id} className="hover:bg-[#FAF8F5]/60 transition-colors">
+                    <tr key={`${item.id}-${idx}`} className="hover:bg-[#FAF8F5]/60 transition-colors">
                       {/* Kru Info */}
                       <td className="py-3 px-4">
                         <div className="font-bold text-[#181411] flex items-center gap-1.5">
@@ -539,8 +558,8 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
 
                           <button
                             type="button"
-                            onClick={() => handleDelete(item.id, item.nama_kru, item.produk_nama)}
-                            className="p-1.5 rounded-lg border border-[#E6E1DA] text-[#645D55] hover:text-rose-600 hover:border-rose-300 transition-colors"
+                            onClick={() => handleOpenDeleteModal(item.id, item.nama_kru, item.produk_nama)}
+                            className="p-1.5 rounded-lg border border-[#E6E1DA] text-[#645D55] hover:text-rose-600 hover:border-rose-300 transition-colors cursor-pointer"
                             title="Hapus Catatan"
                           >
                             <Trash2 size={13} />
@@ -591,7 +610,7 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
                   <div className="font-bold text-[#181411] mt-0.5">{detailItem.nama_kru}</div>
                 </div>
                 <div>
-                  <span className="text-[#645D55] text-[10.5px]">Gerai / Outlet</span>
+                  <span className="text-[#645D55] text-[10.5px]">Outlet</span>
                   <div className="font-bold text-[#181411] mt-0.5">{detailItem.kode_outlet}</div>
                 </div>
                 <div>
@@ -700,12 +719,33 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
               <button
                 type="button"
                 onClick={() => setDetailItem(null)}
-                className="px-4 py-2 rounded-xl border border-[#E6E1DA] text-[#645D55] hover:text-[#181411] text-xs font-semibold"
+                className="px-4 py-2 rounded-xl border border-[#E6E1DA] text-[#645D55] hover:text-[#181411] text-xs font-semibold cursor-pointer"
               >
                 Tutup
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* In-App Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Hapus Catatan Evaluasi"
+        message="Apakah Anda yakin ingin menghapus catatan evaluasi praktik produk ini? Data akan dihapus permanen dari memori dan sinkronisasi Supabase."
+        detailText={deleteTarget ? `${deleteTarget.namaKru} — Produk: ${deleteTarget.produk}` : ''}
+        confirmLabel="Ya, Hapus Catatan"
+        cancelLabel="Batal"
+        isDestructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-[#181411] text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-bottom-3 duration-200 border border-neutral-700">
+          <Check size={16} className="text-emerald-400" />
+          <span>{toastMsg}</span>
         </div>
       )}
     </div>

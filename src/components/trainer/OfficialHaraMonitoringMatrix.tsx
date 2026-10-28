@@ -197,7 +197,7 @@ export const OfficialHaraMonitoringMatrix: React.FC<OfficialHaraMonitoringMatrix
               </span>
             </div>
             <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
-              Kru dapat onboarding kapan pun (awal, tengah, atau akhir bulan). Modul harian dapat diverifikasi secara bebas urutan mengikuti kesiapan shift gerai. Fondasi awal (Hari 1-3) berlaku umum untuk semua divisi, lalu modul stasiun diverifikasi sesuai jobdesk utama kru (Kitchen, Kasir, Geprek, Helper).
+              Kru dapat onboarding kapan pun (awal, tengah, atau akhir bulan). Modul harian dapat diverifikasi secara bebas urutan mengikuti kesiapan shift outlet. Fondasi awal (Hari 1-3) berlaku umum untuk semua divisi, lalu modul stasiun diverifikasi sesuai jobdesk utama kru (Kitchen, Kasir, Geprek, Helper).
             </p>
           </div>
         </div>
@@ -400,7 +400,7 @@ export const OfficialHaraMonitoringMatrix: React.FC<OfficialHaraMonitoringMatrix
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 rounded bg-white border border-slate-400" />
-              <span>On Job Trainee (Pendampingan Gerai: Hari 4 - 30)</span>
+              <span>On Job Trainee (Pendampingan Outlet: Hari 4 - 30)</span>
             </div>
             <div className="flex items-center gap-1.5">
               <div className="w-3.5 h-3.5 rounded bg-red-100 border border-red-400" />

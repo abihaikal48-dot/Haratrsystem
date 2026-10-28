@@ -6,42 +6,47 @@
     --brand-dark-red: #7A1215;
     --brand-red-subtle: #FEF2F2;
     --brand-red-border: #FCA5A5;
-    --brand-bg: #F8F9FA;
+    --brand-bg: #F8FAFC;
     --brand-card: #FFFFFF;
-    --brand-border: #E5E7EB;
-    --brand-text: #111827;
-    --brand-muted: #6B7280;
+    --brand-border: #E2E8F0;
+    --brand-text: #0F172A;
+    --brand-muted: #64748B;
   }
 }
 
 body {
-  background-color: #F8F9FA;
-  color: #111827;
+  background-color: #F8FAFC;
+  color: #0F172A;
   font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Custom Scrollbar - Minimalist */
+/* Custom Scrollbar - Sleek Minimalist */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #D1D5DB;
-  border-radius: 4px;
+  background: #CBD5E1;
+  border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #9CA3AF;
+  background: #94A3B8;
 }
 
 /* Typography Classes */
+.font-display {
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: -0.025em;
+}
+
 .font-heading {
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Outfit', 'Plus Jakarta Sans', sans-serif;
   letter-spacing: -0.02em;
 }
 
@@ -49,194 +54,145 @@ body {
   font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
-.font-numeric {
+.font-numeric,
+.font-mono {
   font-family: 'JetBrains Mono', monospace;
   font-variant-numeric: tabular-nums;
 }
 
-/* Minimalist Geometri 8px Panels */
-.glass-panel {
-  background: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.5rem; /* 8px */
-}
-
-/* HARA Precision Culinary - Enterprise Cards (8px Radius & 1px Border) */
-.card-enterprise {
+/* Modern Card Architecture (Ref 3: Streamlined Rounded Cards) */
+.card-enterprise,
+.card-rounded {
   background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.5rem; /* 8px */
-  padding: 1.25rem;
-  transition: border-color 0.15s ease-out, background-color 0.15s ease-out;
+  border: 1px solid #E2E8F0;
+  border-radius: 1.5rem; /* 24px - rounded-3xl */
+  padding: 1.5rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.card-enterprise:hover {
-  border-color: #D1D5DB;
+.card-enterprise:hover,
+.card-rounded:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.04), 0 8px 10px -6px rgba(15, 23, 42, 0.02);
 }
 
-/* Minimalist Dark High Density Card (8px Radius) */
+.card-kpi {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1.5rem; /* 24px */
+  padding: 1.25rem 1.5rem;
+  transition: all 0.2s ease-out;
+}
+
 .card-banner-dark {
-  background: #111827 !important;
+  background: #0F172A !important;
   color: #FFFFFF !important;
-  border: 1px solid #1F2937 !important;
-  border-radius: 0.5rem; /* 8px */
-  padding: 1.25rem;
+  border: 1px solid #1E293B !important;
+  border-radius: 1.5rem;
+  padding: 1.5rem;
 }
 
-.input-enterprise {
+/* Input Fields - Modern Pill / Soft Rounded */
+.input-enterprise,
+.input-pill {
   width: 100%;
-  background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  border-radius: 0.5rem; /* 8px */
-  padding: 0.5rem 0.75rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem; /* 16px */
+  padding: 0.65rem 1rem;
   font-size: 0.8125rem;
   font-weight: 500;
-  color: #111827;
-  transition: border-color 0.15s ease-out;
+  color: #0F172A;
+  transition: all 0.15s ease-out;
   outline: none;
 }
 
-select.input-enterprise,
-select.input-enterprise option {
-  background-color: #FFFFFF !important;
-  color: #111827 !important;
-  font-weight: 600;
-}
-
-select.input-enterprise option:hover,
-select.input-enterprise option:checked {
-  background-color: #FEF2F2 !important;
-  color: #96171B !important;
-}
-
-.input-enterprise:focus {
+.input-enterprise:focus,
+.input-pill:focus {
+  background-color: #FFFFFF;
   border-color: #96171B;
+  box-shadow: 0 0 0 3px rgba(150, 23, 27, 0.08);
 }
 
-.btn-primary-enterprise {
+/* Primary Pill Buttons */
+.btn-primary-enterprise,
+.btn-pill {
   background-color: #96171B;
   color: #FFFFFF !important;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem; /* 8px */
+  font-weight: 700;
+  padding: 0.65rem 1.25rem;
+  border-radius: 9999px; /* Pill */
   font-size: 0.8125rem;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  transition: background-color 0.15s ease-out;
+  gap: 0.5rem;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
+  box-shadow: 0 2px 4px rgba(150, 23, 27, 0.15);
 }
 
-.btn-primary-enterprise:hover:not(:disabled) {
-  background-color: #7A1215;
+.btn-primary-enterprise:hover:not(:disabled),
+.btn-pill:hover:not(:disabled) {
+  background-color: #7D1316;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(150, 23, 27, 0.25);
 }
 
-.btn-primary-enterprise:active:not(:disabled) {
-  opacity: 0.95;
+.btn-primary-enterprise:active:not(:disabled),
+.btn-pill:active:not(:disabled) {
+  transform: translateY(0);
 }
 
-.btn-primary-enterprise:disabled {
-  opacity: 0.4;
+.btn-primary-enterprise:disabled,
+.btn-pill:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .btn-secondary-enterprise {
   background-color: #FFFFFF;
-  border: 1px solid #E5E7EB;
-  color: #111827;
+  border: 1px solid #E2E8F0;
+  color: #0F172A;
   font-weight: 600;
-  padding: 0.5rem 0.875rem;
-  border-radius: 0.5rem; /* 8px */
+  padding: 0.65rem 1.15rem;
+  border-radius: 9999px;
   font-size: 0.8125rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  transition: background-color 0.15s ease-out, border-color 0.15s ease-out;
+  transition: all 0.15s ease-out;
   cursor: pointer;
 }
 
 .btn-secondary-enterprise:hover:not(:disabled) {
-  background-color: #F9FAFB;
-  border-color: #D1D5DB;
+  background-color: #F1F5F9;
+  border-color: #CBD5E1;
 }
 
-.btn-secondary-enterprise:active:not(:disabled) {
-  transform: scale(0.98);
+/* Geometric Ambient Animations */
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(6deg); }
 }
 
-.btn-secondary-enterprise:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+@keyframes floatReverse {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(12px) rotate(-6deg); }
 }
 
-/* Semantic Badges */
-.badge-enterprise {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.2rem 0.55rem;
-  border-radius: 0.5rem;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  border: 1px solid transparent;
+.animate-float-slow {
+  animation: floatSlow 8s ease-in-out infinite;
 }
 
-.badge-grade-a,
-.badge-mahir {
-  background-color: #ECFDF5;
-  color: #065F46;
-  border-color: #A7F3D0;
+.animate-float-reverse {
+  animation: floatReverse 10s ease-in-out infinite;
 }
 
-.badge-grade-b,
-.badge-terampil {
-  background-color: #F0F9FF;
-  color: #075985;
-  border-color: #BAE6FD;
-}
-
-.badge-grade-c,
-.badge-pemula {
-  background-color: #FFFBEB;
-  color: #92400E;
-  border-color: #FDE68A;
-}
-
-.badge-grade-remedial {
-  background-color: #FEF2F2;
-  color: #991B1B;
-  border-color: #FECACA;
-}
-
-.badge-neutral {
-  background-color: #F4F1EC;
-  color: #57534E;
-  border-color: #E6E1DA;
-}
-
-.badge-gold {
-  background-color: #FFFBEB;
-  color: #D97706;
-  border-color: #FDE68A;
-}
-
-/* Pulsing subtle */
-@keyframes softPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.88; transform: scale(1.02); }
-}
-
-.animate-soft-pulse {
-  animation: softPulse 2.5s infinite ease-in-out;
-}
-
-/* ========================================================================= */
-/* PRINT MEDIA STYLES FOR OFFICIAL CORPORATE DOCUMENTS */
-/* ========================================================================= */
+/* Print Media Styles */
 @media print {
   @page {
     size: A4 portrait;
@@ -265,10 +221,5 @@ select.input-enterprise option:checked {
     border: none !important;
     background: #FFFFFF !important;
     page-break-inside: avoid;
-  }
-
-  .print-avoid-break {
-    page-break-inside: avoid !important;
-    break-inside: avoid !important;
   }
 }

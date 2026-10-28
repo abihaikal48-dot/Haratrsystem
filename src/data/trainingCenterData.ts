@@ -37,33 +37,286 @@ export interface TrainingParticipantItem {
   no: number;
   nama: string;
   outlet: string;
+  stasiun?: 'Station 1' | 'Station 2' | 'Station 3';
+  paketMenu?: string;
   keterangan: 'New' | 'Reguler';
   divisi: Division;
   default_status: 'Onboarding' | 'OJT 30 Hari';
+  nilaiBawaan?: {
+    ketepatan: number; // 20%
+    langkahSop: number; // 20%
+    kecepatan: number; // 15%
+    knowledge: number; // 15%
+    kerjaSama: number; // 10%
+    kebersihan: number; // 10%
+    keaktifan: number; // 10%
+    skorAkhir: number;
+    status: 'LULUS MAHIR (GRADE A)' | 'LULUS KOMPETEN (KKM >=75)' | 'WAJIB REMEDIAL (<75)';
+  };
 }
 
 /**
  * 12 PESERTA RESMI ONBOARDING TRAINING CENTER HARA CHICKEN
- * Sesuai Dokumen Fisik Agenda Training Center
+ * Sesuai Dokumen Fisik Agenda Training Center (Page 5 PDF)
  */
 export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
-  { no: 1, nama: 'Excel Tri Anggoro', outlet: 'Jl Paris', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 2, nama: 'Restu Satriawan', outlet: 'RSI', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 3, nama: 'Sabyan Ezzar Cantona', outlet: 'Nusa Indah', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 4, nama: 'Henandya Lova Reyza Putra', outlet: 'Kamdanen', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 5, nama: 'Derrel Fazle Mawla', outlet: 'Jl Damai', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 6, nama: 'Aini Amalia Safitri', outlet: 'Mudal', keterangan: 'New', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 7, nama: 'Rintis Selo Mukti', outlet: 'Wates Sutijab', keterangan: 'New', divisi: 'Geprek', default_status: 'Onboarding' },
-  { no: 8, nama: 'Yunita Sari', outlet: 'Pandega', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 9, nama: 'Fita Febri', outlet: 'Parakan', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 10, nama: 'Achmad Luthfi Khakim', outlet: 'Kertek', keterangan: 'Reguler', divisi: 'Kitchen', default_status: 'Onboarding' },
-  { no: 11, nama: 'Nafisa Azzahra', outlet: 'Jl Paris', keterangan: 'Reguler', divisi: 'Kasir', default_status: 'Onboarding' },
-  { no: 12, nama: 'Akhmad Saifudin', outlet: 'Pandean', keterangan: 'Reguler', divisi: 'Geprek', default_status: 'Onboarding' },
+  {
+    no: 1,
+    nama: 'Iqbal Muzzaki',
+    outlet: 'Imogiri Barat',
+    stasiun: 'Station 1',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar, Geprek Moza',
+    keterangan: 'Reguler',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 88,
+      langkahSop: 86,
+      kecepatan: 85,
+      knowledge: 84,
+      kerjaSama: 88,
+      kebersihan: 90,
+      keaktifan: 86,
+      skorAkhir: 86.6,
+      status: 'LULUS MAHIR (GRADE A)'
+    }
+  },
+  {
+    no: 2,
+    nama: 'Dhimas Eka Ramadhani',
+    outlet: 'Purworejo',
+    stasiun: 'Station 2',
+    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Nashville, Mentai, Krisbar Ayoli',
+    keterangan: 'Reguler',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 74,
+      langkahSop: 72,
+      kecepatan: 70,
+      knowledge: 75,
+      kerjaSama: 80,
+      kebersihan: 78,
+      keaktifan: 80,
+      skorAkhir: 74.8,
+      status: 'WAJIB REMEDIAL (<75)'
+    }
+  },
+  {
+    no: 3,
+    nama: 'Wanu Azlina',
+    outlet: 'Wates Bendungan',
+    stasiun: 'Station 3',
+    paketMenu: 'Goreng Terong, Sambal, Goreng AU & Kulit, Nasgor Geprek, Keju Parut, Geprek Ayoli',
+    keterangan: 'Reguler',
+    divisi: 'Geprek',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 82,
+      langkahSop: 80,
+      kecepatan: 78,
+      knowledge: 80,
+      kerjaSama: 85,
+      kebersihan: 84,
+      keaktifan: 82,
+      skorAkhir: 81.2,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 4,
+    nama: 'Tri Muhammad Atmojo',
+    outlet: 'Sedayu',
+    stasiun: 'Station 1',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar, Geprek Moza',
+    keterangan: 'Reguler',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 86,
+      langkahSop: 85,
+      kecepatan: 82,
+      knowledge: 84,
+      kerjaSama: 86,
+      kebersihan: 88,
+      keaktifan: 85,
+      skorAkhir: 85.0,
+      status: 'LULUS MAHIR (GRADE A)'
+    }
+  },
+  {
+    no: 5,
+    nama: 'Muhammad Gohan Putra Nusa',
+    outlet: 'Jangkang',
+    stasiun: 'Station 2',
+    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Nashville, Mentai, Krisbar Ayoli',
+    keterangan: 'Reguler',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 79,
+      langkahSop: 78,
+      kecepatan: 75,
+      knowledge: 76,
+      kerjaSama: 80,
+      kebersihan: 82,
+      keaktifan: 78,
+      skorAkhir: 78.1,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 6,
+    nama: 'Rully Aditya',
+    outlet: 'Gito-gati',
+    stasiun: 'Station 3',
+    paketMenu: 'Goreng Terong, Sambal, Goreng AU & Kulit, Nasgor Geprek, Keju Parut, Geprek Ayoli',
+    keterangan: 'Reguler',
+    divisi: 'Geprek',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 84,
+      langkahSop: 82,
+      kecepatan: 80,
+      knowledge: 82,
+      kerjaSama: 84,
+      kebersihan: 85,
+      keaktifan: 84,
+      skorAkhir: 82.8,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 7,
+    nama: 'Aulia Eka Sari',
+    outlet: 'Wates Kemiri',
+    stasiun: 'Station 1',
+    paketMenu: 'Nasi 4 Cup, Goreng Kulit, Milkshake All Variant, Teh 8L',
+    keterangan: 'Reguler',
+    divisi: 'Kasir',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 92,
+      langkahSop: 90,
+      kecepatan: 88,
+      knowledge: 90,
+      kerjaSama: 92,
+      kebersihan: 94,
+      keaktifan: 90,
+      skorAkhir: 90.7,
+      status: 'LULUS MAHIR (GRADE A)'
+    }
+  },
+  {
+    no: 8,
+    nama: 'Karima Syakinata Fiddini',
+    outlet: 'Parakan',
+    stasiun: 'Station 2',
+    paketMenu: 'Sambal Matah, Sambal Daun Jeruk, Susu Coklat (Sucok)',
+    keterangan: 'Reguler',
+    divisi: 'Kasir',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 80,
+      langkahSop: 78,
+      kecepatan: 76,
+      knowledge: 78,
+      kerjaSama: 82,
+      kebersihan: 80,
+      keaktifan: 80,
+      skorAkhir: 78.9,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 9,
+    nama: 'Shabrina Eka',
+    outlet: 'Pandean',
+    stasiun: 'Station 3',
+    paketMenu: 'Menggoreng Ayam, Milkshake All Variant, Goreng Jamur, Kentang, Orange',
+    keterangan: 'Reguler',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 85,
+      langkahSop: 84,
+      kecepatan: 82,
+      knowledge: 80,
+      kerjaSama: 86,
+      kebersihan: 88,
+      keaktifan: 84,
+      skorAkhir: 83.9,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 10,
+    nama: 'Ryan Candra Kusuma (New)',
+    outlet: 'Godean Munggur',
+    stasiun: 'Station 1',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar',
+    keterangan: 'New',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 72,
+      langkahSop: 70,
+      kecepatan: 68,
+      knowledge: 72,
+      kerjaSama: 75,
+      kebersihan: 78,
+      keaktifan: 76,
+      skorAkhir: 72.3,
+      status: 'WAJIB REMEDIAL (<75)'
+    }
+  },
+  {
+    no: 11,
+    nama: 'Chicha Suparwati (New)',
+    outlet: 'Kalakijo',
+    stasiun: 'Station 2',
+    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Mentai',
+    keterangan: 'New',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 81,
+      langkahSop: 80,
+      kecepatan: 78,
+      knowledge: 80,
+      kerjaSama: 82,
+      kebersihan: 84,
+      keaktifan: 80,
+      skorAkhir: 80.5,
+      status: 'LULUS KOMPETEN (KKM >=75)'
+    }
+  },
+  {
+    no: 12,
+    nama: 'Intan Nur Khasanah (New)',
+    outlet: 'Mantrijeron',
+    stasiun: 'Station 3',
+    paketMenu: 'Goreng Terong, Sambal Bawang, Nasgor Geprek, Geprek Ayoli',
+    keterangan: 'New',
+    divisi: 'Geprek',
+    default_status: 'Onboarding',
+    nilaiBawaan: {
+      ketepatan: 87,
+      langkahSop: 85,
+      kecepatan: 84,
+      knowledge: 86,
+      kerjaSama: 88,
+      kebersihan: 88,
+      keaktifan: 86,
+      skorAkhir: 86.1,
+      status: 'LULUS MAHIR (GRADE A)'
+    }
+  },
 ];
 
 /**
  * DAFTAR TUGAS STATION & TIMER RESMI DARI AGENDA TRAINING CENTER
- * STRICT SESUAI DOKUMEN SOP RESMI PT HARA CHICKEN INDONESIA
+ * STRICT SESUAI DOKUMEN SOP RESMI HARA CHICKEN INDONESIA
  * Tidak ada produk digabung (Scramble mandiri, Indomie mandiri, Nashville mandiri).
  * Suhu 160°C hanya eksklusif untuk stasiun Deep Fryer.
  */

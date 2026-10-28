@@ -63,7 +63,7 @@ export const OFFICIAL_HARA_OFF_JOB_ONBOARDING: OffJobTrainingTopic[] = [
     no: 2,
     hari_ke: 1,
     materi: 'SOP Kebersihan, K3',
-    tujuan: 'Menjaga higienitas dan keselamatan kerja di seluruh area gerai',
+    tujuan: 'Menjaga higienitas dan keselamatan kerja di seluruh area outlet',
     durasi_jam: 1,
     metode: 'Video, roleplay, praktik',
     trainer_pic: 'Supervisor Outlet',
@@ -170,7 +170,7 @@ export const OFFICIAL_HARA_ON_JOB_PENDAMPINGAN: OnJobTrainingMilestone[] = [
     detail_poin: [
       'Pengenalan visi, misi, dan nilai perusahaan',
       'Struktur organisasi outlet & perkenalan rekan kerja',
-      'Tata tertib, jam kerja, absensi & SOP gerai'
+      'Tata tertib, jam kerja, absensi & SOP outlet'
     ],
     metode_pendampingan: 'Briefing dan diskusi',
     pic_trainer: 'Supervisor Outlet, Supervisor ODHRL',

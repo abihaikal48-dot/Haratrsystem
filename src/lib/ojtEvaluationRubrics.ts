@@ -60,7 +60,7 @@ export const OFFICIAL_OJT_GATE_RUBRICS: Record<GateEvaluationStage, GateRubricDe
         standar_baku: 'Apron bersih, hairnet terpasang, kuku < 1mm, sepatu karet tertutup',
         bobot_poin: 15,
         is_kritis: false,
-        penjelasan_objektif: 'Kerapian dan higienitas visual gerai sesuai standar brand HARA Chicken.'
+        penjelasan_objektif: 'Kerapian dan higienitas visual outlet sesuai standar brand HARA Chicken.'
       },
       {
         id: 'g1-4',
@@ -71,7 +71,7 @@ export const OFFICIAL_OJT_GATE_RUBRICS: Record<GateEvaluationStage, GateRubricDe
         standar_baku: 'Teknik PASS (Pull, Aim, Squeeze, Sweep) & fire blanket dapur',
         bobot_poin: 15,
         is_kritis: true,
-        penjelasan_objektif: 'Keselamatan nyawa kru dan aset gerai dari bahaya kebakaran minyak fryer.'
+        penjelasan_objektif: 'Keselamatan nyawa kru dan aset outlet dari bahaya kebakaran minyak fryer.'
       },
       {
         id: 'g1-5',

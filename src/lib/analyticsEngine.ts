@@ -5,7 +5,7 @@ import { CrewRadarData, Division, HaraAttitudeScore, RushHourAnalysis } from '..
  * HARA OPERATIONS DATA SCIENCE & OPERATIONAL ANALYTICS ENGINE
  * ============================================================================
  * Mesin kalkulasi data science empiris untuk standarisasi penilaian objektif
- * personil gerai HARA Chicken (Harapan Rakyat - #BeneranDiGeprek).
+ * personil outlet HARA Chicken (Harapan Rakyat - #BeneranDiGeprek).
  */
 
 export interface CompositeScoreBreakdown {
@@ -115,7 +115,7 @@ export function calculateHaraAttitude(scores: {
 }
 
 /**
- * 3. Matriks Analisis Deviasi Jam Sibuk Gerai (Rush Hour Diagnostics)
+ * 3. Matriks Analisis Deviasi Jam Sibuk Outlet (Rush Hour Diagnostics)
  */
 export function getRushHourAnalysisData(outletCode?: string): RushHourAnalysis[] {
   return [
@@ -190,7 +190,7 @@ export function getStationParetoAnalysis(): StationParetoResult[] {
       station: 'Helper' as Division,
       count: 14,
       top: ['Waktu pembersihan meja santap > 60 detik', 'Penyemprotan sanitizer meja terlewat', 'Tempat sampah stasiun cuci lambat dikosongkan'],
-      rec: 'Metode 5S Gerai & Prosedur 3 Bak Cuci Sanitasi Klorin',
+      rec: 'Metode 5S Outlet & Prosedur 3 Bak Cuci Sanitasi Klorin',
     },
   ];
 
@@ -250,9 +250,9 @@ export function generateDiagnosticActionPlan(
     langkahPerbaikan.push('Sesi tanya-jawab pemahaman alasan kunci (key reasons) langkah kerja bersama Trainer.');
     targetReviewHari = 7;
   } else if (weakest.nama === 'Sikap H.A.R.A') {
-    rekomendasiUtama = 'Internalisasi 4 Nilai Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif) dalam keseharian gerai.';
+    rekomendasiUtama = 'Internalisasi 4 Nilai Budaya H.A.R.A (Halal, Amanah, Responsif, Adaptif) dalam keseharian outlet.';
     langkahPerbaikan.push('Coaching reflektif bersama Area Supervisor / Kepala Outlet mengenai nilai Amanah & Responsif.');
-    langkahPerbaikan.push('Evaluasi umpan balik kepuasan pelanggan di area layanan gerai.');
+    langkahPerbaikan.push('Evaluasi umpan balik kepuasan pelanggan di area layanan outlet.');
     targetReviewHari = 14;
   }
 
@@ -433,7 +433,7 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     jenjangKarirRekomendasi = 'Retraining Wajib';
     
     aspekUnggul = [
-      'Menunjukkan kehadiran tepat waktu pada shift kerja gerai.',
+      'Menunjukkan kehadiran tepat waktu pada shift kerja outlet.',
       'Memiliki motivasi belajar dan kemauan menerima evaluasi trainer.',
     ];
 
@@ -450,7 +450,7 @@ export function buildDynamicOfficialCrewReport(crewName: string): DetailedCrewRe
     jenjangKarirRekomendasi = 'Retraining Wajib';
 
     aspekUnggul = [
-      'Mengetahui urutan alur operasional dasar di gerai.',
+      'Mengetahui urutan alur operasional dasar di outlet.',
       'Memiliki kedisiplinan waktu kehadiran yang baik.',
     ];
 

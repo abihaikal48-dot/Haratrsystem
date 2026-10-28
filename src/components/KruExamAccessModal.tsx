@@ -173,7 +173,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
             Pintu Masuk Tes Kompetensi Stasiun
           </h2>
           <p className="text-xs text-red-100/80 mt-1 max-w-lg leading-relaxed">
-            Pilih metode yang paling nyaman: tinggal klik nama sendiri, masukkan PIN cepat 4-angka, atau scan QR Code di dinding dapur gerai.
+            Pilih metode yang paling nyaman: tinggal klik nama sendiri, masukkan PIN cepat 4-angka, atau scan QR Code di dinding dapur outlet.
           </p>
 
           {/* 3-in-1 Navigation Tabs */}
@@ -214,7 +214,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
               }`}
             >
               <QrCode size={14} className={activeTab === 'qr' ? 'text-emerald-600' : 'text-stone-300'} />
-              <span>3. Scan QR Gerai</span>
+              <span>3. Scan QR Outlet</span>
             </button>
           </div>
         </div>
@@ -228,11 +228,11 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
           {activeTab === 'pick' && (
             <div className="space-y-4">
               
-              {/* Step 1: Pilih Outlet Gerai */}
+              {/* Step 1: Pilih Outlet */}
               <div>
                 <label className="block text-xs font-bold text-stone-700 mb-1.5 flex items-center justify-between">
-                  <span>Langkah 1: Pilih Cabang Gerai Anda</span>
-                  <span className="text-[11px] font-normal text-stone-400">Total {outlets.length} Gerai</span>
+                  <span>Langkah 1: Pilih Cabang Outlet Anda</span>
+                  <span className="text-[11px] font-normal text-stone-400">Total {outlets.length} Outlet</span>
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                   {outlets.map((out) => {
@@ -259,7 +259,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
                 </div>
               </div>
 
-              {/* Step 2: Pilih Kru di Gerai Tersebut */}
+              {/* Step 2: Pilih Kru di Outlet Tersebut */}
               <div className="pt-2 border-t border-stone-100">
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-xs font-bold text-stone-700">
@@ -476,7 +476,7 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
           )}
 
           {/* ========================================================
-              TAB 3: SCAN QR CODE GERAI (TEMPEL DI DAPUR)
+              TAB 3: SCAN QR CODE OUTLET (TEMPEL DI DAPUR)
               ======================================================== */}
           {activeTab === 'qr' && (
             <div className="space-y-4">

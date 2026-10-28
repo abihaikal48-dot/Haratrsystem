@@ -92,7 +92,7 @@ export const MiniCertificateModal: React.FC<MiniCertificateModalProps> = ({
               {kruNama}
             </h1>
             <p className="text-[11px] text-[#645D55] mt-0.5">
-              Penempatan Gerai: <span className="font-semibold text-[#181411]">{kodeOutlet}</span> • {batchName}
+              Penempatan Outlet: <span className="font-semibold text-[#181411]">{kodeOutlet}</span> • {batchName}
             </p>
           </div>
 

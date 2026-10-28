@@ -22,6 +22,7 @@ import {
   ProfilKarakterEvaluasi,
   AnalisisPilarHasil
 } from '../data/bankSoalMingguan';
+import { GeometricBackdrop } from './ui/GeometricBackdrop';
 
 export interface SOPFlashcard {
   id: string;
@@ -514,7 +515,7 @@ Tanggal: ${new Date(submittedRecord.tanggal).toLocaleDateString('id-ID', {
   minute: '2-digit',
 })} WIB
 
-_Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
+_Tersimpan resmi di sistem HARA Chicken Indonesia._`;
 
     navigator.clipboard.writeText(msg).then(() => {
       setCopiedReceipt(true);
@@ -526,23 +527,26 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
   const progressPercent = questions.length > 0 ? Math.round(((currentIndex + 1) / questions.length) * 100) : 0;
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#181411] flex flex-col justify-between selection:bg-[#96171B] selection:text-white">
-      {/* Top Header */}
-      <header className="bg-white border-b border-[#E6E1DA] sticky top-0 z-30 shadow-[0_1px_3px_rgba(24,20,17,0.04)]">
-        <div className="max-w-5xl w-full mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="relative min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between selection:bg-[#96171B] selection:text-white overflow-hidden">
+      {/* Outer Margin Geometric Backdrop - Never overlaps content */}
+      <GeometricBackdrop variant="exam" />
+
+      {/* Floating Island Top Header */}
+      <header className="relative z-30 pt-4 px-4 sm:px-6">
+        <div className="max-w-5xl w-full mx-auto px-5 py-3 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-xs flex items-center justify-between">
           <div className="flex items-center gap-3">
             <HaraLogo size="sm" variant="horizontal" />
-            <div className="hidden sm:block h-4 w-px bg-[#E6E1DA]" />
-            <span className="hidden sm:inline text-xs font-semibold text-[#645D55]">
+            <div className="hidden sm:block h-4 w-px bg-slate-200" />
+            <span className="hidden sm:inline text-xs font-semibold text-slate-500">
               Portal Ujian Mandiri & Asesmen Karakter Kru
             </span>
           </div>
 
           <div className="flex items-center gap-3">
             {stage === 'exam' && (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 border border-red-200 text-[#96171B] font-mono text-xs font-bold">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-50 border border-red-200 text-[#96171B] font-mono text-xs font-bold tracking-tight shadow-2xs">
                 <Clock size={13} className="text-[#96171B]" />
-                <span>{formatTimer(totalTimeLeft)}</span>
+                <span className="tabular-nums">{formatTimer(totalTimeLeft)} Min</span>
               </div>
             )}
 
@@ -550,7 +554,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
               <button
                 type="button"
                 onClick={onGoToAdminLogin}
-                className="text-xs font-semibold text-[#645D55] hover:text-[#96171B] px-3 py-1.5 rounded-xl border border-[#E6E1DA] hover:border-[#96171B]/40 hover:bg-red-50/30 transition-all inline-flex items-center gap-1.5"
+                className="text-xs font-semibold text-slate-600 hover:text-[#96171B] px-3.5 py-1.5 rounded-full border border-slate-200 hover:border-[#96171B]/40 hover:bg-red-50/50 transition-all inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
               >
                 <Shield size={13} className="text-[#96171B]" />
                 <span>Portal Staf / Trainer</span>
@@ -561,35 +565,35 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-6 sm:py-10 flex flex-col justify-center">
+      <main className="relative z-10 flex-1 max-w-4xl w-full mx-auto px-4 py-8 sm:py-12 flex flex-col justify-center">
         
         {/* ===================================================================
-            TAHAP 1: FORM PENDAFTARAN PESERTA UJIAN (CLEAN MINIMALIS)
+            TAHAP 1: FORM PENDAFTARAN PESERTA UJIAN (ROUNDED-3XL CARD)
             =================================================================== */}
         {stage === 'setup' && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             className="w-full max-w-lg mx-auto"
           >
-            <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] p-6 sm:p-9 space-y-6">
+            <div className="card-enterprise rounded-3xl p-7 sm:p-10 space-y-6 shadow-xl border border-slate-200/80">
               
               <div className="text-center pb-2">
-                <div className="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-red-50 text-[#96171B] mb-3 border border-red-100">
-                  <User size={22} />
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-red-50 text-[#96171B] mb-3.5 border border-red-100 shadow-2xs">
+                  <User size={26} />
                 </div>
-                <h1 className="text-xl font-bold text-[#181411] tracking-tight">
+                <h1 className="text-2xl font-bold font-['Outfit'] text-[#0F172A] tracking-tight">
                   Lembar Ujian Kompetensi Kru
                 </h1>
-                <p className="text-xs text-[#645D55] mt-1">
-                  Evaluasi Terpadu: Teori SOP (25%), Kasus Praktik HOTS, & Asesmen Karakter Kerja SJT
+                <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto leading-relaxed">
+                  Evaluasi Standar Operasional: Teori SOP (25%), Praktik HOTS, & Profil Karakter Kerja SJT
                 </p>
               </div>
 
               {/* Cooldown Active Alert */}
               {cooldownRemaining > 0 && (
-                <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2 text-xs">
+                <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2 text-xs">
                   <div className="flex items-center gap-2 font-bold text-amber-950">
                     <Clock size={16} className="text-amber-700 animate-spin" />
                     <span>Jeda Belajar Mandiri Sebelum Remedial Aktif</span>
@@ -604,7 +608,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     <button
                       type="button"
                       onClick={handleUnlockCooldownTrainer}
-                      className="text-[10px] text-amber-900 underline hover:font-bold"
+                      className="text-[10px] text-amber-900 underline hover:font-bold cursor-pointer"
                       title="Buka kunci segera untuk keperluan verifikasi trainer"
                     >
                       Buka Kunci (Trainer Override)
@@ -616,7 +620,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
               {/* Form Inputs */}
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-[#181411] mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Nama Lengkap Kru <span className="text-rose-500">*</span>
                   </label>
                   <input
@@ -624,12 +628,12 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     value={namaKru}
                     onChange={(e) => setNamaKru(e.target.value)}
                     placeholder="Contoh: Budi Santoso"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1DA] text-sm text-[#181411] placeholder-[#645D55]/60 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-[#FAF8F5]/50 hover:bg-white focus:bg-white transition-all"
+                    className="w-full px-4 py-3 rounded-full border border-slate-200 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-slate-50/50 hover:bg-white focus:bg-white transition-all shadow-2xs"
                   />
 
                   {outletKruList.length > 0 && (
                     <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                      <span className="text-[11px] text-[#645D55]">Pilih terdaftar:</span>
+                      <span className="text-[11px] text-slate-400">Pilih terdaftar:</span>
                       {outletKruList.slice(0, 3).map((k) => (
                         <button
                           key={k.id}
@@ -638,7 +642,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                             setNamaKru(k.nama_kru);
                             setSelectedDivisi(k.divisi);
                           }}
-                          className="text-[11px] px-2 py-0.5 rounded-md bg-[#FAF8F5] hover:bg-red-50 text-[#645D55] hover:text-[#96171B] border border-[#E6E1DA] transition-colors"
+                          className="text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-[#96171B] border border-slate-200 transition-colors cursor-pointer"
                         >
                           {k.nama_kru}
                         </button>
@@ -648,13 +652,13 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#181411] mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Cabang Outlet <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={selectedOutlet}
                     onChange={(e) => setSelectedOutlet(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1DA] text-sm text-[#181411] focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-[#FAF8F5]/50 hover:bg-white focus:bg-white transition-all"
+                    className="w-full px-4 py-3 rounded-full border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-slate-50/50 hover:bg-white focus:bg-white transition-all shadow-2xs cursor-pointer"
                   >
                     {outlets.map((o) => (
                       <option key={o.id} value={o.kode_outlet}>
@@ -665,13 +669,13 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#181411] mb-1.5">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
                     Spesialisasi Stasiun Kerja <span className="text-rose-500">*</span>
                   </label>
                   <select
                     value={selectedDivisi}
                     onChange={(e) => setSelectedDivisi(e.target.value as Division)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-[#E6E1DA] text-sm text-[#181411] focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-[#FAF8F5]/50 hover:bg-white focus:bg-white transition-all"
+                    className="w-full px-4 py-3 rounded-full border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-slate-50/50 hover:bg-white focus:bg-white transition-all shadow-2xs cursor-pointer"
                   >
                     <option value="Kitchen">Kitchen & Fryer (Deep Fryer 175°C / Minyak 160°C)</option>
                     <option value="Geprek">Geprek & Sambal Bawang (Cobek 30g + Minyak Panas)</option>
@@ -683,7 +687,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
 
               {/* Cooldown Alert Banner jika kru masih dalam masa tunggu */}
               {cooldownRemaining > 0 && (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-left space-y-2">
+                <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-left space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
                       <Clock size={15} className="text-rose-700" />
@@ -692,7 +696,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     <button
                       type="button"
                       onClick={handleUnlockCooldownTrainer}
-                      className="text-[10px] text-rose-800 underline hover:font-bold"
+                      className="text-[10px] text-rose-800 underline hover:font-bold cursor-pointer"
                     >
                       Buka Kunci Trainer
                     </button>
@@ -707,7 +711,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                       setIsCardFlipped(false);
                       setStage('flashcard');
                     }}
-                    className="w-full py-2 rounded-lg bg-white border border-rose-300 text-rose-800 font-bold text-xs hover:bg-rose-100/50 flex items-center justify-center gap-1.5"
+                    className="w-full py-2.5 rounded-full bg-white border border-rose-300 text-rose-800 font-bold text-xs hover:bg-rose-100/50 flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Sparkles size={14} className="text-amber-600" />
                     Buka Flashcard Drill Selama Cooldown
@@ -715,12 +719,12 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                 </div>
               )}
 
-              <div className="pt-2 space-y-2">
+              <div className="pt-2 space-y-2.5">
                 <button
                   type="button"
                   onClick={handleStartExam}
                   disabled={!namaKru.trim() || cooldownRemaining > 0}
-                  className="w-full py-3 px-4 rounded-xl bg-[#96171B] hover:bg-[#7A1216] active:bg-[#600E12] text-white font-semibold text-sm shadow-[0_1px_3px_rgba(24,20,17,0.04)] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3.5 px-6 rounded-full bg-[#96171B] hover:bg-[#7A1216] active:bg-[#600E12] text-white font-bold text-sm shadow-md shadow-red-950/15 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <span>Mulai Ujian Sekarang</span>
                   <ArrowRight size={16} />
@@ -733,7 +737,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     setIsCardFlipped(false);
                     setStage('flashcard');
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-[#FAF8F5] hover:bg-[#F4F1EC] text-stone-800 border border-[#E6E1DA] font-bold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  className="w-full py-3 px-6 rounded-full bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-200 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-2xs"
                 >
                   <Sparkles size={15} className="text-amber-600" />
                   <span>Smart SOP Flashcard Drill (Latihan Kilat)</span>
@@ -741,8 +745,8 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
               </div>
 
               <div className="text-center pt-1">
-                <p className="text-[11px] text-[#645D55]">
-                  Standar Kelulusan KKM: <span className="font-bold text-[#181411]">75 Poin</span> • Waktu Pengerjaan: 30 Menit
+                <p className="text-[11px] text-slate-400">
+                  Standar Kelulusan KKM: <span className="font-bold text-slate-700">75 Poin</span> • Waktu Pengerjaan: 30 Menit
                 </p>
               </div>
             </div>
@@ -888,7 +892,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
         )}
 
         {/* ===================================================================
-            TAHAP 2: RUANG ASESMEN MODERN BEBAS DISTRAKSI (ZEN MODE)
+            TAHAP 2: RUANG ASESMEN MODERN (REFERENCE 2 ONLINE EXAM STYLE)
             Dengan 3 Bagian: PG SOP, Essay HOTS, & Asesmen Karakter SJT
             =================================================================== */}
         {stage === 'exam' && currentQ && (
@@ -898,59 +902,59 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
             transition={{ duration: 0.22, ease: 'easeOut' }}
             className="w-full max-w-2xl mx-auto space-y-4"
           >
-            {/* 3-Section Progress Bar */}
-            <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] p-3.5 flex items-center justify-between gap-2 text-xs">
+            {/* 3-Section Segmented Pill Bar */}
+            <div className="bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200/80 shadow-xs p-2 flex items-center justify-between gap-1.5 text-xs">
               <button
                 type="button"
                 onClick={() => setActiveSectionFilter('PILIHAN_GANDA')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-all ${
+                className={`flex-1 py-2 px-3 rounded-xl text-center font-bold transition-all cursor-pointer ${
                   activeSectionFilter === 'PILIHAN_GANDA' || currentQ.tipe === 'PILIHAN_GANDA'
-                    ? 'bg-red-50 text-[#96171B] border border-red-200'
-                    : 'text-[#645D55] hover:bg-[#FAF8F5]'
+                    ? 'bg-red-50 text-[#96171B] border border-red-200/80 shadow-2xs'
+                    : 'text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                <div className="text-[10px] uppercase font-semibold text-[#645D55]">Bagian 1</div>
+                <div className="text-[10px] uppercase font-semibold text-slate-400">Bagian 1</div>
                 <div>PG SOP ({sections.pgAnswered}/{sections.pg.length})</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSectionFilter('ESSAY_HOTS')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-all ${
+                className={`flex-1 py-2 px-3 rounded-xl text-center font-bold transition-all cursor-pointer ${
                   activeSectionFilter === 'ESSAY_HOTS' || currentQ.tipe === 'ESSAY_HOTS'
-                    ? 'bg-red-50 text-[#96171B] border border-red-200'
-                    : 'text-[#645D55] hover:bg-[#FAF8F5]'
+                    ? 'bg-red-50 text-[#96171B] border border-red-200/80 shadow-2xs'
+                    : 'text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                <div className="text-[10px] uppercase font-semibold text-[#645D55]">Bagian 2</div>
+                <div className="text-[10px] uppercase font-semibold text-slate-400">Bagian 2</div>
                 <div>Essay HOTS ({sections.essayAnswered}/{sections.essay.length})</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveSectionFilter('KARAKTERISTIK_PSIKOLOGIS')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-center font-bold transition-all ${
+                className={`flex-1 py-2 px-3 rounded-xl text-center font-bold transition-all cursor-pointer ${
                   activeSectionFilter === 'KARAKTERISTIK_PSIKOLOGIS' || currentQ.tipe === 'KARAKTERISTIK_PSIKOLOGIS'
-                    ? 'bg-red-50 text-[#96171B] border border-red-200'
-                    : 'text-[#645D55] hover:bg-[#FAF8F5]'
+                    ? 'bg-red-50 text-[#96171B] border border-red-200/80 shadow-2xs'
+                    : 'text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                <div className="text-[10px] uppercase font-semibold text-[#645D55]">Bagian 3</div>
+                <div className="text-[10px] uppercase font-semibold text-slate-400">Bagian 3</div>
                 <div>SJT Karakter ({sections.sjtAnswered}/{sections.sjt.length})</div>
               </button>
             </div>
 
-            {/* Main Question Card */}
-            <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] p-6 sm:p-8">
+            {/* Main Question Card (Reference 2 Elevated Floating Card) */}
+            <div className="card-enterprise rounded-3xl p-6 sm:p-9 shadow-xl border border-slate-200/80">
               
               {/* Question Header */}
-              <div className="space-y-3 pb-5 border-b border-[#E6E1DA]">
+              <div className="space-y-4 pb-5 border-b border-slate-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-[#96171B] bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-lg">
-                      Nomor {currentIndex + 1} dari {questions.length}
+                    <span className="text-xs font-bold text-[#96171B] bg-red-50 border border-red-200/80 px-3 py-1 rounded-full font-mono">
+                      Soal {currentIndex + 1} / {questions.length}
                     </span>
-                    <span className="text-xs text-[#645D55]">
+                    <span className="text-xs text-slate-500 font-medium">
                       ({currentQ.tipe === 'PILIHAN_GANDA' ? 'Pilihan Ganda SOP' : currentQ.tipe === 'ESSAY_HOTS' ? 'Kasus Essay HOTS' : 'Asesmen Karakter SJT'})
                     </span>
                   </div>
@@ -964,10 +968,10 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                           [currentQ.id]: !prev[currentQ.id],
                         }))
                       }
-                      className={`text-xs px-2.5 py-1 rounded-xl border transition-colors flex items-center gap-1 ${
+                      className={`text-xs px-3 py-1.5 rounded-full border transition-colors flex items-center gap-1 cursor-pointer ${
                         flaggedQuestions[currentQ.id]
                           ? 'border-amber-300 bg-amber-50 text-amber-800'
-                          : 'border-[#E6E1DA] text-[#645D55] hover:bg-[#FAF8F5]'
+                          : 'border-slate-200 text-slate-500 hover:bg-slate-50'
                       }`}
                     >
                       <Bookmark size={12} className={flaggedQuestions[currentQ.id] ? 'fill-amber-600' : ''} />
@@ -977,37 +981,43 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     <button
                       type="button"
                       onClick={() => setShowQuestionGrid(!showQuestionGrid)}
-                      className="text-xs px-2.5 py-1 rounded-xl border border-[#E6E1DA] text-[#181411] hover:bg-[#FAF8F5] transition-colors"
+                      className="text-xs px-3 py-1.5 rounded-full border border-slate-200 text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
                     >
                       Daftar Soal
                     </button>
                   </div>
                 </div>
 
-                {/* Linear Thin Progress */}
-                <div className="w-full h-1.5 bg-[#FAF8F5] rounded-full overflow-hidden border border-[#E6E1DA]">
-                  <div
-                    className="h-full bg-[#96171B] transition-all duration-300 rounded-full"
-                    style={{ width: `${progressPercent}%` }}
-                  />
+                {/* Linear Thin Progress Line (Reference 2 style) */}
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center text-[11px] font-mono text-slate-400">
+                    <span>Progres Pengerjaan</span>
+                    <span className="font-bold text-[#96171B]">{progressPercent}%</span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-[#96171B] transition-all duration-300 rounded-full"
+                      style={{ width: `${progressPercent}%` }}
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Question Text */}
-              <div className="py-6">
-                <p className="text-base sm:text-lg font-medium text-[#181411] leading-relaxed">
+              <div className="py-6 space-y-3">
+                <p className="text-base sm:text-lg font-semibold font-['Outfit'] text-[#0F172A] leading-relaxed">
                   {currentQ.pertanyaan}
                 </p>
                 {currentQ.skenario_konteks && (
-                  <div className="mt-3 p-3 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] text-xs text-[#645D55] leading-relaxed">
-                    <span className="font-bold text-[#181411]">Skenario Lapangan:</span> {currentQ.skenario_konteks}
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600 leading-relaxed">
+                    <span className="font-bold text-slate-900">Skenario Lapangan:</span> {currentQ.skenario_konteks}
                   </div>
                 )}
               </div>
 
-              {/* Options for Multiple Choice or SJT */}
+              {/* Options for Multiple Choice or SJT (Reference 2 Option Card Style) */}
               {(currentQ.tipe === 'PILIHAN_GANDA' || currentQ.tipe === 'KARAKTERISTIK_PSIKOLOGIS') && currentQ.opsi && (
-                <div className="space-y-2.5">
+                <div className="space-y-3">
                   {currentQ.opsi.map((opsi) => {
                     const isSelected = answers[currentQ.id] === opsi.label;
                     return (
@@ -1015,22 +1025,33 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                         key={opsi.label}
                         type="button"
                         onClick={() => handleSelectOption(currentQ.id, opsi.label)}
-                        className={`w-full text-left p-3.5 sm:p-4 rounded-xl border transition-all flex items-start gap-3.5 cursor-pointer ${
+                        className={`w-full text-left p-4 sm:p-4.5 rounded-2xl border transition-all flex items-center justify-between gap-3.5 cursor-pointer ${
                           isSelected
-                            ? 'border-[#96171B] bg-red-50/50 text-[#181411] font-medium ring-1 ring-[#96171B] shadow-xs'
-                            : 'border-[#E6E1DA] hover:border-[#96171B]/40 bg-white hover:bg-[#FAF8F5] text-[#181411]'
+                            ? 'border-[#96171B] bg-red-50/70 border-l-[6px] border-l-[#96171B] text-[#0F172A] font-medium shadow-xs ring-1 ring-[#96171B]/15'
+                            : 'border-slate-200/90 hover:border-slate-300 bg-white hover:bg-slate-50/80 text-slate-700'
                         }`}
                       >
+                        <div className="flex items-center gap-3.5 flex-1">
+                          <div
+                            className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold font-mono shrink-0 transition-colors ${
+                              isSelected
+                                ? 'bg-[#96171B] text-white shadow-2xs'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            }`}
+                          >
+                            {opsi.label}
+                          </div>
+                          <span className="text-sm sm:text-[15px] leading-relaxed">{opsi.teks}</span>
+                        </div>
+
+                        {/* Right Radio Indicator circle (Reference 2) */}
                         <div
-                          className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mt-0.5 ${
-                            isSelected
-                              ? 'bg-[#96171B] text-white'
-                              : 'bg-[#FAF8F5] text-[#645D55] border border-[#E6E1DA]'
+                          className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                            isSelected ? 'border-[#96171B] bg-white' : 'border-slate-300 bg-transparent'
                           }`}
                         >
-                          {opsi.label}
+                          {isSelected && <div className="w-2.5 h-2.5 rounded-full bg-[#96171B]" />}
                         </div>
-                        <span className="text-sm leading-relaxed">{opsi.teks}</span>
                       </button>
                     );
                   })}
@@ -1040,7 +1061,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
               {/* Textarea for HOTS Essay */}
               {currentQ.tipe === 'ESSAY_HOTS' && (
                 <div className="space-y-2">
-                  <label className="block text-xs font-semibold text-[#645D55]">
+                  <label className="block text-xs font-semibold text-slate-600">
                     Uraikan langkah analisis & penanganan Anda sesuai SOP Baku:
                   </label>
                   <textarea
@@ -1048,18 +1069,18 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     value={answers[currentQ.id] || ''}
                     onChange={(e) => handleEssayChange(currentQ.id, e.target.value)}
                     placeholder="Jelaskan secara terperinci (misal: suhu kompor 175°C, suhu minyak 160°C, timer 12 menit, core temp ≥74°C, gramatur sambal 30g)..."
-                    className="w-full p-3.5 rounded-xl border border-[#E6E1DA] text-sm text-[#181411] focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-[#FAF8F5]/50 hover:bg-white focus:bg-white transition-all leading-relaxed"
+                    className="w-full p-4 rounded-2xl border border-slate-200 text-sm text-slate-900 focus:outline-none focus:border-[#96171B] focus:ring-2 focus:ring-[#96171B]/15 bg-slate-50/50 hover:bg-white focus:bg-white transition-all leading-relaxed shadow-2xs"
                   />
                 </div>
               )}
 
-              {/* Bottom Navigation */}
-              <div className="flex items-center justify-between pt-6 mt-6 border-t border-[#E6E1DA]">
+              {/* Bottom Navigation (Reference 2 Pill Buttons) */}
+              <div className="flex items-center justify-between pt-6 mt-6 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
                   disabled={currentIndex === 0}
-                  className="px-4 py-2 rounded-xl border border-[#E6E1DA] hover:bg-[#FAF8F5] text-[#181411] text-sm font-medium transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-5 py-2.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-2xs"
                 >
                   <ChevronLeft size={16} />
                   <span>Sebelumnya</span>
@@ -1069,7 +1090,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                   <button
                     type="button"
                     onClick={() => setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1))}
-                    className="px-5 py-2 rounded-xl bg-[#96171B] hover:bg-[#7A1216] text-white text-sm font-semibold transition-colors flex items-center gap-1.5"
+                    className="px-7 py-2.5 rounded-full bg-[#96171B] hover:bg-[#7A1216] active:bg-[#600E12] text-white text-xs sm:text-sm font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-red-950/15"
                   >
                     <span>Lanjut</span>
                     <ChevronRight size={16} />
@@ -1078,7 +1099,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                   <button
                     type="button"
                     onClick={() => setShowConfirmSubmit(true)}
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold transition-colors flex items-center gap-1.5"
+                    className="px-7 py-2.5 rounded-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-bold transition-colors flex items-center gap-1.5 cursor-pointer shadow-md shadow-emerald-950/15"
                   >
                     <CheckCircle2 size={16} />
                     <span>Kumpulkan Ujian</span>
@@ -1144,73 +1165,73 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
             className="w-full max-w-2xl mx-auto space-y-5"
           >
             {/* Header Status Card */}
-            <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] p-6 sm:p-8 text-center space-y-4">
+            <div className="card-enterprise rounded-3xl p-7 sm:p-10 text-center space-y-5 shadow-xl border border-slate-200/80">
               <div className="flex justify-center">
-                <div className={`w-14 h-14 rounded-full flex items-center justify-center border ${
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center border-2 shadow-2xs ${
                   submittedRecord.skor_akhir_komposit >= 75
                     ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
                     : 'bg-amber-50 text-amber-700 border-amber-200'
                 }`}>
-                  {submittedRecord.skor_akhir_komposit >= 75 ? <CheckCircle2 size={32} /> : <AlertTriangle size={32} />}
+                  {submittedRecord.skor_akhir_komposit >= 75 ? <CheckCircle2 size={36} /> : <AlertTriangle size={36} />}
                 </div>
               </div>
 
               <div>
-                <h2 className="text-xl sm:text-2xl font-black text-[#181411]">
+                <h2 className="text-2xl sm:text-3xl font-black font-['Outfit'] text-[#0F172A]">
                   {submittedRecord.skor_akhir_komposit >= 75 ? 'Selamat, Anda Lulus Evaluasi!' : 'Ujian Memerlukan Remedial'}
                 </h2>
-                <p className="text-xs text-[#645D55] mt-1">
+                <p className="text-xs text-slate-500 mt-1">
                   Hasil instan asesmen kognitif SOP dan profil psikometri kerja HARA Chicken
                 </p>
               </div>
 
               {/* Dual-Scoring Big Metrics */}
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6E1DA]">
-                  <div className="text-[11px] font-bold text-[#645D55] uppercase">Mesin 1 — Skor Kognitif SOP</div>
-                  <div className="text-3xl font-black text-[#181411] mt-1">
+              <div className="grid grid-cols-2 gap-3.5 pt-1">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 shadow-2xs">
+                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Mesin 1 — Skor Kognitif SOP</div>
+                  <div className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#0F172A] mt-1.5">
                     {submittedRecord.skor_akhir_komposit}
-                    <span className="text-sm font-semibold text-[#645D55]"> / 100</span>
+                    <span className="text-sm font-semibold text-slate-400"> / 100</span>
                   </div>
-                  <div className="text-[11px] text-[#645D55] mt-1">
+                  <div className="text-[11px] text-slate-500 mt-1 font-mono">
                     PG: {submittedRecord.skor_pilihan_ganda} • Essay: {submittedRecord.skor_essay}
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#FAF8F5] border border-[#E6E1DA]">
-                  <div className="text-[11px] font-bold text-[#645D55] uppercase">Mesin 2 — Indeks Karakter SJT</div>
-                  <div className="text-3xl font-black text-[#96171B] mt-1">
+                <div className="p-5 rounded-2xl bg-red-50/60 border border-red-200/80 shadow-2xs">
+                  <div className="text-[11px] font-bold text-[#96171B] uppercase tracking-wider">Mesin 2 — Indeks Karakter SJT</div>
+                  <div className="text-3xl sm:text-4xl font-black font-['Outfit'] text-[#96171B] mt-1.5">
                     {profilPsikometrikResult.skor_rata_rata}
-                    <span className="text-sm font-semibold text-[#645D55]"> %</span>
+                    <span className="text-sm font-semibold text-slate-400"> %</span>
                   </div>
-                  <div className="text-[11px] text-[#645D55] mt-1">
+                  <div className="text-[11px] text-slate-500 mt-1">
                     6 Dimensi Perilaku Kerja
                   </div>
                 </div>
               </div>
 
               {/* Archetype & Station Placement Card */}
-              <div className="p-4 rounded-xl bg-red-50/50 border border-red-200/80 text-left space-y-1.5 text-xs">
+              <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 text-left space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-[#96171B]">Tipe Karakter Kerja:</span>
-                  <span className="font-extrabold text-[#96171B] bg-white px-2.5 py-0.5 rounded-full border border-red-200">
+                  <span className="font-bold text-[#0F172A]">Tipe Karakter Kerja:</span>
+                  <span className="font-extrabold text-[#96171B] bg-white px-3 py-1 rounded-full border border-red-200 shadow-2xs">
                     {profilPsikometrikResult.archetype_name}
                   </span>
                 </div>
-                <p className="text-[#181411] leading-relaxed">
+                <p className="text-slate-700 leading-relaxed">
                   <strong>Rekomendasi Stasiun:</strong> {profilPsikometrikResult.rekomendasi_stasiun}
                 </p>
-                <p className="text-[#645D55] text-[11px]">
+                <p className="text-slate-500 text-[11px] leading-relaxed">
                   <strong>Panduan Kepala Outlet:</strong> {profilPsikometrikResult.panduan_bimbingan_sm}
                 </p>
               </div>
 
               {/* 6 Psychometric Dimensions Visual Bars */}
-              <div className="text-left pt-2 space-y-2">
-                <h4 className="text-xs font-bold text-[#181411] uppercase tracking-wider">
+              <div className="text-left pt-2 space-y-2.5">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                   Profil 6 Dimensi Karakter Kerja
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {[
                     { label: 'Integritas & Anti-Fraud', val: profilPsikometrikResult.integritas },
                     { label: 'Ketahanan Stres Rush Hour', val: profilPsikometrikResult.ketahanan_stres },
@@ -1221,12 +1242,12 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                   ].map((dim) => (
                     <div key={dim.label}>
                       <div className="flex justify-between text-xs mb-1">
-                        <span className="text-[#645D55] font-medium">{dim.label}</span>
-                        <span className="font-bold text-[#181411] font-mono">{dim.val}%</span>
+                        <span className="text-slate-600 font-medium">{dim.label}</span>
+                        <span className="font-bold text-[#0F172A] font-mono">{dim.val}%</span>
                       </div>
-                      <div className="w-full h-2 bg-[#FAF8F5] rounded-full border border-[#E6E1DA] overflow-hidden">
+                      <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-[#96171B] to-[#C88A1E] rounded-full"
+                          className="h-full bg-gradient-to-r from-[#96171B] to-rose-400 rounded-full"
                           style={{ width: `${dim.val}%` }}
                         />
                       </div>
@@ -1247,9 +1268,9 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                   </p>
                   
                   {/* Standard SOP Quick Summary */}
-                  <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5 text-xs text-slate-800">
+                  <div className="p-3.5 bg-white rounded-2xl border border-amber-200 space-y-1.5 text-xs text-slate-800">
                     <div className="font-bold text-[#96171B]">Catatan Kunci Standar Mutu HARA:</div>
-                    <ul className="list-disc pl-4 space-y-1 text-[11px] text-[#645D55]">
+                    <ul className="list-disc pl-4 space-y-1 text-[11px] text-slate-600">
                       <li><strong>Suhu Deep Fryer:</strong> Setelan kompor 175°C, titik masuk ayam stabil pada 160°C.</li>
                       <li><strong>Waktu Menggoreng:</strong> Tepat 12 menit (goyang keranjang per 3 menit), core temp &gt;= 74°C.</li>
                       <li><strong>Holding Time Warmer:</strong> Maksimal 120 menit (suhu 60°C–70°C).</li>
@@ -1264,7 +1285,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                       setIsCardFlipped(false);
                       setStage('flashcard');
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7A1215] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                    className="w-full py-3 rounded-full bg-[#96171B] hover:bg-[#7A1215] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-red-950/15 cursor-pointer"
                   >
                     <Sparkles size={14} className="text-amber-400" />
                     Buka Smart SOP Flashcard Drill (Latihan Remedial)
@@ -1275,7 +1296,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                     <button
                       type="button"
                       onClick={handleUnlockCooldownTrainer}
-                      className="text-[11px] text-amber-800 underline hover:font-bold"
+                      className="text-[11px] text-amber-800 underline hover:font-bold cursor-pointer"
                     >
                       Buka Kunci (Trainer Override)
                     </button>
@@ -1288,7 +1309,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                 <button
                   type="button"
                   onClick={handleCopyReceipt}
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-3.5 px-6 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md shadow-emerald-950/15"
                 >
                   <Copy size={15} />
                   <span>{copiedReceipt ? 'Tersalin!' : 'Salin Bukti Hasil ke WhatsApp'}</span>
@@ -1298,7 +1319,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
                   <button
                     type="button"
                     onClick={onBackToHome}
-                    className="w-full py-2.5 px-4 rounded-xl border border-[#E6E1DA] hover:bg-[#FAF8F5] text-[#181411] font-semibold text-sm transition-colors"
+                    className="w-full py-3 px-6 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold text-sm transition-colors cursor-pointer shadow-2xs"
                   >
                     Kembali ke Beranda
                   </button>
@@ -1354,7 +1375,7 @@ _Tersimpan resmi di sistem PT HARA Chicken Indonesia._`;
 
       {/* Footer */}
       <footer className="text-center py-4 text-xs text-[#645D55]">
-        © 2026 PT HARA CHICKEN INDONESIA • Standar Operasional & Evaluasi Terpadu
+        © 2026 HARA CHICKEN INDONESIA • Standar Operasional & Evaluasi Terpadu
       </footer>
     </div>
   );

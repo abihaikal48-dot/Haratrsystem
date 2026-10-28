@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana Implementasi dan Pembaruan Sinkronisasi Online Realtime Batch 23-24 Oktober 2026 serta Perbaikan Timer Stopwatch.",
-  "updatedAt":  "2026-10-23T01:14:33.178525493Z",
+  "summary":  "Rencana implementasi perombakan fokus Training Onboarding: mengarsipkan switch OPS/Training di sidebar, mengganti seluruh tombol aksi hapus yang terblokir browser dengan Modal Konfirmasi Modern in-app (pada log aktivitas dan manajemen akun), serta merestrukturisasi tab evaluasi sekunder menjadi Penilaian Kebersihan, Keaktifan, dan Sikap Kerja Individu per Kru (menunda penilaian kerjasama ke tahap mendatang).",
+  "updatedAt":  "2026-10-28T03:39:40.752651810Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

@@ -192,7 +192,7 @@ export const HaraCultureView: React.FC = () => {
             <div className="flex items-center justify-between px-1">
               <span className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
                 <BookOpen size={14} className="text-[#8B1418]" />
-                <span>Indikator Verifikasi Objektif di Gerai:</span>
+                <span>Indikator Verifikasi Objektif di Outlet:</span>
               </span>
               <span className="text-[10.5px] text-slate-500 font-mono">
                 {activePillar.items.length} Parameter Audit
@@ -227,7 +227,7 @@ export const HaraCultureView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4. STANDARDISASI 4 JOBDESK RESMI GERAI */}
+      {/* 4. STANDARDISASI 4 JOBDESK RESMI OUTLET */}
       <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
           <div>
@@ -235,10 +235,10 @@ export const HaraCultureView: React.FC = () => {
               OFFICIAL STATIONS
             </span>
             <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight mt-0.5">
-              4 Jobdesk Resmi Operasional Gerai HARA Chicken
+              4 Jobdesk Resmi Operasional Outlet HARA Chicken
             </h2>
             <p className="text-xs text-slate-500">
-              Setiap kru gerai dilatih dan disertifikasi berdasarkan parameter mutu kritis stasiun berikut:
+              Setiap kru outlet dilatih dan disertifikasi berdasarkan parameter mutu kritis stasiun berikut:
             </p>
           </div>
 

@@ -81,7 +81,7 @@ export const JadwalKunjunganView: React.FC<JadwalKunjunganViewProps> = ({
       {/* Header Banner */}
       <PageHeaderBanner
         category="AGENDA LAPANGAN"
-        title="Kalender Pelatihan & Logbook Kunjungan Gerai"
+        title="Kalender Pelatihan & Logbook Kunjungan Outlet"
         description="Kelola agenda kunjungan trainer dan supervisor ke seluruh jaringan outlet, koordinasikan jadwal training shift, dan catat rekap hasil pendampingan."
         icon={<Calendar size={22} />}
       />

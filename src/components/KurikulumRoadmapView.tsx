@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   Calendar, CheckCircle2, Clock, Target, Sparkles,
-  ArrowRight, ShieldCheck, UserCheck, BookOpen, Wrench,
+  ArrowRight, ArrowLeft, ShieldCheck, UserCheck, BookOpen, Wrench,
   AlertTriangle, Filter, Plus, Flame, Award, ChevronRight,
   Printer, Check, X, FileText, ChevronDown, ChevronUp,
-  Brain, TrendingUp, AlertCircle, RefreshCw, BarChart2,
+  Brain, TrendingUp, AlertCircle, RefreshCw, BarChart2, BarChart3,
   Users, Store, Info, Edit3, MessageSquare, Star, Zap,
   Compass, Eye, CheckSquare, Layers, Download, Search,
-  Scale, Thermometer, UtensilsCrossed
+  Scale, Thermometer, UtensilsCrossed, GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../lib/storage';
@@ -31,18 +31,18 @@ interface KurikulumRoadmapViewProps {
 }
 
 type OnboardingViewSubTab =
-  | 'penilaian_praktik_produk'
-  | 'log_aktivitas'
-  | 'analitik_diagnostik'
-  | 'kurikulum'
+  | 'silabus'
   | 'batches'
+  | 'penilaian'
+  | 'analyst'
   | 'radar_kru'
   | 'absensi_nilai';
 
 export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
   selectedOutletCode,
 }) => {
-  const [activeSubTab, setActiveSubTab] = useState<OnboardingViewSubTab>('penilaian_praktik_produk');
+  const [activeSubTab, setActiveSubTab] = useState<OnboardingViewSubTab>('silabus');
+  const [penilaianMode, setPenilaianMode] = useState<'produk' | 'log'>('produk');
   const [batches, setBatches] = useState<OnboardingBatch[]>([]);
   const [kruList, setKruList] = useState<Kru[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
@@ -276,18 +276,21 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
     <div className="space-y-6 animate-in fade-in duration-200">
       {/* Header Banner */}
       <PageHeaderBanner
-        category="KURIKULUM & ONBOARDING RESMI"
-        title="Sistem Manajemen Onboarding & Retraining Kru 3 Hari"
-        description="Master Kurikulum Baku 10 Materi (Total 25 Jam) dengan Uji Praktik RnD 16 Jam, indikator kuota kelas 11–17 peserta, dan deteksi otomatis karyawan baru (1–45 hari)."
-        icon={<GraduationCapIcon size={22} />}
+        category="ONBOARDING RESMI"
+        title="Pusat Onboarding Terpadu HARA Chicken"
+        description="Master Kurikulum Baku 10 Materi (Total 25 Jam), Database Peserta Batch (11–17 Kru), Form Penilaian Praktik Produk SOP, dan Dashboard Analitik Diagnostik Kelulusan."
+        icon={<GraduationCap size={22} />}
         tabs={[
-          { id: 'penilaian_praktik_produk', label: 'Form Penilaian Praktik R&D (SOP)', icon: UtensilsCrossed },
-          { id: 'log_aktivitas', label: 'Log Aktivitas Penilaian (Audit Trail)', icon: FileText },
-          { id: 'analitik_diagnostik', label: 'Analitik & Evaluasi R&D', icon: TrendingUp },
-          { id: 'kurikulum', label: 'Kurikulum & Koreografi Gerai', icon: BookOpen },
-          { id: 'batches', label: 'Database Peserta & Onboarding', icon: Users, count: batches.length },
+          { id: 'silabus', label: 'Silabus Kurikulum (3 Hari)', icon: BookOpen },
+          { id: 'batches', label: 'Batch Kru & Peserta', icon: Users, count: batches.length },
+          { id: 'penilaian', label: 'Penilaian Praktik', icon: UtensilsCrossed },
+          { id: 'analyst', label: 'Analitik Onboarding', icon: BarChart3 },
         ]}
-        activeTab={activeSubTab}
+        activeTab={
+          activeSubTab === 'radar_kru' || activeSubTab === 'absensi_nilai'
+            ? 'batches'
+            : activeSubTab
+        }
         onSelectTab={(id) => setActiveSubTab(id as OnboardingViewSubTab)}
       />
 
@@ -354,7 +357,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     <div className="inline-flex items-center gap-2 text-xs font-bold text-[#96171B]">
                       <span>{activeBatch.nomor_batch}</span>
                       <span className="text-[#645D55]">•</span>
-                      <span>Lokasi Gerai: {activeBatch.kode_outlet_lokasi}</span>
+                      <span>Lokasi Outlet: {activeBatch.kode_outlet_lokasi}</span>
                     </div>
                     <h3 className="text-lg font-bold text-[#181411] mt-0.5">{activeBatch.nama_batch}</h3>
                   </div>
@@ -574,30 +577,80 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       )}
 
       {/* ===================================================================
-          SUB-TAB: PENILAIAN PRAKTIK PRODUK SOP (MULTI-KRU TAB & STOPWATCH)
+          SUB-TAB 3: PENILAIAN PRAKTIK PRODUK SOP
           =================================================================== */}
-      {activeSubTab === 'penilaian_praktik_produk' && (
-        <OnboardingProductPracticeView
-          selectedOutletCode={selectedOutletCode}
-          onOpenFullAuditLog={() => setActiveSubTab('log_aktivitas')}
-        />
+      {activeSubTab === 'penilaian' && (
+        <div className="space-y-4">
+          {/* Segmented Mode Switcher */}
+          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E6E1DA] shadow-xs">
+            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#FAF8F5] rounded-xl border border-[#E6E1DA]">
+              <button
+                type="button"
+                onClick={() => setPenilaianMode('produk')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  penilaianMode === 'produk'
+                    ? 'bg-[#96171B] text-white shadow-xs'
+                    : 'text-[#645D55] hover:text-[#181411]'
+                }`}
+              >
+                <UtensilsCrossed size={13} />
+                <span>Form Penilaian Praktik Produk SOP</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setPenilaianMode('log')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  penilaianMode === 'log'
+                    ? 'bg-[#96171B] text-white shadow-xs'
+                    : 'text-[#645D55] hover:text-[#181411]'
+                }`}
+              >
+                <FileText size={13} />
+                <span>Log Aktivitas Penilaian (Audit Trail)</span>
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('analyst')}
+              className="text-xs font-bold text-[#96171B] hover:underline flex items-center gap-1 px-3 py-1.5 cursor-pointer"
+            >
+              <span>Buka Analitik Onboarding</span>
+              <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {penilaianMode === 'produk' ? (
+            <OnboardingProductPracticeView
+              selectedOutletCode={selectedOutletCode}
+              onOpenFullAuditLog={() => setPenilaianMode('log')}
+            />
+          ) : (
+            <OnboardingActivityLogView
+              selectedOutletCode={selectedOutletCode}
+              onNavigateToPractice={() => setPenilaianMode('produk')}
+            />
+          )}
+        </div>
       )}
 
       {/* ===================================================================
-          SUB-TAB: LOG AKTIVITAS PENILAIAN (AUDIT TRAIL RESMI)
-          =================================================================== */}
-      {activeSubTab === 'log_aktivitas' && (
-        <OnboardingActivityLogView
-          selectedOutletCode={selectedOutletCode}
-          onNavigateToPractice={() => setActiveSubTab('penilaian_praktik_produk')}
-        />
-      )}
-
-      {/* ===================================================================
-          SUB-TAB 2: RADAR KELAYAKAN KRU (DETEKSI KARYAWAN BARU 1-45 HARI)
+          SUB-TAB: RADAR KELAYAKAN KRU (DETEKSI KARYAWAN BARU 1-45 HARI)
           =================================================================== */}
       {activeSubTab === 'radar_kru' && (
         <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('batches')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E6E1DA] bg-white text-xs font-bold text-[#181411] hover:bg-[#FAF8F5] transition-all cursor-pointer shadow-xs"
+            >
+              <ArrowLeft size={14} className="text-[#96171B]" />
+              <span>Kembali ke Manajemen Batch</span>
+            </button>
+            <span className="text-xs text-[#645D55]">/</span>
+            <span className="text-xs font-bold text-[#96171B]">Radar Kelayakan Kru (1-45 Hari)</span>
+          </div>
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E6E1DA]">
               <div>
@@ -651,7 +704,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
 
                       <div className="font-bold text-[#181411] text-sm">{k.nama_kru}</div>
                       <div className="text-xs text-[#645D55] mt-0.5">
-                        {k.divisi} • Gerai {k.kode_outlet}
+                        {k.divisi} • Outlet {k.kode_outlet}
                       </div>
                       <div className="text-[11px] text-[#645D55] mt-1">
                         Tgl Masuk: {k.tanggal_masuk || '-'}
@@ -683,10 +736,22 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       )}
 
       {/* ===================================================================
-          SUB-TAB 3: ABSENSI & NILAI EVALUASI RND 16 JAM
+          SUB-TAB: ABSENSI & NILAI EVALUASI RND 16 JAM
           =================================================================== */}
       {activeSubTab === 'absensi_nilai' && (
         <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setActiveSubTab('batches')}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#E6E1DA] bg-white text-xs font-bold text-[#181411] hover:bg-[#FAF8F5] transition-all cursor-pointer shadow-xs"
+            >
+              <ArrowLeft size={14} className="text-[#96171B]" />
+              <span>Kembali ke Manajemen Batch</span>
+            </button>
+            <span className="text-xs text-[#645D55]">/</span>
+            <span className="text-xs font-bold text-[#96171B]">Matriks Absensi 10 Sesi & Uji Praktik</span>
+          </div>
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E6E1DA]">
               <div>
@@ -780,17 +845,17 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       )}
 
       {/* ===================================================================
-          SUB-TAB 4: MASTER KURIKULUM BAKU 3 HARI (10 SESI - 25 JAM)
+          SUB-TAB 1: MASTER SILABUS KURIKULUM BAKU 3 HARI (10 SESI - 25 JAM)
           =================================================================== */}
-      {activeSubTab === 'kurikulum' && (
+      {activeSubTab === 'silabus' && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-[0_1px_3px_rgba(24,20,17,0.04)] space-y-6">
             <div>
               <h3 className="font-bold text-[#181411]">
-                Silabus Resmi Onboarding & Retraining Kru PT HARA Chicken Indonesia
+                Silabus Resmi Onboarding & Retraining Kru HARA Chicken Indonesia
               </h3>
               <p className="text-xs text-[#645D55] mt-0.5">
-                Standarisasi 10 materi kurikulum (Total 25 Jam) dipandu oleh manajemen multidisiplin gerai
+                Standarisasi 10 materi kurikulum (Total 25 Jam) dipandu oleh manajemen multidisiplin outlet
               </p>
             </div>
 
@@ -847,13 +912,35 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       )}
 
       {/* ===================================================================
-          SUB-TAB 2: ANALITIK & DIAGNOSTIK ONBOARDING MULTI-PERIODE
+          SUB-TAB 4: ANALITIK DIAGNOSTIK ONBOARDING MULTI-PERIODE
           =================================================================== */}
-      {activeSubTab === 'analitik_diagnostik' && (
-        <div className="space-y-6">
+      {activeSubTab === 'analyst' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E6E1DA] shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="font-bold text-xs text-[#181411]">
+                Dashboard Analitik Diagnostik & Evaluasi Kesiapan Kerja Kru
+              </span>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setActiveSubTab('penilaian');
+                setPenilaianMode('produk');
+              }}
+              className="text-xs font-bold text-[#96171B] hover:underline flex items-center gap-1 px-3 py-1.5 cursor-pointer"
+            >
+              <span>← Buka Form Penilaian Praktik</span>
+            </button>
+          </div>
+
           <OnboardingAnalyticsDashboard
             initialOutletCode={selectedOutletCode}
-            onSelectProductForPractice={() => setActiveSubTab('penilaian_praktik_produk')}
+            onSelectProductForPractice={() => {
+              setActiveSubTab('penilaian');
+              setPenilaianMode('produk');
+            }}
           />
         </div>
       )}
@@ -917,7 +1004,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#181411] mb-1">Lokasi Gerai Pelatihan</label>
+                  <label className="block font-semibold text-[#181411] mb-1">Lokasi Outlet Pelatihan</label>
                   <select
                     value={batchForm.kode_outlet_lokasi}
                     onChange={(e) => setBatchForm({ ...batchForm, kode_outlet_lokasi: e.target.value })}

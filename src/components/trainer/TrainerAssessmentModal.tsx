@@ -224,7 +224,7 @@ export const ASPEK_ATTITUDE_HARA_DETAIL: AspekHaraDetail[] = [
     deskripsi: 'Dunia bergerak cepat — dan kami tumbuh seiring setiap perubahan. Terbuka terhadap ide baru, perbaikan berkelanjutan, dan teknologi.',
     perilakuUtama: [
       '10. Terbuka terhadap ide baru & perbaikan berkelanjutan.',
-      '11. Menggunakan teknologi & sistem terpadu untuk efisiensi gerai.',
+      '11. Menggunakan teknologi & sistem terpadu untuk efisiensi outlet.',
       '12. Siap berubah demi pertumbuhan perusahaan & kesejahteraan bersama.',
     ],
     levelKriteria: [
@@ -236,7 +236,7 @@ export const ASPEK_ATTITUDE_HARA_DETAIL: AspekHaraDetail[] = [
     ],
     tagBuktiAlasan: [
       'Terbuka terhadap ide baru & perbaikan berkelanjutan (continuous improvement)',
-      'Menggunakan teknologi dan sistem terpadu untuk efisiensi gerai',
+      'Menggunakan teknologi dan sistem terpadu untuk efisiensi outlet',
       'Siap berubah demi pertumbuhan perusahaan & kesejahteraan bersama',
       'Tanggap menerima sesi coaching 1-on-1 metode GROW',
       'Inisiatif usul perbaikan alur stasiun kerja saat briefing',

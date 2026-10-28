@@ -351,7 +351,7 @@ export const TrainerJobdeskView: React.FC<TrainerJobdeskViewProps> = ({
                 <span>Pusat Tugas & Panduan Trainer Lapangan</span>
               </h1>
               <p className="text-sm text-slate-300 max-w-2xl mt-1 leading-relaxed">
-                Pusat operasional tugas, wewenang bimbingan, dan indikator efektivitas Trainer Operasional PT Dayacipta Kemasindo Perkasa (Hara Chicken). Memastikan standardisasi operasional, asesmen objektif 4-faktor, dan pendampingan OJT kru di seluruh cabang.
+                Pusat operasional tugas, wewenang bimbingan, dan indikator efektivitas Trainer Operasional HARA Chicken. Memastikan standardisasi operasional, asesmen objektif 4-faktor, dan pendampingan OJT kru di seluruh cabang.
               </p>
             </div>
 
@@ -877,7 +877,7 @@ export const TrainerJobdeskView: React.FC<TrainerJobdeskViewProps> = ({
           <div className="flex items-center justify-between pb-4 border-b border-slate-200 print:hidden">
             <div className="flex items-center gap-2">
               <FileText size={18} className="text-[#96171B]" />
-              <span className="text-sm font-black text-slate-900">Format Resmi Dokumen HRD PT Dayacipta Kemasindo Perkasa</span>
+              <span className="text-sm font-black text-slate-900">Format Resmi Dokumen HRD HARA Chicken</span>
             </div>
             <button
               onClick={handlePrintDocument}
@@ -894,7 +894,7 @@ export const TrainerJobdeskView: React.FC<TrainerJobdeskViewProps> = ({
             <div className="grid grid-cols-12 border-b border-slate-400">
               <div className="col-span-3 p-3 border-r border-slate-400 flex flex-col items-center justify-center text-center bg-slate-50">
                 <div className="font-black text-base text-[#96171B] tracking-wider">HARA CHICKEN</div>
-                <div className="text-[9px] text-slate-600 font-bold mt-0.5">PT Dayacipta Kemasindo Perkasa</div>
+                <div className="text-[9px] text-slate-600 font-bold mt-0.5">HARA Chicken Indonesia</div>
               </div>
               <div className="col-span-6 p-3 border-r border-slate-400 flex items-center justify-center text-center">
                 <h2 className="font-black text-sm uppercase tracking-wide">

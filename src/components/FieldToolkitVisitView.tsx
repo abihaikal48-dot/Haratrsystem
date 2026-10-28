@@ -170,7 +170,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
         { nomor: 2, langkah: 'Penyelarasan suhu & waktu masak baku', tercapai: skorLangkahSOP >= 75 },
         { nomor: 3, langkah: 'Higienitas lap & sanitasi stasiun kerja', tercapai: skorKebersihan >= 75 },
       ],
-      catatan_trainer: catatanRetraining || `Retraining kunjungan lapangan gerai ${activeOutletObj.nama_outlet}: Skor ${skorAkhirRetraining} (${isLulus ? 'Lulus KKM 75' : 'Remedial Wajib Bimbingan'}).`,
+      catatan_trainer: catatanRetraining || `Retraining kunjungan lapangan outlet ${activeOutletObj.nama_outlet}: Skor ${skorAkhirRetraining} (${isLulus ? 'Lulus KKM 75' : 'Remedial Wajib Bimbingan'}).`,
       nama_trainer: 'Trainer Lapangan HARA',
       created_at: new Date().toISOString(),
     };
@@ -245,7 +245,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
             <div>
               <h3 className="text-xs font-black text-slate-900 flex items-center gap-2">
                 <Thermometer size={16} className="text-rose-600" />
-                <span>Checklist Cepat Suhu Kritis Gerai</span>
+                <span>Checklist Cepat Suhu Kritis Outlet</span>
               </h3>
               <p className="text-[11px] text-slate-500">
                 Pemeriksaan instan parameter suhu deep fryer, warmer display, chiller & freezer.
@@ -454,7 +454,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
                 onChange={(e) => setSelectedKruId(e.target.value)}
                 className="input-enterprise font-bold bg-white text-xs"
               >
-                <option value="">-- Pilih Kru Gerai Ini ({outletKruList.length} Kru) --</option>
+                <option value="">-- Pilih Kru Outlet Ini ({outletKruList.length} Kru) --</option>
                 {outletKruList.map((k) => (
                   <option key={k.id} value={k.id}>
                     {k.nama_kru} ({k.divisi})
@@ -786,7 +786,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
               <span>Format Berita Acara Kunjungan Supervisi & Coaching Cabang</span>
             </h3>
             <p className="text-xs text-slate-500">
-              Dokumen resmi berita acara evaluasi gerai untuk arsip HQ dan tanda tangan Kepala Outlet.
+              Dokumen resmi berita acara evaluasi outlet untuk arsip HQ dan tanda tangan Kepala Outlet.
             </p>
           </div>
           <button
@@ -808,7 +808,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
             </div>
             <div className="text-right text-[11px] text-slate-600">
               <div>Tanggal Visit: <b>{new Date().toLocaleDateString('id-ID', { dateStyle: 'long' })}</b></div>
-              <div>Gerai: <b>{activeOutletObj.nama_outlet} ({activeOutletCode})</b></div>
+              <div>Outlet: <b>{activeOutletObj.nama_outlet} ({activeOutletCode})</b></div>
             </div>
           </div>
 
@@ -832,7 +832,7 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
               <div className="text-slate-600">Kepala Outlet (Store Manager),</div>
               <div className="h-16" />
               <div className="border-t border-slate-400 font-bold pt-1">
-                ( {activeOutletObj.kepala_outlet || 'Kepala Gerai'} )
+                ( {activeOutletObj.kepala_outlet || 'Kepala Outlet'} )
               </div>
             </div>
             <div>

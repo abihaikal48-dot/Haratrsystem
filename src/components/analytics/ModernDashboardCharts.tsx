@@ -298,7 +298,7 @@ export const ModernDashboardCharts: React.FC<ModernDashboardChartsProps> = ({
         icon: Clock,
         color: '#ea580c',
         status: disciplineScore >= 85 ? 'Unggul' : disciplineScore >= 78 ? 'Sesuai' : 'Perlu Perhatian',
-        actionTip: 'Kehadiran briefing operasional 15 menit sebelum pembukaan gerai berjalan konsisten.',
+        actionTip: 'Kehadiran briefing operasional 15 menit sebelum pembukaan outlet berjalan konsisten.',
       },
       {
         id: 'hara_culture',
@@ -448,7 +448,7 @@ export const ModernDashboardCharts: React.FC<ModernDashboardChartsProps> = ({
               </span>
             </h2>
             <p className="text-xs text-slate-500 mt-1">
-              Pantau dinamika skor kru, benchmarking 6 pilar operasional gerai, dan sebaran predikat kelulusan
+              Pantau dinamika skor kru, benchmarking 6 pilar operasional outlet, dan sebaran predikat kelulusan
             </p>
           </div>
 

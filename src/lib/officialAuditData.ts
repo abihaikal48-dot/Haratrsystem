@@ -46,7 +46,7 @@ export const OFFICIAL_HARA_AUDIT_BANTUL: OfficialAuditReport = {
         persentase: 85.7,
         catatan_temuan: '1 kru kasir saat jam rush malam senyum kurang konsisten.',
         items: [
-          { id: 'srv-a1', nomor: 1, pernyataan: 'Mengucapkan salam/greeting ramah khas HARA saat tamu melangkah masuk gerai', terpenuhi: true },
+          { id: 'srv-a1', nomor: 1, pernyataan: 'Mengucapkan salam/greeting ramah khas HARA saat tamu melangkah masuk outlet', terpenuhi: true },
           { id: 'srv-a2', nomor: 2, pernyataan: 'Kontak mata hangat dan senyum tulus 3S (Senyum, Salam, Sapa) terjaga', terpenuhi: false, catatan: 'Saat antrean > 5 orang, senyum kru kasir pudar karena terburu-buru.' },
           { id: 'srv-a3', nomor: 3, pernyataan: 'Nada suara artikulatif, santun, jelas, dan percaya diri', terpenuhi: true },
           { id: 'srv-a4', nomor: 4, pernyataan: 'Mendengarkan pesanan dengan penuh perhatian tanpa memotong pembicaraan tamu', terpenuhi: true },
@@ -270,7 +270,7 @@ export const OFFICIAL_HARA_AUDIT_BANTUL: OfficialAuditReport = {
       },
       {
         kode: 'J',
-        nama: 'Bangunan & Fasilitas Gerai',
+        nama: 'Bangunan & Fasilitas Outlet',
         total_butir: 10,
         terpenuhi_butir: 8,
         persentase: 80.0,
@@ -278,7 +278,7 @@ export const OFFICIAL_HARA_AUDIT_BANTUL: OfficialAuditReport = {
           { id: 'q-j1', nomor: 1, pernyataan: 'Lantai dining area rata, tidak licin, bebas keramik pecah atau gompal', terpenuhi: true },
           { id: 'q-j2', nomor: 2, pernyataan: 'Dinding bersih bebas coretan, lumut, atau cat mengelupas', terpenuhi: true },
           { id: 'q-j3', nomor: 3, pernyataan: 'Plafon langit-langit rapi bebas noda rembesan air hujan atau sarang laba-laba', terpenuhi: false, catatan: 'Ada bekas rembesan air kecil di sudut plafon dekat pintu toilet.' },
-          { id: 'q-j4', nomor: 4, pernyataan: 'Pencahayaan lampu gerai terang merata tanpa ada bohlam mati/berkedip', terpenuhi: true },
+          { id: 'q-j4', nomor: 4, pernyataan: 'Pencahayaan lampu outlet terang merata tanpa ada bohlam mati/berkedip', terpenuhi: true },
           { id: 'q-j5', nomor: 5, pernyataan: 'Pendingin ruangan (AC / Exhaust / Kipas) sejuk dan beroperasi hening', terpenuhi: true },
           { id: 'q-j6', nomor: 6, pernyataan: 'Meja dan kursi dining kokoh, tidak goyang, dan baut terpasang kencang', terpenuhi: true },
           { id: 'q-j7', nomor: 7, pernyataan: 'Saluran air kotor dan bak grease trap lancar tanpa genangan bau menyengat', terpenuhi: false, catatan: 'Grease trap perlu pengurasan lebih rutin di akhir shift malam.' },
@@ -498,7 +498,7 @@ export const OFFICIAL_HARA_AUDIT_BANTUL: OfficialAuditReport = {
   },
 
   // SUMMARY & LEGALITAS
-  ringkasan_eksekutif: 'Outlet Hara Chicken Bantul menunjukkan kinerja operasional yang sangat solid pada periode audit Agustus 2026 dengan meraih skor komposit 86.9 (Grade A - Sangat Baik), menempati Ranking 9 dari 66 gerai jaringan HARA Chicken secara nasional. Peningkatan sebesar +3.5 poin dari audit sebelumnya membuktikan efektivitas program perbantuan lapangan dan coaching intensif trainer. Disiplin sanitasi area dining dan kepatuhan resep produk olahan ayam goreng mencatatkan kepatuhan sempurna.',
+  ringkasan_eksekutif: 'Outlet Hara Chicken Bantul menunjukkan kinerja operasional yang sangat solid pada periode audit Agustus 2026 dengan meraih skor komposit 86.9 (Grade A - Sangat Baik), menempati Ranking 9 dari 66 outlet jaringan HARA Chicken secara nasional. Peningkatan sebesar +3.5 poin dari audit sebelumnya membuktikan efektivitas program perbantuan lapangan dan coaching intensif trainer. Disiplin sanitasi area dining dan kepatuhan resep produk olahan ayam goreng mencatatkan kepatuhan sempurna.',
   
   kekuatan_utama: [
     'Standar mutu kerenyahan ayam, suhu core temp internal ≥ 74°C, dan cita rasa sambal bawang dinilai 100% konsisten.',
@@ -804,14 +804,14 @@ export const OFFICIAL_HARA_TRAINER_FINANCIAL_REPORTS: LaporanTrainerKeuanganAtas
         bidang: 'Fasilitas & Gedung',
         usulan_solusi: 'Perbaikan plafon sudut toilet yang rembes dan pembersihan grease trap saluran pembuangan utama oleh teknisi spesialis.',
         estimasi_biaya_rp: 850000,
-        dampak_terhadap_omset_ops: 'Mencegah kerusakan struktur plafon saat musim hujan dan menjaga aroma gerai tetap higienis.',
+        dampak_terhadap_omset_ops: 'Mencegah kerusakan struktur plafon saat musim hujan dan menjaga aroma outlet tetap higienis.',
       },
       {
         prioritas: 'Penting (P2)',
         bidang: 'Promosi/Mutasi SDM',
         usulan_solusi: 'Promosikan Budi Santoso (Kru Kitchen) menjadi Shift Leader Trainee dan jadikan Siti Rahayu sebagai Mentor Kasir Wilayah.',
         estimasi_biaya_rp: 600000,
-        dampak_terhadap_omset_ops: 'Memperkuat kepemimpinan shift di gerai tanpa harus merekrut kandidat eksternal yang butuh onboarding lama.',
+        dampak_terhadap_omset_ops: 'Memperkuat kepemimpinan shift di outlet tanpa harus merekrut kandidat eksternal yang butuh onboarding lama.',
       },
       {
         prioritas: 'Rencana Jangka Menengah (P3)',
@@ -822,7 +822,7 @@ export const OFFICIAL_HARA_TRAINER_FINANCIAL_REPORTS: LaporanTrainerKeuanganAtas
       },
     ],
 
-    catatan_penutup_trainer: 'Secara menyeluruh, intervensi perbantuan operasional di Hara Chicken Bantul telah berhasil menaikkan skor audit kepatuhan ke angka 86.9 (Grade A) serta menciptakan efisiensi finansial riil senilai Rp 9.800.000,- per bulan. Gerai ini telah siap beroperasi mandiri dengan supervisi berkala dari Area Supervisor.',
+    catatan_penutup_trainer: 'Secara menyeluruh, intervensi perbantuan operasional di Hara Chicken Bantul telah berhasil menaikkan skor audit kepatuhan ke angka 86.9 (Grade A) serta menciptakan efisiensi finansial riil senilai Rp 9.800.000,- per bulan. Outlet ini telah siap beroperasi mandiri dengan supervisi berkala dari Area Supervisor.',
     status_laporan: 'Diajukan ke Atasan',
   },
 ];

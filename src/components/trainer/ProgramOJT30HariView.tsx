@@ -46,7 +46,7 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
     week: 1,
     title: 'Internalisasi 4 Nilai Budaya H.A.R.A',
     category: 'Visi & Budaya',
-    description: 'Penerapan 4 nilai inti: Halal, Amanah, Responsif, Adaptif dalam setiap helaan nafas operasional gerai.',
+    description: 'Penerapan 4 nilai inti: Halal, Amanah, Responsif, Adaptif dalam setiap helaan nafas operasional outlet.',
     materiPenjelasan: [
       'H - HALAL: Menjaga kesucian bahan, proses sembelih syar\'i, bebas alkohol, serta kebersihan alat dari kontaminasi zat najis.',
       'A - AMANAH: Jujur dalam menimbang gramasi, menjaga uang kas kasir tanpa selisih, dan menjaga kepercayaan pelanggan.',
@@ -92,7 +92,7 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
     ],
     poinKritisSOP: [
       'Dilarang menuangkan air ke dalam wajan penggorengan minyak panas (risiko ledakan uap minyak).',
-      'Mengetahui lokasi APAR terdekat di kitchen dan jalur evakuasi darurat gerai.',
+      'Mengetahui lokasi APAR terdekat di kitchen dan jalur evakuasi darurat outlet.',
     ],
     kriteriaLulusTrainer: 'Kru mendemonstrasikan sikap tenang dan langkah penggunaan APAR secara benar.',
     verifiedByDefault: true,
@@ -104,8 +104,8 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
     category: 'Higiene & K3',
     description: 'Disiplin jam kerja, briefing pembagian stasiun, absensi digital, dan aturan ketat penyimpanan gawai pribadi.',
     materiPenjelasan: [
-      'Hadir di gerai 15 menit sebelum shift dimulai untuk persiapan fisik dan briefing huddle pagi/siang.',
-      'Kebijakan No Smartphone: Gawai pribadi wajib disimpan di loker kru selama jam operasional gerai untuk menjaga fokus dan higienitas.',
+      'Hadir di outlet 15 menit sebelum shift dimulai untuk persiapan fisik dan briefing huddle pagi/siang.',
+      'Kebijakan No Smartphone: Gawai pribadi wajib disimpan di loker kru selama jam operasional outlet untuk menjaga fokus dan higienitas.',
       'Etika Komunikasi: Berbicara santun, memanggil rekan kerja dengan nada hormat, dan menghindari obrolan pribadi di depan meja kasir.',
     ],
     poinKritisSOP: [
@@ -207,7 +207,7 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
       'Skor minimal kelulusan Gate 2 adalah 80.0 poin.',
       'Verifikasi logbook suhu dan penanganan chemical sanitasi.',
     ],
-    kriteriaLulusTrainer: 'Kru dinyatakan kompeten mandiri untuk mengoperasikan stasiun Helper gerai.',
+    kriteriaLulusTrainer: 'Kru dinyatakan kompeten mandiri untuk mengoperasikan stasiun Helper outlet.',
     verifiedByDefault: true,
   },
 
@@ -296,7 +296,7 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
     week: 3,
     title: 'Teknik Upselling Menu Add-on & Cross-Selling',
     category: 'Kasir & Layanan',
-    description: 'Seni menawarkan menu pelengkap (kulit krispi, telur dadar, es teh jumbo) untuk meningkatkan kepuasan tamu dan margin gerai.',
+    description: 'Seni menawarkan menu pelengkap (kulit krispi, telur dadar, es teh jumbo) untuk meningkatkan kepuasan tamu dan margin outlet.',
     materiPenjelasan: [
       'Kalimat Penawaran: "Boleh sekalian tambah Telur Dadar Krispi atau Ekstra Kulit Renyahnya Kak, mumpung baru matang?"',
       'Upsizing Minuman: "Untuk minumannya mau di-upgrade ke ukuran Large Kak, hanya selisih 2.000 saja?"',
@@ -357,7 +357,7 @@ const PROGRAM_30_HARI_CURRICULUM: OJTDayMilestone[] = [
       'Langkah 1 (Listen): Dengarkan keluhan tamu dengan tenang tanpa menyela atau berdalih membela diri.',
       'Langkah 2 (Apologize): Ucapkan permohonan maaf tulus atas ketidaknyamanan yang dialami tamu.',
       'Langkah 3 (Action): Ganti produk yang dikomplain seketika tanpa menunda (Zero Defect Policy).',
-      'Langkah 4 (Appreciate): Berikan compliment minuman/es teh manis dan catat keluhan di Logbook Komplain Gerai.',
+      'Langkah 4 (Appreciate): Berikan compliment minuman/es teh manis dan catat keluhan di Logbook Komplain Outlet.',
     ],
     poinKritisSOP: [
       'Dilarang berdebat dengan pelanggan di stasiun kasir.',

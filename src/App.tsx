@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Sidebar, NavTab, ROLE_PERMISSIONS } from './components/Sidebar';
+import { Sidebar, NavTab, ROLE_PERMISSIONS, WorkspaceMode } from './components/Sidebar';
 import { Header } from './components/Header';
 import { DashboardView } from './components/DashboardView';
 import { CrudSection, FieldDef, ColumnDef } from './components/CrudSection';
+import { TrainingVsOperasionalView } from './components/analytics/TrainingVsOperasionalView';
 import { KompetensiView } from './components/KompetensiView';
 import { PenilaianTeoriView } from './components/PenilaianTeoriView';
 import { PenilaianPraktikView } from './components/PenilaianPraktikView';
@@ -34,7 +35,15 @@ import { AnalitikRadarView } from './components/analytics/AnalitikRadarView';
 import { LaporanDiagnostikView } from './components/reports/LaporanDiagnostikView';
 import { UnifiedLaporanEksekutifView } from './components/reports/UnifiedLaporanEksekutifView';
 import { UnifiedTrainingOJTView } from './components/trainer/UnifiedTrainingOJTView';
+import { SupabaseConnectionModal } from './components/SupabaseConnectionModal';
+import { GeometricBackdrop } from './components/ui/GeometricBackdrop';
 import { db } from './lib/storage';
+import {
+  getSupabaseConfig,
+  initSupabaseRealtimeSync,
+  autoSeedSupabaseIfEmpty,
+  testSupabaseConnection,
+} from './lib/supabase';
 import {
   seedFirestoreIfEmpty,
   setupFirestoreRealtimeSync,
@@ -65,6 +74,15 @@ export function App() {
   } | null>(null);
 
   const [currentTab, setCurrentTab] = useState<NavTab>('dashboard');
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('hara_workspace_mode');
+      if (saved === 'onboarding' || saved === 'operasional' || saved === 'komparasi') {
+        return saved;
+      }
+    }
+    return 'onboarding';
+  });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<AppUser>(db.getCurrentUser());
@@ -81,6 +99,10 @@ export function App() {
   const [aiActionData, setAiActionData] = useState<AIActionModalData | null>(null);
   const [globalToast, setGlobalToast] = useState<string | null>(null);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
+  const [supabaseModalOpen, setSupabaseModalOpen] = useState<boolean>(() => {
+    const cfg = getSupabaseConfig();
+    return !cfg.isConfigured;
+  });
 
   // Master tab sub-view ('outlets' | 'kru')
   const [masterSubTab, setMasterSubTab] = useState<'outlets' | 'kru'>('outlets');
@@ -113,7 +135,23 @@ export function App() {
     refreshAppData();
     const unsub = db.subscribe('*', refreshAppData);
 
-    // Test connection and seed Firestore collections
+    // Initialize Supabase if configured
+    let unsubSupabase = () => {};
+    const { isConfigured } = getSupabaseConfig();
+    if (isConfigured) {
+      testSupabaseConnection().then((res) => {
+        if (res.success) {
+          autoSeedSupabaseIfEmpty().then((seedRes) => {
+            if (seedRes.seeded) {
+              refreshAppData();
+            }
+          });
+        }
+      });
+      unsubSupabase = initSupabaseRealtimeSync();
+    }
+
+    // Test connection and seed Firestore collections as backup
     testFirestoreConnection();
     seedFirestoreIfEmpty();
     const unsubFirestore = setupFirestoreRealtimeSync();
@@ -134,6 +172,7 @@ export function App() {
     window.addEventListener('hashchange', handleHashChange);
     return () => {
       unsub();
+      unsubSupabase();
       unsubFirestore();
       unsubPresence();
       window.removeEventListener('hashchange', handleHashChange);
@@ -508,10 +547,13 @@ export function App() {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#F8F9FA] text-[#111827]">
+    <div className="relative flex min-h-screen bg-[#F8FAFC] text-[#0F172A] selection:bg-[#96171B] selection:text-white">
+      {/* Subtle outer-margin geometric backdrop */}
+      <GeometricBackdrop variant="dashboard" />
+
       {/* Toast Notification */}
       {globalToast && (
-        <div className="fixed bottom-20 sm:bottom-6 right-5 z-50 bg-neutral-900 text-white px-4 py-2.5 rounded-lg shadow-lg flex items-center gap-2.5 text-xs font-semibold border border-neutral-800 animate-in fade-in slide-in-from-bottom-2">
+        <div className="fixed bottom-20 sm:bottom-6 right-5 z-50 bg-[#0F172A] text-white px-5 py-3 rounded-full shadow-xl flex items-center gap-2.5 text-xs font-semibold border border-slate-700 animate-in fade-in slide-in-from-bottom-2">
           <CheckCircle2 size={16} className="text-[#96171B] shrink-0" />
           <span>{globalToast}</span>
         </div>
@@ -526,14 +568,19 @@ export function App() {
         mobileOpen={mobileSidebarOpen}
         onCloseMobile={() => setMobileSidebarOpen(false)}
         currentUser={currentUser}
+        workspaceMode={workspaceMode}
+        onSelectWorkspaceMode={(mode) => {
+          setWorkspaceMode(mode);
+          localStorage.setItem('hara_workspace_mode', mode);
+        }}
         onOpenAICoach={() => setAiCoachOpen(true)}
         onOpenPublicExam={navigateToUjian}
         onLogout={handleLogout}
       />
 
       {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
-        {/* Command & Status Header (Minimalist 1-Row) */}
+      <div className="relative z-10 flex-1 flex flex-col min-w-0 overflow-x-hidden">
+        {/* Command & Status Header (Reference 3 Floating Island) */}
         <Header
           onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
           currentUser={currentUser}
@@ -542,6 +589,7 @@ export function App() {
           onSelectOutletCode={setSelectedOutletCode}
           outlets={outlets}
           onLogout={handleLogout}
+          onOpenSupabaseModal={() => setSupabaseModalOpen(true)}
           onLockSession={() => {
             setIsSessionLocked(true);
             db.addLog('UBAH', 'Keamanan', `User ${currentUser.nama} mengunci layar sesi secara manual.`);
@@ -581,6 +629,22 @@ export function App() {
             <AnalitikRadarView
               selectedOutletCode={selectedOutletCode}
               onNavigateToTab={setCurrentTab}
+            />
+          )}
+
+          {currentTab === 'perbandingan-training-operasional' && (
+            <TrainingVsOperasionalView
+              selectedOutletCode={selectedOutletCode}
+              onNavigateToOnboarding={() => {
+                setWorkspaceMode('onboarding');
+                localStorage.setItem('hara_workspace_mode', 'onboarding');
+                setCurrentTab('kurikulum-onboarding');
+              }}
+              onNavigateToSupervisi={() => {
+                setWorkspaceMode('operasional');
+                localStorage.setItem('hara_workspace_mode', 'operasional');
+                setCurrentTab('supervisi-lapangan');
+              }}
             />
           )}
 
@@ -834,6 +898,13 @@ export function App() {
           onLogout={handleLogout}
         />
       )}
+
+      {/* Supabase Realtime Database Connection & Data Migration Gate */}
+      <SupabaseConnectionModal
+        isOpen={supabaseModalOpen}
+        onClose={() => setSupabaseModalOpen(false)}
+        isGateEnforced={!getSupabaseConfig().isConfigured}
+      />
     </div>
   );
 }

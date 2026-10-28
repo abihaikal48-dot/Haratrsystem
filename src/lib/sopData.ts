@@ -822,7 +822,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
     kategori: 'Sanitasi & Fasilitas',
     divisi: 'Helper',
     judul_sop: 'Kebersihan Toilet',
-    tujuan: 'Menjaga toilet gerai selalu wangi, lantai kering, kloset bersih tanpa kerak, dan bak air terawat.',
+    tujuan: 'Menjaga toilet outlet selalu wangi, lantai kering, kloset bersih tanpa kerak, dan bak air terawat.',
     langkah: [
       'Bersihkan langit-langit toilet dari sarang laba-laba (sawang).',
       'Sikat dinding keramik toilet dari noda sabun/lumut.',
@@ -879,7 +879,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
       'Cuci tempat sampah luar dan pasang kantong plastik sampah baru.',
       'Rapikan susunan banner promo dan plang jam operasional segitiga.'
     ],
-    poin_kritis: 'Halaman parkir dan teras wajib disapu sebelum jam buka gerai dan dijaga kebersihannya sepanjang shift.',
+    poin_kritis: 'Halaman parkir dan teras wajib disapu sebelum jam buka outlet dan dijaga kebersihannya sepanjang shift.',
     standar_waktu: '15 menit sebelum buka',
     alat_bahan: 'Sapu Lidi / Sapu Kasar Luar, Pengki Besar, Trash Bag, Tempat Sampah',
     sumber: 'Dokumen SOP Hara Chicken - Area Teras Dan Halaman Parkir',
@@ -1625,7 +1625,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
       'Setorkan ke rekening resmi perusahaan / Bank BCA Syariah (No. Rekening: 0460046758) melalui setor tunai / transfer bank.',
       'Simpan bukti struk setoran bank dan tempelkan pada lembar buku kas outlet.',
       'Kirim foto bukti setor tunai ke grup WhatsApp manajemen operasional.',
-      'Kunci cash drawer dan simpan kunci outlet di tempat aman sebelum meninggalkan gerai.'
+      'Kunci cash drawer dan simpan kunci outlet di tempat aman sebelum meninggalkan outlet.'
     ],
     poin_kritis: 'Uang setoran wajib disetorkan tepat waktu ke rekening resmi perusahaan. Simpan bukti transfer fisik & digital.',
     standar_waktu: 'Harian saat pergantian / closing shift',
@@ -1642,7 +1642,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
     judul_sop: 'Operasional Mesin POS ESB & Troubleshooting Printer',
     tujuan: 'Mengoperasikan terminal POS ESB Lite secara lancar dan menangani kendala kertas struk habis atau error jaringan.',
     langkah: [
-      'Nyalakan tablet POS dan pastikan terhubung ke jaringan Wi-Fi operasional gerai.',
+      'Nyalakan tablet POS dan pastikan terhubung ke jaringan Wi-Fi operasional outlet.',
       'Buka aplikasi ESB POS Lite dan lakukan sinkronisasi menu terbaru dari Cloud.',
       'Cek roll kertas thermal printer kasir dan printer dapur (kitchen printer). Jika muncul garis merah muda, segera ganti dengan roll baru.',
       'Lakukan test print 1 struk untuk memastikan hasil cetakan tajam dan tidak berbayang.',
@@ -1665,7 +1665,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
     tujuan: 'Memastikan kelancaran dan validitas transaksi digital perbankan dan e-wallet tanpa selisih.',
     langkah: [
       'Tanyakan metode pembayaran kepada pelanggan: "Mau pembayaran tunai atau non-tunai (QRIS/Debit) Kak?"',
-      'Untuk pembayaran QRIS: tampilkan QR dinamis pada layar pelanggan atau arahkan ke akrilik QRIS statis gerai.',
+      'Untuk pembayaran QRIS: tampilkan QR dinamis pada layar pelanggan atau arahkan ke akrilik QRIS statis outlet.',
       'Minta pelanggan menunjukkan bukti layar sukses transaksi: periksa tanggal, jam, nominal pas, dan nama merchant HARA CHICKEN.',
       'Pastikan notifikasi pembayaran berhasil telah muncul pada sistem POS ESB sebelum memberikan struk pesanan.',
       'Untuk kartu Debit/Kredit EDC: masukkan nominal di mesin EDC, serahkan mesin kepada pelanggan untuk input PIN rahasia.',
@@ -1706,7 +1706,7 @@ export const OFFICIAL_HARA_SOP_DATABASE: BankSOP[] = [
     kategori: 'Kasir & Pelayanan',
     divisi: 'Kasir',
     judul_sop: 'Upselling & Suggestive Selling Aktif',
-    tujuan: 'Meningkatkan rata-rata nilai transaksi (Average Check) gerai dengan penawaran menu pelengkap yang relevan dan sopan.',
+    tujuan: 'Meningkatkan rata-rata nilai transaksi (Average Check) outlet dengan penawaran menu pelengkap yang relevan dan sopan.',
     langkah: [
       'Dengarkan menu utama yang dipesan oleh pelanggan.',
       'Lakukan penawaran suggestive selling secara natural: "Mau sekalian tambah Telur Dadar Krispi atau Terong Crispy Kak?"',

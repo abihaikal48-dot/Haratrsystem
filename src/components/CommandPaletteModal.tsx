@@ -53,11 +53,11 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       { id: 'tab-budaya', tab: 'budaya-hara', title: 'Budaya & 12 Perilaku Utama H.A.R.A', subtitle: 'Nilai Halal, Amanah, Responsif, Adaptif & ikrar komitmen', category: 'Operasional', icon: Award, badge: 'Budaya' },
       { id: 'tab-stasiun', tab: 'stasiun-kerja', title: '4 Stasiun Kerja & Tools Dapur Operasional', subtitle: 'Kitchen, Helper, Geprek, Kasir, timer holding & suhu 160°C', category: 'Operasional', icon: Wrench, badge: 'Dapur' },
       { id: 'tab-trainer', tab: 'penugasan-trainer', title: 'Penugasan & Dampingan Trainer Cabang', subtitle: 'Input trainee outlet & buat laporan perbantuan lapangan', category: 'Operasional', icon: Award },
-      { id: 'tab-jadwal', tab: 'jadwal-kunjungan', title: 'Kalender Jadwal Kunjungan Gerai', subtitle: 'Agenda rute trainer, logbook kunjungan & audit shift', category: 'Operasional', icon: Calendar },
-      { id: 'tab-radar', tab: 'analitik-radar', title: 'Radar Kompetensi & Diagnostik Mutu Cabang', subtitle: 'Analisis komparatif gerai & benchmark kurva Gauss', category: 'Evaluasi', icon: BarChart2, badge: 'Radar' },
-      { id: 'tab-2', tab: 'master', title: 'Master Outlet & Personil Kru', subtitle: 'Database gerai dan anggota tim', category: 'Operasional', icon: Store },
+      { id: 'tab-jadwal', tab: 'jadwal-kunjungan', title: 'Kalender Jadwal Kunjungan Outlet', subtitle: 'Agenda rute trainer, logbook kunjungan & audit shift', category: 'Operasional', icon: Calendar },
+      { id: 'tab-radar', tab: 'analitik-radar', title: 'Radar Kompetensi & Diagnostik Mutu Cabang', subtitle: 'Analisis komparatif outlet & benchmark kurva Gauss', category: 'Evaluasi', icon: BarChart2, badge: 'Radar' },
+      { id: 'tab-2', tab: 'master', title: 'Master Outlet & Personil Kru', subtitle: 'Database outlet dan anggota tim', category: 'Operasional', icon: Store },
       { id: 'tab-3', tab: 'tna', title: 'TNA (Training Need Analysis)', subtitle: 'Pencatatan gap operasional', category: 'Operasional', icon: Search },
-      { id: 'tab-4', tab: 'rencana', title: 'Jadwal & Rencana Pelatihan Shift', subtitle: 'Agenda pelatihan berkala gerai', category: 'Operasional', icon: Calendar },
+      { id: 'tab-4', tab: 'rencana', title: 'Jadwal & Rencana Pelatihan Shift', subtitle: 'Agenda pelatihan berkala outlet', category: 'Operasional', icon: Calendar },
       { id: 'tab-5', tab: 'observasi', title: 'Audit Observasi Lapangan (5S)', subtitle: 'Inspeksi suhu fryer 160°C & holding time', category: 'Operasional', icon: Eye },
       { id: 'tab-6', tab: 'coaching', title: 'Coaching Log (GROW Model)', subtitle: 'Bimbingan 1-on-1 personil kru', category: 'Operasional', icon: MessageSquare },
       { id: 'tab-7', tab: 'gap', title: 'Gap Analysis Matrix', subtitle: 'Matriks kesenjangan kompetensi', category: 'Operasional', icon: BarChart2 },
@@ -109,10 +109,10 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
         id: `outlet-${o.id}`,
         tab: 'master',
         title: `${o.nama_outlet} (${o.kode_outlet})`,
-        subtitle: `Kepala Gerai: ${o.kepala_outlet} · ${o.kota}`,
+        subtitle: `Kepala Outlet: ${o.kepala_outlet} · ${o.kota}`,
         category: 'Outlet',
         icon: Building2,
-        badge: 'Gerai',
+        badge: 'Outlet',
       });
     }
 

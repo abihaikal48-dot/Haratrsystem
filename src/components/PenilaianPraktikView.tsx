@@ -56,7 +56,7 @@ const OPERATIONAL_SOP_STANDARDS: Record<Division, OperationalSOPStandard> = {
         no: 3,
         judul: 'Inisiatif Upselling & Penawaran Menu',
         deskripsi: 'Menawarkan produk pendamping (Es Teh Jumbo, Ekstra Kulit, Sup Sayur) secara persuasif dan natural.',
-        kunciKepatuhan: 'Menyebutkan minimal 1 item add-on resmi promo gerai.'
+        kunciKepatuhan: 'Menyebutkan minimal 1 item add-on resmi promo outlet.'
       },
       {
         no: 4,
@@ -150,7 +150,7 @@ const OPERATIONAL_SOP_STANDARDS: Record<Division, OperationalSOPStandard> = {
       {
         no: 1,
         judul: 'Response Time Clean-up Meja < 2 Menit',
-        deskripsi: 'Membersihkan meja dan mengangkat sisa makanan segera setelah tamu meninggalkan area makan gerai.',
+        deskripsi: 'Membersihkan meja dan mengangkat sisa makanan segera setelah tamu meninggalkan area makan outlet.',
         kunciKepatuhan: 'Kecepatan response < 2 menit, tidak membiarkan meja kotor menumpuk saat rush hour.'
       },
       {

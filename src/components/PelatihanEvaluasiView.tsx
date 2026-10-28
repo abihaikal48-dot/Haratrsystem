@@ -232,7 +232,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
       poin_kritis: sopFormData.poin_kritis,
       standar_waktu: sopFormData.standar_waktu,
       alat_bahan: sopFormData.alat_bahan,
-      sumber: 'PT Hara Chicken Indonesia',
+      sumber: 'HARA Chicken Indonesia',
       status_aktif: sopFormData.status_aktif,
     };
 
@@ -646,7 +646,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600">
-                    Mencakup 4 nilai Budaya <b>H.A.R.A</b> (Halal, Amanah, Responsif, Adaptif) & 12 Perilaku Utama, tata tertib, grooming seragam harian, buka/tutup gerai, kasir POS & QRIS, HACCP suhu, thawing ayam, resep sambal gramasi presisi, side dishes, minuman 40 cup, hingga general cleaning.
+                    Mencakup 4 nilai Budaya <b>H.A.R.A</b> (Halal, Amanah, Responsif, Adaptif) & 12 Perilaku Utama, tata tertib, grooming seragam harian, buka/tutup outlet, kasir POS & QRIS, HACCP suhu, thawing ayam, resep sambal gramasi presisi, side dishes, minuman 40 cup, hingga general cleaning.
                   </p>
                 </div>
               </div>
@@ -1014,7 +1014,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
               <div>
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/20 text-[#FBD66A] text-[10px] font-bold mb-1.5">
                   <BookOpen size={12} />
-                  <span>DOKUMEN RESMI PT HARA CHICKEN INDONESIA</span>
+                  <span>DOKUMEN RESMI HARA CHICKEN INDONESIA</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{viewingSop.judul_sop}</h3>
                 <div className="text-xs text-white/80 flex items-center gap-2 mt-1">
@@ -1043,7 +1043,7 @@ export const PelatihanEvaluasiView: React.FC<PelatihanEvaluasiViewProps> = ({
                   <span>Tujuan & Standar Kualitas:</span>
                 </h4>
                 <p className="text-slate-600 leading-relaxed">
-                  {viewingSop.tujuan || 'Menjamin konsistensi mutu produk, kepatuhan food safety HACCP, serta higienitas operasional gerai.'}
+                  {viewingSop.tujuan || 'Menjamin konsistensi mutu produk, kepatuhan food safety HACCP, serta higienitas operasional outlet.'}
                 </p>
               </div>
 

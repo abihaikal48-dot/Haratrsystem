@@ -186,7 +186,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
       `*LAPORAN HASIL EVALUASI UJIAN KRU HARA CHICKEN*\n` +
       `-----------------------------------------\n` +
       `Nama Kru: ${selectedRecord.nama_kru}\n` +
-      `Gerai: ${selectedRecord.nama_outlet || selectedRecord.kode_outlet}\n` +
+      `Outlet: ${selectedRecord.nama_outlet || selectedRecord.kode_outlet}\n` +
       `Stasiun Kerja: ${selectedRecord.divisi}\n` +
       `Paket Ujian: ${selectedRecord.minggu} (Minggu ke-${selectedRecord.mingguNomor})\n` +
       `Tanggal: ${new Date(selectedRecord.tanggal).toLocaleDateString('id-ID')}\n\n` +
@@ -408,7 +408,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
             onChange={(e) => setFilterOutlet(e.target.value)}
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-white text-xs font-semibold text-slate-700 focus:outline-none focus:border-[#8B1418]"
           >
-            <option value="ALL">Semua Gerai Outlet</option>
+            <option value="ALL">Semua Outlet</option>
             {outlets.map((o) => (
               <option key={o.id} value={o.kode_outlet}>
                 {o.kode_outlet} — {o.nama_outlet}
@@ -460,7 +460,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Cari nama kru / gerai..."
+            placeholder="Cari nama kru / outlet..."
             className="w-full text-xs pl-8 pr-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-slate-800 focus:outline-none focus:border-[#8B1418]"
           />
           <Search size={14} className="absolute left-2.5 top-2 text-slate-400 pointer-events-none" />
@@ -475,7 +475,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-bold uppercase tracking-wider text-[10px]">
-                <th className="py-3 px-4">Nama Kru & Gerai</th>
+                <th className="py-3 px-4">Nama Kru & Outlet</th>
                 <th className="py-3 px-3">Stasiun</th>
                 <th className="py-3 px-3">Paket Ujian</th>
                 <th className="py-3 px-3">Skor PG</th>
@@ -506,7 +506,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
 
                   return (
                     <tr key={r.id} className="hover:bg-slate-50/80 transition-colors">
-                      {/* Kru & Gerai */}
+                      {/* Kru & Outlet */}
                       <td className="py-3 px-4">
                         <div className="font-bold text-slate-900 text-xs flex items-center gap-1.5">
                           <span>{r.nama_kru}</span>
@@ -633,7 +633,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
                     Konfigurasi Otomatisasi Paket Ujian Kru
                   </h3>
                   <p className="text-[11px] text-slate-500">
-                    Tentukan bagaimana sistem menyajikan paket soal kepada kru gerai
+                    Tentukan bagaimana sistem menyajikan paket soal kepada kru outlet
                   </p>
                 </div>
               </div>
@@ -666,7 +666,7 @@ export const CrewExamResultsViewer: React.FC<CrewExamResultsViewerProps> = ({
                     {
                       id: 'bebas' as const,
                       judul: 'Mode Bebas (Kru Memilih Sendiri)',
-                      desc: 'Kru gerai dapat memilih secara bebas tingkatan minggu ujian yang ingin dikerjakan.',
+                      desc: 'Kru outlet dapat memilih secara bebas tingkatan minggu ujian yang ingin dikerjakan.',
                     },
                   ].map((m) => (
                     <label

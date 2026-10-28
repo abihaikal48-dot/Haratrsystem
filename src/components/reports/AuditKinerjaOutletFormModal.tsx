@@ -170,11 +170,11 @@ export const AuditKinerjaOutletFormModal: React.FC<AuditKinerjaOutletFormModalPr
           </button>
         </div>
 
-        {/* Gerai Bar & Score Preview */}
+        {/* Outlet Bar & Score Preview */}
         <div className="bg-stone-50 border-b border-stone-200 p-4 px-6 flex flex-wrap items-center justify-between gap-4 shrink-0">
           <div className="flex items-center gap-2">
             <Store size={16} className="text-[#8B1418]" />
-            <span className="text-xs font-bold text-stone-700">Gerai:</span>
+            <span className="text-xs font-bold text-stone-700">Outlet:</span>
             <select
               value={selectedOutlet}
               onChange={(e) => {

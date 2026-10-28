@@ -245,7 +245,7 @@ export const HaraLogo: React.FC<HaraLogoProps> = ({
                   fontFamily: '"Plus Jakarta Sans", sans-serif',
                 }}
               >
-                PELATIHAN & OPERASIONAL GERAI
+                PELATIHAN & OPERASIONAL OUTLET
               </span>
               <span className="w-1.5 h-1.5 rounded-full bg-[#D48B1E] shrink-0" />
             </div>

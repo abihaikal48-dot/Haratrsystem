@@ -58,7 +58,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
       `Outlet: ${currentAudit.nama_outlet} (${currentAudit.kode_outlet})\n` +
       `Periode Audit: ${currentAudit.periode_audit}\n` +
       `Nilai Akhir: ${currentAudit.nilai_akhir_komposit} / 100 (${currentAudit.grade_mutu})\n` +
-      `Peringkat: Ranking ${currentAudit.ranking_gerai} dari ${currentAudit.total_gerai_komparasi} gerai (Trend: +${currentAudit.trend_poin_bulan_lalu} poin)\n` +
+      `Peringkat: Ranking ${currentAudit.ranking_gerai} dari ${currentAudit.total_gerai_komparasi} outlet (Trend: +${currentAudit.trend_poin_bulan_lalu} poin)\n` +
       `Rincian 5 Pilar:\n` +
       `- Service (25): ${currentAudit.pilar_service?.skor_didapat} / 25 (${currentAudit.pilar_service?.capaian_persen}%)\n` +
       `- Kualitas (20): ${currentAudit.pilar_kualitas?.skor_didapat} / 20 (${currentAudit.pilar_kualitas?.capaian_persen}%)\n` +
@@ -186,7 +186,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                     {title}
                   </h2>
                   <p className="text-xs text-stone-500">
-                    {subtitle} • Gerai: <strong>{currentAudit.nama_outlet}</strong> ({currentAudit.kode_outlet})
+                    {subtitle} • Outlet: <strong>{currentAudit.nama_outlet}</strong> ({currentAudit.kode_outlet})
                   </p>
                 </div>
               </div>
@@ -285,7 +285,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
         {/* Outlet & Page Selector */}
         <div className="bg-stone-50/80 p-4 rounded-2xl border border-stone-200 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <span className="text-xs font-bold text-stone-600 shrink-0">Pilih Gerai:</span>
+            <span className="text-xs font-bold text-stone-600 shrink-0">Pilih Outlet:</span>
             <select
               value={currentOutletCode}
               onChange={(e) => setCurrentOutletCode(e.target.value)}
@@ -416,7 +416,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                   </div>
                 </div>
 
-                {/* Ranking Gerai */}
+                {/* Ranking Outlet */}
                 <div className="bg-stone-50 p-6 rounded-2xl border-2 border-stone-200 flex flex-col justify-between shadow-2xs">
                   <div>
                     <div className="text-[11px] font-bold uppercase tracking-wider text-stone-500">
@@ -427,7 +427,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                         #{currentAudit.ranking_gerai}
                       </span>
                       <span className="text-stone-500 font-semibold text-sm">
-                        dari {currentAudit.total_gerai_komparasi} Gerai
+                        dari {currentAudit.total_gerai_komparasi} Outlet
                       </span>
                     </div>
                   </div>
@@ -448,7 +448,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                       KESIMPULAN AUDIT
                     </div>
                     <p className="text-xs text-stone-700 mt-2 font-medium leading-relaxed">
-                      Gerai berhasil mempertahankan konsistensi resep dan mutu produk 100%. Fokus perbaikan utama ada pada stasiun perakitan sambal saat jam rush.
+                      Outlet berhasil mempertahankan konsistensi resep dan mutu produk 100%. Fokus perbaikan utama ada pada stasiun perakitan sambal saat jam rush.
                     </p>
                   </div>
                   <div className="mt-3 pt-3 border-t border-red-200/60 text-[11px] text-stone-500">
@@ -555,7 +555,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
                       {/* Total Bar */}
                       <tr className="bg-red-50/80 font-black text-stone-900 border-t-2 border-red-200">
                         <td colSpan={2} className="py-3.5 px-4 text-right uppercase tracking-wider text-xs">
-                          TOTAL SKOR KOMPOSIT AKHIR GERAI:
+                          TOTAL SKOR KOMPOSIT AKHIR OUTLET:
                         </td>
                         <td className="py-3.5 px-4 text-center text-stone-700 font-bold">100.0 Poin</td>
                         <td className="py-3.5 px-4 text-center text-lg text-[#8B1418]">
@@ -654,7 +654,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
       >
         <div className="bg-red-50/50 p-4 rounded-xl border border-red-200/60 mb-5 flex items-center justify-between">
           <div className="text-xs text-stone-700">
-            <strong>Subtotal Pilar Service:</strong> Bobot Maksimal 25 Poin • Skor Aktual Gerai: <strong>{currentAudit.pilar_service?.skor_didapat} Poin ({currentAudit.pilar_service?.capaian_persen}%)</strong>
+            <strong>Subtotal Pilar Service:</strong> Bobot Maksimal 25 Poin • Skor Aktual Outlet: <strong>{currentAudit.pilar_service?.skor_didapat} Poin ({currentAudit.pilar_service?.capaian_persen}%)</strong>
           </div>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
             Grade: {currentAudit.pilar_service?.kategori_mutu}
@@ -688,7 +688,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
       >
         <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200/60 mb-5 flex items-center justify-between">
           <div className="text-xs text-stone-700">
-            <strong>Subtotal Pilar Kualitas:</strong> Bobot Maksimal 20 Poin • Skor Aktual Gerai: <strong>{currentAudit.pilar_kualitas?.skor_didapat} Poin ({currentAudit.pilar_kualitas?.capaian_persen}%)</strong>
+            <strong>Subtotal Pilar Kualitas:</strong> Bobot Maksimal 20 Poin • Skor Aktual Outlet: <strong>{currentAudit.pilar_kualitas?.skor_didapat} Poin ({currentAudit.pilar_kualitas?.capaian_persen}%)</strong>
           </div>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
             Grade: {currentAudit.pilar_kualitas?.kategori_mutu}
@@ -748,7 +748,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
       >
         <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-200/60 mb-5 flex items-center justify-between">
           <div className="text-xs text-stone-700">
-            <strong>Subtotal Pilar Kebersihan:</strong> Bobot Maksimal 20 Poin • Skor Aktual Gerai: <strong>{currentAudit.pilar_kebersihan?.skor_didapat} Poin ({currentAudit.pilar_kebersihan?.capaian_persen}%)</strong>
+            <strong>Subtotal Pilar Kebersihan:</strong> Bobot Maksimal 20 Poin • Skor Aktual Outlet: <strong>{currentAudit.pilar_kebersihan?.skor_didapat} Poin ({currentAudit.pilar_kebersihan?.capaian_persen}%)</strong>
           </div>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
             Grade: {currentAudit.pilar_kebersihan?.kategori_mutu}
@@ -783,7 +783,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
       >
         <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-200/60 mb-5 flex items-center justify-between">
           <div className="text-xs text-stone-700">
-            <strong>Subtotal Pilar Leadership:</strong> Bobot Maksimal 20 Poin • Skor Aktual Gerai: <strong>{currentAudit.pilar_leadership?.skor_didapat} Poin ({currentAudit.pilar_leadership?.capaian_persen}%)</strong>
+            <strong>Subtotal Pilar Leadership:</strong> Bobot Maksimal 20 Poin • Skor Aktual Outlet: <strong>{currentAudit.pilar_leadership?.skor_didapat} Poin ({currentAudit.pilar_leadership?.capaian_persen}%)</strong>
           </div>
           <span className="text-xs font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
             Grade: {currentAudit.pilar_leadership?.kategori_mutu}
@@ -799,7 +799,7 @@ export const OfficialRaporKinerjaOutlet: React.FC<OfficialRaporKinerjaOutletProp
           <div className="border border-stone-200 rounded-xl p-4 bg-stone-50/50">
             <h4 className="text-xs font-bold text-stone-900 uppercase tracking-wider mb-2 flex items-center gap-1.5">
               <CheckCircle2 size={14} className="text-emerald-600" />
-              Kekuatan Utama Operasional Gerai
+              Kekuatan Utama Operasional Outlet
             </h4>
             <ul className="space-y-1.5 text-xs text-stone-700 list-disc list-inside">
               {currentAudit.kekuatan_utama?.map((k, idx) => (

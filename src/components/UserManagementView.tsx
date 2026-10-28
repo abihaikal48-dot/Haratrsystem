@@ -7,6 +7,7 @@ import { db } from '../lib/storage';
 import { AppUser, UserRole } from '../types';
 import { PageHeaderBanner } from './PageHeaderBanner';
 import { ModernOptionSelector } from './ModernOptionSelector';
+import { ConfirmModal } from './ui/ConfirmModal';
 
 export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged: () => void }> = ({
   currentUser,
@@ -15,12 +16,19 @@ export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged:
   const [users, setUsers] = useState<AppUser[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AppUser | null>(null);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [form, setForm] = useState<{ nama: string; email: string; role: UserRole; status_aktif: 'Aktif' | 'Nonaktif' }>({
     nama: '',
     email: '',
     role: 'Trainer',
     status_aktif: 'Aktif',
   });
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3000);
+  };
 
   const loadData = () => {
     setUsers(db.getTable<AppUser>('app_users'));
@@ -67,16 +75,21 @@ export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged:
     onUserChanged();
   };
 
-  const deleteUser = (id: string, nama: string) => {
+  const handleOpenDeleteModal = (user: AppUser) => {
     if (users.length <= 1) {
-      alert('Tidak dapat menghapus user terakhir dalam sistem.');
+      showToast('Tidak dapat menghapus user terakhir dalam sistem.');
       return;
     }
-    if (confirm(`Hapus akun user "${nama}" dari sistem?`)) {
-      db.deleteRow('app_users', id);
-      db.addLog('HAPUS', 'User Management', `Akun user ${nama} dihapus.`);
-      loadData();
-    }
+    setDeleteTarget(user);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!deleteTarget) return;
+    db.deleteRow('app_users', deleteTarget.id);
+    db.addLog('HAPUS', 'User Management', `Akun user ${deleteTarget.nama} (${deleteTarget.role}) dihapus.`);
+    loadData();
+    showToast(`Akun user "${deleteTarget.nama}" berhasil dihapus.`);
+    setDeleteTarget(null);
   };
 
   return (
@@ -176,7 +189,7 @@ export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged:
                   {!isCurrent && (
                     <button
                       type="button"
-                      onClick={() => deleteUser(u.id, u.nama)}
+                      onClick={() => handleOpenDeleteModal(u)}
                       className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       title="Hapus Akun"
                     >
@@ -282,6 +295,27 @@ export const UserManagementView: React.FC<{ currentUser: AppUser; onUserChanged:
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* In-App Delete Confirmation Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deleteTarget)}
+        title="Hapus Akun Pengguna"
+        message="Apakah Anda yakin ingin menghapus akun pengguna ini? Pengguna tidak akan dapat masuk kembali ke sistem HARA."
+        detailText={deleteTarget ? `${deleteTarget.nama} (${deleteTarget.email}) — Peran: ${deleteTarget.role}` : ''}
+        confirmLabel="Ya, Hapus Akun"
+        cancelLabel="Batal"
+        isDestructive={true}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in slide-in-from-bottom-3 duration-200 border border-slate-700">
+          <CheckCircle2 size={16} className="text-emerald-400" />
+          <span>{toastMsg}</span>
         </div>
       )}
     </div>

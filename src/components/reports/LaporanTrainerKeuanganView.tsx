@@ -54,7 +54,7 @@ export const LaporanTrainerKeuanganView: React.FC<LaporanTrainerKeuanganViewProp
       `No. Dokumen: ${currentReport.nomor_laporan}\n` +
       `Kepada: ${currentReport.penerima_laporan}\n` +
       `Trainer: ${currentReport.trainer_nama} (${currentReport.jabatan_trainer})\n` +
-      `Gerai: ${currentReport.nama_outlet} (${currentReport.kode_outlet})\n` +
+      `Outlet: ${currentReport.nama_outlet} (${currentReport.kode_outlet})\n` +
       `Periode: ${currentReport.periode_penugasan}\n` +
       `Total Estimasi Penghematan Riil: ${formatRupiah(currentReport.total_potensi_efisiensi_rp)} / bulan\n\n` +
       `*Ringkasan Tindakan yang Telah Dilakukan:*\n` +
@@ -123,9 +123,9 @@ export const LaporanTrainerKeuanganView: React.FC<LaporanTrainerKeuanganViewProp
           </div>
         </div>
 
-        {/* Gerai Selector */}
+        {/* Outlet Selector */}
         <div className="bg-stone-50/80 p-4 rounded-2xl border border-stone-200 flex items-center gap-3">
-          <span className="text-xs font-bold text-stone-600 shrink-0">Pilih Gerai Evaluasi:</span>
+          <span className="text-xs font-bold text-stone-600 shrink-0">Pilih Outlet Evaluasi:</span>
           <select
             value={currentOutletCode}
             onChange={(e) => setCurrentOutletCode(e.target.value)}
@@ -320,7 +320,7 @@ export const LaporanTrainerKeuanganView: React.FC<LaporanTrainerKeuanganViewProp
                     {/* Subtotal Bar */}
                     <tr className="bg-emerald-50 font-black text-stone-900 border-t-2 border-emerald-300">
                       <td colSpan={4} className="py-3 px-3 text-right uppercase tracking-wider text-xs">
-                        TOTAL ESTIMASI EFISIENSI FINANSIAL GERAI / BULAN:
+                        TOTAL ESTIMASI EFISIENSI FINANSIAL OUTLET / BULAN:
                       </td>
                       <td className="py-3 px-3 text-right text-sm text-emerald-800 font-black">
                         {formatRupiah(currentReport.total_potensi_efisiensi_rp)}

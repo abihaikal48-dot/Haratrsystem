@@ -97,7 +97,7 @@ export const TouchAuditModal: React.FC<TouchAuditModalProps> = ({
 
     const criticalItems = auditItems.filter((i) => i.status === 'KRITIS');
     const warningItems = auditItems.filter((i) => i.status === 'PERBAIKAN');
-    const targetKruName = selectedKru || (filteredKru[0]?.nama_kru || 'Kru Gerai Shift');
+    const targetKruName = selectedKru || (filteredKru[0]?.nama_kru || 'Kru Outlet Shift');
 
     // 1. Insert into observasi_lapangan for each audited item
     auditItems.forEach((item) => {
@@ -171,7 +171,7 @@ export const TouchAuditModal: React.FC<TouchAuditModalProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl border border-stone-200">
             <div>
               <label className="block text-[11px] font-bold text-stone-700 mb-1">
-                Pilih Gerai / Outlet:
+                Pilih Outlet:
               </label>
               <select
                 value={selectedOutlet}
@@ -198,7 +198,7 @@ export const TouchAuditModal: React.FC<TouchAuditModalProps> = ({
                 onChange={(e) => setSelectedKru(e.target.value)}
                 className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#96171B]/20"
               >
-                <option value="">Semua Kru Shift Gerai</option>
+                <option value="">Semua Kru Shift Outlet</option>
                 {filteredKru.map((k) => (
                   <option key={k.id} value={k.nama_kru}>
                     {k.nama_kru} ({k.divisi})

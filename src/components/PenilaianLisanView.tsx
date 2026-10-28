@@ -86,7 +86,7 @@ export const PenilaianLisanView: React.FC<{ selectedOutletCode: string }> = ({ s
     if (s.includes('takar') || s.includes('air') || s.includes('rasio') || s.includes('beras')) {
       return {
         why: 'Rasio air dan beras baku menjaga tekstur pulen konsisten di seluruh cabang tanpa keras atau lembek.',
-        hazard: 'Tekstur nasi rusak merusak reputasi gerai'
+        hazard: 'Tekstur nasi rusak merusak reputasi outlet'
       };
     }
     if (s.includes('kasir') || s.includes('pos') || s.includes('struk') || s.includes('senyum')) {

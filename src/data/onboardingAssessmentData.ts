@@ -47,7 +47,7 @@ export const ONBOARDING_STATION_TEMPLATES: Record<string, StationAssessmentTempl
       'Memberikan callout konfirmasi saat menanak: "Nasi Masuk Rice Cooker Gas!"',
       'Koordinasi ke stasiun kasir & geprek mengenai estimasi stok nasi siap saji',
       'Membantu rekan stasiun 2 (fryer) mengambil wadah ayam jika sedang kosong',
-      'Merespon cepat instruksi trainer atau kepala gerai dengan sikap positif',
+      'Merespon cepat instruksi trainer atau kepala outlet dengan sikap positif',
     ],
     pertanyaanKnowledge: [
       {
@@ -374,7 +374,7 @@ export function hitungPenilaianObjektifOnboarding(params: {
   }
 
   // REKOMENDASI PERBAIKAN OTOMATIS BERDASARKAN KEKURANGAN
-  let rekomendasiPerbaikan = 'Pertahankan kinerja prima dan konsistensi kecepatan layanan di cabang gerai.';
+  let rekomendasiPerbaikan = 'Pertahankan kinerja prima dan konsistensi kecepatan layanan di cabang outlet.';
   if (titikKesalahan.length > 0) {
     if (skorKetepatan < 75) {
       rekomendasiPerbaikan = `Fokus latihan kecepatan (SOS) dan cek suhu/gramatur menggunakan timbangan digital secara rutin sebelum jam rush hour.`;
@@ -459,7 +459,7 @@ export const INITIAL_PENILAIAN_ONBOARDING_TC: PenilaianOnboardingTC[] = [
     grade: 'A',
     status_kelulusan: 'Lulus Sempurna',
     titik_kesalahan: [],
-    rekomendasi_perbaikan: 'Sangat menguasai stasiun fryer! Siap bertugas mandiri di gerai Jl Paris.',
+    rekomendasi_perbaikan: 'Sangat menguasai stasiun fryer! Siap bertugas mandiri di outlet Jl Paris.',
     catatan_trainer: 'Peserta No. 1 (Kru Baru) - Kerenyahan tepung mekar merata, suhu minyak stabil.',
     trainer_nama: 'Haikal Abi',
     created_at: '2026-10-23T09:30:00.000Z',
@@ -500,7 +500,7 @@ export const INITIAL_PENILAIAN_ONBOARDING_TC: PenilaianOnboardingTC[] = [
       { poin: 'Memberikan callout konfirmasi saat menanak: "Nasi Masuk Rice Cooker Gas!"', terpenuhi: true },
       { poin: 'Koordinasi ke stasiun kasir & geprek mengenai estimasi stok nasi siap saji', terpenuhi: true },
       { poin: 'Membantu rekan stasiun 2 (fryer) mengambil wadah ayam jika sedang kosong', terpenuhi: true },
-      { poin: 'Merespon cepat instruksi trainer atau kepala gerai dengan sikap positif', terpenuhi: true },
+      { poin: 'Merespon cepat instruksi trainer atau kepala outlet dengan sikap positif', terpenuhi: true },
     ],
     skor_tim: 95,
     checklist_knowledge: [
@@ -514,7 +514,7 @@ export const INITIAL_PENILAIAN_ONBOARDING_TC: PenilaianOnboardingTC[] = [
     grade: 'A',
     status_kelulusan: 'Lulus Sempurna',
     titik_kesalahan: [],
-    rekomendasi_perbaikan: 'Siap penugasan mandiri di gerai RSI.',
+    rekomendasi_perbaikan: 'Siap penugasan mandiri di outlet RSI.',
     catatan_trainer: 'Peserta No. 2 (Kru Baru) - Nasi pulen tanak sempurna.',
     trainer_nama: 'Jihan (RnD)',
     created_at: '2026-10-23T10:15:00.000Z',
@@ -624,7 +624,7 @@ export const INITIAL_PENILAIAN_ONBOARDING_TC: PenilaianOnboardingTC[] = [
     grade: 'A',
     status_kelulusan: 'Lulus Sempurna',
     titik_kesalahan: [],
-    rekomendasi_perbaikan: 'Frontliner handal gerai Mudal.',
+    rekomendasi_perbaikan: 'Frontliner handal outlet Mudal.',
     catatan_trainer: 'Peserta No. 6 (Kru Baru) - Ramah, santun, SOS 38 detik.',
     trainer_nama: 'Ari (Trainer)',
     created_at: '2026-10-23T11:45:00.000Z',
