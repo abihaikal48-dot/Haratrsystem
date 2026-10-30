@@ -1214,6 +1214,22 @@ export interface PenilaianSikapKebersihanKru {
   skor_k3_disiplin: number;   // 0 - 15 (Kepatuhan K3, APD Fryer/Dapur, Disiplin Waktu)
   skor_kerapian_alat: number; // 0 - 15 (Tata Letak Peralatan, Tong, Skimmer, Squeeze Bottle)
   
+  // Ceklis Detail Sikap & Higiene
+  ceklis_detail?: {
+    seragam_lengkap_rapi: boolean;
+    apron_bersih_terpasang: boolean;
+    topi_hairnet_rapi: boolean;
+    kuku_pendek_bersih: boolean;
+    cuci_tangan_6_langkah: boolean;
+    sarung_tangan_food_grade: boolean;
+    alat_dibersihkan_berkala: boolean;
+    meja_selalu_disterilkan: boolean;
+    pencegahan_cross_contam: boolean;
+    disiplin_hadir_tepat_waktu: boolean;
+    responsif_instruksi: boolean;
+    inisiatif_membantu_tim: boolean;
+  };
+  
   skor_total: number;         // 0 - 100
   predikat: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perlu Pembinaan';
   status: 'Lulus' | 'Catatan Perbaikan';
@@ -1221,3 +1237,40 @@ export interface PenilaianSikapKebersihanKru {
   penilai_nama: string;
   created_at: string;
 }
+
+export interface PenilaianTimStasiun {
+  id: string;
+  tanggal: string;
+  batch_id?: string;
+  batch_name?: string;
+  kode_outlet: string; // 'Kantor Lempongsari'
+  stasiun: 'Station Kerja 1' | 'Station Kerja 2';
+  anggota_kru_ids: string[];
+  anggota_kru_nama: string[];
+  shift?: string;
+  
+  // Dimensi Penilaian Kerja Sama Tim Stasiun
+  skor_ritme_kecepatan: number;       // 0 - 100 (Flow dan pacing kerja tim tanpa bottleneck)
+  skor_komunikasi_koordinasi: number; // 0 - 100 (Respon panggilan "Yes Chef" & pembagian tugas)
+  skor_kebersihan_sanitasi: number;   // 0 - 100 (Sanitasi alat & area kerja bersama)
+  skor_kepatuhan_sop: number;         // 0 - 100 (Kepatuhan eksekusi SOP bersama)
+  skor_handover_estafet: number;      // 0 - 100 (Kerapian operan produk antar stasiun)
+  
+  skor_total: number; // 0 - 100
+  predikat: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perlu Perbaikan';
+  
+  ceklis_tim: {
+    ritme_tanpa_bottleneck: boolean;
+    komunikasi_vokal_lancar: boolean;
+    meja_alat_bersih_5s: boolean;
+    alat_kembali_ke_tempat: boolean;
+    zero_kontaminasi_silang: boolean;
+    handover_produk_mulus: boolean;
+    disiplin_fifo_holding: boolean;
+  };
+  
+  catatan_trainer: string;
+  penilai_nama: string;
+  created_at: string;
+}
+

@@ -45,8 +45,8 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     station: 'Station 1',
     stationLabel: 'Station 1 (Rebus & Nasi)',
     divisi: 'Kitchen',
-    stdDetik: 2220,
-    targetWaktuMenit: 37.0,
+    stdDetik: 2100,
+    targetWaktuMenit: 35.0,
     requiresOilTemp: false,
     requiresGramatur: false,
     deskripsi: 'Penanakan nasi pulen menggunakan rice cooker gas Miyako kapasitas 4-6 cup dengan rasio air terstandar dan masa resting 15 menit.',
@@ -60,11 +60,11 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     tahapanWaktu: {
       persiapanMenit: 5.0,
       prosesMasakMenit: 30.0,
-      finishingPlatingMenit: 2.0,
+      finishingPlatingMenit: 0,
       persiapanDetik: 300,
       prosesMasakDetik: 1800,
-      finishingPlatingDetik: 120,
-      keterangan: 'Prep: 5 mnt (Cuci beras 3x bilas, takar air) | Masak: 15 mnt masak gas + 15 mnt diamkan tanak pasca jegleg | Saji: 2 mnt (Pindah ke Magicom)'
+      finishingPlatingDetik: 0,
+      keterangan: 'Prep: 5 mnt (Cuci beras 3x bilas, takar air) | Masak: 30 mnt (15 mnt masak gas + 15 mnt resting tanak pasca jegleg lalu langsung pindah Magicom, tanpa waktu platting)'
     },
     langkahSOP: [
       { nomor: 1, teks: 'Periksa kebersihan wadah penanak nasi gas, pastikan tidak ada sisa kerak nasi kering.' },
@@ -76,7 +76,7 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
       { nomor: 7, teks: 'Masak hingga tombol COOK otomatis kembali ke atas (jegleg/berbunyi klik, ~15 menit).' },
       { nomor: 8, teks: 'Diamkan sekitar 15 menit dalam kondisi tertutup rapat agar nasi tanak sempurna.', isKritis: true },
       { nomor: 9, teks: 'Nasi tidak boleh dibiarkan di dalam rice cooker gas lebih dari 30 menit (bisa mengeras/berkerak).' },
-      { nomor: 10, teks: 'Pindahkan seluruh nasi ke dalam Magicom penghangat (colokkan stop kontak, tutup rapat).' }
+      { nomor: 10, teks: 'Pindahkan seluruh nasi ke dalam Magicom penghangat (colokkan stop kontak, tutup rapat; tidak ada waktu platting).' }
     ],
     autoQuestions: [
       {
@@ -401,32 +401,33 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     station: 'Station 3',
     stationLabel: 'Station 3 / Station 1',
     divisi: 'Kitchen',
-    stdDetik: 1500,
-    targetWaktuMenit: 25.0,
+    stdDetik: 1920,
+    targetWaktuMenit: 32.0,
     requiresOilTemp: true,
     targetSuhuMinyak: 150,
     requiresGramatur: true,
     targetGramatur: 60,
     gramaturLabel: 'Mentah 50g -> Matang 60g',
-    deskripsi: 'Timbang mentah 50g TARE, dusting 2x, goreng deep fryer 150°C 12 menit, dinginkan suhu ruang, timbang 60g dan hand-seal.',
-    alatBahan: 'Alat: Timbangan Digital 5 kg, Meja Dusting, Deep Fryer, Termometer Minyak, Nampan Pendingin, Mesin Sealer Kulit (Hand Sealer). Bahan: Kulit ayam mentah order produksi (pack 500 gr), Tepung bumbu krispi, Plastik kemasan porsi kulit.',
+    deskripsi: 'Potong kulit ayam mentah satu per satu (1-1), timbang mentah 50g TARE, dusting 2x, goreng deep fryer 150°C 12 menit, dinginkan suhu ruang, timbang 60g dan hand-seal.',
+    alatBahan: 'Alat: Pisau Dapur, Talenan Hijau, Timbangan Digital 5 kg, Meja Dusting, Deep Fryer, Termometer Minyak, Nampan Pendingin, Mesin Sealer Kulit (Hand Sealer). Bahan: Kulit ayam mentah order produksi (pack 500 gr), Tepung bumbu krispi, Plastik kemasan porsi kulit.',
     titikKritis: [
+      'Potong kulit mentah satu per satu (motongi 1-1) simetris tidak ada gumpalan lemak tebal',
       'Timbang kulit mentah tepat 50g per porsi menggunakan timbangan digital TARE',
-      'Goreng di minyak 150°C selama 12 menit hingga renyah',
+      'Goreng di minyak 150°C selama 12 menit hingga renyah keemasan',
       'Wajib DINGIN SEMPURNA di suhu ruang sebelum di-seal agar tidak melempem dan basi',
       'Timbang hasil matang seberat 60g per porsi'
     ],
     tahapanWaktu: {
-      persiapanMenit: 5.0,
+      persiapanMenit: 15.0,
       prosesMasakMenit: 12.0,
-      finishingPlatingMenit: 8.0,
-      persiapanDetik: 300,
+      finishingPlatingMenit: 5.0,
+      persiapanDetik: 900,
       prosesMasakDetik: 720,
-      finishingPlatingDetik: 480,
-      keterangan: 'Prep: 5 mnt (Timbang mentah 50g, panaskan fryer 150C, dusting 2x) | Masak: 12 mnt (Goreng suhu 150C) | Saji: 8 mnt (Tiriskan, dinginkan, timbang matang 60g, seal plastik)'
+      finishingPlatingDetik: 300,
+      keterangan: 'Prep: 15 mnt (Potong manual satu per satu 1-1, timbang mentah 50g, panaskan fryer 150C, dusting 2x) | Masak: 12 mnt (Goreng suhu 150C hingga renyah) | Saji: 5 mnt (Tiriskan, tunggu dingin suhu ruang, timbang matang 60g, seal plastik)'
     },
     langkahSOP: [
-      { nomor: 1, teks: 'Siapkan kulit ayam mentah, timbang menggunakan timbangan digital tepat 50 gr per porsi mentah (gunakan wadah yang sudah di-TARE).', isKritis: true },
+      { nomor: 1, teks: 'Siapkan kulit ayam mentah dari chiller/thawing, potong satu per satu (motongi 1-1) sesuai ukuran standar SOP tanpa gumpalan lemak tebal, lalu timbang tepat 50 gr per porsi mentah di wadah yang sudah di-TARE.', isKritis: true },
       { nomor: 2, teks: 'Putar knop suhu kompor ke 150 C dan pastikan suhu minyak terukur tepat 150 C.', isKritis: true },
       { nomor: 3, teks: 'Lakukan 2 kali penepungan pada kulit (dusting tepung -> celup air -> dusting tepung kedua sambil dikibas-kibas agar tidak menggumpal).' },
       { nomor: 4, teks: 'Masukkan kulit ke Deep Fryer, pasang timer dan goreng selama 12 menit hingga kering keemasan dan tidak ada bagian yang kenyal.', isKritis: true },
@@ -528,73 +529,7 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     ]
   },
 
-  // =========================================================================
-  // 8. Tempe & Tahu Krispi (1 Porsi = 4 Pcs)
-  // =========================================================================
-  {
-    id: 'prod-08-tempe-tahu',
-    nama: 'Tempe & Tahu Krispi (1 Porsi = 4 Pcs)',
-    kode: 'HC-SOP-KIT-12',
-    day: 'Day 1',
-    batch: 'Batch 2',
-    station: 'Station 3',
-    stationLabel: 'Station 3 (Extra & Fryer)',
-    divisi: 'Kitchen',
-    stdDetik: 1380,
-    targetWaktuMenit: 23.0,
-    requiresOilTemp: true,
-    targetSuhuMinyak: 150,
-    requiresGramatur: false,
-    deskripsi: 'Irisan simetris tempe/tahu jadi 4 pcs, marinasi 10 menit, breading 2x, goreng deep fryer 150°C 5 menit bolak-balik.',
-    alatBahan: 'Alat: Pisau, Talenan, Wadah Marinasi Extra, Deep Fryer (150 C), Piring Extra / Kertas Ayam. Bahan: Tempe murni 1 potong (diiris jadi 4 slice) atau Tahu putih/kuning 2 pcs utuh (dibelah 2 jadi 4 pcs), Bawang putih 2 siung, Mix garam 5 sdm (75 gr), Air 1 Liter, Tepung breader.',
-    titikKritis: [
-      '1 potong tempe diiris simetris jadi 4 slice atau 2 tahu dibelah jadi 4 pcs',
-      'Marinasi 10 menit di air rendaman bawang dan garam',
-      'Goreng di minyak 150°C selama 5 menit',
-      'Holding time maksimal 1 jam di warmer, dilarang jual esok hari'
-    ],
-    tahapanWaktu: {
-      persiapanMenit: 5.0,
-      prosesMasakMenit: 17.0,
-      finishingPlatingMenit: 1.0,
-      persiapanDetik: 300,
-      prosesMasakDetik: 1020,
-      finishingPlatingDetik: 60,
-      keterangan: 'Prep: 5 mnt (Iris tempe/tahu, uleg marinasi) | Masak: 17 mnt (Marinasi 10 mnt, dusting 2x, goreng 5 mnt 150C) | Saji: 1 mnt (Tiriskan & sajikan 4 pcs + saus)'
-    },
-    langkahSOP: [
-      { nomor: 1, teks: 'Iris 1 potong tempe dari produksi menjadi 4 slice simetris (atau belah 2 buah tahu utuh masing-masing jadi 2 bagian sehingga menjadi 4 pcs).', isKritis: true },
-      { nomor: 2, teks: 'Siapkan air marinasi extra: 2 siung bawang putih halus + 5 sdm mix garam (75 gr) dilarutkan dalam 1 liter air bersih.' },
-      { nomor: 3, teks: 'Masukkan tempe/tahu ke dalam air marinasi dan diamkan selama 10 menit.', isKritis: true },
-      { nomor: 4, teks: 'Panaskan Deep Fryer dengan suhu minyak 150 C.', isKritis: true },
-      { nomor: 5, teks: 'Penepungan 2x: Masukkan potongan tempe/tahu ke tepung breader, aduk pelan -> celup ke air celupan 1 detik -> tiriskan -> masukkan ke tepung kedua dan aduk rata hingga bertekstur keriting.' },
-      { nomor: 6, teks: 'Goreng di Deep Fryer suhu 150 C selama 5 menit sambil dibolak-balik agar matang merata.', isKritis: true },
-      { nomor: 7, teks: 'Angkat dan tiriskan minyak.' },
-      { nomor: 8, teks: 'Penyajian: Tata 4 pcs tempe/tahu krispi per porsi di piring extra (dine-in) atau bungkus kertas ayam + 1 sachet saus sambal/tomat (take-away).' }
-    ],
-    autoQuestions: [
-      {
-        tanya: 'Satu porsi Tempe Krispi atau Tahu Krispi berisi berapa potong (pcs) saat disajikan?',
-        kunci: '1 porsi saji berisi 4 potong (pcs) tempe krispi atau tahu krispi.'
-      },
-      {
-        tanya: 'Berapa lama tempe mentah dan tahu mentah boleh disimpan di dalam showcase pendingin?',
-        kunci: 'Tempe mentah dan tahu mentah bertahan maksimal 3 hari di dalam showcase pendingin.'
-      },
-      {
-        tanya: 'Berapa suhu minyak dan durasi waktu penggorengan tempe dan tahu krispi?',
-        kunci: 'Digoreng pada suhu minyak 150 C selama 5 menit sambil dibolak-balik.'
-      },
-      {
-        tanya: 'Berapa lama batas maksimal tempe dan tahu krispi matang disimpan di dalam warmer?',
-        kunci: 'Maksimal 1 jam di etalase warmer. Jika lewat tekstur menurun dan wajib ditarik (tidak boleh dijual lagi).'
-      },
-      {
-        tanya: 'Apakah tempe dan tahu krispi sisa closing malam boleh disimpan di freezer untuk digoreng/dijual lagi besok?',
-        kunci: 'TIDAK BOLEH. Sisa tempe dan tahu matang tidak boleh dijual kembali esok hari demi menjaga standar mutu dan keamanan pangan.'
-      }
-    ]
-  },
+
 
   // =========================================================================
   // 9. Jamur Enoki Krispi (1 Bks Jadi 2 Porsi @ 50 gr)
@@ -1234,12 +1169,12 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
   },
 
   // =========================================================================
-  // 18. Ayam Geprek Saus Mentai & Ayam Krispi Saus Mentai
+  // 18. Ayam Geprek Saus Mentai
   // =========================================================================
   {
-    id: 'prod-18-ayam-mentai',
-    nama: 'Ayam Geprek Saus Mentai & Ayam Krispi Saus Mentai',
-    kode: 'SOP-AyamSausMentai-01',
+    id: 'prod-18a-ayam-geprek-mentai',
+    nama: 'Ayam Geprek Saus Mentai',
+    kode: 'SOP-AyamGeprekMentai-01',
     day: 'Day 2',
     batch: 'Batch 2',
     station: 'Station 2',
@@ -1249,7 +1184,7 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     targetWaktuMenit: 6.0,
     requiresOilTemp: false,
     requiresGramatur: false,
-    deskripsi: 'Ayam digeprek dan dipadatkan di atas cobek, lumuri saus mentai, bakar torch hingga kecokelatan beraroma gurih, angkat pakai 2 SOLET.',
+    deskripsi: 'Ayam digeprek dan dipadatkan di atas cobek batu, lumuri saus mentai, bakar torch hingga kecokelatan beraroma gurih, angkat pakai 2 SOLET.',
     alatBahan: 'Alat: Cobek Batu & Ulekan, Gas Portable & Torch (Alat Bakar), Capitan Ayam, DUA BUAH SOLET (Wajib 2 pcs), Piring Saji / Box Kemasan. Bahan: 1 pcs Ayam krispi hangat sesuai pesanan, Bumbu sambal geprek (cabai & garam geprek), Saus Mentai HARA (chiller), 2 slice Timun segar.',
     titikKritis: [
       'Padatkan ayam geprek di cobek sebelum dilumuri saus mentai agar saus tidak jatuh ke sela',
@@ -1278,7 +1213,7 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
     ],
     autoQuestions: [
       {
-        tanya: 'Mengapa kru DIWAJIBKAN menggunakan 2 buah solet saat memindahkan Ayam Saus Mentai dari cobek ke piring/box?',
+        tanya: 'Mengapa kru DIWAJIBKAN menggunakan 2 buah solet saat memindahkan Ayam Geprek Saus Mentai dari cobek ke piring/box?',
         kunci: 'Agar daging ayam yang telah dipadatkan dan dilumuri saus mentai leleh tidak patah, tidak tumpah, dan tampilannya tetap utuh rapi saat disajikan.'
       },
       {
@@ -1296,6 +1231,63 @@ export const HARA_ONBOARDING_PRODUCTS_MASTER: OnboardingProductItem[] = [
       {
         tanya: 'Berapa slice timun yang wajib disertakan pada setiap penyajian Ayam Geprek Saus Mentai?',
         kunci: 'Wajib disertakan 2 slice timun segar pada setiap piring dine-in maupun box take-away.'
+      }
+    ]
+  },
+
+  // =========================================================================
+  // 19. Ayam Krispi Saus Mentai
+  // =========================================================================
+  {
+    id: 'prod-18b-ayam-krispi-mentai',
+    nama: 'Ayam Krispi Saus Mentai',
+    kode: 'SOP-AyamKrispiMentai-01',
+    day: 'Day 2',
+    batch: 'Batch 2',
+    station: 'Station 2',
+    stationLabel: 'Station 2 (Torch & Piring Stainless)',
+    divisi: 'Geprek',
+    stdDetik: 240,
+    targetWaktuMenit: 4.0,
+    requiresOilTemp: false,
+    requiresGramatur: false,
+    deskripsi: 'Ayam krispi utuh tanpa digeprek, lumuri saus mentai merata di permukaan kulit krispi, bakar torch hingga kecokelatan harum, sajikan utuh.',
+    alatBahan: 'Alat: Piring Stainless / Nampan Torch Tahan Panas, Gas Portable & Torch, Capitan Ayam, Piring Saji / Box Kemasan. Bahan: 1 pcs Ayam krispi hangat utuh, Saus Mentai HARA (chiller), 2 slice Timun segar.',
+    titikKritis: [
+      'Ayam krispi UTUH TIDAK DIGEPREK untuk menjaga tekstur renyah kulit',
+      'Oles saus mentai merata menutupi punggung ayam krispi',
+      'Bakar torch di atas piring stainless tahan panas hingga saus bergelembung harum',
+      'Sertakan 2 slice timun segar'
+    ],
+    tahapanWaktu: {
+      persiapanMenit: 1.0,
+      prosesMasakMenit: 2.0,
+      finishingPlatingMenit: 1.0,
+      persiapanDetik: 60,
+      prosesMasakDetik: 120,
+      finishingPlatingDetik: 60,
+      keterangan: 'Prep: 1 mnt (Siapkan ayam krispi utuh warmer & saus mentai) | Masak: 2 mnt (Oles saus mentai merata, bakar torch hingga harum) | Saji: 1 mnt (Pindah ke piring/box + 2 timun segar)'
+    },
+    langkahSOP: [
+      { nomor: 1, teks: 'Ambil ayam krispi hangat utuh dari etalase warmer menggunakan capitan ayam.' },
+      { nomor: 2, teks: 'Letakkan ayam krispi utuh di atas piring stainless tahan api (ayam krispi mentai TIDAK DIGEPREK).', isKritis: true },
+      { nomor: 3, teks: 'Tuangkan dan ratakan Saus Mentai secukupnya menutupi permukaan atas kulit krispi ayam.' },
+      { nomor: 4, teks: 'Nyalakan Gas Torch, arahkan api biru ke permukaan saus mentai dengan jarak aman hingga saus sedikit berkaramelisasi dan aroma panggang keluar.', isKritis: true },
+      { nomor: 5, teks: 'Pindahkan ayam krispi saus mentai ke piring saji (dine-in) atau box kemasan (take-away) menggunakan capitan/solet secara rapi.' },
+      { nomor: 6, teks: 'Tambahkan 2 slice timun segar di samping ayam krispi.', isKritis: true }
+    ],
+    autoQuestions: [
+      {
+        tanya: 'Apa perbedaan proses utama antara Ayam Krispi Saus Mentai dengan Ayam Geprek Saus Mentai?',
+        kunci: 'Ayam Krispi Saus Mentai disajikan utuh renyah tanpa digeprek di cobek, sedangkan Ayam Geprek Saus Mentai dimemarkan dan dipadatkan di cobek sebelum dilumuri saus.'
+      },
+      {
+        tanya: 'Di atas wadah apa proses torching Ayam Krispi Saus Mentai dilakukan?',
+        kunci: 'Wajib di atas piring/nampan stainless tahan panas (dilarang keras men-torch di dalam box kemasan karton/kertas).'
+      },
+      {
+        tanya: 'Berapa slice timun yang wajib disertakan pada penyajian Ayam Krispi Saus Mentai?',
+        kunci: 'Wajib 2 slice timun segar tebal 0,5 cm.'
       }
     ]
   },

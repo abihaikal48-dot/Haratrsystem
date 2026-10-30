@@ -9,7 +9,7 @@ import {
   OJTCrewMonitoringRecord, GateEvaluationRecord, UserRole,
   AuditAttitudeHara, HasilUjianKruMingguan, TrainerExamConfig,
   OnboardingBatch, PenilaianPraktikOnboardingProduk, PenilaianJobdeskStasiun,
-  PenilaianSikapKebersihanKru
+  PenilaianSikapKebersihanKru, PenilaianTimStasiun
 } from '../types';
 import { OFFICIAL_HARA_SOP_DATABASE } from './sopData';
 import { OFFICIAL_HARA_BANK_SOAL } from './soalData';
@@ -45,6 +45,7 @@ const STORAGE_KEYS = {
   PENILAIAN_ONBOARDING_RND: 'hara_pd_penilaian_onboarding_rnd_v1',
   PENILAIAN_JOBDESK_STASIUN: 'hara_pd_penilaian_jobdesk_stasiun_v1',
   PENILAIAN_SIKAP_KEBERSIHAN_KRU: 'hara_pd_penilaian_sikap_kebersihan_kru_v1',
+  PENILAIAN_TIM_STASIUN: 'hara_pd_penilaian_tim_stasiun_v1',
   RETRAINING_RECORDS: 'hara_pd_retraining_records_v1',
   JADWAL_KUNJUNGAN: 'hara_pd_jadwal_kunjungan_v1',
   RAPID_AUDITS: 'hara_pd_rapid_audits_v1',
@@ -3044,6 +3045,12 @@ class StorageDatabase {
       case 'batch_onboarding':
       case 'onboarding':
         return STORAGE_KEYS.ONBOARDING_BATCHES;
+      case 'penilaian_tim_stasiun':
+      case 'penilaian_tim':
+        return STORAGE_KEYS.PENILAIAN_TIM_STASIUN;
+      case 'penilaian_sikap_kebersihan_kru':
+      case 'penilaian_sikap':
+        return STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU;
       case 'trainer_financial_reports':
       case 'laporan_keuangan_trainer':
       case 'rekomendasi_atasan':
@@ -3644,6 +3651,58 @@ class StorageDatabase {
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, deleteDoc }) => {
         deleteDoc(doc(firestore, 'penilaian_sikap_kebersihan_kru', id)).catch(() => {});
+      });
+    }).catch(() => {});
+  }
+
+  public getPenilaianTimStasiun(): PenilaianTimStasiun[] {
+    return this.get<PenilaianTimStasiun[]>(STORAGE_KEYS.PENILAIAN_TIM_STASIUN, []);
+  }
+
+  public savePenilaianTimStasiun(item: PenilaianTimStasiun): void {
+    const list = this.getPenilaianTimStasiun();
+    const idx = list.findIndex(p => p.id === item.id);
+    let updated: PenilaianTimStasiun[];
+    if (idx >= 0) {
+      updated = [...list];
+      updated[idx] = item;
+    } else {
+      updated = [item, ...list];
+    }
+    this.set(STORAGE_KEYS.PENILAIAN_TIM_STASIUN, updated);
+    this.addLog(
+      idx >= 0 ? 'UBAH' : 'TAMBAH',
+      'Penilaian Tim Stasiun',
+      `Simpan evaluasi tim ${item.stasiun} (${item.anggota_kru_nama?.join(', ') || 'Tim'}) - Skor: ${item.skor_total}`
+    );
+
+    // Supabase auto-sync
+    import('./supabase').then(({ syncRecordToSupabase }) => {
+      syncRecordToSupabase('penilaian_tim_stasiun', item).catch(() => {});
+    }).catch(() => {});
+
+    // Firestore async sync
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, setDoc }) => {
+        setDoc(doc(firestore, 'penilaian_tim_stasiun', item.id), sanitizeForFirestore(item), { merge: true }).catch(() => {});
+      });
+    }).catch(() => {});
+  }
+
+  public deletePenilaianTimStasiun(id: string): void {
+    const list = this.getPenilaianTimStasiun();
+    const updated = list.filter(p => p.id !== id);
+    this.set(STORAGE_KEYS.PENILAIAN_TIM_STASIUN, updated);
+    this.addLog('HAPUS', 'Penilaian Tim Stasiun', `Hapus evaluasi tim stasiun ID ${id}`);
+
+    // Supabase auto-delete
+    import('./supabase').then(({ deleteRecordFromSupabase }) => {
+      deleteRecordFromSupabase('penilaian_tim_stasiun', id).catch(() => {});
+    }).catch(() => {});
+
+    import('./firebase').then(({ firestore }) => {
+      import('firebase/firestore').then(({ doc, deleteDoc }) => {
+        deleteDoc(doc(firestore, 'penilaian_tim_stasiun', id)).catch(() => {});
       });
     }).catch(() => {});
   }
