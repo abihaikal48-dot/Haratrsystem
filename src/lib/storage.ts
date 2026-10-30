@@ -2189,73 +2189,6 @@ class StorageDatabase {
     this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
     this.ensureSeed(STORAGE_KEYS.LOG_AKTIVITAS, INITIAL_LOGS);
     this.ensureSeed(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
-
-    // One-time v3 seed migration to populate new TC batch/kru/attitude records without overwriting future deletions
-    try {
-      const v3Seeded = localStorage.getItem('hara_v3_seed_migrated');
-      if (!v3Seeded) {
-        const storedKru = localStorage.getItem(STORAGE_KEYS.KRU);
-        if (storedKru) {
-          try {
-            const list: Kru[] = JSON.parse(storedKru);
-            const ids = new Set(list.map(x => x.id));
-            INITIAL_KRU.forEach(k => {
-              if (!ids.has(k.id)) list.push(k);
-            });
-            localStorage.setItem(STORAGE_KEYS.KRU, JSON.stringify(list));
-          } catch {}
-        }
-        const storedBatches = localStorage.getItem(STORAGE_KEYS.ONBOARDING_BATCHES);
-        if (storedBatches) {
-          try {
-            const list: OnboardingBatch[] = JSON.parse(storedBatches);
-            const ids = new Set(list.map(x => x.id));
-            INITIAL_ONBOARDING_BATCHES.forEach(b => {
-              if (!ids.has(b.id)) list.push(b);
-            });
-            localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES, JSON.stringify(list));
-          } catch {}
-        }
-        const storedSikap = localStorage.getItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU);
-        if (storedSikap) {
-          try {
-            const list: PenilaianSikapKebersihanKru[] = JSON.parse(storedSikap);
-            const ids = new Set(list.map(x => x.id));
-            INITIAL_PENILAIAN_SIKAP_KEBERSIHAN.forEach(s => {
-              if (!ids.has(s.id)) list.push(s);
-            });
-            localStorage.setItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, JSON.stringify(list));
-          } catch {}
-        }
-        localStorage.setItem('hara_v3_seed_migrated', 'true');
-      }
-    } catch {}
-    this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
-    this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL);
-    this.ensureSeed(STORAGE_KEYS.TNA, INITIAL_TNA);
-    this.ensureSeed(STORAGE_KEYS.RENCANA_TRAINING, INITIAL_RENCANA_TRAINING);
-    this.ensureSeed(STORAGE_KEYS.OBSERVASI, INITIAL_OBSERVASI);
-    this.ensureSeed(STORAGE_KEYS.COACHING, INITIAL_COACHING);
-    this.ensureSeed(STORAGE_KEYS.GAP_ANALYSIS, INITIAL_GAP_ANALYSIS);
-    this.ensureSeed(STORAGE_KEYS.KARTU_KELUHAN, INITIAL_KARTU_KELUHAN);
-    this.ensureSeed(STORAGE_KEYS.TALENT, INITIAL_TALENT);
-    this.ensureSeed(STORAGE_KEYS.PENILAIAN_TEORI, INITIAL_PENILAIAN_TEORI);
-    this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK, INITIAL_PENILAIAN_PRAKTIK);
-    this.ensureSeed(STORAGE_KEYS.PENILAIAN_LISAN, INITIAL_PENILAIAN_LISAN);
-    this.ensureSeed(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, INITIAL_PENILAIAN_ONBOARDING_TC);
-    this.ensureSeed(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, INITIAL_PENILAIAN_PRAKTIK_PRODUK);
-    this.ensureSeed(STORAGE_KEYS.PENUGASAN_TRAINER, INITIAL_PENUGASAN_TRAINER);
-    this.ensureSeed(STORAGE_KEYS.TRAINEE_OUTLET, INITIAL_TRAINEE_OUTLET);
-    this.ensureSeed(STORAGE_KEYS.LAPORAN_TRAINER, INITIAL_LAPORAN_TRAINER);
-    this.ensureSeed(STORAGE_KEYS.ONBOARDING_PROGRESS, INITIAL_ONBOARDING_PROGRESS);
-    this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL]);
-    this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS);
-    this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
-    this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING);
-    this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA);
-    this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
-    this.ensureSeed(STORAGE_KEYS.LOG_AKTIVITAS, INITIAL_LOGS);
-    this.ensureSeed(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
     // Migrate old settings if needed
     try {
       const storedSettings = localStorage.getItem(STORAGE_KEYS.SETTINGS);
@@ -2315,6 +2248,8 @@ class StorageDatabase {
       const existing = localStorage.getItem(key);
       if (initialized !== 'true' && (existing === null || existing === undefined)) {
         localStorage.setItem(key, JSON.stringify(defaultData));
+        localStorage.setItem(key + '_initialized', 'true');
+      } else if (existing !== null && existing !== undefined && initialized !== 'true') {
         localStorage.setItem(key + '_initialized', 'true');
       }
     } catch {
@@ -2649,10 +2584,36 @@ class StorageDatabase {
   public deleteRow(tableName: string, id: string): boolean {
     const key = this.mapKey(tableName);
     const list = this.get<any[]>(key, []);
+    const deletedItem = list.find((item) => item.id === id);
     const filtered = list.filter((item) => item.id !== id);
     if (filtered.length === list.length) return false;
     this.set(key, filtered);
     this.addLog('HAPUS', this.friendlyTableName(tableName), `Menghapus data ID ${id}`);
+
+    // Cascading deletion for Kru: Also remove from batches and peserta matrix
+    if (tableName === 'kru' && deletedItem) {
+      try {
+        const batches = this.getOnboardingBatches();
+        let batchesChanged = false;
+        batches.forEach(b => {
+          if (Array.isArray(b.peserta)) {
+            const beforeLen = b.peserta.length;
+            b.peserta = b.peserta.filter(p => p.kru_id !== id && p.nama_kru.toLowerCase().trim() !== deletedItem.nama_kru.toLowerCase().trim());
+            if (b.peserta.length !== beforeLen) batchesChanged = true;
+          }
+        });
+        if (batchesChanged) {
+          this.set(STORAGE_KEYS.ONBOARDING_BATCHES, batches);
+        }
+
+        const rawMatrix = localStorage.getItem('hara_pd_peserta_matrix_tc');
+        if (rawMatrix) {
+          const matrix: any[] = JSON.parse(rawMatrix);
+          const updatedMatrix = matrix.filter(p => p.nama?.toLowerCase().trim() !== deletedItem.nama_kru.toLowerCase().trim());
+          this.set('peserta_matrix_tc', updatedMatrix);
+        }
+      } catch {}
+    }
 
     // Async delete from Supabase real-time
     import('./supabase').then(({ deleteRowFromSupabase }) => {
@@ -3303,10 +3264,15 @@ class StorageDatabase {
   // MANAJEMEN ONBOARDING & RETRAINING 3 HARI
   // ==========================================
   public getOnboardingBatches(): OnboardingBatch[] {
-    const raw = this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, null);
-    if (!raw) {
-      this.set(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
-      return INITIAL_ONBOARDING_BATCHES;
+    const raw = this.get<OnboardingBatch[] | null>(STORAGE_KEYS.ONBOARDING_BATCHES, null);
+    if (raw === null) {
+      const initialized = localStorage.getItem(STORAGE_KEYS.ONBOARDING_BATCHES + '_initialized');
+      if (initialized !== 'true') {
+        this.set(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+        localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES + '_initialized', 'true');
+        return INITIAL_ONBOARDING_BATCHES;
+      }
+      return [];
     }
     return raw.map(b => ({
       ...b,

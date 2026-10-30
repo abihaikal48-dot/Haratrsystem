@@ -117,8 +117,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   // 13 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
   const [pesertaMatrix, setPesertaMatrix] = useState<TrainingParticipantItem[]>(() => {
-    const saved = db.getTable<TrainingParticipantItem>('peserta_matrix_tc');
-    if (saved !== null && Array.isArray(saved)) return saved;
+    const raw = localStorage.getItem('hara_pd_peserta_matrix_tc');
+    if (raw !== null) {
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return [];
+      }
+    }
     db.setTable('peserta_matrix_tc', DAFTAR_PESERTA_ONBOARDING_TC);
     return DAFTAR_PESERTA_ONBOARDING_TC;
   });
@@ -369,6 +375,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setBatches(b);
     setSikapList(db.getPenilaianSikapKebersihanKru());
     setHistoryList(db.getPenilaianPraktikProduk());
+    const rawMatrix = localStorage.getItem('hara_pd_peserta_matrix_tc');
+    if (rawMatrix !== null) {
+      try {
+        setPesertaMatrix(JSON.parse(rawMatrix));
+      } catch {}
+    }
 
     const savedDrafts = db.getTable<AssessmentSessionTab>('draft_assessment_sessions');
     if (Array.isArray(savedDrafts) && savedDrafts.length > 0) {
@@ -3004,6 +3016,13 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                                 setPesertaMatrix(updated);
                                 db.setTable('peserta_matrix_tc', updated);
 
+                                // Remove from master kru table so they do not reappear anywhere
+                                const allKrus = db.getTable<Kru>('kru');
+                                const targetKru = allKrus.find(k => k.nama_kru.toLowerCase().trim() === item.nama.toLowerCase().trim());
+                                if (targetKru) {
+                                  db.deleteRow('kru', targetKru.id);
+                                }
+
                                 // Remove from all onboarding batches so they do not reappear in candidate lists
                                 const allBatches = db.getOnboardingBatches();
                                 allBatches.forEach(b => {
@@ -3016,6 +3035,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                                   }
                                 });
                                 setBatches(db.getOnboardingBatches());
+                                setKruList(db.getTable<Kru>('kru').filter(k => k.status_aktif === 'Aktif'));
 
                                 showToast(`Peserta "${item.nama}" berhasil dihapus secara permanen.`);
                               }}

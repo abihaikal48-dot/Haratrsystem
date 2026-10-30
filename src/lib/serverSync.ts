@@ -61,26 +61,29 @@ export async function initClientDataFromServer(): Promise<boolean> {
     if (json.success && json.data) {
       const data = json.data;
 
-      // 1. Sinkronkan Onboarding Batches
+      // 1. Sinkronkan Onboarding Batches hanya jika lokal belum pernah diinisialisasi
       if (Array.isArray(data.onboarding_batches) && data.onboarding_batches.length > 0) {
-        const localBatches = db.getOnboardingBatches();
-        const mergedBatches = mergeRecords(localBatches, data.onboarding_batches);
-        db.setTable('onboarding_batches', mergedBatches);
+        const key = 'hara_pd_onboarding_batches_v1';
+        if (localStorage.getItem(key) === null) {
+          db.setTable('onboarding_batches', data.onboarding_batches);
+        }
       }
 
-      // 2. Sinkronkan Penilaian Praktik Produk
+      // 2. Sinkronkan Penilaian Praktik Produk hanya jika lokal belum ada
       if (Array.isArray(data.penilaian_praktik_onboarding_produk) && data.penilaian_praktik_onboarding_produk.length > 0) {
-        const localPraktik = db.getPenilaianPraktikProduk();
-        const mergedPraktik = mergeRecords(localPraktik, data.penilaian_praktik_onboarding_produk);
-        db.setTable('penilaian_praktik_onboarding_produk', mergedPraktik);
-        db.setTable('penilaian_onboarding_rnd', mergedPraktik);
+        const key = 'hara_pd_penilaian_praktik_onboarding_produk_v1';
+        if (localStorage.getItem(key) === null) {
+          db.setTable('penilaian_praktik_onboarding_produk', data.penilaian_praktik_onboarding_produk);
+          db.setTable('penilaian_onboarding_rnd', data.penilaian_praktik_onboarding_produk);
+        }
       }
 
-      // 3. Sinkronkan Penilaian Sikap & Higiene
+      // 3. Sinkronkan Penilaian Sikap & Higiene hanya jika lokal belum ada
       if (Array.isArray(data.penilaian_sikap_kebersihan_kru) && data.penilaian_sikap_kebersihan_kru.length > 0) {
-        const localSikap = db.getPenilaianSikapKebersihanKru();
-        const mergedSikap = mergeRecords(localSikap, data.penilaian_sikap_kebersihan_kru);
-        db.setTable('penilaian_sikap_kebersihan_kru', mergedSikap);
+        const key = 'hara_pd_penilaian_sikap_kebersihan_kru_v1';
+        if (localStorage.getItem(key) === null) {
+          db.setTable('penilaian_sikap_kebersihan_kru', data.penilaian_sikap_kebersihan_kru);
+        }
       }
 
       lastSyncTimestamp = new Date().toISOString();

@@ -273,11 +273,22 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
   const handleRemoveParticipant = (kruId: string) => {
     if (!activeBatch) return;
     if (!confirm('Hapus peserta ini dari batch pelatihan?')) return;
+    const target = activeBatch.peserta.find(p => p.kru_id === kruId);
     const updatedBatch: OnboardingBatch = {
       ...activeBatch,
       peserta: activeBatch.peserta.filter(p => p.kru_id !== kruId),
     };
     db.saveOnboardingBatch(updatedBatch);
+    if (target) {
+      db.deleteRow('kru', kruId);
+      const allKru = db.getTable<Kru>('kru');
+      const matched = allKru.find(k => k.nama_kru.toLowerCase().trim() === target.nama_kru.toLowerCase().trim());
+      if (matched) {
+        db.deleteRow('kru', matched.id);
+      }
+    }
+    setBatches(db.getOnboardingBatches());
+    setKruList(db.getTable<Kru>('kru').filter(k => k.status_aktif === 'Aktif'));
   };
 
   // Toggle Attendance

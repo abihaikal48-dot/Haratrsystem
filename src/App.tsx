@@ -137,38 +137,13 @@ export function App() {
     refreshAppData();
     const unsub = db.subscribe('*', refreshAppData);
 
-    // Auto-pull online data dari Server Proxy & Supabase (Semua HP otomatis tersinkronisasi tanpa setup manual)
-    initClientDataFromServer().then((loaded) => {
-      if (loaded) {
-        refreshAppData();
-      }
-    });
-
-    // Initialize Supabase & Realtime Sync
+    // Initialize Supabase client if configured (for push/sync)
     let unsubSupabase = () => {};
     const { isConfigured } = getSupabaseConfig();
     if (isConfigured) {
-      testSupabaseConnection().then((res) => {
-        if (res.success) {
-          autoSeedSupabaseIfEmpty().then(() => {
-            pullAllFromSupabase().then(() => refreshAppData());
-          });
-        }
-      });
+      testSupabaseConnection();
       unsubSupabase = initSupabaseRealtimeSync();
-    } else {
-      // Auto-pull even without local override keys (uses server proxy)
-      pullAllFromSupabase().then(() => refreshAppData());
     }
-
-    // Interval sync otomatis tiap 5 detik agar data di HP lain langsung ter-update
-    const syncInterval = setInterval(() => {
-      pullAllFromSupabase().then((res) => {
-        if (res && res.success && res.totalRecords > 0) {
-          refreshAppData();
-        }
-      });
-    }, 5000);
 
     // Test connection
     testFirestoreConnection();
@@ -191,7 +166,6 @@ export function App() {
       unsub();
       unsubSupabase();
       unsubPresence();
-      clearInterval(syncInterval);
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);

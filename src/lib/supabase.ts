@@ -460,76 +460,77 @@ export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRe
   try {
     let total = 0;
 
-    // 1. Tarik dari app_store
+    // Helper untuk hanya mengisi jika tabel lokal benar-benar kosong
+    const setIfLocalEmpty = (key: string, data: any[]) => {
+      const storageKey = 'hara_pd_' + key + '_v1';
+      const storageKeyV2 = 'hara_pd_' + key + '_v2';
+      const existing = localStorage.getItem(storageKey) || localStorage.getItem(storageKeyV2) || localStorage.getItem(key);
+      if (existing === null) {
+        db.setTable(key, data);
+        total += data.length;
+      }
+    };
+
+    // 1. Tarik dari app_store hanya jika lokal belum ada
     const { data: storeData } = await supabase.from('app_store').select('*');
     if (storeData && storeData.length > 0) {
       for (const item of storeData) {
         if (item.key && Array.isArray(item.value) && item.value.length > 0) {
-          db.setTable(item.key, item.value);
-          total += item.value.length;
+          setIfLocalEmpty(item.key, item.value);
         }
       }
     }
 
-    // 2. Tarik tabel utama jika ada data
+    // 2. Tarik tabel utama jika lokal kosong
     const { data: outletsData } = await supabase.from('outlets').select('*');
     if (outletsData && outletsData.length > 0) {
-      db.setTable('outlets', outletsData);
-      total += outletsData.length;
+      setIfLocalEmpty('outlets', outletsData);
     }
 
     const { data: kruData } = await supabase.from('kru').select('*');
     if (kruData && kruData.length > 0) {
-      db.setTable('kru', kruData);
-      total += kruData.length;
+      setIfLocalEmpty('kru', kruData);
     }
 
     const { data: sopData } = await supabase.from('bank_sop').select('*');
     if (sopData && sopData.length > 0) {
-      db.setTable('bank_sop', sopData);
-      total += sopData.length;
+      setIfLocalEmpty('bank_sop', sopData);
     }
 
     const { data: ujianData } = await supabase.from('hasil_ujian_mingguan').select('*');
     if (ujianData && ujianData.length > 0) {
-      db.setTable('hasil_ujian_mingguan', ujianData);
-      total += ujianData.length;
+      setIfLocalEmpty('hasil_ujian_mingguan', ujianData);
     }
 
     const { data: userData } = await supabase.from('app_users').select('*');
     if (userData && userData.length > 0) {
-      db.setTable('app_users', userData);
-      total += userData.length;
+      setIfLocalEmpty('app_users', userData);
     }
 
     const { data: batchData } = await supabase.from('onboarding_batches').select('*');
     if (batchData && batchData.length > 0) {
-      db.setTable('onboarding_batches', batchData);
-      total += batchData.length;
+      setIfLocalEmpty('onboarding_batches', batchData);
     }
 
     const { data: praktikData } = await supabase.from('penilaian_praktik_onboarding_produk').select('*');
     if (praktikData && praktikData.length > 0) {
-      db.setTable('penilaian_praktik_onboarding_produk', praktikData);
-      db.setTable('penilaian_onboarding_rnd', praktikData);
-      total += praktikData.length;
+      setIfLocalEmpty('penilaian_praktik_onboarding_produk', praktikData);
+      setIfLocalEmpty('penilaian_onboarding_rnd', praktikData);
     }
 
     const { data: sikapData } = await supabase.from('penilaian_sikap_kebersihan_kru').select('*');
     if (sikapData && sikapData.length > 0) {
-      db.setTable('penilaian_sikap_kebersihan_kru', sikapData);
-      total += sikapData.length;
+      setIfLocalEmpty('penilaian_sikap_kebersihan_kru', sikapData);
     }
 
     const { data: attitudeData } = await supabase.from('attitude_hara').select('*');
     if (attitudeData && attitudeData.length > 0) {
-      db.setTable('attitude_hara', attitudeData);
-      total += attitudeData.length;
+      setIfLocalEmpty('attitude_hara', attitudeData);
     }
 
     return { success: true, totalRecords: total };
   } catch (err) {
-    console.error('Error saat menarik data dari Supabase:', err);
+    console.error('Error saat memeriksa data dari Supabase:', err);
     return { success: false, totalRecords: 0 };
   }
 }
