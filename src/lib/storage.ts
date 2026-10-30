@@ -2160,29 +2160,6 @@ class StorageDatabase {
   private init() {
     if (typeof window === 'undefined') return;
 
-    // Enforce October 23-24 2026 12-candidate cohort update
-    try {
-      const currentKruStr = localStorage.getItem(STORAGE_KEYS.KRU);
-      const currentTcStr = localStorage.getItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC);
-      if (
-        !currentKruStr ||
-        !currentKruStr.includes('Excel Tri Anggoro') ||
-        currentKruStr.includes('Budi Santoso') ||
-        currentKruStr.includes('Siti Rahmawati')
-      ) {
-        localStorage.setItem(STORAGE_KEYS.KRU, JSON.stringify(INITIAL_KRU));
-        localStorage.setItem(STORAGE_KEYS.OUTLETS, JSON.stringify(INITIAL_OUTLETS));
-        localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES, JSON.stringify(INITIAL_ONBOARDING_BATCHES));
-        localStorage.setItem(STORAGE_KEYS.PENILAIAN_PRAKTIK_ONBOARDING_PRODUK, JSON.stringify(INITIAL_PENILAIAN_PRAKTIK_PRODUK));
-        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, JSON.stringify(INITIAL_PENILAIAN_PRAKTIK_PRODUK));
-        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, JSON.stringify(INITIAL_PENILAIAN_ONBOARDING_TC));
-      } else if (!currentTcStr || !currentTcStr.includes('Excel Tri Anggoro')) {
-        localStorage.setItem(STORAGE_KEYS.PENILAIAN_ONBOARDING_TC, JSON.stringify(INITIAL_PENILAIAN_ONBOARDING_TC));
-      }
-    } catch {
-      // ignore
-    }
-
     this.ensureSeed(STORAGE_KEYS.OUTLETS, INITIAL_OUTLETS);
     this.ensureSeed(STORAGE_KEYS.KRU, INITIAL_KRU);
     this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
