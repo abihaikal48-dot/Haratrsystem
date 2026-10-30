@@ -170,10 +170,8 @@ export function App() {
       });
     }, 5000);
 
-    // Test connection and seed Firestore collections as backup
+    // Test connection
     testFirestoreConnection();
-    seedFirestoreIfEmpty();
-    const unsubFirestore = setupFirestoreRealtimeSync();
 
     // Subscribe to online users
     const unsubPresence = subscribeToOnlineUsers((users) => {
@@ -192,7 +190,6 @@ export function App() {
     return () => {
       unsub();
       unsubSupabase();
-      unsubFirestore();
       unsubPresence();
       clearInterval(syncInterval);
       window.removeEventListener('hashchange', handleHashChange);

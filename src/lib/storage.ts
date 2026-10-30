@@ -2311,11 +2311,11 @@ class StorageDatabase {
 
   private ensureSeed<T>(key: string, defaultData: T) {
     try {
+      const initialized = localStorage.getItem(key + '_initialized');
       const existing = localStorage.getItem(key);
-      // Strictly only seed if the key does NOT exist at all in localStorage.
-      // Never overwrite existing data, empty tables, or user inputs when page refreshes!
-      if (existing === null || existing === undefined) {
+      if (initialized !== 'true' && (existing === null || existing === undefined)) {
         localStorage.setItem(key, JSON.stringify(defaultData));
+        localStorage.setItem(key + '_initialized', 'true');
       }
     } catch {
       // ignore
