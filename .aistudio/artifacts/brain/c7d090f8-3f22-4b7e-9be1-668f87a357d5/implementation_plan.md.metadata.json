@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi komprehensif untuk penguncian lokasi permanen Kantor Lempongsari, auto-save state form penilaian anti-reset saat refresh/pindah tab, restrukturisasi produk SOP (pemisahan Mentai & penghapusan Tahu Tempe), koreksi timer realistis (potong kulit 1-1 dan penghapusan timer platting nasi), pengayaan ceklis detail sikap & kebersihan, serta penambahan modul penilaian tim Station 1 & Station 2.",
-  "updatedAt":  "2026-10-30T21:50:57.501745066Z",
+  "summary":  "Rencana implementasi penataan master produk dan stasiun sesuai dokumen agenda training (pemisahan varian ayoli/mentai/krisbar, Day 1 Batch 1 goreng ayam utuh), pemeliharaan state mandiri per produk (timer pause-resume tanpa reset saat pindah menu), dan pengembangan sistem penilaian tim stasiun objektif berbasis rubrik level perilaku konkret (Station 1 & Station 2).",
+  "updatedAt":  "2026-10-30T23:18:11.918117754Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

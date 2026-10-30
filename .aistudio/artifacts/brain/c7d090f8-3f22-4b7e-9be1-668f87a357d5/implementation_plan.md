@@ -1,166 +1,135 @@
-# Rencana Implementasi: Standarisasi Pelatihan Kantor Lempongsari, Anti-Reset Draft Form, Koreksi Produk & Timer SOP, Ceklis Sikap Lengkap, dan Penilaian Tim Stasiun
+# Rencana Implementasi: Sinkronisasi Master Produk Agenda Training, Multi-Product State Preservation, dan Rubrik Objektif Tim Stasiun
 
-Menyempurnakan sistem Onboarding Training Center HARA Chicken sesuai arahan operasional: penetapan lokasi permanen Kantor Lempongsari, persistensi draft penilaian anti-reset saat refresh/pindah tab, restrukturisasi produk SOP (pemisahan Ayam Geprek Mentai vs Mentai Krispi, penghapusan Tahu & Tempe Krispi), koreksi timer realistis (persiapan potong kulit 1-1 dan penghapusan waktu platting nasi), pengembangan ceklis detail sikap & kebersihan, serta integrasi modul penilaian tim untuk Station Kerja 1 & 2.
+Dokumen ini memuat arsitektur teknis dan rancangan UX untuk menyelaraskan master produk dan stasiun dengan dokumen cetak resmi *AGENDA TRAINING TRAINING CENTER HARA CHICKEN*, mengimplementasikan penyimpanan state mandiri per produk (*multi-product pause-resume state* tanpa reset), serta menyederhanakan nama stasiun tim menjadi **Station 1** & **Station 2** dengan rubrik evaluasi objektif berbasis deskriptor perilaku konkret.
+
+---
 
 ## User Review & Critical Decisions
 
 > [!IMPORTANT]
-> Berdasarkan klarifikasi yang telah disepakati:
-> - **Penilaian Tim Stasiun**: Format ceklis evaluasi tim berlaku seragam dan terstruktur untuk Station Kerja 1 maupun Station Kerja 2.
-> - **Timer Kulit Krispi**: Disesuaikan dengan alokasi realistis: 15 menit persiapan (pemotongan kulit satu per satu) dan 12 menit penggorengan deep fryer 150°C.
-> - **Ceklis Sikap & Kebersihan**: Mencakup 4 pilar utama: Kerapian Seragam (Grooming), Sanitasi Alat & Area, Higienitas Tangan & Pangan, serta Kedisiplinan & Etika Kerja.
-> - **Lokasi Pelatihan**: Dikunci permanen ke "Kantor Lempongsari" (menghilangkan selector outlet pelatihan).
+> Ringkasan keputusan berdasarkan jawaban pengguna dan dokumen foto:
+> - **Penilaian Tim Stasiun**: Menggunakan **Rubrik level perilaku kerja konkret berbasis ceklis per stasiun**, bukan sekadar menggeser slider angka tanpa dasar. Nama stasiun tim cukup ringkas: **Station 1** dan **Station 2** (tanpa deskripsi panjang seperti thawing/marinasi).
+> - **Master Produk & Stasiun Agenda**: Produk dikelompokkan sesuai dokumen agenda training HARA Chicken (Station 1, Station 2, Station 3 pada Day 1 dan Day 2).
+> - **Revisi Day 1 Batch 1**: Menu Station 3 diubah menjadi **Goreng Ayam Utuh** (bukan goreng kulit).
+> - **Pemisahan Varian Mandiri**: Memisahkan varian secara mandiri (contoh: *Krispi Ayoli* terpisah dari *Geprek Ayoli*, *Krispi Mentai* terpisah dari *Geprek Mentai*, *Krisbar Ori* terpisah dari *Krisbar Geprek*), dengan penamaan ringkas baku tanpa imbuhan berlebih.
+> - **Anti-Reset Saat Pindah Produk**: Kru sering kali menjeda produk (misal menunggu proses menggoreng) dan beralih mengerjakan produk lain. Setiap produk dalam sesi kru memiliki state mandiri (*timer detik*, *status pause*, *ceklis langkah*, *parameter teknis*), sehingga saat beralih menu lalu kembali lagi, **data tidak akan ter-reset**.
 
 ---
 
 ## 1. Overview & Core Concept
 
-Sistem ini dirancang untuk memastikan trainer dan asesor di Training Center HARA Chicken dapat melakukan penilaian praktik harian dengan lancar tanpa kendala teknis:
-- **Lokasi Terpusat**: Seluruh pelatihan terfokus di **Kantor Lempongsari** tanpa kerancuan pilihan outlet.
-- **Anti-Reset & Auto-Save**: Setiap detik pengetikan catatan, checklist langkah, pengisian suhu/gramatur, dan status timer tersimpan otomatis ke penyimpanan lokal (`localStorage`). Pindah tab maupun refresh browser tidak akan menghilangkan data yang sedang diinput.
-- **SOP Akurat & Realistis**: Produk tidak aktif (Tahu & Tempe) dieliminasi; varian Mentai dipisahkan menjadi menu mandiri; timer disesuaikan dengan aktivitas riil di dapur (tanpa waktu platting nasi yang mubazir; waktu potong kulit diperpanjang).
-- **Evaluasi 360 Derajat**: Meliputi Penilaian Praktik Produk Individu, Ceklis Detail Sikap & Kebersihan Personal, serta Penilaian Kerja Sama Tim per Stasiun Kerja (Station 1 & Station 2).
+1. **Sinkronisasi Katalog Produk SOP (Sesuai Lembar Agenda Foto)**:
+   - **Day 1**:
+     - *Station 1*: Nasi 4 Cup (35 mnt), Teh (10lt) (40 mnt), Sup Sayur (40 mnt), Geprek Ori (2 mnt), Krisbar Geprek (7 mnt), Geprek Moza (7 mnt).
+     - *Station 2*: Goreng Ayam (20 mnt), Scrembel (5 mnt), Spinach (40 mnt), Indomie Geprek (10 mnt), Nashville (2 mnt), Krispi Mentai (5 mnt), Geprek Mentai (7 mnt), Krisbar Ori (4 mnt), Krispi Ayoli (4 mnt).
+     - *Station 3*: Goreng Terong (25 mnt), Sambal (1 Variant) (30 mnt), **Goreng Ayam Utuh (45 mnt)**, Nasgor Geprek (15 mnt), Geprek Keju Parut (5 mnt), Geprek Ayoli (5 mnt).
+   - **Day 2**:
+     - *Station 1*: Nasi 4 Cup (45 mnt), Goreng Kulit (35 mnt), Milkshake (10 mnt).
+     - *Station 2*: Teh (8lt) (30 mnt), Sambal Matah (20 mnt), Sambal Daun Jeruk (20 mnt), Sucok (15 mnt).
+     - *Station 3*: Menggoreng Ayam (25 mnt), Goreng Jamur (15 mnt), Kentang (10 mnt), Orange 1 Porsi (5 mnt).
+
+2. **Penyimpanan State Mandiri per Produk (Multi-Product Pause & Resume)**:
+   - Menambahkan struktur `productStates: Record<string, ProductPracticeState>` di dalam setiap tab sesi kru.
+   - Saat asesor berpindah menu pada Stepper, sistem secara otomatis menyimpan posisi detik stopwatch, status checklist, input suhu/gramatur produk lama, dan memuat kondisi produk baru tanpa me-reset apa pun.
+
+3. **Pengembangan Penilaian Tim Stasiun yang Objektif (Station 1 & Station 2)**:
+   - Penamaan stasiun tim disederhanakan murni menjadi: **Station 1** dan **Station 2**.
+   - Setiap dimensi penilaian (Ritme/Flow, Komunikasi Vokal, Kebersihan 5S, Kepatuhan SOP, Handover) dilengkapi 4 tingkat deskriptor capaian kerja konkret:
+     - *Level 4 (90–100)*: Sangat Baik — Alur kerja mandiri, tanpa bottleneck, respon vokal tegas, 5S konsisten.
+     - *Level 3 (75–89)*: Baik — Sesuai SOP standar, penanganan order lancar dengan supervisi minimal.
+     - *Level 2 (60–74)*: Cukup — Masih terjadi penumpukan order sesaat atau teguran sanitasi ringan.
+     - *Level 1 (<60)*: Perlu Pembinaan — Terjadi bottleneck parah, komunikasi pasif, atau pelanggaran kebersihan.
 
 ---
 
 ## 2. User Experience & Visual Design
 
-### Key User Flows
+### Alur Pause & Resume Antar Produk
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ Kru: Aini Amalia Saftri (Kitchen)              Lokasi: Kantor Lempongsari │
+├────────────────────────────────────────────────────────────────────────┤
+│ ANTREAN PRAKTIK:                                                       │
+│ [⏸ 1. Goreng Ayam Utuh (12:30 / 45m)] ── [▶ 2. Goreng Terong (04:10)] │
+│ ── [○ 3. Sambal (1 Variant) (Belum Mulai)]   [+ Atur / Tambah Menu]     │
+├────────────────────────────────────────────────────────────────────────┤
+│ PRODUK AKTIF: Goreng Terong (Day 1 • Station 3)                         │
+│ Stopwatch: [ 04:10 ]  [Jeda] [Lanjut] [Reset Waktu Menu Ini]          │
+│ • Ceklis SOP & Parameter Terong tersimpan mandiri                     │
+├────────────────────────────────────────────────────────────────────────┤
+│ (Trainer bisa klik kembali ke menu 1 kapan saja tanpa hilang waktu)   │
+│ [Simpan Hasil Produk Ini & Lanjut ke Menu Berikutnya ➔]                │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
-1. **Header Training Center Terpadu**:
-   - Menampilkan badge lokasi resmi bertuliskan **"Lokasi Pelatihan: Kantor Lempongsari"** dengan ikon kantor terverifikasi (tanpa dropdown outlet pelatihan).
-   - Menampilkan indikator status sinkronisasi lokal: *"Auto-Save Aktif: Draft Anda aman tersimpan"* sehingga asesor merasa tenang.
-
-2. **Alur Penilaian Produk Individu dengan Auto-Restore**:
-   - Asesor membuka tab sesi penilaian kru dan memilih produk SOP.
-   - Form secara real-time menyimpan setiap perubahan ke storage lokal.
-   - Bila asesor berpindah ke tab Roadmap/Sikap/Tim atau browser ter-refresh mendadak, form langsung kembali ke kondisi terakhir yang sedang dikerjakan.
-   - Terdapat tombol *"Sesi Baru"* jika ingin memulai lembar penilaian kosong berikutnya.
-
-3. **Katalog Produk SOP Terkini**:
-   - **Ayam Geprek Saus Mentai**: Produk mandiri dengan langkah SOP uleg bumbu, geprek, padatkan di cobek, oles mentai, torch di cobek batu, dan angkat memakai 2 solet.
-   - **Ayam Krispi Saus Mentai**: Produk mandiri tanpa proses geprek di cobek (ayam krispi utuh dilumuri saus mentai dan ditorch).
-   - **Tahu & Tempe Krispi**: Dihapus secara bersih dari daftar produk aktif.
-   - **Timer Realistis**:
-     - *Nasi Putih Pulen*: Prep 5 menit, Masak 30 menit (15m gas + 15m resting tanak), Finishing: 0 menit (tanpa waktu platting nasi).
-     - *Kulit Krispi*: Prep 15 menit (motong kulit mentah 1-1, dusting 2x), Masak 12 menit (goreng 150°C), Pendinginan & Sealing 5 menit.
-
-4. **Ceklis Detail Sikap & Kebersihan Kru**:
-   - Tab khusus penilaian sikap dengan rincian ceklis granular:
-     - *Kerapian Seragam & Diri*: Celemek bersih, topi/hairnet rapi, kuku pendek & bersih, pakaian SOP rapi.
-     - *Sanitasi Alat*: Talenan & pisau bersih terpisah, cobek batu bersih pasca uleg, kebersihan meja kerja.
-     - *Higienitas Tangan*: Cuci tangan 6 langkah air mengalir + sabun, penggunaan sarung tangan saat handling saji.
-     - *Kedisiplinan & Sikap*: Datang tepat waktu, fokus mendengar instruksi trainer, kesigapan membantu tim, kepatuhan titik kritis.
-
-5. **Modul Penilaian Tim (Station Kerja 1 & Station Kerja 2)**:
-   - Sub-tab baru: **"Penilaian Tim (Stasiun)"**.
-   - Asesor memilih Stasiun yang dinilai: **Station Kerja 1** atau **Station Kerja 2**.
-   - Form penilaian mengevaluasi performa kelompok kru yang bertugas di stasiun tersebut:
-     - Koordinasi dan komunikasi saat flow pesanan masuk.
-     - Kecepatan dan ketepatan alur kerja tanpa penumpukan (bottleneck).
-     - Kerapian dan sanitasi stasiun kerja bersama.
-     - Handover / operan produk ke stasiun berikutnya secara mulus.
-     - Nilai tim, catatan evaluasi pelatih, dan tombol simpan permanen.
+### Rubrik Objektif Tim Stasiun (Station 1 & Station 2)
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│ Observasi Tim: [ Station 1 ]   [ Station 2 ]                           │
+├────────────────────────────────────────────────────────────────────────┤
+│ Dimensi: Ritme Kerja & Kecepatan Flow (Bobot 25%)                      │
+│ ( ) Level 4 (95) - Mengalir sempurna, zero bottleneck, proaktif        │
+│ (•) Level 3 (85) - Sesuai standar SOS, ritme stabil, jeda wajar        │
+│ ( ) Level 2 (70) - Terjadi sedikit penumpukan antrean pada jam sibuk   │
+│ ( ) Level 1 (50) - Stasiun macet total, waktu tunggu melebihi toleransi │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
 ## 3. Key Product Decisions & Trade-Offs
 
-- **Penguncian Lokasi ke Kantor Lempongsari**:
-  - *Keputusan*: Menghilangkan dropdown pilihan outlet tempat pelatihan dan mengunci lokasi pada `Kantor Lempongsari`.
-  - *Alasan*: Seluruh kegiatan Onboarding Training Center terpusat di Kantor Lempongsari. Menyajikan opsi dropdown outlet hanya membingungkan asesor dan memicu ketidakkonsistenan data.
+- **Isolasi State per Produk vs Single Global Timer**:
+  - *Keputusan*: Membuat dictionary `productStates` per nama produk di tiap sesi.
+  - *Alasan*: Kru di lapangan tidak bekerja secara sekuensial kaku; sering kali ayam sedang direbus/digoreng (timer berjalan atau di-pause) sementara kru memotong sayur atau mengulek sambal. Reset global saat berpindah tab produk merusak akurasi waktu kerja riil.
+  - *Dampak*: Stopwatch tiap produk independen, tersimpan ke local draft, dan tidak pernah hilang saat berganti menu.
 
-- **Auto-Save Draft di Penyimpanan Lokal (Local Master)**:
-  - *Keputusan*: Menyimpan state `sessions` aktif ke key `hara_active_assessment_sessions` setiap kali ada mutasi state dengan debounce ringan.
-  - *Alasan*: Mencegah data hilang saat pergantian tab navigasi atau refresh yang tidak disengaja. Tidak ada delay server dan bekerja 100% andal secara offline.
-
-- **Pemisahan Entitas SOP Mentai**:
-  - *Keputusan*: Memisahkan `prod-18-ayam-mentai` menjadi `prod-18a-geprek-mentai` (Ayam Geprek Saus Mentai) dan `prod-18b-krispi-mentai` (Ayam Krispi Saus Mentai).
-  - *Alasan*: Teknik pengerjaan dan alat berbeda (geprek memerlukan cobek & pemadatan, sedangkan krispi mentai tidak dimemarkan di cobek).
-
-- **Koreksi Timer Sesuai SOP Riil**:
-  - *Keputusan*: Menghapus timer platting nasi dan menaikkan waktu persiapan kulit ayam menjadi 15 menit untuk memotong kulit satu per satu.
-  - *Alasan*: Penilaian timer harus mencerminkan durasi realistis kru di lapangan, bukan angka teoretis yang tidak dapat dipenuhi.
+- **Penyederhanaan Label Stasiun Tim**:
+  - *Keputusan*: Mengubah selector menjadi **Station 1** dan **Station 2** tanpa teks teknis yang panjang.
+  - *Alasan*: Pengguna menegaskan bahwa stasiun adalah wilayah kerja mereka dan deskripsi teknis panjang membuat tampilan padat dan tidak efisien di layar HP.
 
 ---
 
 ## 4. Technical Architecture & Data Strategy
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                   HARA TRAINING CENTER CORE UI                         │
-│   Lokasi Permanen: Kantor Lempongsari | Anti-Reset Auto-Save Active   │
-└────────────────────────────────────┬───────────────────────────────────┘
-                                     │
-           ┌─────────────────────────┼─────────────────────────┐
-           ▼                         ▼                         ▼
-┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐
-│  Penilaian Praktik   │  │ Ceklis Detail Sikap  │  │    Penilaian Tim     │
-│   Produk Individu    │  │     & Kebersihan     │  │ (Station 1 & St. 2)  │
-│  - SOP Mentai Pisah  │  │  - Kerapian Seragam  │  │  - Ritme & Flow      │
-│  - Hapus Tahu/Tempe  │  │  - Sanitasi Alat     │  │  - Komunikasi Tim    │
-│  - Timer Realistis   │  │  - Higiene Tangan    │  │  - Kebersihan Area   │
-│  - Auto-Save Draft   │  │  - Kedisiplinan      │  │  - Handover Saji     │
-└──────────┬───────────┘  └──────────┬───────────┘  └──────────┬───────────┘
-           │                         │                         │
-           └─────────────────────────┼─────────────────────────┘
-                                     ▼
-                ┌────────────────────────────────────────┐
-                │   Storage Database (db / localStorage) │
-                │   - hara_active_assessment_sessions    │
-                │   - hara_pd_penilaian_sikap_kru        │
-                │   - hara_pd_penilaian_tim_stasiun      │
-                │   - bank_sop_products (Master Data)    │
-                └────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│                 AssessmentSessionTab                          │
+│ - id, kruId, namaKru, outletCode                              │
+│ - productQueue: string[]                                      │
+│ - currentProductIndex: number                                 │
+│ - productStates: Record<productName, {                        │
+│     timerSeconds: number                                      │
+│     isTimerRunning: boolean                                   │
+│     suhuMinyakProbe: number                                   │
+│     gramaturAktual: number                                    │
+│     stepChecklist: StepItem[]                                 │
+│     knowledgeAnswers: Record<number, boolean>                 │
+│     skorKnowledge: number                                     │
+│     catatan: string                                           │
+│   }>                                                          │
+│ - completedProducts: CompletedProductRecord[]                 │
+└───────────────────────────────┬───────────────────────────────┘
+                                │ Auto-saved on every change
+                                ▼
+┌───────────────────────────────────────────────────────────────┐
+│                localStorage: hara_active_assessment_sessions   │
+└───────────────────────────────────────────────────────────────┘
 ```
-
-### Data Model Additions
-
-1. **Penyimpanan Draft Aktif (`AssessmentSessionTab`)**:
-   - `hara_active_assessment_sessions`: Array sesi aktif lengkap dengan state timer, input checklist, suhu, gramatur, dan catatan.
-   - `hara_active_assessment_tab_id`: ID tab sesi aktif yang sedang terbuka.
-
-2. **Penilaian Tim Stasiun (`PenilaianTimStasiun`)**:
-   ```typescript
-   export interface PenilaianTimStasiun {
-     id: string;
-     tanggal: string;
-     stasiun: 'Station Kerja 1' | 'Station Kerja 2';
-     batchId?: string;
-     namaTim: string;
-     anggotaKruIds: string[];
-     anggotaKruNama: string[];
-     skorFlowKerja: number;       // 1-100 (Ritme & Tanpa Bottleneck)
-     skorKomunikasiTim: number;   // 1-100 (Koordinasi & Sinergi)
-     skorKebersihanStasiun: number; // 1-100 (Sanitasi Alat & Meja Bersama)
-     skorHandover: number;        // 1-100 (Kerapian Operan Produk)
-     skorTotal: number;           // Rata-rata komposit
-     ceklisDetail: {
-       ritmeKerjaCepat: boolean;
-       komunikasiEfektif: boolean;
-       areaKerjaHigienis: boolean;
-       alatDibersihkanLangsung: boolean;
-       operanProdukSesuaiSOP: boolean;
-     };
-     catatanTrainer: string;
-     trainerNama: string;
-     created_at: string;
-   }
-   ```
-
-3. **Perluasan Ceklis Sikap & Kebersihan (`PenilaianSikapKebersihanKru`)**:
-   - Kategori seragam (celemek, topi/hairnet, kuku, atribut lengkap).
-   - Kategori sanitasi alat (pembersihan pisau, talenan, cobek, meja kerja).
-   - Kategori higiene personal (cuci tangan rutin, sarung tangan).
-   - Kategori kedisiplinan (tepat waktu, sopan santun, kepatuhan instruksi).
 
 ---
 
-## 5. Planned Verification Steps
+## Rencana Langkah Eksekusi (Implementation Tasks)
 
-1. **Verifikasi Lokasi**: Memastikan label lokasi pelatihan terkunci tetap pada "Kantor Lempongsari" tanpa adanya pilihan dropdown outlet yang mengaburkan.
-2. **Verifikasi Auto-Save & Refresh Resilience**: Mengisi data penilaian pada sesi kru, melakukan navigasi antar tab dan me-refresh browser, kemudian memverifikasi bahwa form tetap terisi 100% tanpa reset.
-3. **Verifikasi List Produk SOP**: Memastikan Tahu & Tempe Krispi tidak muncul lagi; memastikan "Ayam Geprek Saus Mentai" dan "Ayam Krispi Saus Mentai" tampil terpisah sebagai dua menu mandiri yang valid.
-4. **Verifikasi Timer Realistis**: Memastikan waktu platting nasi dihilangkan (0 menit) dan waktu persiapan kulit ayam diatur menjadi 15 menit (untuk memotong 1 per 1).
-5. **Verifikasi Ceklis Sikap & Modul Tim**: Memastikan ceklis sikap detail dapat diisi dan tersimpan, serta modul Penilaian Tim Station Kerja 1 & 2 berfungsi penuh untuk mencatat evaluasi kelompok kru.
-6. **Build & Lint Verification**: Menjalankan `compile_applet` dan `lint_applet` untuk menjamin tidak ada error TypeScript maupun runtime.
+1. **Pembaruan Master Produk `src/data/haraOnboardingProducts.ts`**:
+   - Sesuaikan daftar produk, penamaan ringkas SOP, pengelompokan Day 1/Day 2, dan Station 1/2/3 sesuai foto agenda training resmi.
+   - Pastikan varian terpisah (*Krispi Ayoli*, *Geprek Ayoli*, *Krispi Mentai*, *Geprek Mentai*, *Krisbar Ori*, *Krisbar Geprek*).
+   - Pastikan Day 1 Batch 1 Station 3 adalah **Goreng Ayam Utuh (45 menit)** (bukan goreng kulit).
+2. **Implementasi Multi-Product State Preservation di `OnboardingProductPracticeView.tsx`**:
+   - Perbarui antarmuka `AssessmentSessionTab` dengan `productStates`.
+   - Modifikasi fungsi perpindahan produk pada Stepper agar menyimpan state produk sebelumnya dan memuat state produk target tanpa me-reset timer atau checklist.
+3. **Penyederhanaan & Objektivitas Penilaian Tim Stasiun**:
+   - Ubah pilihan stasiun tim menjadi **Station 1** dan **Station 2**.
+   - Gantikan input slider murni dengan Rubrik Perilaku Kerja Objektif (Level 1–4 per dimensi lengkap dengan deskriptor konkret) dikombinasikan dengan ceklis observasi.
+4. **Verifikasi & Uji Kompilasi**:
+   - Jalankan `compile_applet` dan `lint_applet` untuk menjamin tidak ada error atau regresi kode.

@@ -62,6 +62,27 @@ export const DAFTAR_PENILAI_DEFAULT = [
   'Administrator HQ'
 ];
 
+export interface CompletedProductRecord {
+  productNama: string;
+  skorAkhir: number;
+  durasiDetik: number;
+  waktuMulai?: string;
+  timestamp: string;
+  lulus: boolean;
+}
+
+export interface ProductPracticeState {
+  timerSeconds: number;
+  isTimerRunning: boolean;
+  stepChecklist: { nomor: number; langkah: string; tercapai: boolean; isKritis?: boolean }[];
+  knowledgeAnswers: Record<number, boolean>;
+  skorKnowledge: number;
+  suhuMinyakProbe: number;
+  gramaturAktual: number;
+  catatanTrainer?: string;
+  waktuMulai?: string;
+}
+
 export interface AssessmentSessionTab {
   id: string;
   kruId: string;
@@ -73,6 +94,9 @@ export interface AssessmentSessionTab {
   batch: string;
   station: 'Station 1' | 'Station 2' | 'Station 3' | 'All Crew';
   productNama: string;
+  productQueue?: string[];
+  currentProductIndex?: number;
+  completedProducts?: CompletedProductRecord[];
   timerSeconds: number;
   isTimerRunning: boolean;
   suhuMinyakProbe: number;
@@ -82,6 +106,7 @@ export interface AssessmentSessionTab {
   skorKnowledge: number;
   catatanTrainer: string;
   productNotes?: Record<string, string>;
+  productStates?: Record<string, ProductPracticeState>;
   isSaved?: boolean;
 }
 
@@ -89,8 +114,22 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   selectedOutletCode,
   onOpenFullAuditLog,
 }) => {
-  // Navigation Sub-Tab: 'produk' vs 'riwayat' vs 'jobdesk' vs 'tim' vs 'peserta'
-  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk' | 'tim' | 'peserta'>('produk');
+  // Navigation Sub-Tab: 'produk' vs 'riwayat' vs 'jobdesk' vs 'tim' vs 'peserta' with resilient localStorage persistence
+  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk' | 'tim' | 'peserta'>(() => {
+    try {
+      const saved = localStorage.getItem('hara_onboarding_active_subtab');
+      if (saved && ['produk', 'riwayat', 'jobdesk', 'tim', 'peserta'].includes(saved)) {
+        return saved as any;
+      }
+    } catch {}
+    return 'produk';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hara_onboarding_active_subtab', activeSubTab);
+    } catch {}
+  }, [activeSubTab]);
 
   // Master lists
   const [kruList, setKruList] = useState<Kru[]>([]);
@@ -217,7 +256,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // STATE KHUSUS SUB-TAB: PENILAIAN TIM STASIUN (STATION KERJA 1 & 2)
   // =========================================================================
   const [timList, setTimList] = useState<PenilaianTimStasiun[]>(() => db.getPenilaianTimStasiun());
-  const [selectedTimStation, setSelectedTimStation] = useState<'Station Kerja 1' | 'Station Kerja 2'>('Station Kerja 1');
+  const [selectedTimStation, setSelectedTimStation] = useState<'Station 1' | 'Station 2' | 'Station Kerja 1' | 'Station Kerja 2'>('Station 1');
   const [selectedTimKruIds, setSelectedTimKruIds] = useState<string[]>([]);
   const [timScoreRitme, setTimScoreRitme] = useState<number>(85);
   const [timScoreKomunikasi, setTimScoreKomunikasi] = useState<number>(85);
@@ -308,7 +347,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [sikapList, setSikapList] = useState<PenilaianSikapKebersihanKru[]>(() => db.getPenilaianSikapKebersihanKru());
   const [sikapFilterKru, setSikapFilterKru] = useState<string>('ALL');
   const [selectedSikapKruId, setSelectedSikapKruId] = useState<string>('');
-  const [formSikapStation, setFormSikapStation] = useState<string>('Stasiun 1: Nasi, Teh, & Sup');
+  const [formSikapStation, setFormSikapStation] = useState<string>('Station Kerja 1');
+  const [isManageQueueOpen, setIsManageQueueOpen] = useState(false);
 
   // Checklist 4 Dimensi Evaluasi Sikap & Kebersihan Individu (Sesuai SOP HARA: Tanpa Sarung Tangan & Tanpa K3)
   const [formGrooming, setFormGrooming] = useState({
@@ -391,13 +431,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   };
 
   // Helper to create a new session
-  const createNewSession = (initialKru?: Kru, defaultProduct?: string): AssessmentSessionTab => {
-    const prodName = defaultProduct || 'Nasi Putih Pulen (Miyako 4-6 Cup)';
+  const createNewSession = (initialKru?: Kru, defaultProduct?: string, defaultQueue?: string[]): AssessmentSessionTab => {
+    const prodName = defaultProduct || allAvailableProducts[0]?.nama || 'Nasi 4 Cup';
     const prodDef = allAvailableProducts.find(p => p.nama === prodName) || allAvailableProducts[0];
     const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
 
     const candidateId = initialKru?.id || (kruList[0]?.id ?? 'manual-1');
     const candidateName = initialKru?.nama_kru || (kruList[0]?.nama_kru ?? 'Iqbal Muzzaki');
+    const queue = defaultQueue && defaultQueue.length > 0 ? defaultQueue : [prodDef.nama];
 
     return {
       id: newId,
@@ -410,6 +451,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       batch: prodDef.batch,
       station: prodDef.station,
       productNama: prodDef.nama,
+      productQueue: queue,
+      currentProductIndex: 0,
+      completedProducts: [],
       timerSeconds: 0,
       isTimerRunning: false,
       suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
@@ -419,6 +463,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       skorKnowledge: 100,
       catatanTrainer: '',
       productNotes: {},
+      productStates: {},
       isSaved: false,
     };
   };
@@ -434,6 +479,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setBatches(b);
     setSikapList(db.getPenilaianSikapKebersihanKru());
     setHistoryList(db.getPenilaianPraktikProduk());
+    setTimList(db.getPenilaianTimStasiun());
     const rawMatrix = localStorage.getItem('hara_pd_peserta_matrix_tc');
     if (rawMatrix !== null) {
       try {
@@ -441,20 +487,22 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       } catch {}
     }
 
-    const savedDrafts = db.getTable<AssessmentSessionTab>('draft_assessment_sessions');
-    if (Array.isArray(savedDrafts) && savedDrafts.length > 0) {
-      setSessions(savedDrafts);
-      setActiveTabId(prev => (prev && savedDrafts.some(s => s.id === prev) ? prev : savedDrafts[0].id));
-    } else {
-      setSessions(prev => {
-        if (!prev || prev.length === 0) {
-          const init = createNewSession(k[0]);
-          setActiveTabId(init.id);
-          return [init];
+    // Resilient local draft check: NEVER overwrite active working sessions with initial defaults!
+    setSessions(prev => {
+      if (prev && prev.length > 0) return prev;
+      try {
+        const saved = localStorage.getItem('hara_active_assessment_sessions');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed;
+          }
         }
-        return prev;
-      });
-    }
+      } catch {}
+      const init = createNewSession(k[0]);
+      setActiveTabId(init.id);
+      return [init];
+    });
   };
 
   useEffect(() => {
@@ -492,7 +540,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }));
   };
 
-  // Stopwatch Interval
+  // Stopwatch Interval - Keep active timer and productStates in sync
   useEffect(() => {
     const active = sessions.find(s => s.id === activeTabId);
     if (!active || !active.isTimerRunning) return;
@@ -500,7 +548,26 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const interval = setInterval(() => {
       setSessions(prev => prev.map(s => {
         if (s.id === activeTabId && s.isTimerRunning) {
-          return { ...s, timerSeconds: s.timerSeconds + 1 };
+          const newSeconds = s.timerSeconds + 1;
+          const currProd = s.productNama;
+          const currProdState: ProductPracticeState = {
+            timerSeconds: newSeconds,
+            isTimerRunning: true,
+            stepChecklist: s.stepChecklist,
+            knowledgeAnswers: s.knowledgeAnswers,
+            skorKnowledge: s.skorKnowledge,
+            suhuMinyakProbe: s.suhuMinyakProbe,
+            gramaturAktual: s.gramaturAktual,
+            catatanTrainer: s.catatanTrainer,
+          };
+          return {
+            ...s,
+            timerSeconds: newSeconds,
+            productStates: {
+              ...(s.productStates || {}),
+              [currProd]: currProdState
+            }
+          };
         }
         return s;
       }));
@@ -508,6 +575,59 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
     return () => clearInterval(interval);
   }, [activeTabId, sessions]);
+
+  // Switch product safely without losing timer or checklist state
+  const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
+    if (!activeSession) return;
+    const currentProd = activeSession.productNama;
+    const targetProd = allAvailableProducts.find(p => p.nama === targetProdName) || allAvailableProducts[0];
+    if (!targetProd) return;
+
+    // 1. Snapshot current active product state
+    const currentSnapshot: ProductPracticeState = {
+      timerSeconds: activeSession.timerSeconds,
+      isTimerRunning: false, // pause on switch
+      stepChecklist: activeSession.stepChecklist,
+      knowledgeAnswers: activeSession.knowledgeAnswers,
+      skorKnowledge: activeSession.skorKnowledge,
+      suhuMinyakProbe: activeSession.suhuMinyakProbe,
+      gramaturAktual: activeSession.gramaturAktual,
+      catatanTrainer: activeSession.catatanTrainer,
+    };
+
+    const updatedProductStates: Record<string, ProductPracticeState> = {
+      ...(activeSession.productStates || {}),
+      [currentProd]: currentSnapshot,
+    };
+
+    // 2. Retrieve target product state if previously worked on, or initialize fresh
+    const targetState = updatedProductStates[targetProd.nama];
+
+    const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+      ? activeSession.productQueue
+      : [activeSession.productNama];
+    const newIndex = targetIdx !== undefined ? targetIdx : queue.indexOf(targetProd.nama);
+
+    updateActiveSession({
+      currentProductIndex: newIndex >= 0 ? newIndex : activeSession.currentProductIndex,
+      productNama: targetProd.nama,
+      day: targetProd.day,
+      batch: targetProd.batch,
+      station: targetProd.station,
+      timerSeconds: targetState ? targetState.timerSeconds : 0,
+      isTimerRunning: false, // stay paused until trainer hits play
+      stepChecklist: targetState ? targetState.stepChecklist : getInitialStepsForProduct(targetProd.nama),
+      knowledgeAnswers: targetState ? targetState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
+      skorKnowledge: targetState ? targetState.skorKnowledge : 100,
+      suhuMinyakProbe: targetState ? targetState.suhuMinyakProbe : (targetProd.targetSuhuMinyak || 160),
+      gramaturAktual: targetState ? targetState.gramaturAktual : (targetProd.targetGramatur || 0),
+      catatanTrainer: targetState ? (targetState.catatanTrainer || '') : (activeSession.productNotes?.[targetProd.nama] || ''),
+      productStates: updatedProductStates,
+      isSaved: false,
+    });
+
+    showToast(`Beralih ke: ${targetProd.nama} (Data & timer menu sebelumnya tetap tersimpan)`);
+  };
 
   // Format Time mm:ss
   const formatTime = (secs: number) => {
@@ -548,7 +668,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       showToast('Pilih minimal 1 kru.');
       return;
     }
-    const currentProduct = activeSession?.productNama || 'Nasi (Rice Cooker 4 Cup D1)';
+    const currentProduct = activeSession?.productNama || allAvailableProducts[0]?.nama || 'Nasi 4 Cup';
     const existingKruIds = sessions.map(s => s.kruId);
     
     const newSessionsToAdd: AssessmentSessionTab[] = [];
@@ -995,6 +1115,79 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }
   };
 
+  // Handle Save and Advance to next product in queue
+  const handleSaveAndAdvanceProduct = () => {
+    if (!activeSession) return;
+    handleSaveAssessment();
+
+    const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+      ? activeSession.productQueue
+      : [activeSession.productNama];
+    const currentIndex = activeSession.currentProductIndex || 0;
+    const nextIndex = currentIndex + 1;
+
+    const newCompleted: CompletedProductRecord[] = [
+      ...(activeSession.completedProducts || []).filter(cp => cp.productNama !== activeSession.productNama),
+      {
+        productNama: activeSession.productNama,
+        skorAkhir: calculatedScores.skorAkhir,
+        durasiDetik: activeSession.timerSeconds,
+        timestamp: new Date().toISOString(),
+        lulus: calculatedScores.isKompetenMandiri,
+      }
+    ];
+
+    const currentCompletedState: ProductPracticeState = {
+      timerSeconds: activeSession.timerSeconds,
+      isTimerRunning: false,
+      stepChecklist: activeSession.stepChecklist,
+      knowledgeAnswers: activeSession.knowledgeAnswers,
+      skorKnowledge: activeSession.skorKnowledge,
+      suhuMinyakProbe: activeSession.suhuMinyakProbe,
+      gramaturAktual: activeSession.gramaturAktual,
+      catatanTrainer: activeSession.catatanTrainer,
+    };
+
+    const updatedProductStates = {
+      ...(activeSession.productStates || {}),
+      [activeSession.productNama]: currentCompletedState,
+    };
+
+    if (nextIndex < queue.length) {
+      const nextProdName = queue[nextIndex];
+      const nextProdDef = allAvailableProducts.find(p => p.nama === nextProdName) || allAvailableProducts[0];
+      const nextSavedState = updatedProductStates[nextProdDef.nama];
+
+      updateActiveSession({
+        currentProductIndex: nextIndex,
+        productNama: nextProdDef.nama,
+        day: nextProdDef.day,
+        batch: nextProdDef.batch,
+        station: nextProdDef.station,
+        suhuMinyakProbe: nextSavedState ? nextSavedState.suhuMinyakProbe : (nextProdDef.targetSuhuMinyak || 160),
+        gramaturAktual: nextSavedState ? nextSavedState.gramaturAktual : (nextProdDef.targetGramatur || 0),
+        stepChecklist: nextSavedState ? nextSavedState.stepChecklist : getInitialStepsForProduct(nextProdDef.nama),
+        knowledgeAnswers: nextSavedState ? nextSavedState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
+        skorKnowledge: nextSavedState ? nextSavedState.skorKnowledge : 100,
+        timerSeconds: nextSavedState ? nextSavedState.timerSeconds : 0,
+        isTimerRunning: false,
+        catatanTrainer: nextSavedState ? (nextSavedState.catatanTrainer || '') : (activeSession.productNotes?.[nextProdDef.nama] || ''),
+        isSaved: false,
+        completedProducts: newCompleted,
+        productStates: updatedProductStates,
+      });
+
+      showToast(`Nilai ${activeSession.productNama} tersimpan! Beralih ke menu #${nextIndex + 1}: ${nextProdDef.nama}`);
+    } else {
+      updateActiveSession({
+        completedProducts: newCompleted,
+        productStates: updatedProductStates,
+        isSaved: true,
+      });
+      showToast(`Seluruh antrean (${queue.length} menu) untuk ${activeSession.namaKru} telah selesai dinilai dan tersimpan!`);
+    }
+  };
+
   // Helper filter riwayat penilaian praktik
   const filteredHistoryList = useMemo(() => {
     return historyList.filter(item => {
@@ -1304,14 +1497,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       )}
 
       {/* ===================================================================
-          SUB-TAB NAVIGATION BAR: PRAKTIK PRODUK (INDIVIDU) VS JOBDESK & STASIUN (TIM/SHIFT)
+          SUB-TAB NAVIGATION BAR: PRAKTIK PRODUK, PENILAIAN TIM, DETAIL SIKAP, RIWAYAT & PESERTA
           =================================================================== */}
-      <div className="p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#E6E1DA] flex flex-col sm:flex-row items-center justify-between gap-2 shadow-2xs">
-        <div className="flex items-center gap-1.5 w-full sm:w-auto">
+      <div className="p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#E6E1DA] shadow-2xs">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full py-0.5 px-0.5">
           <button
             type="button"
             onClick={() => setActiveSubTab('produk')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
               activeSubTab === 'produk'
                 ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
                 : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
@@ -1328,44 +1521,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('riwayat')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
-              activeSubTab === 'riwayat'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
-            }`}
-          >
-            <FileText size={15} />
-            <span>Riwayat & Rekap Penilaian</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
-            }`}>
-              {historyList.length} Rekap
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('jobdesk')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
-              activeSubTab === 'jobdesk'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
-            }`}
-          >
-            <ClipboardCheck size={15} />
-            <span>Detail Sikap & Higiene</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
-            }`}>
-              5 Dimensi
-            </span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveSubTab('tim')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
               activeSubTab === 'tim'
                 ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
                 : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
@@ -1382,8 +1539,44 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
+            onClick={() => setActiveSubTab('jobdesk')}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+              activeSubTab === 'jobdesk'
+                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+            }`}
+          >
+            <ClipboardCheck size={15} />
+            <span>Detail Sikap & Higiene (SK 1 & SK 2)</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            }`}>
+              4 Dimensi
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('riwayat')}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+              activeSubTab === 'riwayat'
+                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+            }`}
+          >
+            <FileText size={15} />
+            <span>Riwayat & Rekap Penilaian</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            }`}>
+              {historyList.length} Rekap
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveSubTab('peserta')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
               activeSubTab === 'peserta'
                 ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
                 : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
@@ -1392,11 +1585,6 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             <GraduationCap size={15} />
             <span>Kelola Peserta ({pesertaMatrix.length})</span>
           </button>
-        </div>
-
-        <div className="flex items-center gap-2 text-xs text-[#645D55] px-2 py-1">
-          <Building2 size={13} className="text-[#96171B]" />
-          <span>📍 Kantor Lempongsari • Master Produk SOP • Ceklis Sikap • Penilaian Tim (St. 1 & 2)</span>
         </div>
       </div>
 
@@ -1634,6 +1822,82 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           {/* ACTIVE SESSION CONTROLS: PESERTA & SEARCHABLE PRODUCT SELECTOR */}
           {activeSession && (
             <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-4">
+              {/* DAFTAR ANTREAN TUGAS PRODUK (MULTI-PRODUCT STEPPER) */}
+              {(() => {
+                const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+                  ? activeSession.productQueue
+                  : [activeSession.productNama];
+                const currentIdx = activeSession.currentProductIndex || 0;
+
+                return (
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Layers size={14} className="text-[#96171B]" />
+                        <span className="text-xs font-bold text-[#181411]">
+                          Daftar Tugas Produk Praktik ({queue.length} Menu Terjadwal)
+                        </span>
+                        <span className="text-[11px] text-[#645D55]">
+                          • Menu Aktif #{currentIdx + 1} dari {queue.length}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsManageQueueOpen(true)}
+                          className="px-2.5 py-1.5 rounded-lg bg-white border border-[#E6E1DA] hover:border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
+                          title="Tambah atau atur menu yang diujikan untuk kru ini"
+                        >
+                          <Plus size={13} />
+                          <span>Atur / Tambah Menu Praktik</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Stepper Buttons Bar */}
+                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
+                      {queue.map((prodName, pIdx) => {
+                        const isCurrent = pIdx === currentIdx;
+                        const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === prodName);
+                        const isDone = !!completedRecord;
+
+                        return (
+                          <button
+                            key={`${prodName}-${pIdx}`}
+                            type="button"
+                            onClick={() => {
+                              switchSessionProduct(prodName, pIdx);
+                            }}
+                            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                              isCurrent
+                                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                                : isDone
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                : 'bg-white text-[#645D55] border-[#E6E1DA] hover:border-neutral-400'
+                            }`}
+                          >
+                            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
+                              isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-700'
+                            }`}>
+                              {isDone ? '✓' : pIdx + 1}
+                            </span>
+                            <span className="truncate max-w-[170px]">{prodName}</span>
+                            {completedRecord && (
+                              <span className={`text-[10px] font-mono px-1 rounded ${
+                                isCurrent ? 'bg-white/30 text-white' : 'bg-emerald-200/60 text-emerald-900'
+                              }`}>
+                                {completedRecord.skorAkhir}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
                 {/* Peserta Praktik (Clean Crew Selector without hardcoded pills) */}
                 <div className="lg:col-span-5 space-y-1.5">
@@ -2161,11 +2425,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   <div className="pt-2 space-y-2">
                     <button
                       type="button"
-                      onClick={handleSaveAssessment}
-                      className="w-full py-3 px-4 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                      onClick={handleSaveAndAdvanceProduct}
+                      className="w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <Award size={16} />
-                      <span>Simpan & Rekam Nilai Praktik</span>
+                      <CheckCircle2 size={16} />
+                      <span>
+                        {((activeSession.currentProductIndex || 0) + 1 < (activeSession.productQueue || [activeSession.productNama]).length)
+                          ? 'Simpan & Lanjut ke Menu Berikutnya ➔'
+                          : 'Simpan Menu & Selesaikan Sesi Kru'}
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSaveAssessment}
+                      className="w-full py-2.5 px-4 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Award size={15} />
+                      <span>Simpan Menu Ini Saja (Tanpa Lanjut)</span>
                     </button>
 
                     <button
@@ -2621,10 +2898,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   onChange={(e) => setFormSikapStation(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-[#E6E1DA] bg-[#FAF8F5] font-bold text-[#181411] focus:outline-none focus:border-[#96171B]"
                 >
-                  <option value="Stasiun 1: Nasi, Teh, & Sup">Stasiun 1: Nasi, Teh, & Sup</option>
-                  <option value="Stasiun 2: Marinate, Breading, & Fryer">Stasiun 2: Marinate, Breading, & Fryer</option>
-                  <option value="Stasiun 3: Sambal Cobek, Holding, Kasir/Packing">Stasiun 3: Sambal Cobek, Holding, Kasir/Packing</option>
-                  <option value="All Stasiun: Kitchen & Service">All Stasiun: Kitchen & Service (Rotasi Penuh)</option>
+                  <option value="Station Kerja 1">Station Kerja 1 (SK 1: Preparation, Nasi, Panci, Marinasi)</option>
+                  <option value="Station Kerja 2">Station Kerja 2 (SK 2: Fryer, Crispy, Geprek, Sambal, Packing)</option>
                 </select>
               </div>
             </div>
@@ -3039,42 +3314,36 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setSelectedTimStation('Station Kerja 1')}
+                  onClick={() => setSelectedTimStation('Station 1')}
                   className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
-                    selectedTimStation === 'Station Kerja 1'
+                    selectedTimStation === 'Station 1' || selectedTimStation === 'Station Kerja 1'
                       ? 'border-[#96171B] bg-red-50/40 ring-2 ring-[#96171B]/20'
                       : 'border-[#E6E1DA] bg-white hover:border-neutral-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-extrabold text-sm text-[#181411]">Station Kerja 1</span>
-                    {selectedTimStation === 'Station Kerja 1' && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#96171B] text-white text-[10px] font-bold">Aktif Dinilai</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-base text-[#181411]">Station 1</span>
+                    {(selectedTimStation === 'Station 1' || selectedTimStation === 'Station Kerja 1') && (
+                      <span className="px-2.5 py-1 rounded-full bg-[#96171B] text-white text-[11px] font-bold">Aktif Dinilai</span>
                     )}
                   </div>
-                  <p className="text-xs text-[#645D55]">
-                    Thawing & Marinasi Ayam, Pengadukan Tepung (Dusting 2x), Penggorengan Deep Fryer 160°C, Rice Cooker & Panci Kaldu.
-                  </p>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setSelectedTimStation('Station Kerja 2')}
+                  onClick={() => setSelectedTimStation('Station 2')}
                   className={`p-4 rounded-xl border text-left transition-all cursor-pointer ${
-                    selectedTimStation === 'Station Kerja 2'
+                    selectedTimStation === 'Station 2' || selectedTimStation === 'Station Kerja 2'
                       ? 'border-[#96171B] bg-red-50/40 ring-2 ring-[#96171B]/20'
                       : 'border-[#E6E1DA] bg-white hover:border-neutral-400'
                   }`}
                 >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-extrabold text-sm text-[#181411]">Station Kerja 2</span>
-                    {selectedTimStation === 'Station Kerja 2' && (
-                      <span className="px-2 py-0.5 rounded-full bg-[#96171B] text-white text-[10px] font-bold">Aktif Dinilai</span>
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-base text-[#181411]">Station 2</span>
+                    {(selectedTimStation === 'Station 2' || selectedTimStation === 'Station Kerja 2') && (
+                      <span className="px-2.5 py-1 rounded-full bg-[#96171B] text-white text-[11px] font-bold">Aktif Dinilai</span>
                     )}
                   </div>
-                  <p className="text-xs text-[#645D55]">
-                    Ulekan Sambal Cobek Batu, Geprek & Torching Mentai/Moza, Holding Warmer Showcase, Perakitan Box & Kasir/Packaging.
-                  </p>
                 </button>
               </div>
             </div>
@@ -3237,97 +3506,175 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               </div>
             </div>
 
-            {/* 4. 5 Slider Penilaian Dimensi Tim */}
+            {/* 4. Rubrik Objektif Level Perilaku Kerja Tim Stasiun */}
             <div className="space-y-4 pt-2">
-              <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
-                4. Pembobotan Nilai Dimensi Tim Stasiun:
-              </label>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                {/* 1. Ritme & Flow (25%) */}
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
-                    <span>1. Ritme & Flow (25%)</span>
-                    <span className="font-mono text-[#96171B]">{timScoreRitme}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={100}
-                    value={timScoreRitme}
-                    onChange={(e) => setTimScoreRitme(Number(e.target.value))}
-                    className="w-full accent-[#96171B]"
-                  />
-                  <span className="text-[10px] text-[#645D55] block">Kecepatan alur kerja bersama tanpa jeda.</span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
+                    4. Rubrik Objektif Level Perilaku Tim ({selectedTimStation}):
+                  </label>
+                  <p className="text-xs text-[#645D55]">
+                    Pilih level perilaku kerja konkret (Level 1–4) per dimensi untuk penetapan skor objektif terstandar.
+                  </p>
                 </div>
+                <span className="text-[11px] text-stone-500 italic">
+                  *Klik level perilaku untuk set skor otomatis, atau geser slider untuk fine-tuning
+                </span>
+              </div>
 
-                {/* 2. Komunikasi Tim (25%) */}
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
-                    <span>2. Komunikasi Tim (25%)</span>
-                    <span className="font-mono text-[#96171B]">{timScoreKomunikasi}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={100}
-                    value={timScoreKomunikasi}
-                    onChange={(e) => setTimScoreKomunikasi(Number(e.target.value))}
-                    className="w-full accent-[#96171B]"
-                  />
-                  <span className="text-[10px] text-[#645D55] block">Respon vokal "Yes Chef" & koordinasi rush.</span>
-                </div>
+              <div className="space-y-4">
+                {[
+                  {
+                    id: 'ritme',
+                    title: '1. Ritme & Flow Kerja Bersama',
+                    bobot: '25%',
+                    score: timScoreRitme,
+                    setScore: setTimScoreRitme,
+                    levels: [
+                      { lvl: 4, val: 95, label: 'Level 4 (95)', tag: 'Sangat Mandiri', desc: 'Flow lancar tanpa jeda, serah terima cepat, proaktif saling back-up tanpa menunggu instruksi.' },
+                      { lvl: 3, val: 85, label: 'Level 3 (85)', tag: 'Standar SOP', desc: 'Ritme stabil sesuai target SOP, jeda kerja wajar, urutan tugas berjalan tertib.' },
+                      { lvl: 2, val: 70, label: 'Level 2 (70)', tag: 'Perlu Arahan', desc: 'Terjadi hambatan/antrean mandek di proses tertentu, kru canggung membagi beban tugas.' },
+                      { lvl: 1, val: 50, label: 'Level 1 (50)', tag: 'Kritis / Kurang', desc: 'Penumpukan parah, proses terhenti total, kru kebingungan menentukan prioritas alur.' },
+                    ]
+                  },
+                  {
+                    id: 'komunikasi',
+                    title: '2. Respon & Komunikasi Vokal',
+                    bobot: '25%',
+                    score: timScoreKomunikasi,
+                    setScore: setTimScoreKomunikasi,
+                    levels: [
+                      { lvl: 4, val: 95, label: 'Level 4 (95)', tag: 'Sangat Mandiri', desc: 'Callout order & peringatan bahaya panas lantang jelas, selalu ada feedback tegas ("Yes Chef" / "Siap").' },
+                      { lvl: 3, val: 85, label: 'Level 3 (85)', tag: 'Standar SOP', desc: 'Komunikasi vokal hadir teratur pada serah terima order dan info keselamatan kerja.' },
+                      { lvl: 2, val: 70, label: 'Level 2 (70)', tag: 'Perlu Arahan', desc: 'Suara pelan/ragu, sering lupa membalas callout rekan, koordinasi saat rush terlambat.' },
+                      { lvl: 1, val: 50, label: 'Level 1 (50)', tag: 'Kritis / Kurang', desc: 'Hening pasif, tidak ada komunikasi antar kru, memicu salah pesanan dan bahaya kerja.' },
+                    ]
+                  },
+                  {
+                    id: 'kebersihan',
+                    title: '3. Kebersihan 5S & Sanitasi Bersama',
+                    bobot: '20%',
+                    score: timScoreKebersihan,
+                    setScore: setTimScoreKebersihan,
+                    levels: [
+                      { lvl: 4, val: 95, label: 'Level 4 (95)', tag: 'Sangat Mandiri', desc: '"Clean as you go" sempurna, meja stainless & alat diseka seketika pasca pakai, lantai bebas minyak.' },
+                      { lvl: 3, val: 85, label: 'Level 3 (85)', tag: 'Standar SOP', desc: 'Meja & peralatan dibersihkan berkala setiap selesai tahapan, sanitasi terjaga rapi.' },
+                      { lvl: 2, val: 70, label: 'Level 2 (70)', tag: 'Perlu Arahan', desc: 'Ceceran minyak/tepung dibiarkan sampai ditegur trainer baru mulai dibersihkan.' },
+                      { lvl: 1, val: 50, label: 'Level 1 (50)', tag: 'Kritis / Kurang', desc: 'Area kerja kotor dan licin, melanggar higiene sanitasi makanan di stasiun.' },
+                    ]
+                  },
+                  {
+                    id: 'sop',
+                    title: '4. Kepatuhan Standar SOP Bersama',
+                    bobot: '15%',
+                    score: timScoreSOP,
+                    setScore: setTimScoreSOP,
+                    levels: [
+                      { lvl: 4, val: 95, label: 'Level 4 (95)', tag: 'Sangat Mandiri', desc: 'Seluruh kru di stasiun disiplin mematuhi titik kritis SOP (suhu, gramatur, resting) tanpa deviasi.' },
+                      { lvl: 3, val: 85, label: 'Level 3 (85)', tag: 'Standar SOP', desc: 'Eksekusi SOP sesuai prosedur baku, takaran bumbu & urutan kerja dikerjakan benar.' },
+                      { lvl: 2, val: 70, label: 'Level 2 (70)', tag: 'Perlu Arahan', desc: 'Ada langkah minor yang dilompati atau tidak terstandar saat operasional berlangsung.' },
+                      { lvl: 1, val: 50, label: 'Level 1 (50)', tag: 'Kritis / Kurang', desc: 'Pelanggaran titik kritis SOP yang berisiko merusak kualitas produk atau keselamatan.' },
+                    ]
+                  },
+                  {
+                    id: 'handover',
+                    title: '5. Handover Produk & Estafet Antar Kru',
+                    bobot: '15%',
+                    score: timScoreHandover,
+                    setScore: setTimScoreHandover,
+                    levels: [
+                      { lvl: 4, val: 95, label: 'Level 4 (95)', tag: 'Sangat Mandiri', desc: 'Serah terima produk dari penggorengan / peracikan ke packaging sangat mulus, rapi, dan cepat.' },
+                      { lvl: 3, val: 85, label: 'Level 3 (85)', tag: 'Standar SOP', desc: 'Handover teratur sesuai urutan nomor order pelanggan dan disiplin FIFO.' },
+                      { lvl: 2, val: 70, label: 'Level 2 (70)', tag: 'Perlu Arahan', desc: 'Sering salah ambil porsi atau produk tertukar saat serah terima antar kru.' },
+                      { lvl: 1, val: 50, label: 'Level 1 (50)', tag: 'Kritis / Kurang', desc: 'Estafet kacau, produk jatuh/rusak saat dioper, kemasan penyok, atau FIFO diabaikan.' },
+                    ]
+                  }
+                ].map((dim) => {
+                  const activeLevel = dim.levels.find(l => {
+                    if (l.lvl === 4 && dim.score >= 90) return true;
+                    if (l.lvl === 3 && dim.score >= 80 && dim.score < 90) return true;
+                    if (l.lvl === 2 && dim.score >= 65 && dim.score < 80) return true;
+                    if (l.lvl === 1 && dim.score < 65) return true;
+                    return false;
+                  }) || dim.levels[1];
 
-                {/* 3. Kebersihan 5S (20%) */}
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
-                    <span>3. Kebersihan 5S (20%)</span>
-                    <span className="font-mono text-[#96171B]">{timScoreKebersihan}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={100}
-                    value={timScoreKebersihan}
-                    onChange={(e) => setTimScoreKebersihan(Number(e.target.value))}
-                    className="w-full accent-[#96171B]"
-                  />
-                  <span className="text-[10px] text-[#645D55] block">Sanitasi meja & peralatan kerja bersama.</span>
-                </div>
+                  return (
+                    <div key={dim.id} className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="font-extrabold text-sm text-[#181411]">{dim.title}</span>
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-200 text-stone-700">
+                            Bobot: {dim.bobot}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                            dim.score >= 85 ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                            dim.score >= 75 ? 'bg-blue-100 text-blue-800 border border-blue-300' :
+                            'bg-amber-100 text-amber-800 border border-amber-300'
+                          }`}>
+                            {activeLevel.tag}
+                          </span>
+                          <span className="font-mono font-black text-base text-[#96171B] w-9 text-right">
+                            {dim.score}
+                          </span>
+                        </div>
+                      </div>
 
-                {/* 4. Kepatuhan SOP (15%) */}
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
-                    <span>4. Kepatuhan SOP (15%)</span>
-                    <span className="font-mono text-[#96171B]">{timScoreSOP}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={100}
-                    value={timScoreSOP}
-                    onChange={(e) => setTimScoreSOP(Number(e.target.value))}
-                    className="w-full accent-[#96171B]"
-                  />
-                  <span className="text-[10px] text-[#645D55] block">Kesesuaian langkah teknis bersama standar SOP.</span>
-                </div>
+                      {/* Level Rubric Buttons */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                        {dim.levels.map((lvl) => {
+                          const isLevelActive = activeLevel.lvl === lvl.lvl;
+                          return (
+                            <button
+                              key={lvl.lvl}
+                              type="button"
+                              onClick={() => dim.setScore(lvl.val)}
+                              className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-1.5 ${
+                                isLevelActive
+                                  ? 'bg-white border-[#96171B] shadow-2xs ring-2 ring-[#96171B]/20'
+                                  : 'bg-white/70 border-[#E6E1DA] hover:bg-white hover:border-neutral-400'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span className={`text-[11px] font-extrabold ${isLevelActive ? 'text-[#96171B]' : 'text-[#181411]'}`}>
+                                  {lvl.label}
+                                </span>
+                                <span className={`text-[9.5px] px-1.5 py-0.5 rounded font-bold ${
+                                  lvl.lvl === 4 ? 'bg-emerald-50 text-emerald-700' :
+                                  lvl.lvl === 3 ? 'bg-blue-50 text-blue-700' :
+                                  lvl.lvl === 2 ? 'bg-amber-50 text-amber-700' :
+                                  'bg-rose-50 text-rose-700'
+                                }`}>
+                                  {lvl.tag}
+                                </span>
+                              </div>
+                              <p className="text-[10.5px] text-[#645D55] leading-relaxed">
+                                {lvl.desc}
+                              </p>
+                            </button>
+                          );
+                        })}
+                      </div>
 
-                {/* 5. Handover Saji (15%) */}
-                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2 sm:col-span-2 md:col-span-1">
-                  <div className="flex items-center justify-between text-xs font-bold text-[#181411]">
-                    <span>5. Handover Produk (15%)</span>
-                    <span className="font-mono text-[#96171B]">{timScoreHandover}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min={50}
-                    max={100}
-                    value={timScoreHandover}
-                    onChange={(e) => setTimScoreHandover(Number(e.target.value))}
-                    className="w-full accent-[#96171B]"
-                  />
-                  <span className="text-[10px] text-[#645D55] block">Kerapian estafet operan hasil masak ke depan.</span>
-                </div>
+                      {/* Fine-Tuning Slider Bar */}
+                      <div className="flex items-center gap-3 pt-1">
+                        <span className="text-[10px] text-stone-400 font-bold uppercase shrink-0">Fine-Tune Nilai:</span>
+                        <input
+                          type="range"
+                          min={50}
+                          max={100}
+                          value={dim.score}
+                          onChange={(e) => dim.setScore(Number(e.target.value))}
+                          className="w-full accent-[#96171B] cursor-pointer"
+                        />
+                        <span className="font-mono text-xs font-bold text-[#181411] shrink-0 w-8 text-right">
+                          {dim.score}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -4082,30 +4429,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <div
                         key={prod.id}
                         onClick={() => {
-                          const initialSteps = getInitialStepsForProduct(prod.nama);
-                          const pNotes = { ...(activeSession?.productNotes || {}) };
-                          if (activeSession?.productNama) {
-                            pNotes[activeSession.productNama] = activeSession.catatanTrainer || '';
-                          }
-                          const noteForNewProduct = pNotes[prod.nama] || '';
-
-                          updateActiveSession({
-                            productNama: prod.nama,
-                            day: prod.day,
-                            batch: prod.batch,
-                            station: prod.station,
-                            timerSeconds: 0,
-                            isTimerRunning: false,
-                            suhuMinyakProbe: prod.requiresOilTemp ? (prod.targetSuhuMinyak || 160) : 0,
-                            gramaturAktual: prod.requiresGramatur ? (prod.targetGramatur || 0) : 0,
-                            stepChecklist: initialSteps,
-                            knowledgeAnswers: { 0: true, 1: true, 2: true },
-                            skorKnowledge: 100,
-                            catatanTrainer: noteForNewProduct,
-                            productNotes: pNotes,
-                          });
+                          switchSessionProduct(prod.nama);
                           setIsProductPickerOpen(false);
-                          showToast(`Produk diganti ke: ${prod.nama}`);
                         }}
                         className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
                           isSelected
@@ -4678,6 +5003,166 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               >
                 <Save size={14} />
                 <span>Simpan Target SOP</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          MODAL: ATUR & TAMBAH ANTREAN MENU PRAKTIK KRU
+          =================================================================== */}
+      {isManageQueueOpen && activeSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-2xl w-full overflow-hidden text-[#181411] animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-[#E6E1DA] flex items-center justify-between bg-stone-50 shrink-0">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-red-50 text-[#96171B] flex items-center justify-center border border-red-200">
+                  <Layers size={18} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-[#181411]">
+                    Atur Antrean Menu Praktik Kru
+                  </h3>
+                  <p className="text-[11px] text-[#645D55]">
+                    Peserta: <strong>{activeSession.namaKru}</strong> ({activeSession.outletCode})
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsManageQueueOpen(false)}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4 overflow-y-auto flex-1 text-xs">
+              {/* CURRENT QUEUE */}
+              <div>
+                <label className="block font-bold text-[#645D55] uppercase text-[10.5px] mb-1.5">
+                  1. Daftar Menu yang Sedang Ditugaskan (Urutan Pengerjaan):
+                </label>
+                {(() => {
+                  const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+                    ? activeSession.productQueue
+                    : [activeSession.productNama];
+
+                  return (
+                    <div className="space-y-1.5 p-3 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                      {queue.map((item, idx) => {
+                        const isCurrent = idx === (activeSession.currentProductIndex || 0);
+                        const isDone = (activeSession.completedProducts || []).some(cp => cp.productNama === item);
+
+                        return (
+                          <div
+                            key={`${item}-${idx}`}
+                            className="flex items-center justify-between p-2.5 rounded-lg bg-white border border-[#E6E1DA]"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono font-bold shrink-0 ${
+                                isCurrent ? 'bg-[#96171B] text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-700'
+                              }`}>
+                                {isDone ? '✓' : idx + 1}
+                              </span>
+                              <span className="font-bold text-[#181411] truncate">{item}</span>
+                              {isCurrent && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-100 text-[#96171B] font-bold shrink-0">
+                                  Sedang Diuji
+                                </span>
+                              )}
+                              {isDone && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold shrink-0">
+                                  Sudah Dinilai
+                                </span>
+                              )}
+                            </div>
+
+                            {queue.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
+                                  const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
+                                  const targetProd = allAvailableProducts.find(p => p.nama === updatedQueue[newCurrentIdx]) || allAvailableProducts[0];
+                                  updateActiveSession({
+                                    productQueue: updatedQueue,
+                                    currentProductIndex: newCurrentIdx,
+                                    productNama: targetProd.nama,
+                                  });
+                                }}
+                                className="p-1 rounded text-stone-400 hover:text-rose-600 transition-colors"
+                                title="Hapus menu dari antrean"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* ADD MORE PRODUCTS FROM MASTER LIST */}
+              <div>
+                <label className="block font-bold text-[#645D55] uppercase text-[10.5px] mb-1.5">
+                  2. Tambah Menu Lain ke Antrean Praktik:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-56 overflow-y-auto p-1">
+                  {allAvailableProducts.map((p) => {
+                    const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+                      ? activeSession.productQueue
+                      : [activeSession.productNama];
+                    const isInQueue = queue.includes(p.nama);
+
+                    return (
+                      <div
+                        key={p.id}
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-[#E6E1DA] bg-white hover:border-neutral-400 text-xs transition-colors"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <span className="font-bold text-[#181411] block truncate">{p.nama}</span>
+                          <span className="text-[10.5px] text-[#645D55] block truncate">
+                            {p.day} • {p.stationLabel} • {Math.round(p.stdDetik / 60)} mnt
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={isInQueue}
+                          onClick={() => {
+                            const newQueue = [...queue, p.nama];
+                            updateActiveSession({ productQueue: newQueue });
+                            showToast(`Menu "${p.nama}" ditambahkan ke antrean praktik.`);
+                          }}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all shrink-0 cursor-pointer ${
+                            isInQueue
+                              ? 'bg-stone-100 text-stone-400 cursor-not-allowed border border-stone-200'
+                              : 'bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-200'
+                          }`}
+                        >
+                          {isInQueue ? 'Sudah Ada' : '+ Tambah'}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-[#E6E1DA] bg-stone-50 flex items-center justify-between shrink-0">
+              <span className="text-[11px] text-[#645D55]">
+                {(activeSession.productQueue || [activeSession.productNama]).length} menu siap diujikan berurutan.
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsManageQueueOpen(false)}
+                className="px-5 py-2 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+              >
+                Selesai Mengatur
               </button>
             </div>
           </div>

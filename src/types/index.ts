@@ -1244,7 +1244,7 @@ export interface PenilaianTimStasiun {
   batch_id?: string;
   batch_name?: string;
   kode_outlet: string; // 'Kantor Lempongsari'
-  stasiun: 'Station Kerja 1' | 'Station Kerja 2';
+  stasiun: 'Station 1' | 'Station 2' | 'Station Kerja 1' | 'Station Kerja 2';
   anggota_kru_ids: string[];
   anggota_kru_nama: string[];
   shift?: string;
