@@ -2989,6 +2989,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                                 const updated = pesertaMatrix.filter(p => p.nama !== item.nama);
                                 setPesertaMatrix(updated);
                                 db.setTable('peserta_matrix_tc', updated);
+
+                                // Remove from all onboarding batches so they do not reappear in candidate lists
+                                const allBatches = db.getOnboardingBatches();
+                                allBatches.forEach(b => {
+                                  if (Array.isArray(b.peserta)) {
+                                    const filteredPeserta = b.peserta.filter(p => p.nama_kru.toLowerCase().trim() !== item.nama.toLowerCase().trim());
+                                    if (filteredPeserta.length !== b.peserta.length) {
+                                      b.peserta = filteredPeserta;
+                                      db.saveOnboardingBatch(b);
+                                    }
+                                  }
+                                });
+                                setBatches(db.getOnboardingBatches());
+
                                 showToast(`Peserta "${item.nama}" berhasil dihapus secara permanen.`);
                               }}
                               className="p-1.5 rounded-lg border border-rose-200 hover:border-rose-600 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all cursor-pointer"
