@@ -1131,6 +1131,16 @@ export interface PenilaianPraktikOnboardingProduk {
   knowledge_questions?: { question: string; answerKey: string; passed: boolean }[];
 
   // Legacy & Alternate Aliases
+  kru_nama?: string;
+  outlet?: string;
+  posisi_stasiun?: string;
+  status_waktu?: string;
+  skor_langkah_teknis?: number;
+  total_skor?: number;
+  trainer_nama?: string;
+  catatan_evaluasi?: string;
+  subskor_teknis?: number;
+  subskor_sikap?: number;
   skor_ketepatan?: number;
   skor_langkah_sop?: number;
   skor_kecepatan?: number;

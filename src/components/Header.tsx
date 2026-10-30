@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { AppUser, Outlet } from '../types';
 import { subscribeCloudSyncStatus, getCloudSyncStatus, CloudSyncStatus } from '../lib/firestoreSync';
+import { getSupabaseStatus, subscribeSupabaseStatus, SupabaseStatus } from '../lib/supabase';
 import { HaraLogo } from './HaraLogo';
 
 interface HeaderProps {
@@ -39,22 +40,10 @@ export const Header: React.FC<HeaderProps> = ({
   const [showNotifications, setShowNotifications] = useState(false);
   const [showOutletDropdown, setShowOutletDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [supabaseStatus, setSupabaseStatus] = useState<import('../lib/supabase').SupabaseStatus>(() => {
-    try {
-      const { getSupabaseStatus } = require('../lib/supabase');
-      return getSupabaseStatus();
-    } catch {
-      return 'disconnected';
-    }
-  });
+  const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>(() => getSupabaseStatus());
 
   useEffect(() => {
-    let unsub = () => {};
-    import('../lib/supabase').then(({ subscribeSupabaseStatus, getSupabaseStatus }) => {
-      setSupabaseStatus(getSupabaseStatus());
-      unsub = subscribeSupabaseStatus(setSupabaseStatus);
-    }).catch(() => {});
-    return () => unsub();
+    return subscribeSupabaseStatus(setSupabaseStatus);
   }, []);
 
   // Notifications State

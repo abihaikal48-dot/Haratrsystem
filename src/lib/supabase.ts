@@ -110,18 +110,28 @@ export async function testSupabaseConnection(
 
   try {
     const testClient = createClient(targetUrl, targetKey);
-    // Jalankan query ringan pada tabel outlets atau app_store
-    const { data, error } = await testClient.from('outlets').select('id').limit(1);
+    // 1. Uji Baca (Read Test)
+    const { data, error } = await testClient.from('app_store').select('key').limit(1);
 
     if (error) {
-      // Jika tabel belum dibuat, coba test app_store atau cek error code
       if (error.code === '42P01') {
-        // Table does not exist yet (skema belum di-run)
-        setStatus('connected');
+        // Tabel app_store belum ada di public schema
+        // Coba cek apakah ada tabel outlets
+        const { error: errOutlets } = await testClient.from('outlets').select('id').limit(1);
+        if (errOutlets && errOutlets.code === '42P01') {
+          setStatus('connected');
+          return {
+            success: true,
+            message: 'Terkoneksi ke Supabase, namun tabel database belum dibuat! Buka menu SQL Editor di Supabase dan jalankan script SQL Schema resmi HARA.',
+            tableCount: 0,
+          };
+        }
+      }
+      if (error.code === '42501') {
+        setStatus('error');
         return {
-          success: true,
-          message: 'Terkoneksi ke Supabase! Perhatian: Tabel database belum dibuat. Silakan jalankan script SQL Schema di SQL Editor Supabase.',
-          tableCount: 0,
+          success: false,
+          message: 'Koneksi terhubung namun DITOLAK oleh Row Level Security (RLS error 42501). Jalankan skrip SQL Schema untuk menonaktifkan RLS atau memberi izin role anon.',
         };
       }
       setStatus('error');
@@ -131,10 +141,37 @@ export async function testSupabaseConnection(
       };
     }
 
+    // 2. Uji Tulis & Hapus (Write & Delete Test) untuk memastikan input data berhasil
+    const testKey = 'test_connection_ping';
+    const { error: writeError } = await testClient.from('app_store').upsert({
+      key: testKey,
+      value: { ping: 'ok', timestamp: new Date().toISOString() },
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'key' });
+
+    if (writeError) {
+      if (writeError.code === '42501') {
+        setStatus('error');
+        return {
+          success: false,
+          message: 'Tabel ditemukan tetapi izin TULIS diblokir RLS! Jalankan: ALTER TABLE app_store DISABLE ROW LEVEL SECURITY; di SQL Editor Supabase.',
+        };
+      }
+      setStatus('connected');
+      return {
+        success: true,
+        message: `Terhubung (Read OK, Write Warning: ${writeError.message}). Disarankan mengecek kebijakan RLS tabel.`,
+        tableCount: data ? data.length : 0,
+      };
+    }
+
+    // Bersihkan test key
+    await testClient.from('app_store').delete().eq('key', testKey);
+
     setStatus('connected');
     return {
       success: true,
-      message: 'Berhasil terhubung ke Supabase! Database siap digunakan secara online & real-time.',
+      message: 'Koneksi Supabase 100% Sempurna! Izin Baca & Tulis terverifikasi secara langsung.',
       tableCount: data ? data.length : 0,
     };
   } catch (err: any) {
@@ -208,6 +245,7 @@ export async function syncRowToSupabase(tableName: string, row: any): Promise<vo
     outlets: 'outlets',
     kru: 'kru',
     bank_sop: 'bank_sop',
+    bank_soal: 'bank_soal',
     hasil_ujian_mingguan: 'hasil_ujian_mingguan',
     kartu_keluhan: 'kartu_keluhan',
     tna: 'tna',
@@ -227,6 +265,12 @@ export async function syncRowToSupabase(tableName: string, row: any): Promise<vo
     log_aktivitas: 'log_aktivitas',
     app_users: 'app_users',
     users: 'app_users',
+    onboarding_batches: 'onboarding_batches',
+    penilaian_praktik_onboarding_produk: 'penilaian_praktik_onboarding_produk',
+    penilaian_onboarding_rnd: 'penilaian_praktik_onboarding_produk',
+    penilaian_onboarding_tc: 'penilaian_praktik_onboarding_produk',
+    attitude_hara: 'attitude_hara',
+    bank_sop_products: 'bank_sop',
   };
 
   const targetTable = validTableMap[tableName];
@@ -263,6 +307,7 @@ export async function deleteRowFromSupabase(tableName: string, id: string): Prom
     outlets: 'outlets',
     kru: 'kru',
     bank_sop: 'bank_sop',
+    bank_soal: 'bank_soal',
     hasil_ujian_mingguan: 'hasil_ujian_mingguan',
     kartu_keluhan: 'kartu_keluhan',
     tna: 'tna',
@@ -278,6 +323,10 @@ export async function deleteRowFromSupabase(tableName: string, id: string): Prom
     log_aktivitas: 'log_aktivitas',
     app_users: 'app_users',
     users: 'app_users',
+    onboarding_batches: 'onboarding_batches',
+    penilaian_praktik_onboarding_produk: 'penilaian_praktik_onboarding_produk',
+    penilaian_onboarding_rnd: 'penilaian_praktik_onboarding_produk',
+    attitude_hara: 'attitude_hara',
   };
 
   const targetTable = validTableMap[tableName];
@@ -453,6 +502,31 @@ export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRe
       total += userData.length;
     }
 
+    const { data: batchData } = await supabase.from('onboarding_batches').select('*');
+    if (batchData && batchData.length > 0) {
+      db.setTable('onboarding_batches', batchData);
+      total += batchData.length;
+    }
+
+    const { data: praktikData } = await supabase.from('penilaian_praktik_onboarding_produk').select('*');
+    if (praktikData && praktikData.length > 0) {
+      db.setTable('penilaian_praktik_onboarding_produk', praktikData);
+      db.setTable('penilaian_onboarding_rnd', praktikData);
+      total += praktikData.length;
+    }
+
+    const { data: sikapData } = await supabase.from('penilaian_sikap_kebersihan_kru').select('*');
+    if (sikapData && sikapData.length > 0) {
+      db.setTable('penilaian_sikap_kebersihan_kru', sikapData);
+      total += sikapData.length;
+    }
+
+    const { data: attitudeData } = await supabase.from('attitude_hara').select('*');
+    if (attitudeData && attitudeData.length > 0) {
+      db.setTable('attitude_hara', attitudeData);
+      total += attitudeData.length;
+    }
+
     return { success: true, totalRecords: total };
   } catch (err) {
     console.error('Error saat menarik data dari Supabase:', err);
@@ -580,4 +654,155 @@ export async function deleteRecordFromSupabase(table: string, id: string): Promi
     return false;
   }
 }
+
+/**
+ * SKRIP SQL RESMI SUPABASE UNTUK HARA TRAINER PRO SYSTEM
+ * Skrip ini membuat seluruh tabel pada public schema dan menonaktifkan RLS
+ * sehingga operasi input/upsert dari client anonim tidak terblokir.
+ */
+export const SUPABASE_SQL_SCHEMA_SCRIPT = `-- ============================================================================
+-- SKRIP SQL RESMI DATABASE SUPABASE: SISTEM ONBOARDING & PELATIHAN HARA CHICKEN
+-- Jalankan skrip ini di menu SQL Editor pada Dashboard Supabase Anda!
+-- ============================================================================
+
+-- 1. Tabel Key-Value Fleksibel (Penyimpanan Cadangan & Real-Time Sync)
+CREATE TABLE IF NOT EXISTS public.app_store (
+  key TEXT PRIMARY KEY,
+  value JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 2. Tabel Outlets Cabang HARA
+CREATE TABLE IF NOT EXISTS public.outlets (
+  id TEXT PRIMARY KEY,
+  nama_outlet TEXT NOT NULL,
+  kode_outlet TEXT NOT NULL UNIQUE,
+  alamat TEXT,
+  kepala_outlet TEXT,
+  area_supervisor TEXT,
+  status_aktif TEXT DEFAULT 'Aktif',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Tabel Master Kru & Peserta Pelatihan
+CREATE TABLE IF NOT EXISTS public.kru (
+  id TEXT PRIMARY KEY,
+  nama_kru TEXT NOT NULL,
+  kode_outlet TEXT NOT NULL,
+  divisi TEXT NOT NULL,
+  jabatan TEXT,
+  status_karyawan TEXT,
+  shift TEXT,
+  status_aktif TEXT DEFAULT 'Aktif',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Tabel Master Bank SOP Produk
+CREATE TABLE IF NOT EXISTS public.bank_sop (
+  id TEXT PRIMARY KEY,
+  kode_sop TEXT,
+  judul_sop TEXT NOT NULL,
+  divisi TEXT NOT NULL,
+  station TEXT,
+  durasi_standar_detik INT DEFAULT 300,
+  langkah JSONB,
+  poin_kritis TEXT,
+  standar_waktu TEXT,
+  alat_bahan TEXT,
+  sumber TEXT,
+  status_aktif TEXT DEFAULT 'Aktif',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 5. Tabel Batch Onboarding
+CREATE TABLE IF NOT EXISTS public.onboarding_batches (
+  id TEXT PRIMARY KEY,
+  nomor_batch TEXT,
+  nama_batch TEXT NOT NULL,
+  tanggal_mulai TEXT NOT NULL,
+  tanggal_selesai TEXT NOT NULL,
+  kode_outlet_lokasi TEXT,
+  status TEXT DEFAULT 'Berjalan',
+  kuota_min INT DEFAULT 11,
+  kuota_max INT DEFAULT 17,
+  peserta JSONB,
+  lead_trainer TEXT,
+  catatan_batch TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 6. Tabel Penilaian Praktik Produk SOP (Terpadu 2 Pilar: Teknis & Sikap)
+CREATE TABLE IF NOT EXISTS public.penilaian_praktik_onboarding_produk (
+  id TEXT PRIMARY KEY,
+  tanggal TEXT NOT NULL,
+  kru_id TEXT,
+  nama_kru TEXT NOT NULL,
+  kode_outlet TEXT,
+  nama_outlet TEXT,
+  batch_id TEXT,
+  nama_batch TEXT,
+  divisi TEXT,
+  produk_nama TEXT NOT NULL,
+  kode_sop TEXT,
+  station TEXT,
+  station_label TEXT,
+  day TEXT,
+  waktu_detik INT,
+  target_detik INT,
+  suhu_minyak_probe NUMERIC,
+  gramatur_aktual NUMERIC,
+  skor_prosedur NUMERIC,
+  skor_waktu NUMERIC,
+  skor_knowledge NUMERIC,
+  skor_kebersihan NUMERIC,
+  skor_kerjasama NUMERIC,
+  skor_keaktifan NUMERIC,
+  skor_ketepatan NUMERIC,
+  subskor_teknis NUMERIC,
+  subskor_sikap NUMERIC,
+  skor_akhir NUMERIC NOT NULL,
+  status_kelulusan TEXT,
+  status TEXT,
+  gagal_titik_kritis BOOLEAN DEFAULT FALSE,
+  titik_kritis_gagal_detail JSONB,
+  knowledge_questions JSONB,
+  checklist_langkah JSONB,
+  penilai_nama TEXT,
+  catatan TEXT,
+  catatan_trainer TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 7. Tabel Evaluasi Sikap & Budaya H.A.R.A
+CREATE TABLE IF NOT EXISTS public.attitude_hara (
+  id TEXT PRIMARY KEY,
+  tanggal TEXT NOT NULL,
+  kru_id TEXT,
+  nama_kru TEXT NOT NULL,
+  kode_outlet TEXT,
+  divisi TEXT,
+  skor_h_higienis NUMERIC,
+  skor_a_antusias NUMERIC,
+  skor_r_resik NUMERIC,
+  skor_a_amanah NUMERIC,
+  skor_rata_rata NUMERIC NOT NULL,
+  checklist_items JSONB,
+  catatan_perilaku TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 8. MATIKAN ROW LEVEL SECURITY (RLS) AGAR INPUT REAL-TIME DARI CLIENT DIIZINKAN
+ALTER TABLE public.app_store DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.outlets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.kru DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.bank_sop DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.onboarding_batches DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.penilaian_praktik_onboarding_produk DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attitude_hara DISABLE ROW LEVEL SECURITY;
+
+-- 9. BERIKAN HAK AKSES PENUH KE ROLE ANON & AUTHENTICATED
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+`;
+
 

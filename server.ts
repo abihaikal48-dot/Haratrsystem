@@ -5,6 +5,8 @@ import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +16,52 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+// Server-Side Secure Supabase Client (Kredensial disimpan aman di Environment Server, tidak terekspos ke HP)
+const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
+const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+
+let serverSupabase: SupabaseClient | null = null;
+if (supabaseUrl && supabaseKey && supabaseUrl.startsWith('http')) {
+  try {
+    serverSupabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+    console.log('✅ Server-side Supabase client initialized securely.');
+  } catch (err) {
+    console.warn('⚠️ Server-side Supabase initialization error:', err);
+  }
+}
+
+// Server Persistent Local Data Cache File Helper
+const DATA_DIR = path.join(__dirname, 'data');
+const STORE_FILE = path.join(DATA_DIR, 'server_store.json');
+
+function readServerStore(): Record<string, any[]> {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(STORE_FILE)) {
+      const content = fs.readFileSync(STORE_FILE, 'utf-8');
+      return JSON.parse(content);
+    }
+  } catch (err) {
+    console.warn('Error reading server store:', err);
+  }
+  return {};
+}
+
+function writeServerStore(data: Record<string, any[]>): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Error writing server store:', err);
+  }
+}
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -193,6 +241,177 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
       'Evaluasi rubrik skor 3 pilar dan komitmen GROW',
     ],
   });
+});
+
+// =========================================================================
+// SECURE BACKEND DATABASE & CLOUD SYNC ENDPOINTS
+// Seluruh handphone/klien berkomunikasi lewat endpoint ini tanpa membocorkan connection string
+// =========================================================================
+
+// 1. Status Koneksi Backend Cloud
+app.get('/api/db/status', (_req, res) => {
+  return res.json({
+    ok: true,
+    online: true,
+    supabaseConfigured: !!serverSupabase,
+    supabaseUrlConfigured: Boolean(supabaseUrl),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 2. Init Master Data Saat Perangkat Baru Membuka Web
+app.get('/api/db/init', async (_req, res) => {
+  try {
+    const store = readServerStore();
+
+    // Jika Supabase terhubung, sinkronkan data cloud terbaru
+    if (serverSupabase) {
+      const tablesToFetch = [
+        'onboarding_batches',
+        'penilaian_praktik_onboarding_produk',
+        'attitude_hara',
+        'penilaian_jobdesk_stasiun',
+        'penilaian_sikap_kebersihan_kru',
+        'bank_sop_products'
+      ];
+
+      for (const table of tablesToFetch) {
+        try {
+          const { data, error } = await serverSupabase.from(table).select('*').limit(500);
+          if (!error && Array.isArray(data) && data.length > 0) {
+            store[table] = data;
+          }
+        } catch {
+          // Table belum dibuat di Supabase, gunakan store lokal
+        }
+      }
+
+      try {
+        const { data: appData, error: appErr } = await serverSupabase.from('app_store').select('*');
+        if (!appErr && Array.isArray(appData)) {
+          for (const row of appData) {
+            if (row.key && row.value) {
+              const cleanKey = row.key.replace('sync_', '');
+              if (!store[cleanKey] || store[cleanKey].length === 0) {
+                store[cleanKey] = row.value;
+              }
+            }
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    return res.json({
+      success: true,
+      data: store,
+      supabaseConnected: !!serverSupabase,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err?.message || 'Gagal memuat data dari server' });
+  }
+});
+
+// 3. Simpan dan Perbarui Data ke Server & Supabase
+app.post('/api/db/sync', async (req, res) => {
+  try {
+    const { table, records, record, action } = req.body;
+    if (!table) {
+      return res.status(400).json({ success: false, message: 'Nama tabel wajib diisi.' });
+    }
+
+    const currentStore = readServerStore();
+    if (!currentStore[table]) {
+      currentStore[table] = [];
+    }
+
+    const incomingRecords: any[] = records || (record ? [record] : []);
+
+    if (action === 'DELETE') {
+      const idsToDelete = new Set(incomingRecords.map((r: any) => r.id).filter(Boolean));
+      currentStore[table] = currentStore[table].filter((r: any) => !idsToDelete.has(r.id));
+
+      if (serverSupabase) {
+        for (const id of idsToDelete) {
+          try {
+            await serverSupabase.from(table).delete().eq('id', id);
+          } catch {
+            // fallback
+          }
+        }
+      }
+    } else {
+      // Upsert
+      for (const inc of incomingRecords) {
+        if (!inc || !inc.id) continue;
+        const idx = currentStore[table].findIndex((r: any) => r.id === inc.id);
+        if (idx >= 0) {
+          currentStore[table][idx] = { ...currentStore[table][idx], ...inc };
+        } else {
+          currentStore[table].unshift(inc);
+        }
+      }
+
+      if (serverSupabase) {
+        try {
+          await serverSupabase.from(table).upsert(incomingRecords);
+        } catch {
+          try {
+            await serverSupabase.from('app_store').upsert({
+              key: `sync_${table}`,
+              value: currentStore[table],
+              updated_at: new Date().toISOString()
+            });
+          } catch {
+            // ignore
+          }
+        }
+      }
+    }
+
+    writeServerStore(currentStore);
+    return res.json({
+      success: true,
+      count: currentStore[table].length,
+      timestamp: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err?.message || 'Gagal menyimpan data via server' });
+  }
+});
+
+// 4. Server Proxy untuk Google Spreadsheet Webhook (Mencegah Kebocoran Script & Hambatan CORS)
+app.post('/api/sync/spreadsheet', async (req, res) => {
+  try {
+    const { payload, webhookUrl } = req.body;
+    const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl;
+
+    if (!targetUrl || !targetUrl.startsWith('https://script.google.com/')) {
+      return res.status(400).json({
+        success: false,
+        message: 'URL Webhook Google Sheets belum diatur atau tidak valid.'
+      });
+    }
+
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+    });
+
+    return res.json({
+      success: true,
+      status: response.status,
+      message: 'Data berhasil dikirim ke Google Spreadsheet via Server Proxy.'
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      message: err?.message || 'Gagal mengirim ke Google Spreadsheet via server.'
+    });
+  }
 });
 
 // Health checks for Cloud Run & container orchestration

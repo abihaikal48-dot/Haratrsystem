@@ -43,7 +43,9 @@ import {
   initSupabaseRealtimeSync,
   autoSeedSupabaseIfEmpty,
   testSupabaseConnection,
+  pullAllFromSupabase,
 } from './lib/supabase';
+import { initClientDataFromServer } from './lib/serverSync';
 import {
   seedFirestoreIfEmpty,
   setupFirestoreRealtimeSync,
@@ -135,21 +137,38 @@ export function App() {
     refreshAppData();
     const unsub = db.subscribe('*', refreshAppData);
 
-    // Initialize Supabase if configured
+    // Auto-pull online data dari Server Proxy & Supabase (Semua HP otomatis tersinkronisasi tanpa setup manual)
+    initClientDataFromServer().then((loaded) => {
+      if (loaded) {
+        refreshAppData();
+      }
+    });
+
+    // Initialize Supabase & Realtime Sync
     let unsubSupabase = () => {};
     const { isConfigured } = getSupabaseConfig();
     if (isConfigured) {
       testSupabaseConnection().then((res) => {
         if (res.success) {
-          autoSeedSupabaseIfEmpty().then((seedRes) => {
-            if (seedRes.seeded) {
-              refreshAppData();
-            }
+          autoSeedSupabaseIfEmpty().then(() => {
+            pullAllFromSupabase().then(() => refreshAppData());
           });
         }
       });
       unsubSupabase = initSupabaseRealtimeSync();
+    } else {
+      // Auto-pull even without local override keys (uses server proxy)
+      pullAllFromSupabase().then(() => refreshAppData());
     }
+
+    // Interval sync otomatis tiap 5 detik agar data di HP lain langsung ter-update
+    const syncInterval = setInterval(() => {
+      pullAllFromSupabase().then((res) => {
+        if (res && res.success && res.totalRecords > 0) {
+          refreshAppData();
+        }
+      });
+    }, 5000);
 
     // Test connection and seed Firestore collections as backup
     testFirestoreConnection();
@@ -175,6 +194,7 @@ export function App() {
       unsubSupabase();
       unsubFirestore();
       unsubPresence();
+      clearInterval(syncInterval);
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);

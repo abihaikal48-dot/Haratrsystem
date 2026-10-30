@@ -7,12 +7,13 @@ import {
 import { motion } from 'framer-motion';
 import { PenilaianPraktikOnboardingProduk } from '../../types';
 import { HaraLogo } from '../HaraLogo';
+import { db } from '../../lib/storage';
 
 interface CrewOnboardingReportModalProps {
   kruNama: string;
   kodeOutlet?: string;
   batchName?: string;
-  assessments: PenilaianPraktikOnboardingProduk[];
+  assessments?: PenilaianPraktikOnboardingProduk[];
   onClose: () => void;
   onOpenCertificate?: () => void;
 }
@@ -27,8 +28,11 @@ export const CrewOnboardingReportModal: React.FC<CrewOnboardingReportModalProps>
 }) => {
   // Filter assessments specific to this crew
   const crewRecords = useMemo(() => {
-    return assessments.filter(
-      (a) => a.nama_kru.toLowerCase().trim() === kruNama.toLowerCase().trim()
+    const list = Array.isArray(assessments) && assessments.length > 0
+      ? assessments
+      : (db.getPenilaianPraktikProduk() || []);
+    return list.filter(
+      (a) => a && a.nama_kru && a.nama_kru.toLowerCase().trim() === kruNama.toLowerCase().trim()
     );
   }, [assessments, kruNama]);
 

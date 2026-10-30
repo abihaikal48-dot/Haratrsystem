@@ -1,11 +1,40 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import fs from 'fs';
 import { defineConfig, Plugin } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
 
 dotenv.config();
+
+const DATA_DIR = path.resolve(__dirname, 'data');
+const STORE_FILE = path.resolve(DATA_DIR, 'server_store.json');
+
+function readDevStore(): Record<string, any[]> {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    if (fs.existsSync(STORE_FILE)) {
+      return JSON.parse(fs.readFileSync(STORE_FILE, 'utf-8'));
+    }
+  } catch (err) {
+    console.warn('Error reading dev store:', err);
+  }
+  return {};
+}
+
+function writeDevStore(data: Record<string, any[]>): void {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(STORE_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Error writing dev store:', err);
+  }
+}
 
 function generateDomainAdvisorFallback(prompt: string): string {
   const pLower = prompt.toLowerCase();
@@ -72,8 +101,24 @@ function geminiApiDevPlugin(): Plugin {
     name: 'gemini-api-dev-middleware',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        if (!req.url?.startsWith('/api/gemini/')) {
+        if (!req.url?.startsWith('/api/')) {
           return next();
+        }
+
+        // Handle DB and Sync Endpoints
+        if (req.url === '/api/db/status' && req.method === 'GET') {
+          res.setHeader('Content-Type', 'application/json');
+          res.statusCode = 200;
+          res.end(JSON.stringify({ ok: true, online: true, supabaseConfigured: true, timestamp: new Date().toISOString() }));
+          return;
+        }
+
+        if (req.url === '/api/db/init' && req.method === 'GET') {
+          res.setHeader('Content-Type', 'application/json');
+          const store = readDevStore();
+          res.statusCode = 200;
+          res.end(JSON.stringify({ success: true, data: store, supabaseConnected: true, timestamp: new Date().toISOString() }));
+          return;
         }
 
         const apiKey = process.env.GEMINI_API_KEY;
@@ -108,6 +153,52 @@ function geminiApiDevPlugin(): Plugin {
           }
 
           res.setHeader('Content-Type', 'application/json');
+
+          if (req.url === '/api/db/sync' && req.method === 'POST') {
+            const { table, records, record, action } = body;
+            const currentStore = readDevStore();
+            if (!currentStore[table]) currentStore[table] = [];
+            const incoming = records || (record ? [record] : []);
+            if (action === 'DELETE') {
+              const ids = new Set(incoming.map((r: any) => r.id));
+              currentStore[table] = currentStore[table].filter((r: any) => !ids.has(r.id));
+            } else {
+              for (const inc of incoming) {
+                if (!inc?.id) continue;
+                const idx = currentStore[table].findIndex((r: any) => r.id === inc.id);
+                if (idx >= 0) currentStore[table][idx] = { ...currentStore[table][idx], ...inc };
+                else currentStore[table].unshift(inc);
+              }
+            }
+            writeDevStore(currentStore);
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, count: currentStore[table].length, timestamp: new Date().toISOString() }));
+            return;
+          }
+
+          if (req.url === '/api/sync/spreadsheet' && req.method === 'POST') {
+            const { payload, webhookUrl } = body;
+            const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl;
+            if (targetUrl) {
+              try {
+                const spRes = await fetch(targetUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                  body: JSON.stringify(payload),
+                });
+                res.statusCode = 200;
+                res.end(JSON.stringify({ success: true, status: spRes.status, message: 'Data dikirim via dev proxy.' }));
+                return;
+              } catch (e: any) {
+                res.statusCode = 500;
+                res.end(JSON.stringify({ success: false, message: e.message }));
+                return;
+              }
+            }
+            res.statusCode = 400;
+            res.end(JSON.stringify({ success: false, message: 'URL webhook tidak ditemukan.' }));
+            return;
+          }
 
           if (req.url === '/api/gemini/advisor' && req.method === 'POST') {
             try {

@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi perombakan fokus Training Onboarding: mengarsipkan switch OPS/Training di sidebar, mengganti seluruh tombol aksi hapus yang terblokir browser dengan Modal Konfirmasi Modern in-app (pada log aktivitas dan manajemen akun), serta merestrukturisasi tab evaluasi sekunder menjadi Penilaian Kebersihan, Keaktifan, dan Sikap Kerja Individu per Kru (menunda penilaian kerjasama ke tahap mendatang).",
-  "updatedAt":  "2026-10-28T03:39:40.752651810Z",
+  "summary":  "Rencana integrasi hasil penilaian sikap dan kebersihan ke dalam Analitik Onboarding Pusat (OnboardingDataAnalystView), agar seluruh rekapitulasi nilai sikap, grooming, sanitasi, dan keaktifan terkumpul secara otomatis di dashboard analitik.",
+  "updatedAt":  "2026-10-30T01:47:47.914651848Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

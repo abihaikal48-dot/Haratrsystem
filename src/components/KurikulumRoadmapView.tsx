@@ -7,7 +7,7 @@ import {
   Brain, TrendingUp, AlertCircle, RefreshCw, BarChart2, BarChart3,
   Users, Store, Info, Edit3, MessageSquare, Star, Zap,
   Compass, Eye, CheckSquare, Layers, Download, Search,
-  Scale, Thermometer, UtensilsCrossed, GraduationCap
+  Scale, Thermometer, UtensilsCrossed, GraduationCap, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { db } from '../lib/storage';
@@ -51,21 +51,29 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
 
   // Modals
   const [newBatchModalOpen, setNewBatchModalOpen] = useState(false);
+  const [editBatchModalOpen, setEditBatchModalOpen] = useState(false);
+  const [editingBatchObj, setEditingBatchObj] = useState<OnboardingBatch | null>(null);
   const [addParticipantModalOpen, setAddParticipantModalOpen] = useState(false);
+  const [manualParticipantModalOpen, setManualParticipantModalOpen] = useState(false);
+  const [manualNama, setManualNama] = useState('');
+  const [manualOutlet, setManualOutlet] = useState('HC-GTG01');
+  const [manualDivisi, setManualDivisi] = useState<Division>('Kitchen');
+  const [manualTipe, setManualTipe] = useState<'Karyawan Baru (1-45 Hari)' | 'Retraining Karyawan Lama'>('Karyawan Baru (1-45 Hari)');
   const [selectedSessionDetail, setSelectedSessionDetail] = useState<OnboardingSessionDef | null>(null);
   const [evaluationModalParticipant, setEvaluationModalParticipant] = useState<{
     batch: OnboardingBatch;
     participant: OnboardingParticipant;
   } | null>(null);
 
+  const [deleteBatchTarget, setDeleteBatchTarget] = useState<OnboardingBatch | null>(null);
+
   // New Batch Form State
   const [batchForm, setBatchForm] = useState({
-    nama_batch: 'Batch Onboarding & RnD Produk HARA Chicken',
+    nama_batch: 'Batch Onboarding TC Kantor Lempongsari',
     tanggal_mulai: new Date().toISOString().split('T')[0],
     tanggal_selesai: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    kode_outlet_lokasi: selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-JTS01',
-    lead_trainer: 'Haikal Abi (Lead Trainer & People Dev)',
-    catatan_batch: 'Standarisasi mutu terpadu 10 materi 25 jam, RnD 16 jam, dan survey kepuasan.',
+    kode_outlet_lokasi: 'Kantor Lempongsari',
+    catatan_batch: 'Kelas Onboarding TC Kantor Lempongsari.',
   });
 
   const loadData = () => {
@@ -128,7 +136,7 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
       kuota_min: 11,
       kuota_max: 17,
       peserta: [],
-      lead_trainer: batchForm.lead_trainer,
+      lead_trainer: 'Onboarding Team',
       catatan_batch: batchForm.catatan_batch,
       created_at: new Date().toISOString(),
     };
@@ -136,6 +144,92 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
     db.saveOnboardingBatch(newBatch);
     setSelectedBatchId(newBatch.id);
     setNewBatchModalOpen(false);
+  };
+
+  // Handle Delete Batch
+  const handleDeleteBatch = (batchId: string) => {
+    const target = batches.find(b => b.id === batchId);
+    if (!target) return;
+    setDeleteBatchTarget(target);
+  };
+
+  const confirmDeleteBatch = () => {
+    if (!deleteBatchTarget) return;
+    db.deleteOnboardingBatch(deleteBatchTarget.id);
+    const updated = db.getOnboardingBatches();
+    setBatches(updated);
+    if (updated.length > 0) {
+      setSelectedBatchId(updated[0].id);
+    } else {
+      setSelectedBatchId('');
+    }
+    setDeleteBatchTarget(null);
+  };
+
+  // Handle Manual Candidate Addition
+  const handleSaveManualParticipant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeBatch || !manualNama.trim()) return;
+
+    const cleanNama = manualNama.trim();
+    const newParticipant: OnboardingParticipant = {
+      kru_id: `kru-m-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+      nama_kru: cleanNama,
+      kode_outlet: manualOutlet || 'HC-GTG01',
+      divisi: manualDivisi || 'Kitchen',
+      tipe: manualTipe,
+      tanggal_masuk: new Date().toISOString().split('T')[0],
+      hari_kerja: 1,
+      absensi: { 1: true, 2: true, 3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true },
+      nilai_evaluasi: {},
+      nilai_praktik_rnd: 0,
+      survey_kepuasan: 5,
+      status_kelulusan: 'Sedang Berjalan',
+      catatan: 'Peserta manual ditambahkan langsung di Batch.',
+    };
+
+    // Auto register to Master Kru if not present
+    const existingKru = db.getTable<Kru>('kru');
+    if (!existingKru.some(k => k.nama_kru.toLowerCase().trim() === cleanNama.toLowerCase().trim())) {
+      const newKruRow: Kru = {
+        id: newParticipant.kru_id,
+        nama_kru: cleanNama,
+        divisi: manualDivisi || 'Kitchen',
+        kode_outlet: manualOutlet || 'HC-GTG01',
+        tanggal_masuk: new Date().toISOString().split('T')[0],
+        status_aktif: 'Aktif',
+        catatan: `Peserta Manual Batch ${activeBatch.nama_batch}`,
+        created_at: new Date().toISOString(),
+      };
+      db.insertRow('kru', newKruRow);
+      setKruList(db.getTable<Kru>('kru').filter(k => k.status_aktif === 'Aktif'));
+    }
+
+    const updatedBatch: OnboardingBatch = {
+      ...activeBatch,
+      peserta: [...(activeBatch.peserta || []), newParticipant],
+    };
+
+    db.saveOnboardingBatch(updatedBatch);
+    setManualParticipantModalOpen(false);
+    setManualNama('');
+  };
+
+  // Handle Edit Batch Submit
+  const handleOpenEditBatchModal = () => {
+    if (!activeBatch) return;
+    setEditingBatchObj({ ...activeBatch });
+    setEditBatchModalOpen(true);
+  };
+
+  const handleSaveEditedBatch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingBatchObj || !editingBatchObj.nama_batch.trim()) return;
+
+    db.saveOnboardingBatch(editingBatchObj);
+    const updated = db.getOnboardingBatches();
+    setBatches(updated);
+    setEditBatchModalOpen(false);
   };
 
   // Handle Add Participant to Active Batch
@@ -362,15 +456,34 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     <h3 className="text-lg font-bold text-[#181411] mt-0.5">{activeBatch.nama_batch}</h3>
                   </div>
 
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold border w-fit ${
-                    activeBatch.status === 'Selesai'
-                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                      : activeBatch.status === 'Berjalan'
-                      ? 'bg-blue-50 text-blue-800 border-blue-200'
-                      : 'bg-amber-50 text-amber-800 border-amber-200'
-                  }`}>
-                    Status: {activeBatch.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2.5 py-1 rounded-full text-xs font-bold border w-fit ${
+                      activeBatch.status === 'Selesai'
+                        ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                        : activeBatch.status === 'Berjalan'
+                        ? 'bg-blue-50 text-blue-800 border-blue-200'
+                        : 'bg-amber-50 text-amber-800 border-amber-200'
+                    }`}>
+                      Status: {activeBatch.status}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleOpenEditBatchModal}
+                      className="p-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-bold border border-stone-300 transition-colors cursor-pointer"
+                      title="Edit Detail Batch"
+                    >
+                      <Edit3 size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteBatch(activeBatch.id)}
+                      className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold border border-rose-200 transition-colors cursor-pointer"
+                      title="Hapus Batch"
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
@@ -387,8 +500,8 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                     <div className="font-bold text-[#96171B] mt-0.5">3 Hari (25 Jam)</div>
                   </div>
                   <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
-                    <span className="text-[#645D55] text-[11px]">Lead Trainer</span>
-                    <div className="font-bold text-[#181411] mt-0.5 truncate">{activeBatch.lead_trainer}</div>
+                    <span className="text-[#645D55] text-[11px]">Tim Penilai Evaluasi</span>
+                    <div className="font-bold text-[#181411] mt-0.5 truncate">Onboarding Team</div>
                   </div>
                 </div>
 
@@ -439,14 +552,24 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setActiveSubTab('radar_kru')}
-                  className="w-full py-2.5 rounded-xl border border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Plus size={14} />
-                  <span>Tambah Peserta dari Master Kru</span>
-                </button>
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setManualParticipantModalOpen(true)}
+                    className="w-full py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold transition-all shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <Plus size={14} />
+                    <span>+ Tambah Peserta Manual (Pengganti)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSubTab('radar_kru')}
+                    className="w-full py-2 rounded-xl border border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Plus size={14} />
+                    <span>Tambah Peserta dari Master Kru</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}
@@ -1019,17 +1142,6 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                 </div>
 
                 <div>
-                  <label className="block font-semibold text-[#181411] mb-1">Lead Trainer Penanggung Jawab</label>
-                  <input
-                    type="text"
-                    value={batchForm.lead_trainer}
-                    onChange={(e) => setBatchForm({ ...batchForm, lead_trainer: e.target.value })}
-                    required
-                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] text-xs text-[#181411]"
-                  />
-                </div>
-
-                <div>
                   <label className="block font-semibold text-[#181411] mb-1">Catatan Batch</label>
                   <textarea
                     rows={2}
@@ -1143,6 +1255,245 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
                   className="px-4 py-2 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] hover:bg-slate-100 text-[#181411] text-xs font-semibold"
                 >
                   Tutup
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ===================================================================
+          MODAL: TAMBAH PESERTA MANUAL (PENGGANTI)
+          =================================================================== */}
+      {manualParticipantModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-md w-full overflow-hidden text-[#181411]">
+            <div className="p-4 border-b border-[#E6E1DA] flex items-center justify-between bg-stone-50">
+              <h3 className="font-bold text-sm text-[#181411]">Tambah Peserta Manual (Pengganti)</h3>
+              <button
+                type="button"
+                onClick={() => setManualParticipantModalOpen(false)}
+                className="p-1 rounded text-stone-400 hover:text-stone-700"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveManualParticipant} className="p-4 space-y-3 text-xs">
+              <div>
+                <label className="block font-bold text-[#645D55] mb-1">Nama Lengkap Kru Peserta:</label>
+                <input
+                  type="text"
+                  required
+                  value={manualNama}
+                  onChange={(e) => setManualNama(e.target.value)}
+                  placeholder="Ketik nama lengkap..."
+                  className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411]"
+                  autoFocus
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Outlet Tujuan:</label>
+                  <input
+                    type="text"
+                    required
+                    value={manualOutlet}
+                    onChange={(e) => setManualOutlet(e.target.value)}
+                    placeholder="Contoh: Gito Gati, Monjali"
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411]"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Divisi:</label>
+                  <select
+                    value={manualDivisi}
+                    onChange={(e) => setManualDivisi(e.target.value as Division)}
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411] bg-white"
+                  >
+                    <option value="Kitchen">Kitchen</option>
+                    <option value="Kasir">Kasir</option>
+                    <option value="Geprek">Geprek</option>
+                    <option value="Helper">Helper</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-[#645D55] mb-1">Tipe Status:</label>
+                <select
+                  value={manualTipe}
+                  onChange={(e) => setManualTipe(e.target.value as any)}
+                  className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411] bg-white"
+                >
+                  <option value="Karyawan Baru (1-45 Hari)">Karyawan Baru (1-45 Hari)</option>
+                  <option value="Retraining Karyawan Lama">Retraining Karyawan Lama</option>
+                </select>
+              </div>
+              <div className="pt-3 border-t border-[#E6E1DA] flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setManualParticipantModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E6E1DA] text-stone-600 font-bold"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#96171B] text-white font-bold cursor-pointer"
+                >
+                  Simpan Peserta (Auto Simpan ke Master Kru)
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          MODAL: EDIT BATCH ONBOARDING
+          =================================================================== */}
+      {editBatchModalOpen && editingBatchObj && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-lg w-full overflow-hidden text-[#181411]">
+            <div className="p-4 border-b border-[#E6E1DA] flex items-center justify-between bg-stone-50">
+              <h3 className="font-bold text-sm text-[#181411]">Edit Batch Onboarding</h3>
+              <button
+                type="button"
+                onClick={() => setEditBatchModalOpen(false)}
+                className="p-1 rounded text-stone-400 hover:text-stone-700"
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEditedBatch} className="p-4 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Nomor Batch:</label>
+                  <input
+                    type="text"
+                    value={editingBatchObj.nomor_batch || ''}
+                    onChange={(e) => setEditingBatchObj({ ...editingBatchObj, nomor_batch: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Status Batch:</label>
+                  <select
+                    value={editingBatchObj.status || 'Berjalan'}
+                    onChange={(e) => setEditingBatchObj({ ...editingBatchObj, status: e.target.value as any })}
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-bold bg-white"
+                  >
+                    <option value="Direncanakan">Direncanakan</option>
+                    <option value="Berjalan">Berjalan</option>
+                    <option value="Selesai">Selesai</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-[#645D55] mb-1">Nama Batch:</label>
+                <input
+                  type="text"
+                  value={editingBatchObj.nama_batch || ''}
+                  onChange={(e) => setEditingBatchObj({ ...editingBatchObj, nama_batch: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-bold"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Tanggal Mulai:</label>
+                  <input
+                    type="date"
+                    value={editingBatchObj.tanggal_mulai || ''}
+                    onChange={(e) => setEditingBatchObj({ ...editingBatchObj, tanggal_mulai: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold"
+                  />
+                </div>
+                <div>
+                  <label className="block font-bold text-[#645D55] mb-1">Tanggal Selesai:</label>
+                  <input
+                    type="date"
+                    value={editingBatchObj.tanggal_selesai || ''}
+                    onChange={(e) => setEditingBatchObj({ ...editingBatchObj, tanggal_selesai: e.target.value })}
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block font-bold text-[#645D55] mb-1">Lokasi Training TC:</label>
+                <input
+                  type="text"
+                  value={editingBatchObj.kode_outlet_lokasi || 'Kantor Lempongsari'}
+                  onChange={(e) => setEditingBatchObj({ ...editingBatchObj, kode_outlet_lokasi: e.target.value })}
+                  className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-bold bg-stone-50"
+                />
+              </div>
+              <div className="pt-3 border-t border-[#E6E1DA] flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setEditBatchModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-[#E6E1DA] text-stone-600 font-bold"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-[#96171B] text-white font-bold cursor-pointer"
+                >
+                  Simpan Perubahan Batch
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          MODAL: KONFIRMASI HAPUS BATCH (SAFE FOR IFRAME)
+          =================================================================== */}
+      <AnimatePresence>
+        {deleteBatchTarget && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-sm w-full p-5 space-y-4 text-xs text-[#181411]"
+            >
+              <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
+                <h3 className="font-bold text-sm text-[#96171B] flex items-center gap-1.5">
+                  <Trash2 size={16} />
+                  <span>Hapus Batch Pelatihan?</span>
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => setDeleteBatchTarget(null)}
+                  className="text-[#645D55] hover:text-[#181411]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <p className="text-[#645D55] leading-relaxed">
+                Apakah Anda yakin ingin menghapus kelas <strong>"{deleteBatchTarget.nama_batch}"</strong> ({deleteBatchTarget.nomor_batch})?
+              </p>
+              <div className="p-3 bg-stone-50 rounded-xl border border-stone-200 text-[11px] text-stone-600 space-y-1">
+                <div>• Data peserta tetap aman dan tersimpan di Master Kru.</div>
+                <div>• Tindakan ini akan menghapus batch dari daftar lokal dan cloud.</div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteBatchTarget(null)}
+                  className="px-4 py-2 rounded-xl border border-[#E6E1DA] text-stone-600 font-bold hover:bg-stone-50 transition-colors"
+                >
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDeleteBatch}
+                  className="px-4 py-2 rounded-xl bg-[#96171B] hover:bg-[#7A1216] text-white font-bold cursor-pointer transition-colors shadow-xs"
+                >
+                  Ya, Hapus Batch
                 </button>
               </div>
             </motion.div>

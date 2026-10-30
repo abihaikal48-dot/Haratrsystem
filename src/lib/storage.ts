@@ -428,15 +428,391 @@ const INITIAL_KRU: Kru[] = [
     created_at: '2026-10-23T08:00:00.000Z',
   },
   {
-    id: 'kru-ob-2312',
-    nama_kru: 'Intan Nur Khasanah (New)',
-    jabatan: 'Kru Geprek (Onboarding TC)',
-    divisi: 'Geprek',
-    kode_outlet: 'HC-MTJ01',
-    tanggal_masuk: '2026-10-23',
+    id: 'kru-ob-3001',
+    nama_kru: 'Haudy Rizky',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-GTG01',
+    tanggal_masuk: '2026-10-30',
     status_aktif: 'Aktif',
-    catatan: 'Peserta No. 12 - Outlet Mantrijeron - Station 3 (Goreng Terong, Sambal Bawang, Nasgor Geprek, Geprek Ayoli)',
-    created_at: '2026-10-23T08:00:00.000Z',
+    catatan: 'Peserta 1 - Outlet Gito Gati',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3002',
+    nama_kru: 'Vino Adrian Saputra',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-GLG01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 2 - Outlet Glagahsari',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3003',
+    nama_kru: 'Salwa Salsabila',
+    jabatan: 'Kru Kasir (Onboarding TC)',
+    divisi: 'Kasir',
+    kode_outlet: 'HC-BRD01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 3 - Outlet Borobudur',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3004',
+    nama_kru: 'Evanda Nur Meilita',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-PDG01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 4 - Outlet Pandega',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3005',
+    nama_kru: 'Mahfud Attoriq (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-PDW01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 5 - Outlet Pandowoharjo',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3006',
+    nama_kru: 'Davi Dwi Eriyanto (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-JMB01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 6 - Outlet Jambon',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3007',
+    nama_kru: 'Dimas Mahardika (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-PWR01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 7 - Outlet Purworejo',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3008',
+    nama_kru: 'Muhammad Nadziiful Affan (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-SRG01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 8 - Outlet Sorogenen',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3009',
+    nama_kru: 'Kevin Irawan (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-MJL01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 9 - Outlet Monjali',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3010',
+    nama_kru: 'Dhiya Aida Yumna (New)',
+    jabatan: 'Kru Kasir (Onboarding TC)',
+    divisi: 'Kasir',
+    kode_outlet: 'HC-MOBILE',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 10 - Support Mobile Outlet',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3011',
+    nama_kru: 'Andra Ilyas Erlangga (New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-MOBILE',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 11 - Support Mobile Outlet',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-3012',
+    nama_kru: 'Sigit Nur Prasetyo (Outlet : New)',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'HC-KMD01',
+    tanggal_masuk: '2026-10-30',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 12 - Outlet Kamdanen',
+    created_at: '2026-10-30T08:00:00.000Z',
+  },
+];
+
+const INITIAL_PENILAIAN_SIKAP_KEBERSIHAN: PenilaianSikapKebersihanKru[] = [
+  {
+    id: 'psk-ob-3001',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3001',
+    nama_kru: 'Haudy Rizky',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-GTG01',
+    station: 'Station 2',
+    skor_grooming: 19,
+    skor_sanitasi: 24,
+    skor_keaktifan: 24,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 95,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Grooming rapi, apron bersih, inisiatif sanitasi clean-as-you-go terpantau sangat aktif.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T09:00:00.000Z',
+  },
+  {
+    id: 'psk-ob-3002',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3002',
+    nama_kru: 'Vino Adrian Saputra',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-GLG01',
+    station: 'Station 1',
+    skor_grooming: 18,
+    skor_sanitasi: 23,
+    skor_keaktifan: 23,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 92,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Sanitasi meja stainless dan penataan alat serok tong terorganisir rapi.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T09:15:00.000Z',
+  },
+  {
+    id: 'psk-ob-3003',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3003',
+    nama_kru: 'Salwa Salsabila',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-BRD01',
+    station: 'Station 4',
+    skor_grooming: 20,
+    skor_sanitasi: 25,
+    skor_keaktifan: 24,
+    skor_k3_disiplin: 15,
+    skor_kerapian_alat: 15,
+    skor_total: 99,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Penampilan sempurna, greeting 5S hangat dan ramah, kuku bersih tanpa perhiasan.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T09:30:00.000Z',
+  },
+  {
+    id: 'psk-ob-3004',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3004',
+    nama_kru: 'Evanda Nur Meilita',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-PDG01',
+    station: 'Station 1',
+    skor_grooming: 19,
+    skor_sanitasi: 23,
+    skor_keaktifan: 22,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 92,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Kepatuhan K3 dan kerapian sarung tangan / apron sangat terjaga.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T09:45:00.000Z',
+  },
+  {
+    id: 'psk-ob-3005',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3005',
+    nama_kru: 'Mahfud Attoriq (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-PDW01',
+    station: 'Station 2',
+    skor_grooming: 18,
+    skor_sanitasi: 22,
+    skor_keaktifan: 23,
+    skor_k3_disiplin: 13,
+    skor_kerapian_alat: 14,
+    skor_total: 90,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Disiplin area kerja deep-fryer dan kebersihan lantai dapur terpelihara.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T10:00:00.000Z',
+  },
+  {
+    id: 'psk-ob-3006',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3006',
+    nama_kru: 'Davi Dwi Eriyanto (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-JMB01',
+    station: 'Station 2',
+    skor_grooming: 18,
+    skor_sanitasi: 23,
+    skor_keaktifan: 23,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 13,
+    skor_total: 91,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Tanggap dan proaktif membantu tim saat penepungan batch besar.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T10:15:00.000Z',
+  },
+  {
+    id: 'psk-ob-3007',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3007',
+    nama_kru: 'Dimas Mahardika (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-PWR01',
+    station: 'Station 3',
+    skor_grooming: 19,
+    skor_sanitasi: 24,
+    skor_keaktifan: 24,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 95,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Stasiun ulekan sambal cobek bersih, kerapian botol saus dan wadah timun teratur.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T10:30:00.000Z',
+  },
+  {
+    id: 'psk-ob-3008',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3008',
+    nama_kru: 'Muhammad Nadziiful Affan (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-SRG01',
+    station: 'Station 1',
+    skor_grooming: 18,
+    skor_sanitasi: 22,
+    skor_keaktifan: 23,
+    skor_k3_disiplin: 13,
+    skor_kerapian_alat: 13,
+    skor_total: 89,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Ketelitian kebersihan rice cooker gas dan pengolesan kuas serbaguna rapi.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T10:45:00.000Z',
+  },
+  {
+    id: 'psk-ob-3009',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3009',
+    nama_kru: 'Kevin Irawan (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-MJL01',
+    station: 'Station 2',
+    skor_grooming: 19,
+    skor_sanitasi: 23,
+    skor_keaktifan: 24,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 94,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Amanah, cekatan, serta disiplin tinggi pada titik kritis minyak goreng 160°C.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T11:00:00.000Z',
+  },
+  {
+    id: 'psk-ob-3010',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3010',
+    nama_kru: 'Dhiya Aida Yumna (New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-MOBILE',
+    station: 'Station 4',
+    skor_grooming: 20,
+    skor_sanitasi: 24,
+    skor_keaktifan: 25,
+    skor_k3_disiplin: 15,
+    skor_kerapian_alat: 14,
+    skor_total: 98,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Keaktifan dan kerapian transaksi kasir POS mobile sangat mengesankan.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T11:15:00.000Z',
+  },
+  {
+    id: 'psk-ob-3011',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3011',
+    nama_kru: 'Andra Ilyas Erlangga (New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-MOBILE',
+    station: 'Station 1',
+    skor_grooming: 19,
+    skor_sanitasi: 23,
+    skor_keaktifan: 24,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 94,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Sangat responsif dan mendukung persiapan stasiun mobile outlet secara sigap.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T11:30:00.000Z',
+  },
+  {
+    id: 'psk-ob-3012',
+    tanggal: '2026-10-30',
+    kru_id: 'kru-ob-3012',
+    nama_kru: 'Sigit Nur Prasetyo (Outlet : New)',
+    batch_id: 'batch-ob-2026-10-30',
+    batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
+    kode_outlet: 'HC-KMD01',
+    station: 'Station 2',
+    skor_grooming: 18,
+    skor_sanitasi: 23,
+    skor_keaktifan: 23,
+    skor_k3_disiplin: 14,
+    skor_kerapian_alat: 14,
+    skor_total: 92,
+    predikat: 'Sangat Baik',
+    status: 'Lulus',
+    catatan: 'Disiplin K3 tinggi dan kebersihan penirisan chicken crispy terawat dengan baik.',
+    penilai_nama: 'Onboarding Team',
+    created_at: '2026-10-30T11:45:00.000Z',
   },
 ];
 
@@ -1830,11 +2206,53 @@ class StorageDatabase {
     this.ensureSeed(STORAGE_KEYS.OFFICIAL_AUDITS, [OFFICIAL_HARA_AUDIT_BANTUL]);
     this.ensureSeed(STORAGE_KEYS.OFFICIAL_RAPOR_KRU, OFFICIAL_HARA_CREW_REPORTS);
     this.ensureSeed(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+    this.ensureSeed(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, INITIAL_PENILAIAN_SIKAP_KEBERSIHAN);
     this.ensureSeed(STORAGE_KEYS.OJT_MONITORING, INITIAL_OJT_MONITORING);
     this.ensureSeed(STORAGE_KEYS.ATTITUDE_HARA, INITIAL_ATTITUDE_HARA);
     this.ensureSeed(STORAGE_KEYS.APP_USERS, INITIAL_USERS);
     this.ensureSeed(STORAGE_KEYS.LOG_AKTIVITAS, INITIAL_LOGS);
     this.ensureSeed(STORAGE_KEYS.SETTINGS, INITIAL_SETTINGS);
+
+    // One-time v3 seed migration to populate new TC batch/kru/attitude records without overwriting future deletions
+    try {
+      const v3Seeded = localStorage.getItem('hara_v3_seed_migrated');
+      if (!v3Seeded) {
+        const storedKru = localStorage.getItem(STORAGE_KEYS.KRU);
+        if (storedKru) {
+          try {
+            const list: Kru[] = JSON.parse(storedKru);
+            const ids = new Set(list.map(x => x.id));
+            INITIAL_KRU.forEach(k => {
+              if (!ids.has(k.id)) list.push(k);
+            });
+            localStorage.setItem(STORAGE_KEYS.KRU, JSON.stringify(list));
+          } catch {}
+        }
+        const storedBatches = localStorage.getItem(STORAGE_KEYS.ONBOARDING_BATCHES);
+        if (storedBatches) {
+          try {
+            const list: OnboardingBatch[] = JSON.parse(storedBatches);
+            const ids = new Set(list.map(x => x.id));
+            INITIAL_ONBOARDING_BATCHES.forEach(b => {
+              if (!ids.has(b.id)) list.push(b);
+            });
+            localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES, JSON.stringify(list));
+          } catch {}
+        }
+        const storedSikap = localStorage.getItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU);
+        if (storedSikap) {
+          try {
+            const list: PenilaianSikapKebersihanKru[] = JSON.parse(storedSikap);
+            const ids = new Set(list.map(x => x.id));
+            INITIAL_PENILAIAN_SIKAP_KEBERSIHAN.forEach(s => {
+              if (!ids.has(s.id)) list.push(s);
+            });
+            localStorage.setItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, JSON.stringify(list));
+          } catch {}
+        }
+        localStorage.setItem('hara_v3_seed_migrated', 'true');
+      }
+    } catch {}
     this.ensureSeed(STORAGE_KEYS.BANK_SOP, INITIAL_BANK_SOP);
     this.ensureSeed(STORAGE_KEYS.BANK_SOAL, INITIAL_BANK_SOAL);
     this.ensureSeed(STORAGE_KEYS.TNA, INITIAL_TNA);
@@ -2909,10 +3327,17 @@ class StorageDatabase {
   // ==========================================
   public getOnboardingBatches(): OnboardingBatch[] {
     const raw = this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
-    return (raw || []).map(b => ({
+    const list = (raw || []).map(b => ({
       ...b,
       peserta: Array.isArray(b?.peserta) ? b.peserta : [],
     }));
+    // Hanya seed jika batch belum ada sama sekali di storage
+    const oct30Idx = list.findIndex(b => b.id === 'batch-ob-2026-10-30');
+    const initialOct30 = INITIAL_ONBOARDING_BATCHES.find(b => b.id === 'batch-ob-2026-10-30');
+    if (oct30Idx === -1 && initialOct30) {
+      list.unshift(initialOct30);
+    }
+    return list;
   }
 
   public saveOnboardingBatch(batch: OnboardingBatch): void {
@@ -2929,6 +3354,11 @@ class StorageDatabase {
     // Supabase auto-sync
     import('./supabase').then(({ syncRecordToSupabase }) => {
       syncRecordToSupabase('onboarding_batches', batch).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-sync
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('onboarding_batches', batch, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
     // Async write to Firestore
@@ -2948,6 +3378,11 @@ class StorageDatabase {
     // Supabase auto-delete
     import('./supabase').then(({ deleteRecordFromSupabase }) => {
       deleteRecordFromSupabase('onboarding_batches', batchId).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-delete
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('onboarding_batches', { id: batchId }, 'DELETE').catch(() => {});
     }).catch(() => {});
   }
 
@@ -2981,6 +3416,11 @@ class StorageDatabase {
     // Supabase auto-sync
     import('./supabase').then(({ syncRecordToSupabase }) => {
       syncRecordToSupabase('penilaian_praktik_onboarding_produk', item).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-sync
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_praktik_onboarding_produk', item, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
     // Dual-layer Firestore sync
@@ -3024,6 +3464,11 @@ class StorageDatabase {
     // Supabase auto-delete
     import('./supabase').then(({ deleteRecordFromSupabase }) => {
       deleteRecordFromSupabase('penilaian_praktik_onboarding_produk', id).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-delete
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_praktik_onboarding_produk', { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
 
     import('./firebase').then(({ firestore }) => {
@@ -3212,7 +3657,7 @@ class StorageDatabase {
   }
 
   public getPenilaianSikapKebersihanKru(): PenilaianSikapKebersihanKru[] {
-    return this.get<PenilaianSikapKebersihanKru[]>(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, []);
+    return this.get<PenilaianSikapKebersihanKru[]>(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, INITIAL_PENILAIAN_SIKAP_KEBERSIHAN);
   }
 
   public savePenilaianSikapKebersihanKru(item: PenilaianSikapKebersihanKru): void {

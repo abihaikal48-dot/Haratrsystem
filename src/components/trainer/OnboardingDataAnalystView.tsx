@@ -26,7 +26,9 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
     try {
       const tc = db.getTable<PenilaianOnboardingTC>('penilaian_onboarding_tc') || [];
       const prod = db.getPenilaianPraktikProduk() || [];
-      // Map product evaluations into normalized list format if needed
+      const sikap = db.getPenilaianSikapKebersihanKru() || [];
+
+      // Map product evaluations
       const normalizedProd = prod.map((p) => ({
         id: p.id,
         tanggal: p.tanggal,
@@ -52,7 +54,35 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
         trainer_nama: p.nama_trainer || 'Haikal Abi',
         catatan_trainer: p.catatan_trainer || '-',
       }));
-      const combined = [...tc, ...normalizedProd];
+
+      // Map sikap & kebersihan evaluations
+      const normalizedSikap = sikap.map((s) => ({
+        id: s.id,
+        tanggal: s.tanggal,
+        peserta_nama: s.nama_kru,
+        peserta_outlet: s.kode_outlet,
+        peserta_divisi: 'Kitchen',
+        kategori_peserta: 'Sikap & Higiene',
+        stasiun: s.station || 'Stasiun Sikap & Higiene',
+        task_nama: 'Evaluasi Sikap & Higiene (4 Dimensi)',
+        durasi_detik: 0,
+        target_durasi_detik: 0,
+        deviasi_detik: 0,
+        skor_total: s.skor_total,
+        skala_lima: Math.min(5, Number((s.skor_total / 20).toFixed(1))),
+        grade: s.predikat,
+        skor_ketepatan: s.skor_grooming,
+        skor_kebersihan: s.skor_sanitasi,
+        skor_tim: s.skor_keaktifan,
+        skor_knowledge: s.skor_kerapian_alat,
+        titik_kesalahan: s.skor_total < 75 ? ['Perlu peningkatan kedisiplinan sikap'] : [],
+        rekomendasi_perbaikan: s.catatan || 'Pertahankan disiplin sikap dan kebersihan harian.',
+        status_kelulusan: s.status === 'Lulus' ? 'Lulus Sempurna' : 'Lulus Bersyarat',
+        trainer_nama: s.penilai_nama,
+        catatan_trainer: s.catatan || '-',
+      }));
+
+      const combined = [...tc, ...normalizedProd, ...normalizedSikap];
       const uniqueMap = new Map<string, any>();
       combined.forEach((item) => {
         if (item && item.id && !uniqueMap.has(item.id)) {

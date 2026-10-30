@@ -33,6 +33,7 @@ import {
 import { MiniCertificateModal } from './MiniCertificateModal';
 import { CrewOnboardingReportModal } from './CrewOnboardingReportModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
+import { syncPenilaianToGoogleSheets, exportPenilaianToCSV } from '../../lib/googleSheetSync';
 
 interface OnboardingProductPracticeViewProps {
   selectedOutletCode: string;
@@ -54,11 +55,11 @@ export const SOP_PRODUCTS_LIST = HARA_ONBOARDING_PRODUCTS_MASTER.map(p => ({
 }));
 
 export const DAFTAR_PENILAI_DEFAULT = [
-  'Haikal (Trainer)',
-  'Jihan (RnD)',
-  'Feri (RnD)',
-  'Ari (Trainer)',
-  'Administrator HQ (Admin)'
+  'Onboarding Team',
+  'Trainer Operasional',
+  'RnD Specialist',
+  'Supervisor Outlet',
+  'Administrator HQ'
 ];
 
 export interface AssessmentSessionTab {
@@ -69,7 +70,7 @@ export interface AssessmentSessionTab {
   manualNameInput: string;
   outletCode: string;
   day: 'Day 1' | 'Day 2';
-  batch: 'Batch 1' | 'Batch 2' | 'All Batch';
+  batch: string;
   station: 'Station 1' | 'Station 2' | 'Station 3' | 'All Crew';
   productNama: string;
   timerSeconds: number;
@@ -80,6 +81,7 @@ export interface AssessmentSessionTab {
   knowledgeAnswers: Record<number, boolean>;
   skorKnowledge: number;
   catatanTrainer: string;
+  productNotes?: Record<string, string>;
   isSaved?: boolean;
 }
 
@@ -87,13 +89,31 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   selectedOutletCode,
   onOpenFullAuditLog,
 }) => {
-  // Navigation Sub-Tab: 'produk' (Individu) vs 'jobdesk' (Sikap & Higiene) vs 'monitoring_12kru' (12 Peserta & 7 Kriteria)
-  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'jobdesk' | 'monitoring_12kru'>('produk');
+  // Navigation Sub-Tab: 'produk' (2 Pilar KKM 75) vs 'riwayat' (Rekap & Spreadsheet) vs 'jobdesk' (Sikap Detail)
+  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk'>('produk');
 
   // Master lists
   const [kruList, setKruList] = useState<Kru[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [batches, setBatches] = useState<OnboardingBatch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+
+  // Integrasi Batch Kru Dinamis: Mengambil peserta langsung dari Batch yang dipilih (bukan kru statis)
+  const candidateKrus = useMemo(() => {
+    const currentBatch = batches.find(b => b.id === selectedBatchId);
+    if (currentBatch && Array.isArray(currentBatch.peserta) && currentBatch.peserta.length > 0) {
+      return currentBatch.peserta.map(p => ({
+        id: p.kru_id || `batch-p-${p.nama_kru}`,
+        nama_kru: p.nama_kru,
+        divisi: p.divisi || 'Kitchen',
+        kode_outlet: p.outlet_tujuan || currentBatch.kode_outlet || 'HC-IMB01',
+        posisi: p.jabatan || 'Crew',
+        status_aktif: 'Aktif' as const,
+        created_at: new Date().toISOString(),
+      }));
+    }
+    return kruList;
+  }, [batches, selectedBatchId, kruList]);
 
   // 12 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
   const [pesertaMatrix, setPesertaMatrix] = useState<TrainingParticipantItem[]>(() => {
@@ -115,12 +135,37 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [namaPenilai, setNamaPenilai] = useState<string>(DAFTAR_PENILAI_DEFAULT[0]);
   const [customPenilai, setCustomPenilai] = useState<string>('');
   const [isCustomPenilai, setIsCustomPenilai] = useState<boolean>(false);
-  const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
   const [tanggalUji, setTanggalUji] = useState<string>(new Date().toISOString().split('T')[0]);
 
   // Concurrent Multi-Candidate Sessions (Individual Product)
-  const [sessions, setSessions] = useState<AssessmentSessionTab[]>([]);
-  const [activeTabId, setActiveTabId] = useState<string>('');
+  const [sessions, setSessions] = useState<AssessmentSessionTab[]>(() => {
+    const k = db.getTable<Kru>('kru').filter(x => x.status_aktif === 'Aktif');
+    const firstKru = k[0] || { id: 'init-1', nama_kru: 'Iqbal Muzzaki', kode_outlet: 'HC-IMB01', divisi: 'Kitchen' };
+    const prodDef = HARA_ONBOARDING_PRODUCTS_MASTER[0];
+    return [{
+      id: `session-init-1`,
+      kruId: firstKru.id,
+      namaKru: firstKru.nama_kru,
+      isManualName: false,
+      manualNameInput: '',
+      outletCode: firstKru.kode_outlet || 'HC-IMB01',
+      day: prodDef.day,
+      batch: prodDef.batch,
+      station: prodDef.station,
+      productNama: prodDef.nama,
+      timerSeconds: 0,
+      isTimerRunning: false,
+      suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
+      gramaturAktual: prodDef.targetGramatur || 0,
+      stepChecklist: prodDef.langkahSOP.map(s => ({ nomor: s.nomor, langkah: s.teks, tercapai: true, isKritis: s.isKritis })),
+      knowledgeAnswers: { 0: true, 1: true, 2: true, 3: true, 4: true },
+      skorKnowledge: 100,
+      catatanTrainer: '',
+      productNotes: {},
+      isSaved: false,
+    }];
+  });
+  const [activeTabId, setActiveTabId] = useState<string>(() => `session-init-1`);
 
   // Searchable Product Picker Modal State
   const [isProductPickerOpen, setIsProductPickerOpen] = useState(false);
@@ -146,6 +191,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [editingBatch, setEditingBatch] = useState<Partial<OnboardingBatch> | null>(null);
   const [batchFormMode, setBatchFormMode] = useState<'create' | 'edit'>('create');
+  const [manualNamaInput, setManualNamaInput] = useState('');
+  const [manualOutletInput, setManualOutletInput] = useState('HC-GTG01');
+  const [manualDivisiInput, setManualDivisiInput] = useState<Division>('Kitchen');
+  const [manualTipeInput, setManualTipeInput] = useState<'Karyawan Baru (1-45 Hari)' | 'Retraining Karyawan Lama'>('Karyawan Baru (1-45 Hari)');
+  const [isAddingManualParticipant, setIsAddingManualParticipant] = useState(false);
 
   // SOP Target Waktu Editor Modal State
   const [isSOPTargetModalOpen, setIsSOPTargetModalOpen] = useState(false);
@@ -192,12 +242,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [selectedSikapKruId, setSelectedSikapKruId] = useState<string>('');
   const [formSikapStation, setFormSikapStation] = useState<string>('Stasiun 1: Nasi, Teh, & Sup');
 
-  // Checklist 5 Dimensi Evaluasi Sikap & Kebersihan Individu
+  // Checklist 4 Dimensi Evaluasi Sikap & Kebersihan Individu (Sesuai SOP HARA: Tanpa Sarung Tangan & Tanpa K3)
   const [formGrooming, setFormGrooming] = useState({
-    apron_bersih: true,       // 5 poin
-    hairnet_topi_rapi: true,  // 5 poin
-    kuku_pendek_bersih: true, // 5 poin
-    masker_sarungtangan: true,// 5 poin
+    apron_bersih: true,       // 9 poin
+    hairnet_topi_rapi: true,  // 8 poin
+    kuku_pendek_bersih: true, // 8 poin
   });
 
   const [formSanitasi, setFormSanitasi] = useState({
@@ -214,19 +263,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     sigap_rotasi: true,        // 6 poin
   });
 
-  const [formK3Disiplin, setFormK3Disiplin] = useState({
-    hadir_tepat_waktu: true,        // 5 poin
-    kepatuhan_apd_k3: true,         // 5 poin
-    keselamatan_kompor_fryer: true, // 5 poin
-  });
-
   const [formKerapianAlat, setFormKerapianAlat] = useState({
-    penempatan_tong: true,     // 5 poin
-    tata_skimmer_baskom: true, // 5 poin
-    botol_saus_bersih: true,   // 5 poin
+    penempatan_tong: true,     // 9 poin
+    tata_skimmer_baskom: true, // 8 poin
+    botol_saus_bersih: true,   // 8 poin
   });
 
   const [formCatatanSikap, setFormCatatanSikap] = useState<string>('');
+
+  // Riwayat Penilaian & Filter
+  const [historyList, setHistoryList] = useState<PenilaianPraktikOnboardingProduk[]>(() => db.getPenilaianPraktikProduk());
+  const [historySearchQuery, setHistorySearchQuery] = useState('');
+  const [historyBatchFilter, setHistoryBatchFilter] = useState('ALL');
+  const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL');
+  const [isSyncingAllSheets, setIsSyncingAllSheets] = useState(false);
 
   // Universal In-App Confirmation Modal State
   const [confirmModalConfig, setConfirmModalConfig] = useState<{
@@ -258,6 +308,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }));
   };
 
+  // Helper to format duration in decimal minutes (e.g., 12.5 mnt)
+  const formatDecimalMinutes = (seconds: number): string => {
+    if (!seconds || isNaN(seconds)) return '0.0 mnt';
+    const mins = (seconds / 60).toFixed(1);
+    return `${mins} mnt`;
+  };
+
+  // Helper to resolve full official outlet name instead of code
+  const getFullOutletName = (kodeOrName?: string): string => {
+    if (!kodeOrName) return 'Hara Chicken Pusat';
+    const matched = outlets.find(o => o.kode_outlet === kodeOrName || o.nama_outlet === kodeOrName);
+    return matched ? matched.nama_outlet : kodeOrName;
+  };
+
   // Helper to create a new session
   const createNewSession = (initialKru?: Kru, defaultProduct?: string): AssessmentSessionTab => {
     const prodName = defaultProduct || 'Nasi Putih Pulen (Miyako 4-6 Cup)';
@@ -286,6 +350,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       knowledgeAnswers: { 0: true, 1: true, 2: true, 3: true, 4: true },
       skorKnowledge: 100,
       catatanTrainer: '',
+      productNotes: {},
       isSaved: false,
     };
   };
@@ -300,6 +365,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setOutlets(o);
     setBatches(b);
     setSikapList(db.getPenilaianSikapKebersihanKru());
+    setHistoryList(db.getPenilaianPraktikProduk());
 
     const savedDrafts = db.getTable<AssessmentSessionTab>('draft_assessment_sessions');
     if (Array.isArray(savedDrafts) && savedDrafts.length > 0) {
@@ -307,7 +373,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       setActiveTabId(prev => (prev && savedDrafts.some(s => s.id === prev) ? prev : savedDrafts[0].id));
     } else {
       setSessions(prev => {
-        if (prev.length === 0) {
+        if (!prev || prev.length === 0) {
           const init = createNewSession(k[0]);
           setActiveTabId(init.id);
           return [init];
@@ -319,12 +385,22 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   useEffect(() => {
     refreshData();
+    const unsub = db.subscribe('*', () => {
+      refreshData();
+    });
+    return () => unsub();
   }, [selectedOutletCode]);
 
   // Active Session Object
   const activeSession = useMemo(() => {
-    return sessions.find(s => s.id === activeTabId) || sessions[0];
-  }, [sessions, activeTabId]);
+    const found = sessions.find(s => s.id === activeTabId) || sessions[0];
+    if (found) return found;
+    const defaultKru = kruList[0];
+    if (defaultKru) {
+      return createNewSession(defaultKru);
+    }
+    return null;
+  }, [sessions, activeTabId, kruList]);
 
   // Current Product Definition
   const currentProductDef = useMemo(() => {
@@ -404,7 +480,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const newSessionsToAdd: AssessmentSessionTab[] = [];
     selectedBatchCrewIds.forEach(kruId => {
       if (!existingKruIds.includes(kruId)) {
-        const k = kruList.find(item => item.id === kruId);
+        const k = candidateKrus.find(item => item.id === kruId) || kruList.find(item => item.id === kruId);
         if (k) {
           newSessionsToAdd.push(createNewSession(k, currentProduct));
         }
@@ -439,19 +515,23 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // =========================================================================
   // BATCH MANAGEMENT CRUD HANDLERS
   // =========================================================================
+  // =========================================================================
+  // BATCH MANAGEMENT CRUD HANDLERS
+  // =========================================================================
   const handleOpenCreateBatch = () => {
     setEditingBatch({
       id: `batch-ob-${Date.now()}`,
       nomor_batch: `B0${batches.length + 1}`,
-      nama_batch: `Batch Onboarding ${new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}`,
+      nama_batch: `Batch Onboarding TC ${new Date().toLocaleDateString('id-ID', { month: 'short', year: 'numeric' })}`,
       tanggal_mulai: new Date().toISOString().split('T')[0],
-      tanggal_selesai: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+      tanggal_selesai: new Date(Date.now() + 2 * 86400000).toISOString().split('T')[0],
       status: 'Berjalan',
-      kode_outlet_lokasi: selectedOutletCode !== 'ALL' ? selectedOutletCode : 'HC-PRS01',
+      kode_outlet_lokasi: 'Kantor Lempongsari',
       lead_trainer: isCustomPenilai ? (customPenilai || 'Haikal') : namaPenilai,
       peserta: [],
     });
     setBatchFormMode('create');
+    setIsAddingManualParticipant(false);
     setIsBatchModalOpen(true);
   };
 
@@ -463,6 +543,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }
     setEditingBatch({ ...currentBatch });
     setBatchFormMode('edit');
+    setIsAddingManualParticipant(false);
     setIsBatchModalOpen(true);
   };
 
@@ -488,6 +569,54 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     });
   };
 
+  const handleAddManualParticipantToBatch = () => {
+    if (!manualNamaInput.trim()) {
+      showToast('Nama peserta manual wajib diisi.');
+      return;
+    }
+    const cleanNama = manualNamaInput.trim();
+    const newParticipant = {
+      kru_id: `kru-m-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+      nama_kru: cleanNama,
+      kode_outlet: manualOutletInput || 'HC-GTG01',
+      divisi: manualDivisiInput || 'Kitchen',
+      tipe: manualTipeInput,
+      tanggal_masuk: new Date().toISOString().split('T')[0],
+      hari_kerja: 1,
+      absensi: { 1: true, 2: true },
+      nilai_evaluasi: {},
+      nilai_praktik_rnd: 0,
+      survey_kepuasan: 5,
+      status_kelulusan: 'Sedang Berjalan' as const,
+      catatan: `Peserta Manual Batch`,
+    };
+
+    setEditingBatch(prev => {
+      if (!prev) return null;
+      const currentPeserta = Array.isArray(prev.peserta) ? prev.peserta : [];
+      return {
+        ...prev,
+        peserta: [...currentPeserta, newParticipant]
+      };
+    });
+
+    setManualNamaInput('');
+    setIsAddingManualParticipant(false);
+    showToast(`Peserta "${cleanNama}" ditambahkan ke daftar batch.`);
+  };
+
+  const handleRemoveParticipantFromBatch = (kruNama: string) => {
+    setEditingBatch(prev => {
+      if (!prev) return null;
+      const currentPeserta = Array.isArray(prev.peserta) ? prev.peserta : [];
+      return {
+        ...prev,
+        peserta: currentPeserta.filter(p => p.nama_kru !== kruNama)
+      };
+    });
+    showToast(`Peserta "${kruNama}" dikeluarkan dari batch.`);
+  };
+
   const handleSaveBatchForm = () => {
     if (!editingBatch || !editingBatch.nama_batch?.trim()) {
       showToast('Nama batch wajib diisi.');
@@ -503,11 +632,37 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       kuota_min: editingBatch.kuota_min || 11,
       kuota_max: editingBatch.kuota_max || 17,
       status: editingBatch.status || 'Berjalan',
-      kode_outlet_lokasi: editingBatch.kode_outlet_lokasi || 'HC-PRS01',
+      kode_outlet_lokasi: editingBatch.kode_outlet_lokasi || 'Kantor Lempongsari',
       lead_trainer: editingBatch.lead_trainer || 'Haikal Abi',
       peserta: Array.isArray(editingBatch.peserta) ? editingBatch.peserta : [],
       created_at: editingBatch.created_at || new Date().toISOString(),
     };
+
+    // Auto save any new manual participants into Master Kru (kru table)
+    const existingKrus = db.getTable<Kru>('kru');
+    const newKrusToSave: Kru[] = [];
+    fullBatch.peserta.forEach(p => {
+      const exists = existingKrus.some(k => k.nama_kru.toLowerCase().trim() === p.nama_kru.toLowerCase().trim());
+      if (!exists) {
+        const newKruItem: Kru = {
+          id: p.kru_id || `kru-m-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+          nama_kru: p.nama_kru,
+          divisi: p.divisi || 'Kitchen',
+          kode_outlet: p.kode_outlet || 'HC-GTG01',
+          tanggal_masuk: p.tanggal_masuk || new Date().toISOString().split('T')[0],
+          status_aktif: 'Aktif',
+          catatan: `Manual dimasukkan via Batch ${fullBatch.nama_batch}`,
+          created_at: new Date().toISOString(),
+        };
+        newKrusToSave.push(newKruItem);
+      }
+    });
+
+    if (newKrusToSave.length > 0) {
+      const updatedKruList = [...existingKrus, ...newKrusToSave];
+      db.setTable('kru', updatedKruList);
+      setKruList(updatedKruList);
+    }
 
     db.saveOnboardingBatch(fullBatch);
     const refreshed = db.getOnboardingBatches();
@@ -722,11 +877,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
       skor_prosedur: calculatedScores.skorProsedur,
       skor_waktu: calculatedScores.skorWaktu,
-      skor_kebersihan: 90,
-      skor_kerjasama: 90,
-      skor_knowledge: calculatedScores.skorKnowledge,
+      subskor_teknis: calculatedScores.subskorTeknis,
+      skor_kebersihan: calculatedScores.skorKebersihan,
+      skor_kerjasama: calculatedScores.skorKerjaSama,
+      skor_keaktifan: calculatedScores.skorKeaktifan,
+      skor_ketepatan: calculatedScores.skorKetepatan,
+      subskor_sikap: calculatedScores.subskorSikap,
       skor_akhir: calculatedScores.skorAkhir,
       status: calculatedScores.statusKelulusan,
+      status_kelulusan: calculatedScores.statusKelulusan,
       gagal_titik_kritis: calculatedScores.hasTitikKritisViolation,
       titik_kritis_gagal_detail: calculatedScores.failedCriticalPoints,
       penilai_nama: finalPenilai,
@@ -739,8 +898,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       created_at: new Date().toISOString(),
     };
 
+    // 1. Simpan ke Local Storage & Supabase Database
     db.savePenilaianPraktikProduk(newRecord);
+    setHistoryList(db.getPenilaianPraktikProduk());
     updateActiveSession({ isSaved: true });
+
+    // 2. Kirim otomatis ke Google Spreadsheet Webhook
+    syncPenilaianToGoogleSheets(newRecord).then((sheetRes) => {
+      if (sheetRes.success) {
+        showToast(`Tersimpan ke Supabase & Google Spreadsheet! (${effectiveKruNama} - ${calculatedScores.statusKelulusan})`);
+      } else {
+        showToast(`Tersimpan ke Supabase! Info: ${sheetRes.message}`);
+      }
+    });
 
     if (calculatedScores.isKompetenMandiri) {
       confetti({
@@ -748,10 +918,65 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         spread: 60,
         origin: { y: 0.6 }
       });
-      showToast(`Evaluasi ${effectiveKruNama} berhasil disimpan! Predikat: KOMPETEN MANDIRI (${calculatedScores.skorAkhir})`);
-    } else {
-      showToast(`Evaluasi ${effectiveKruNama} tersimpan: Predikat ${calculatedScores.statusKelulusan} (${calculatedScores.skorAkhir})`);
     }
+  };
+
+  // Helper filter riwayat penilaian praktik
+  const filteredHistoryList = useMemo(() => {
+    return historyList.filter(item => {
+      if (historyBatchFilter !== 'ALL' && item.batch_id !== historyBatchFilter && item.nama_batch !== historyBatchFilter) {
+        return false;
+      }
+      if (historyStatusFilter !== 'ALL') {
+        if (historyStatusFilter === 'GRADE_A' && !item.status.includes('GRADE A') && item.skor_akhir < 85) return false;
+        if (historyStatusFilter === 'GRADE_B' && !item.status.includes('GRADE B') && (item.skor_akhir < 75 || item.skor_akhir >= 85)) return false;
+        if (historyStatusFilter === 'REMEDIAL' && !item.status.includes('REMEDIAL') && !item.gagal_titik_kritis && item.skor_akhir >= 75) return false;
+      }
+      if (historySearchQuery.trim()) {
+        const q = historySearchQuery.toLowerCase();
+        const matchKru = item.nama_kru?.toLowerCase().includes(q);
+        const matchProduk = item.produk_nama?.toLowerCase().includes(q);
+        const matchOutlet = item.kode_outlet?.toLowerCase().includes(q) || item.nama_outlet?.toLowerCase().includes(q);
+        const matchPenilai = item.penilai_nama?.toLowerCase().includes(q);
+        if (!matchKru && !matchProduk && !matchOutlet && !matchPenilai) return false;
+      }
+      return true;
+    });
+  }, [historyList, historyBatchFilter, historyStatusFilter, historySearchQuery]);
+
+  const handleOpenDeleteHistoryModal = (item: PenilaianPraktikOnboardingProduk) => {
+    setConfirmModalConfig({
+      isOpen: true,
+      title: 'Hapus Riwayat Penilaian Praktik?',
+      message: `Apakah Anda yakin ingin menghapus data penilaian ${item.nama_kru} (${item.produk_nama})?`,
+      detailText: `Skor Akhir: ${item.skor_akhir} • Tanggal: ${item.tanggal}. Tindakan ini akan menghapus data dari memori lokal dan cloud Supabase.`,
+      onConfirm: () => {
+        db.deletePenilaianPraktikProduk(item.id);
+        setHistoryList(db.getPenilaianPraktikProduk());
+        setConfirmModalConfig(prev => ({ ...prev, isOpen: false }));
+        showToast(`Penilaian "${item.nama_kru} - ${item.produk_nama}" berhasil dihapus.`);
+      }
+    });
+  };
+
+  const handleSyncAllToGoogleSheets = async () => {
+    if (historyList.length === 0) {
+      showToast('Belum ada data penilaian untuk disinkronkan.');
+      return;
+    }
+    setIsSyncingAllSheets(true);
+    showToast(`Mengirim ${historyList.length} rekaman penilaian ke Google Spreadsheet...`);
+    let successCount = 0;
+    for (const record of historyList) {
+      try {
+        const res = await syncPenilaianToGoogleSheets(record);
+        if (res.success) successCount++;
+      } catch {
+        // continue
+      }
+    }
+    setIsSyncingAllSheets(false);
+    showToast(`Sinkronisasi selesai: ${successCount} dari ${historyList.length} data terkirim ke Spreadsheet.`);
   };
 
   // =========================================================================
@@ -759,10 +984,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // =========================================================================
   const skorGrooming = useMemo(() => {
     let s = 0;
-    if (formGrooming.apron_bersih) s += 5;
-    if (formGrooming.hairnet_topi_rapi) s += 5;
-    if (formGrooming.kuku_pendek_bersih) s += 5;
-    if (formGrooming.masker_sarungtangan) s += 5;
+    if (formGrooming.apron_bersih) s += 9;
+    if (formGrooming.hairnet_topi_rapi) s += 8;
+    if (formGrooming.kuku_pendek_bersih) s += 8;
     return s;
   }, [formGrooming]);
 
@@ -784,25 +1008,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     return s;
   }, [formKeaktifan]);
 
-  const skorK3Disiplin = useMemo(() => {
-    let s = 0;
-    if (formK3Disiplin.hadir_tepat_waktu) s += 5;
-    if (formK3Disiplin.kepatuhan_apd_k3) s += 5;
-    if (formK3Disiplin.keselamatan_kompor_fryer) s += 5;
-    return s;
-  }, [formK3Disiplin]);
-
   const skorKerapianAlat = useMemo(() => {
     let s = 0;
-    if (formKerapianAlat.penempatan_tong) s += 5;
-    if (formKerapianAlat.tata_skimmer_baskom) s += 5;
-    if (formKerapianAlat.botol_saus_bersih) s += 5;
+    if (formKerapianAlat.penempatan_tong) s += 9;
+    if (formKerapianAlat.tata_skimmer_baskom) s += 8;
+    if (formKerapianAlat.botol_saus_bersih) s += 8;
     return s;
   }, [formKerapianAlat]);
 
   const skorTotalSikap = useMemo(() => {
-    return skorGrooming + skorSanitasi + skorKeaktifan + skorK3Disiplin + skorKerapianAlat;
-  }, [skorGrooming, skorSanitasi, skorKeaktifan, skorK3Disiplin, skorKerapianAlat]);
+    return skorGrooming + skorSanitasi + skorKeaktifan + skorKerapianAlat;
+  }, [skorGrooming, skorSanitasi, skorKeaktifan, skorKerapianAlat]);
 
   const predikatSikap: 'Sangat Baik' | 'Baik' | 'Cukup' | 'Perlu Pembinaan' = useMemo(() => {
     if (skorTotalSikap >= 85) return 'Sangat Baik';
@@ -816,7 +1032,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   }, [skorTotalSikap]);
 
   const handleSaveSikapKru = () => {
-    const candidateKru = kruList.find(k => k.id === selectedSikapKruId) || kruList[0];
+    const available = candidateKrus.length > 0 ? candidateKrus : kruList;
+    const targetId = selectedSikapKruId || available[0]?.id;
+    const candidateKru = available.find(k => k.id === targetId) || available[0] || kruList[0];
     if (!candidateKru) {
       showToast('Pilih peserta kru yang dinilai.');
       return;
@@ -837,7 +1055,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       skor_grooming: skorGrooming,
       skor_sanitasi: skorSanitasi,
       skor_keaktifan: skorKeaktifan,
-      skor_k3_disiplin: skorK3Disiplin,
+      skor_k3_disiplin: 0,
       skor_kerapian_alat: skorKerapianAlat,
       skor_total: skorTotalSikap,
       predikat: predikatSikap,
@@ -911,11 +1129,29 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             }`}
           >
             <UtensilsCrossed size={15} />
-            <span>Praktik Produk (Individu)</span>
+            <span>Praktik Produk & Sikap (Individu)</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
               activeSubTab === 'produk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
             }`}>
-              SOP & Waktu
+              2 Pilar KKM 75
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('riwayat')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+              activeSubTab === 'riwayat'
+                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+            }`}
+          >
+            <FileText size={15} />
+            <span>Riwayat & Rekap Penilaian</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            }`}>
+              {historyList.length} Rekap
             </span>
           </button>
 
@@ -929,29 +1165,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             }`}
           >
             <ClipboardCheck size={15} />
-            <span>Kebersihan & Sikap (Individu)</span>
+            <span>Detail Sikap & Higiene</span>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
               activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
             }`}>
-              Higiene & Keaktifan
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveSubTab('monitoring_12kru')}
-            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
-              activeSubTab === 'monitoring_12kru'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
-            }`}
-          >
-            <Award size={15} />
-            <span>Monitoring 12 Kru (KKM 75)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'monitoring_12kru' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
-            }`}>
-              7 Kriteria Resmi
+              5 Dimensi
             </span>
           </button>
         </div>
@@ -1009,52 +1227,28 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <div className="h-4 w-px bg-[#E6E1DA] hidden md:block" />
 
-          {/* Batch Selector with full CRUD */}
+          {/* Batch Selector */}
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-bold text-[#645D55] uppercase text-[10.5px]">Batch Kelas:</span>
             <select
               value={selectedBatchId}
-              onChange={(e) => setSelectedBatchId(e.target.value)}
-              className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold max-w-[150px] truncate"
+              onChange={(e) => {
+                const bId = e.target.value;
+                setSelectedBatchId(bId);
+                const chosenBatch = batches.find(b => b.id === bId);
+                if (chosenBatch) {
+                  updateActiveSession({
+                    batch: `${chosenBatch.nomor_batch} - ${chosenBatch.nama_batch}`,
+                  });
+                }
+              }}
+              className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold max-w-[220px] truncate"
             >
-              <option value="ALL">Onboarding Umum</option>
+              <option value="ALL">Onboarding Umum (Semua Kru)</option>
               {batches.map(b => (
-                <option key={b.id} value={b.id}>{b.nomor_batch} - {b.nama_batch}</option>
+                <option key={b.id} value={b.id}>{b.nomor_batch} - {b.nama_batch} ({b.peserta?.length || 0} Kru)</option>
               ))}
             </select>
-
-            <button
-              type="button"
-              onClick={handleOpenCreateBatch}
-              className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-200 text-xs font-bold transition-all flex items-center gap-1 cursor-pointer"
-              title="Buat Batch Baru"
-            >
-              <Plus size={12} />
-              <span className="hidden sm:inline">Batch</span>
-            </button>
-
-            {selectedBatchId !== 'ALL' && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleOpenEditBatch}
-                  className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium transition-all flex items-center gap-1 cursor-pointer"
-                  title="Edit Data Batch Terpilih"
-                >
-                  <Edit2 size={12} />
-                  <span className="hidden sm:inline">Edit</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDeleteCurrentBatch}
-                  className="p-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium transition-all flex items-center gap-1 cursor-pointer"
-                  title="Hapus Batch Ini"
-                >
-                  <Trash2 size={12} />
-                </button>
-              </>
-            )}
           </div>
 
           <div className="h-4 w-px bg-[#E6E1DA] hidden md:block" />
@@ -1224,7 +1418,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <select
                         value={activeSession.kruId}
                         onChange={(e) => {
-                          const selectedK = kruList.find(k => k.id === e.target.value);
+                          const selectedK = candidateKrus.find(k => k.id === e.target.value);
                           if (selectedK) {
                             updateActiveSession({
                               kruId: selectedK.id,
@@ -1235,7 +1429,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         }}
                         className="col-span-2 p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
                       >
-                        {kruList.map((k) => (
+                        {candidateKrus.map((k) => (
                           <option key={k.id} value={k.id}>
                             {k.nama_kru} ({k.divisi} - {k.kode_outlet})
                           </option>
@@ -1877,9 +2071,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     Catatan Asesor / Evaluasi Lapangan:
                   </label>
                   <textarea
-                    value={activeSession.catatanTrainer}
-                    onChange={(e) => updateActiveSession({ catatanTrainer: e.target.value })}
-                    placeholder="Tuliskan catatan perbaikan atau apresiasi terhadap hasil praktik kru..."
+                    value={activeSession.catatanTrainer || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const pNotes = { ...(activeSession.productNotes || {}) };
+                      pNotes[activeSession.productNama] = val;
+                      updateActiveSession({
+                        catatanTrainer: val,
+                        productNotes: pNotes,
+                      });
+                    }}
+                    placeholder={`Tuliskan catatan perbaikan atau apresiasi terhadap hasil praktik ${currentProductDef.nama}...`}
                     rows={3}
                     className="w-full p-2.5 rounded-lg border border-[#E6E1DA] text-xs text-[#181411] placeholder-[#645D55]/60 focus:outline-none focus:border-[#96171B]"
                   />
@@ -1891,8 +2093,244 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       )}
 
       {/* ===================================================================
-          SUB-TAB 2: PENILAIAN JOBDESK & STASIUN (TIM / SHIFT)
+          SUB-TAB 2: RIWAYAT & RAPOR EVALUASI ONBOARDING TERPADU (2 PILAR)
           =================================================================== */}
+      {activeSubTab === 'riwayat' && (
+        <div className="space-y-6">
+          {/* Header Card */}
+          <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">
+              <div>
+                <span className="text-[11px] font-bold text-[#96171B] uppercase tracking-wider block">
+                  Rekapitulasi Evaluasi Kru • Standar KKM 75
+                </span>
+                <h3 className="text-lg font-black text-[#181411] tracking-tight mt-0.5">
+                  Riwayat Penilaian Terpadu 2 Pilar (Teknis 50% & Sikap 50%)
+                </h3>
+                <p className="text-xs text-[#645D55] mt-1 leading-relaxed">
+                  Menampilkan hasil observasi SOP, waktu akumulasi SOS, ujian knowledge lisan, kebersihan 5S, kerja sama tim, keaktifan, dan presisi gramasi/suhu.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => exportPenilaianToCSV(filteredHistoryList)}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E6E1DA] text-xs font-bold text-[#181411] flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                >
+                  <Download size={14} className="text-[#96171B]" />
+                  <span>Ekspor CSV / Excel</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSyncAllToGoogleSheets}
+                  disabled={isSyncingAllSheets}
+                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={isSyncingAllSheets ? 'animate-spin' : ''} />
+                  <span>{isSyncingAllSheets ? 'Menyinkronkan...' : 'Sinkron Google Sheet'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Summary KPI Statistics */}
+            {(() => {
+              const total = filteredHistoryList.length;
+              const sumScores = filteredHistoryList.reduce((acc, curr) => acc + curr.skor_akhir, 0);
+              const avgScore = total > 0 ? (sumScores / total).toFixed(1) : '0';
+              const passedCount = filteredHistoryList.filter(item => item.skor_akhir >= 75 && !item.gagal_titik_kritis).length;
+              const passPct = total > 0 ? Math.round((passedCount / total) * 100) : 0;
+              const gradeACount = filteredHistoryList.filter(item => item.skor_akhir >= 85 && !item.gagal_titik_kritis).length;
+              const remedialCount = filteredHistoryList.filter(item => item.skor_akhir < 75 || item.gagal_titik_kritis).length;
+
+              return (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                    <span className="text-[10px] font-bold text-[#645D55] uppercase block">Total Sesi Ujian</span>
+                    <span className="text-2xl font-black text-[#181411] font-mono mt-0.5 block">{total}</span>
+                    <span className="text-[10px] text-[#645D55]">Observasi Lapangan</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <span className="text-[10px] font-bold text-amber-900 uppercase block">Rata-rata Komposit</span>
+                    <span className="text-2xl font-black text-[#96171B] font-mono mt-0.5 block">{avgScore}</span>
+                    <span className="text-[10px] text-amber-800">Skor Komposit (KKM 75)</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                    <span className="text-[10px] font-bold text-emerald-800 uppercase block">Kelulusan (≥75)</span>
+                    <span className="text-2xl font-black text-emerald-900 font-mono mt-0.5 block">
+                      {passPct}%
+                    </span>
+                    <span className="text-[10px] text-emerald-700">{passedCount} lulus ({gradeACount} Grade A)</span>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
+                    <span className="text-[10px] font-bold text-rose-800 uppercase block">Remedial Kritis</span>
+                    <span className="text-2xl font-black text-rose-900 font-mono mt-0.5 block">{remedialCount}</span>
+                    <span className="text-[10px] text-rose-700">&lt; 75 atau titik kritis</span>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+
+          {/* Table Card with Filter & Search */}
+          <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
+              <div className="flex items-center gap-2">
+                <FileText size={18} className="text-[#96171B]" />
+                <h4 className="font-bold text-sm text-[#181411]">
+                  Data Observasi ({filteredHistoryList.length} Catatan)
+                </h4>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                {/* Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={historySearchQuery}
+                    onChange={(e) => setHistorySearchQuery(e.target.value)}
+                    placeholder="Cari kru / produk..."
+                    className="p-2 pl-7 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-[#FAF8F5] focus:bg-white focus:border-[#96171B] w-40 sm:w-52"
+                  />
+                  <Search size={13} className="absolute left-2.5 top-3 text-neutral-400" />
+                </div>
+
+                {/* Filter Batch */}
+                <select
+                  value={historyBatchFilter}
+                  onChange={(e) => setHistoryBatchFilter(e.target.value)}
+                  className="p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white focus:border-[#96171B]"
+                >
+                  <option value="ALL">Semua Batch</option>
+                  {batches.map(b => (
+                    <option key={b.id} value={b.id}>{b.nama_batch}</option>
+                  ))}
+                </select>
+
+                {/* Filter Status */}
+                <select
+                  value={historyStatusFilter}
+                  onChange={(e) => setHistoryStatusFilter(e.target.value)}
+                  className="p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white focus:border-[#96171B]"
+                >
+                  <option value="ALL">Semua Status</option>
+                  <option value="GRADE_A">Grade A (Mahir ≥85)</option>
+                  <option value="GRADE_B">Grade B (Kompeten 75-84.9)</option>
+                  <option value="REMEDIAL">Remedial (&lt;75 / Kritis)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto border border-[#E6E1DA] rounded-xl">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-[#FAF8F5] font-bold text-[#645D55] uppercase text-[10px] border-b border-[#E6E1DA]">
+                  <tr>
+                    <th className="p-3">Tanggal & Sesi</th>
+                    <th className="p-3">Peserta Kru & Batch</th>
+                    <th className="p-3">Outlet & Station</th>
+                    <th className="p-3">Produk SOP & Waktu</th>
+                    <th className="p-3 text-center">Pilar 1: Teknis (50%)</th>
+                    <th className="p-3 text-center">Pilar 2: Sikap (50%)</th>
+                    <th className="p-3 text-center bg-red-50/50 text-[#96171B]">Skor Komposit</th>
+                    <th className="p-3 text-center">Status Kelulusan</th>
+                    <th className="p-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#E6E1DA]">
+                  {filteredHistoryList.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="p-8 text-center text-gray-500 italic">
+                        Belum ada riwayat penilaian praktik yang cocok dengan filter.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredHistoryList.map((item) => {
+                      const isGradeA = item.skor_akhir >= 85 && !item.gagal_titik_kritis;
+                      const isPass = item.skor_akhir >= 75 && !item.gagal_titik_kritis;
+                      const pilar1 = item.subskor_teknis ?? Math.round((item.skor_prosedur * 0.4) + (item.skor_waktu * 0.3) + (item.skor_knowledge * 0.3));
+                      const pilar2 = item.subskor_sikap ?? Math.round((item.skor_kebersihan * 0.3) + (item.skor_kerjasama * 0.25) + ((item.skor_keaktifan ?? 85) * 0.25) + ((item.skor_ketepatan ?? 85) * 0.2));
+
+                      return (
+                        <tr key={item.id} className="hover:bg-[#FAF8F5] transition-colors">
+                          <td className="p-3">
+                            <span className="font-bold text-[#181411] block">{item.tanggal}</span>
+                            <span className="text-[10px] text-[#645D55]">Penilai: {item.penilai_nama}</span>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-extrabold text-[#181411] block">{item.nama_kru}</span>
+                            <span className="text-[10px] text-[#645D55]">{item.nama_batch || 'Onboarding'}</span>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold text-[#181411] block">{getFullOutletName(item.nama_outlet || item.kode_outlet)}</span>
+                            <span className="text-[10px] text-[#645D55]">{item.station_label || item.station}</span>
+                          </td>
+                          <td className="p-3">
+                            <span className="font-bold text-[#181411] block">{item.produk_nama}</span>
+                            <span className="text-[10px] font-mono text-[#645D55]">
+                              Aktual: {formatDecimalMinutes(item.waktu_detik)} / Target: {formatDecimalMinutes(item.target_detik)}
+                            </span>
+                          </td>
+                          <td className="p-3 text-center font-mono">
+                            <span className="font-bold text-amber-900 block">{pilar1}</span>
+                            <span className="text-[9px] text-[#645D55]">SOP {item.skor_prosedur} • SOS {item.skor_waktu}</span>
+                          </td>
+                          <td className="p-3 text-center font-mono">
+                            <span className="font-bold text-emerald-800 block">{pilar2}</span>
+                            <span className="text-[9px] text-[#645D55]">Bersih {item.skor_kebersihan} • Tim {item.skor_kerjasama}</span>
+                          </td>
+                          <td className="p-3 text-center font-mono bg-red-50/30">
+                            <span className="font-black text-sm text-[#96171B] block">{item.skor_akhir}</span>
+                            {item.gagal_titik_kritis && (
+                              <span className="text-[9px] font-bold text-rose-700 block">Titik Kritis</span>
+                            )}
+                          </td>
+                          <td className="p-3 text-center">
+                            <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                              isGradeA
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                                : isPass
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : 'bg-rose-100 text-rose-800 border border-rose-300'
+                            }`}>
+                              {item.status || (isGradeA ? 'GRADE A' : isPass ? 'GRADE B' : 'REMEDIAL')}
+                            </span>
+                          </td>
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                onClick={() => exportPenilaianPraktikProdukPDF(item)}
+                                className="p-1.5 rounded-lg text-neutral-600 hover:text-black hover:bg-neutral-100 transition-colors cursor-pointer"
+                                title="Unduh Lembar Evaluasi PDF"
+                              >
+                                <Download size={14} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleOpenDeleteHistoryModal(item)}
+                                className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title="Hapus rekaman evaluasi"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeSubTab === 'jobdesk' && (
         <div className="space-y-6">
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-6">
@@ -1930,11 +2368,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   Pilih Peserta Kru yang Dinilai:
                 </label>
                 <select
-                  value={selectedSikapKruId || (kruList[0]?.id || '')}
+                  value={selectedSikapKruId || (candidateKrus[0]?.id || kruList[0]?.id || '')}
                   onChange={(e) => setSelectedSikapKruId(e.target.value)}
                   className="w-full p-2.5 rounded-xl border border-[#E6E1DA] bg-[#FAF8F5] font-bold text-[#181411] focus:outline-none focus:border-[#96171B]"
                 >
-                  {kruList.map((k) => (
+                  {(candidateKrus.length > 0 ? candidateKrus : kruList).map((k) => (
                     <option key={k.id} value={k.id}>
                       {k.nama_kru} ({k.kode_outlet} • {k.divisi})
                     </option>
@@ -1959,16 +2397,16 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               </div>
             </div>
 
-            {/* Checklist 5 Dimensi Evaluasi Individu */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              {/* Dimensi 1: Grooming (20 Poin) */}
+            {/* Checklist 4 Dimensi Evaluasi Individu */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
+              {/* Dimensi 1: Grooming (25 Poin) */}
               <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
                 <div className="flex items-center justify-between border-b border-[#E6E1DA] pb-2">
                   <div className="flex items-center gap-1.5 font-bold text-xs text-[#181411] uppercase tracking-wider">
                     <User size={14} className="text-amber-600" />
-                    <span>1. Grooming & Higiene (20%)</span>
+                    <span>1. Grooming & Higiene (25%)</span>
                   </div>
-                  <span className="font-mono font-bold text-xs text-[#96171B]">{skorGrooming} / 20</span>
+                  <span className="font-mono font-bold text-xs text-[#96171B]">{skorGrooming} / 25</span>
                 </div>
                 <div className="space-y-2 text-xs">
                   <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
@@ -1979,7 +2417,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Apron Bersih & Rapi (+5)</span>
+                      <span className="font-bold text-[#181411] block">Apron Bersih & Rapi (+9)</span>
                       <span className="text-[#645D55] text-[10.5px]">Apron tidak kotor berminyak, terikat kencang.</span>
                     </div>
                   </label>
@@ -1991,7 +2429,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Hairnet / Topi (+5)</span>
+                      <span className="font-bold text-[#181411] block">Hairnet / Topi Rapi (+8)</span>
                       <span className="text-[#645D55] text-[10.5px]">Rambut tertutup rapat tanpa helai keluar.</span>
                     </div>
                   </label>
@@ -2003,20 +2441,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Kuku Pendek & Bersih (+5)</span>
+                      <span className="font-bold text-[#181411] block">Kuku Pendek & Bersih (+8)</span>
                       <span className="text-[#645D55] text-[10.5px]">Tanpa cat kuku, cincin, gelang, atau jam tangan.</span>
-                    </div>
-                  </label>
-                  <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
-                    <input
-                      type="checkbox"
-                      checked={formGrooming.masker_sarungtangan}
-                      onChange={(e) => setFormGrooming(p => ({ ...p, masker_sarungtangan: e.target.checked }))}
-                      className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
-                    />
-                    <div>
-                      <span className="font-bold text-[#181411] block">Masker & Sarung Tangan (+5)</span>
-                      <span className="text-[#645D55] text-[10.5px]">Digunakan sesuai standar kontak makanan.</span>
                     </div>
                   </label>
                 </div>
@@ -2144,65 +2570,16 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 </div>
               </div>
 
-              {/* Dimensi 4: K3 & Disiplin (15 Poin) */}
+              {/* Dimensi 4: Kerapian Alat Kerja (25 Poin) */}
               <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
                 <div className="flex items-center justify-between border-b border-[#E6E1DA] pb-2">
                   <div className="flex items-center gap-1.5 font-bold text-xs text-[#181411] uppercase tracking-wider">
-                    <ShieldCheck size={14} className="text-blue-600" />
-                    <span>4. K3 & Disiplin (15%)</span>
+                    <UtensilsCrossed size={14} className="text-neutral-700" />
+                    <span>4. Kerapian Alat (25%)</span>
                   </div>
-                  <span className="font-mono font-bold text-xs text-[#96171B]">{skorK3Disiplin} / 15</span>
+                  <span className="font-mono font-bold text-xs text-[#96171B]">{skorKerapianAlat} / 25</span>
                 </div>
                 <div className="space-y-2 text-xs">
-                  <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
-                    <input
-                      type="checkbox"
-                      checked={formK3Disiplin.hadir_tepat_waktu}
-                      onChange={(e) => setFormK3Disiplin(p => ({ ...p, hadir_tepat_waktu: e.target.checked }))}
-                      className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
-                    />
-                    <div>
-                      <span className="font-bold text-[#181411] block">Tepat Waktu (+5)</span>
-                      <span className="text-[#645D55] text-[10.5px]">Standby di stasiun sebelum jam praktik mulai.</span>
-                    </div>
-                  </label>
-                  <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
-                    <input
-                      type="checkbox"
-                      checked={formK3Disiplin.kepatuhan_apd_k3}
-                      onChange={(e) => setFormK3Disiplin(p => ({ ...p, kepatuhan_apd_k3: e.target.checked }))}
-                      className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
-                    />
-                    <div>
-                      <span className="font-bold text-[#181411] block">Sepatu Anti-Slip & APD (+5)</span>
-                      <span className="text-[#645D55] text-[10.5px]">Gunakan sepatu safety anti-slip & pelindung panas.</span>
-                    </div>
-                  </label>
-                  <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
-                    <input
-                      type="checkbox"
-                      checked={formK3Disiplin.keselamatan_kompor_fryer}
-                      onChange={(e) => setFormK3Disiplin(p => ({ ...p, keselamatan_kompor_fryer: e.target.checked }))}
-                      className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
-                    />
-                    <div>
-                      <span className="font-bold text-[#181411] block">Keselamatan Fryer / Gas (+5)</span>
-                      <span className="text-[#645D55] text-[10.5px]">Hati-hati dengan cipratan minyak & api kompor.</span>
-                    </div>
-                  </label>
-                </div>
-              </div>
-
-              {/* Dimensi 5: Kerapian Alat Kerja (15 Poin) */}
-              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3 md:col-span-2 lg:col-span-2">
-                <div className="flex items-center justify-between border-b border-[#E6E1DA] pb-2">
-                  <div className="flex items-center gap-1.5 font-bold text-xs text-[#181411] uppercase tracking-wider">
-                    <UtensilsCrossed size={14} className="text-neutral-700" />
-                    <span>5. Pengorganisasian & Kerapian Alat (15%)</span>
-                  </div>
-                  <span className="font-mono font-bold text-xs text-[#96171B]">{skorKerapianAlat} / 15</span>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs">
                   <label className="flex items-start gap-2 p-2 rounded-lg bg-white border border-[#E6E1DA] cursor-pointer hover:border-neutral-400">
                     <input
                       type="checkbox"
@@ -2211,7 +2588,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Wadah Penjepit (Tong) (+5)</span>
+                      <span className="font-bold text-[#181411] block">Wadah Penjepit (Tong) (+9)</span>
                       <span className="text-[#645D55] text-[10.5px]">Penjepit tidak ditaruh sembarangan di atas meja.</span>
                     </div>
                   </label>
@@ -2223,7 +2600,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Skimmer & Baskom (+5)</span>
+                      <span className="font-bold text-[#181411] block">Skimmer & Baskom (+8)</span>
                       <span className="text-[#645D55] text-[10.5px]">Spider skimmer & baskom bumbu tersusun rapi.</span>
                     </div>
                   </label>
@@ -2235,7 +2612,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       className="mt-0.5 w-4 h-4 rounded text-[#96171B] accent-[#96171B]"
                     />
                     <div>
-                      <span className="font-bold text-[#181411] block">Botol Saus Bersih (+5)</span>
+                      <span className="font-bold text-[#181411] block">Botol Saus Bersih (+8)</span>
                       <span className="text-[#645D55] text-[10.5px]">Squeeze bottle tertutup & dilap tanpa belepotan.</span>
                     </div>
                   </label>
@@ -2386,7 +2763,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 3: MONITORING 12 PESERTA & 7 KRITERIA OBJEKTIF (KKM 75)
           Sesuai Dokumen Master HARA Halaman 5 & 6
           =================================================================== */}
-      {activeSubTab === 'monitoring_12kru' && (
+      {false && (
         <div className="space-y-6">
           {/* Header Card */}
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
@@ -2972,6 +3349,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         key={prod.id}
                         onClick={() => {
                           const initialSteps = getInitialStepsForProduct(prod.nama);
+                          const pNotes = { ...(activeSession?.productNotes || {}) };
+                          if (activeSession?.productNama) {
+                            pNotes[activeSession.productNama] = activeSession.catatanTrainer || '';
+                          }
+                          const noteForNewProduct = pNotes[prod.nama] || '';
+
                           updateActiveSession({
                             productNama: prod.nama,
                             day: prod.day,
@@ -2984,6 +3367,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                             stepChecklist: initialSteps,
                             knowledgeAnswers: { 0: true, 1: true, 2: true },
                             skorKnowledge: 100,
+                            catatanTrainer: noteForNewProduct,
+                            productNotes: pNotes,
                           });
                           setIsProductPickerOpen(false);
                           showToast(`Produk diganti ke: ${prod.nama}`);
@@ -3066,12 +3451,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 <button
                   type="button"
                   onClick={() => {
-                    const allIds = kruList.map(k => k.id);
+                    const allIds = candidateKrus.map(k => k.id);
                     setSelectedBatchCrewIds(allIds);
                   }}
                   className="px-2.5 py-1 rounded bg-white border border-[#E6E1DA] text-[11px] font-bold text-[#181411] hover:bg-stone-100"
                 >
-                  Pilih Semua ({kruList.length})
+                  Pilih Semua ({candidateKrus.length})
                 </button>
                 <button
                   type="button"
@@ -3084,7 +3469,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             </div>
 
             <div className="p-4 overflow-y-auto space-y-2 flex-1 max-h-[50vh]">
-              {kruList.map(kru => {
+              {candidateKrus.map(kru => {
                 const isSelected = selectedBatchCrewIds.includes(kru.id);
                 const isAlreadyOpen = sessions.some(s => s.kruId === kru.id);
 
@@ -3176,6 +3561,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         <CrewOnboardingReportModal
           kruNama={crewReportModalKru}
           kodeOutlet={activeSession?.outletCode || selectedOutletCode}
+          assessments={historyList}
           onClose={() => setCrewReportModalKru(null)}
         />
       )}
@@ -3283,19 +3669,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-[#645D55] uppercase text-[10px] mb-1">
-                    Lokasi Outlet Cabang:
+                    Lokasi Pelaksanaan TC:
                   </label>
-                  <select
-                    value={editingBatch.kode_outlet_lokasi || 'HC-PRS01'}
+                  <input
+                    type="text"
+                    value={editingBatch.kode_outlet_lokasi || 'Kantor Lempongsari'}
                     onChange={(e) => setEditingBatch(prev => prev ? { ...prev, kode_outlet_lokasi: e.target.value } : null)}
-                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411] bg-white"
-                  >
-                    {outlets.map(o => (
-                      <option key={o.kode_outlet} value={o.kode_outlet}>
-                        {o.kode_outlet} - {o.nama_outlet}
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="Kantor Lempongsari"
+                    className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-bold text-[#181411] bg-stone-50 focus:bg-white focus:border-[#96171B]"
+                  />
                 </div>
 
                 <div>
@@ -3309,6 +3691,115 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     placeholder="Nama trainer"
                     className="w-full p-2.5 rounded-xl border border-[#E6E1DA] font-semibold text-[#181411]"
                   />
+                </div>
+              </div>
+
+              {/* DAFTAR PESERTA BATCH MANAGEMENT */}
+              <div className="pt-2 border-t border-[#E6E1DA] space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-[#181411] uppercase text-[10.5px]">
+                    Peserta Kelas Batch ({editingBatch.peserta?.length || 0} Peserta)
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddingManualParticipant(!isAddingManualParticipant)}
+                    className="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-200 text-[11px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                  >
+                    <Plus size={12} />
+                    <span>{isAddingManualParticipant ? 'Batal Tambah' : 'Tambah Peserta Manual'}</span>
+                  </button>
+                </div>
+
+                {/* Manual Participant Entry Form */}
+                {isAddingManualParticipant && (
+                  <div className="p-3.5 rounded-xl bg-stone-50 border border-[#E6E1DA] space-y-3 animate-in fade-in zoom-in-95">
+                    <span className="font-bold text-xs text-[#96171B] block">Form Tambah Peserta Manual (Pengganti)</span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#645D55] mb-0.5">Nama Lengkap Kru:</label>
+                        <input
+                          type="text"
+                          value={manualNamaInput}
+                          onChange={(e) => setManualNamaInput(e.target.value)}
+                          placeholder="Nama kru baru..."
+                          className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#645D55] mb-0.5">Outlet Tujuan:</label>
+                        <input
+                          type="text"
+                          value={manualOutletInput}
+                          onChange={(e) => setManualOutletInput(e.target.value)}
+                          placeholder="Misal: Gito Gati, Monjali..."
+                          className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#645D55] mb-0.5">Divisi / Posisi:</label>
+                        <select
+                          value={manualDivisiInput}
+                          onChange={(e) => setManualDivisiInput(e.target.value as Division)}
+                          className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white"
+                        >
+                          <option value="Kitchen">Kitchen</option>
+                          <option value="Kasir">Kasir</option>
+                          <option value="Geprek">Geprek</option>
+                          <option value="Helper">Helper</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold text-[#645D55] mb-0.5">Tipe Status:</label>
+                        <select
+                          value={manualTipeInput}
+                          onChange={(e) => setManualTipeInput(e.target.value as any)}
+                          className="w-full p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white"
+                        >
+                          <option value="Karyawan Baru (1-45 Hari)">Karyawan Baru</option>
+                          <option value="Retraining Karyawan Lama">Retraining Lama</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddManualParticipantToBatch}
+                      className="w-full py-2 rounded-lg bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                    >
+                      + Masukkan Peserta ke Batch (Otomatis Simpan ke Master Kru)
+                    </button>
+                  </div>
+                )}
+
+                {/* List of participants in batch */}
+                <div className="max-h-40 overflow-y-auto space-y-1.5 border border-[#E6E1DA] rounded-xl p-2 bg-[#FAF8F5]">
+                  {(!editingBatch.peserta || editingBatch.peserta.length === 0) ? (
+                    <div className="text-center py-4 text-stone-400 italic text-[11px]">
+                      Belum ada peserta di batch ini. Klik tombol di atas untuk menambah peserta.
+                    </div>
+                  ) : (
+                    editingBatch.peserta.map((p, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white border border-[#E6E1DA] text-xs">
+                        <div>
+                          <span className="font-bold text-[#181411] block">{idx + 1}. {p.nama_kru}</span>
+                          <span className="text-[10px] text-[#645D55]">
+                            {getFullOutletName(p.kode_outlet)} • {p.divisi} • {p.tipe}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveParticipantFromBatch(p.nama_kru)}
+                          className="p-1 text-rose-600 hover:bg-rose-50 rounded cursor-pointer transition-colors"
+                          title="Hapus dari batch"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>

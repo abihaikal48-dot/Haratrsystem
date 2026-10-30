@@ -62,255 +62,146 @@ export interface TrainingParticipantItem {
 export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   {
     no: 1,
-    nama: 'Iqbal Muzzaki',
-    outlet: 'Imogiri Barat',
+    nama: 'Haudy Rizky',
+    outlet: 'Gito Gati',
     stasiun: 'Station 1',
-    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar, Geprek Moza',
-    keterangan: 'Reguler',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori',
+    keterangan: 'New',
     divisi: 'Kitchen',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 88,
-      langkahSop: 86,
-      kecepatan: 85,
-      knowledge: 84,
-      kerjaSama: 88,
-      kebersihan: 90,
-      keaktifan: 86,
-      skorAkhir: 86.6,
-      status: 'LULUS MAHIR (GRADE A)'
-    }
+    nilaiBawaan: { ketepatan: 85, langkahSop: 85, kecepatan: 85, knowledge: 85, kerjaSama: 85, kebersihan: 90, keaktifan: 85, skorAkhir: 86.0, status: 'LULUS MAHIR (GRADE A)' }
   },
   {
     no: 2,
-    nama: 'Dhimas Eka Ramadhani',
-    outlet: 'Purworejo',
+    nama: 'Vino Adrian Saputra',
+    outlet: 'Glagahsari',
     stasiun: 'Station 2',
-    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Nashville, Mentai, Krisbar Ayoli',
-    keterangan: 'Reguler',
+    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Nashville',
+    keterangan: 'New',
     divisi: 'Kitchen',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 74,
-      langkahSop: 72,
-      kecepatan: 70,
-      knowledge: 75,
-      kerjaSama: 80,
-      kebersihan: 78,
-      keaktifan: 80,
-      skorAkhir: 74.8,
-      status: 'WAJIB REMEDIAL (<75)'
-    }
+    nilaiBawaan: { ketepatan: 82, langkahSop: 80, kecepatan: 80, knowledge: 82, kerjaSama: 85, kebersihan: 84, keaktifan: 82, skorAkhir: 82.2, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
     no: 3,
-    nama: 'Wanu Azlina',
-    outlet: 'Wates Bendungan',
+    nama: 'Salwa Salsabila',
+    outlet: 'Borobudur',
     stasiun: 'Station 3',
-    paketMenu: 'Goreng Terong, Sambal, Goreng AU & Kulit, Nasgor Geprek, Keju Parut, Geprek Ayoli',
-    keterangan: 'Reguler',
+    paketMenu: 'Goreng Terong, Sambal, Nasgor Geprek, Keju Parut',
+    keterangan: 'New',
     divisi: 'Geprek',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 82,
-      langkahSop: 80,
-      kecepatan: 78,
-      knowledge: 80,
-      kerjaSama: 85,
-      kebersihan: 84,
-      keaktifan: 82,
-      skorAkhir: 81.2,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
+    nilaiBawaan: { ketepatan: 84, langkahSop: 82, kecepatan: 80, knowledge: 82, kerjaSama: 84, kebersihan: 86, keaktifan: 84, skorAkhir: 83.1, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
     no: 4,
-    nama: 'Tri Muhammad Atmojo',
-    outlet: 'Sedayu',
+    nama: 'Evanda Nur Meilita',
+    outlet: 'Pandega',
     stasiun: 'Station 1',
-    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar, Geprek Moza',
-    keterangan: 'Reguler',
-    divisi: 'Kitchen',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Milkshake',
+    keterangan: 'New',
+    divisi: 'Kasir',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 86,
-      langkahSop: 85,
-      kecepatan: 82,
-      knowledge: 84,
-      kerjaSama: 86,
-      kebersihan: 88,
-      keaktifan: 85,
-      skorAkhir: 85.0,
-      status: 'LULUS MAHIR (GRADE A)'
-    }
+    nilaiBawaan: { ketepatan: 88, langkahSop: 86, kecepatan: 85, knowledge: 86, kerjaSama: 88, kebersihan: 90, keaktifan: 86, skorAkhir: 87.0, status: 'LULUS MAHIR (GRADE A)' }
   },
   {
     no: 5,
-    nama: 'Muhammad Gohan Putra Nusa',
-    outlet: 'Jangkang',
+    nama: 'Mahfud Attoriq',
+    outlet: 'Pandowoharjo',
     stasiun: 'Station 2',
-    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Nashville, Mentai, Krisbar Ayoli',
-    keterangan: 'Reguler',
+    paketMenu: 'Goreng Ayam, Indomie, Mentai',
+    keterangan: 'New',
     divisi: 'Kitchen',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 79,
-      langkahSop: 78,
-      kecepatan: 75,
-      knowledge: 76,
-      kerjaSama: 80,
-      kebersihan: 82,
-      keaktifan: 78,
-      skorAkhir: 78.1,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
+    nilaiBawaan: { ketepatan: 80, langkahSop: 78, kecepatan: 76, knowledge: 78, kerjaSama: 82, kebersihan: 80, keaktifan: 80, skorAkhir: 79.1, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
     no: 6,
-    nama: 'Rully Aditya',
-    outlet: 'Gito-gati',
+    nama: 'Davi Dwi Eriyanto',
+    outlet: 'Jambon',
     stasiun: 'Station 3',
-    paketMenu: 'Goreng Terong, Sambal, Goreng AU & Kulit, Nasgor Geprek, Keju Parut, Geprek Ayoli',
-    keterangan: 'Reguler',
+    paketMenu: 'Sambal Bawang, Geprek Ayoli',
+    keterangan: 'New',
     divisi: 'Geprek',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 84,
-      langkahSop: 82,
-      kecepatan: 80,
-      knowledge: 82,
-      kerjaSama: 84,
-      kebersihan: 85,
-      keaktifan: 84,
-      skorAkhir: 82.8,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
+    nilaiBawaan: { ketepatan: 82, langkahSop: 80, kecepatan: 78, knowledge: 80, kerjaSama: 83, kebersihan: 85, keaktifan: 82, skorAkhir: 81.5, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
     no: 7,
-    nama: 'Aulia Eka Sari',
-    outlet: 'Wates Kemiri',
+    nama: 'Dimas Mahardika',
+    outlet: 'Purworejo',
     stasiun: 'Station 1',
-    paketMenu: 'Nasi 4 Cup, Goreng Kulit, Milkshake All Variant, Teh 8L',
-    keterangan: 'Reguler',
-    divisi: 'Kasir',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur',
+    keterangan: 'New',
+    divisi: 'Kitchen',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 92,
-      langkahSop: 90,
-      kecepatan: 88,
-      knowledge: 90,
-      kerjaSama: 92,
-      kebersihan: 94,
-      keaktifan: 90,
-      skorAkhir: 90.7,
-      status: 'LULUS MAHIR (GRADE A)'
-    }
+    nilaiBawaan: { ketepatan: 85, langkahSop: 84, kecepatan: 82, knowledge: 83, kerjaSama: 85, kebersihan: 88, keaktifan: 84, skorAkhir: 84.4, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
     no: 8,
-    nama: 'Karima Syakinata Fiddini',
-    outlet: 'Parakan',
+    nama: 'Muhammad Nadziiful Affan',
+    outlet: 'Sorogenen',
     stasiun: 'Station 2',
-    paketMenu: 'Sambal Matah, Sambal Daun Jeruk, Susu Coklat (Sucok)',
-    keterangan: 'Reguler',
-    divisi: 'Kasir',
+    paketMenu: 'Goreng Ayam, Krisbar, Nashville',
+    keterangan: 'New',
+    divisi: 'Kitchen',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 80,
-      langkahSop: 78,
-      kecepatan: 76,
-      knowledge: 78,
-      kerjaSama: 82,
-      kebersihan: 80,
-      keaktifan: 80,
-      skorAkhir: 78.9,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
+    nilaiBawaan: { ketepatan: 86, langkahSop: 85, kecepatan: 84, knowledge: 85, kerjaSama: 87, kebersihan: 89, keaktifan: 86, skorAkhir: 86.0, status: 'LULUS MAHIR (GRADE A)' }
   },
   {
     no: 9,
-    nama: 'Shabrina Eka',
-    outlet: 'Pandean',
+    nama: 'Kevin Irawan',
+    outlet: 'Monjali',
     stasiun: 'Station 3',
-    paketMenu: 'Menggoreng Ayam, Milkshake All Variant, Goreng Jamur, Kentang, Orange',
-    keterangan: 'Reguler',
-    divisi: 'Kitchen',
-    default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 85,
-      langkahSop: 84,
-      kecepatan: 82,
-      knowledge: 80,
-      kerjaSama: 86,
-      kebersihan: 88,
-      keaktifan: 84,
-      skorAkhir: 83.9,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
-  },
-  {
-    no: 10,
-    nama: 'Ryan Candra Kusuma (New)',
-    outlet: 'Godean Munggur',
-    stasiun: 'Station 1',
-    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur, Geprek Ori, Krisbar',
-    keterangan: 'New',
-    divisi: 'Kitchen',
-    default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 72,
-      langkahSop: 70,
-      kecepatan: 68,
-      knowledge: 72,
-      kerjaSama: 75,
-      kebersihan: 78,
-      keaktifan: 76,
-      skorAkhir: 72.3,
-      status: 'WAJIB REMEDIAL (<75)'
-    }
-  },
-  {
-    no: 11,
-    nama: 'Chicha Suparwati (New)',
-    outlet: 'Kalakijo',
-    stasiun: 'Station 2',
-    paketMenu: 'Goreng Ayam, Scrembel, Spinach, Indomie, Mentai',
-    keterangan: 'New',
-    divisi: 'Kitchen',
-    default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 81,
-      langkahSop: 80,
-      kecepatan: 78,
-      knowledge: 80,
-      kerjaSama: 82,
-      kebersihan: 84,
-      keaktifan: 80,
-      skorAkhir: 80.5,
-      status: 'LULUS KOMPETEN (KKM >=75)'
-    }
-  },
-  {
-    no: 12,
-    nama: 'Intan Nur Khasanah (New)',
-    outlet: 'Mantrijeron',
-    stasiun: 'Station 3',
-    paketMenu: 'Goreng Terong, Sambal Bawang, Nasgor Geprek, Geprek Ayoli',
+    paketMenu: 'Goreng Terong, Sambal Matah',
     keterangan: 'New',
     divisi: 'Geprek',
     default_status: 'Onboarding',
-    nilaiBawaan: {
-      ketepatan: 87,
-      langkahSop: 85,
-      kecepatan: 84,
-      knowledge: 86,
-      kerjaSama: 88,
-      kebersihan: 88,
-      keaktifan: 86,
-      skorAkhir: 86.1,
-      status: 'LULUS MAHIR (GRADE A)'
-    }
+    nilaiBawaan: { ketepatan: 81, langkahSop: 80, kecepatan: 78, knowledge: 80, kerjaSama: 82, kebersihan: 84, keaktifan: 81, skorAkhir: 80.9, status: 'LULUS KOMPETEN (KKM >=75)' }
+  },
+  {
+    no: 10,
+    nama: 'Dhiya Aida Yumna',
+    outlet: 'Support Mobile Outlet',
+    stasiun: 'Station 1',
+    paketMenu: 'Milkshake, Teh 8L, Kasir 5S',
+    keterangan: 'New',
+    divisi: 'Kasir',
+    default_status: 'Onboarding',
+    nilaiBawaan: { ketepatan: 90, langkahSop: 88, kecepatan: 86, knowledge: 88, kerjaSama: 90, kebersihan: 92, keaktifan: 88, skorAkhir: 88.9, status: 'LULUS MAHIR (GRADE A)' }
+  },
+  {
+    no: 11,
+    nama: 'Alinzki Ridha Pratama',
+    outlet: 'Lempong (Area Godean)',
+    stasiun: 'Station 2',
+    paketMenu: 'Goreng Ayam, Indomie, Mentai',
+    keterangan: 'New',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: { ketepatan: 83, langkahSop: 82, kecepatan: 80, knowledge: 82, kerjaSama: 85, kebersihan: 86, keaktifan: 83, skorAkhir: 83.2, status: 'LULUS KOMPETEN (KKM >=75)' }
+  },
+  {
+    no: 12,
+    nama: 'Edvin Perdana Yulianto',
+    outlet: 'Kamdanen',
+    stasiun: 'Station 3',
+    paketMenu: 'Goreng Terong, Sambal Bawang, Geprek',
+    keterangan: 'New',
+    divisi: 'Geprek',
+    default_status: 'Onboarding',
+    nilaiBawaan: { ketepatan: 85, langkahSop: 84, kecepatan: 82, knowledge: 83, kerjaSama: 86, kebersihan: 88, keaktifan: 85, skorAkhir: 84.8, status: 'LULUS KOMPETEN (KKM >=75)' }
+  },
+  {
+    no: 13,
+    nama: 'Sigit Nur Prasetyo',
+    outlet: 'Kamdanen',
+    stasiun: 'Station 1',
+    paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur',
+    keterangan: 'New',
+    divisi: 'Kitchen',
+    default_status: 'Onboarding',
+    nilaiBawaan: { ketepatan: 82, langkahSop: 80, kecepatan: 79, knowledge: 81, kerjaSama: 84, kebersihan: 85, keaktifan: 82, skorAkhir: 82.0, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
 ];
 
