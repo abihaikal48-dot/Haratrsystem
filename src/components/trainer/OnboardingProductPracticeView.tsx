@@ -115,8 +115,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     return kruList;
   }, [batches, selectedBatchId, kruList]);
 
-  // 12 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
+  // 13 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
   const [pesertaMatrix, setPesertaMatrix] = useState<TrainingParticipantItem[]>(() => {
+    const saved = db.getTable<TrainingParticipantItem>('peserta_matrix_tc');
+    if (Array.isArray(saved) && saved.length > 0) return saved;
     return DAFTAR_PESERTA_ONBOARDING_TC;
   });
   const [editingPeserta7Kriteria, setEditingPeserta7Kriteria] = useState<TrainingParticipantItem | null>(null);
@@ -2959,27 +2961,42 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                           </span>
                         </td>
                         <td className="p-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingPeserta7Kriteria(item);
-                              if (item.nilaiBawaan) {
-                                setForm7Kriteria({
-                                  ketepatan: item.nilaiBawaan.ketepatan,
-                                  langkahSop: item.nilaiBawaan.langkahSop,
-                                  kecepatan: item.nilaiBawaan.kecepatan,
-                                  knowledge: item.nilaiBawaan.knowledge,
-                                  kerjaSama: item.nilaiBawaan.kerjaSama,
-                                  kebersihan: item.nilaiBawaan.kebersihan,
-                                  keaktifan: item.nilaiBawaan.keaktifan,
-                                });
-                              }
-                            }}
-                            className="p-1.5 rounded-lg border border-[#E6E1DA] hover:border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold transition-all cursor-pointer"
-                            title="Edit Skor 7 Kriteria"
-                          >
-                            <Edit3 size={13} />
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingPeserta7Kriteria(item);
+                                if (item.nilaiBawaan) {
+                                  setForm7Kriteria({
+                                    ketepatan: item.nilaiBawaan.ketepatan,
+                                    langkahSop: item.nilaiBawaan.langkahSop,
+                                    kecepatan: item.nilaiBawaan.kecepatan,
+                                    knowledge: item.nilaiBawaan.knowledge,
+                                    kerjaSama: item.nilaiBawaan.kerjaSama,
+                                    kebersihan: item.nilaiBawaan.kebersihan,
+                                    keaktifan: item.nilaiBawaan.keaktifan,
+                                  });
+                                }
+                              }}
+                              className="p-1.5 rounded-lg border border-[#E6E1DA] hover:border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold transition-all cursor-pointer"
+                              title="Edit Skor 7 Kriteria"
+                            >
+                              <Edit3 size={13} />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = pesertaMatrix.filter(p => p.nama !== item.nama);
+                                setPesertaMatrix(updated);
+                                db.setTable('peserta_matrix_tc', updated);
+                                showToast(`Peserta "${item.nama}" berhasil dihapus secara permanen.`);
+                              }}
+                              className="p-1.5 rounded-lg border border-rose-200 hover:border-rose-600 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all cursor-pointer"
+                              title="Hapus Peserta"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
