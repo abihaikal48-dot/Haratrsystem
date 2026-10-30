@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana integrasi hasil penilaian sikap dan kebersihan ke dalam Analitik Onboarding Pusat (OnboardingDataAnalystView), agar seluruh rekapitulasi nilai sikap, grooming, sanitasi, dan keaktifan terkumpul secara otomatis di dashboard analitik.",
-  "updatedAt":  "2026-10-30T01:47:47.914651848Z",
+  "summary":  "Implementation plan for robust local data persistence and participant management in Onboarding Training module without resetting or page refresh.",
+  "updatedAt":  "2026-10-30T03:53:02.018683191Z",
   "requestFeedback":  true,
   "userFacing":  true
 }
