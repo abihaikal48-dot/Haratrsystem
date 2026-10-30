@@ -3326,18 +3326,15 @@ class StorageDatabase {
   // MANAJEMEN ONBOARDING & RETRAINING 3 HARI
   // ==========================================
   public getOnboardingBatches(): OnboardingBatch[] {
-    const raw = this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
-    const list = (raw || []).map(b => ({
+    const raw = this.get<OnboardingBatch[]>(STORAGE_KEYS.ONBOARDING_BATCHES, null);
+    if (!raw) {
+      this.set(STORAGE_KEYS.ONBOARDING_BATCHES, INITIAL_ONBOARDING_BATCHES);
+      return INITIAL_ONBOARDING_BATCHES;
+    }
+    return raw.map(b => ({
       ...b,
       peserta: Array.isArray(b?.peserta) ? b.peserta : [],
     }));
-    // Hanya seed jika batch belum ada sama sekali di storage
-    const oct30Idx = list.findIndex(b => b.id === 'batch-ob-2026-10-30');
-    const initialOct30 = INITIAL_ONBOARDING_BATCHES.find(b => b.id === 'batch-ob-2026-10-30');
-    if (oct30Idx === -1 && initialOct30) {
-      list.unshift(initialOct30);
-    }
-    return list;
   }
 
   public saveOnboardingBatch(batch: OnboardingBatch): void {

@@ -89,8 +89,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   selectedOutletCode,
   onOpenFullAuditLog,
 }) => {
-  // Navigation Sub-Tab: 'produk' (2 Pilar KKM 75) vs 'riwayat' (Rekap & Spreadsheet) vs 'jobdesk' (Sikap Detail)
-  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk'>('produk');
+  // Navigation Sub-Tab: 'produk' vs 'riwayat' vs 'jobdesk' vs 'peserta'
+  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk' | 'peserta'>('produk');
 
   // Master lists
   const [kruList, setKruList] = useState<Kru[]>([]);
@@ -118,7 +118,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // 13 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
   const [pesertaMatrix, setPesertaMatrix] = useState<TrainingParticipantItem[]>(() => {
     const saved = db.getTable<TrainingParticipantItem>('peserta_matrix_tc');
-    if (Array.isArray(saved) && saved.length > 0) return saved;
+    if (saved !== null && Array.isArray(saved)) return saved;
+    db.setTable('peserta_matrix_tc', DAFTAR_PESERTA_ONBOARDING_TC);
     return DAFTAR_PESERTA_ONBOARDING_TC;
   });
   const [editingPeserta7Kriteria, setEditingPeserta7Kriteria] = useState<TrainingParticipantItem | null>(null);
@@ -1173,6 +1174,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             }`}>
               5 Dimensi
             </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('peserta')}
+            className={`flex-1 sm:flex-none px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border cursor-pointer ${
+              activeSubTab === 'peserta'
+                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+            }`}
+          >
+            <Users size={15} />
+            <span>Kelola Peserta ({pesertaMatrix.length})</span>
           </button>
         </div>
 
@@ -2765,7 +2779,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 3: MONITORING 12 PESERTA & 7 KRITERIA OBJEKTIF (KKM 75)
           Sesuai Dokumen Master HARA Halaman 5 & 6
           =================================================================== */}
-      {false && (
+      {activeSubTab === 'peserta' && (
         <div className="space-y-6">
           {/* Header Card */}
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
