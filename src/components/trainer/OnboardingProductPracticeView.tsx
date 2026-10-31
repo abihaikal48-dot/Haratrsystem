@@ -137,21 +137,61 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [batches, setBatches] = useState<OnboardingBatch[]>([]);
   const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
 
-  // Integrasi Batch Kru Dinamis: Mengambil peserta langsung dari Batch yang dipilih (bukan kru statis)
+  // Integrasi Batch Kru Dinamis: Mengambil peserta langsung dari Batch yang dipilih atau seluruh batch
   const candidateKrus = useMemo(() => {
+    const listMap = new Map<string, Kru>();
+
+    if (selectedBatchId === 'ALL') {
+      // 1. Gather from all batches
+      batches.forEach(b => {
+        if (Array.isArray(b.peserta)) {
+          b.peserta.forEach(p => {
+            if (p && p.nama_kru && !p.nama_kru.toLowerCase().includes('ridha')) {
+              const kId = p.kru_id || `batch-p-${p.nama_kru}`;
+              if (!listMap.has(kId)) {
+                listMap.set(kId, {
+                  id: kId,
+                  nama_kru: p.nama_kru,
+                  divisi: p.divisi || 'Kitchen',
+                  kode_outlet: p.kode_outlet || 'Kantor Lempongsari',
+                  jabatan: p.jabatan || 'Kru (Onboarding TC)',
+                  tanggal_masuk: p.tanggal_masuk || '2026-10-30',
+                  status_aktif: 'Aktif',
+                  created_at: new Date().toISOString(),
+                });
+              }
+            }
+          });
+        }
+      });
+      // 2. Add remaining from kruList
+      kruList.forEach(k => {
+        if (k && k.nama_kru && !k.nama_kru.toLowerCase().includes('ridha')) {
+          if (!listMap.has(k.id) && !Array.from(listMap.values()).some(existing => existing.nama_kru.toLowerCase().trim() === k.nama_kru.toLowerCase().trim())) {
+            listMap.set(k.id, k);
+          }
+        }
+      });
+      return Array.from(listMap.values());
+    }
+
     const currentBatch = batches.find(b => b.id === selectedBatchId);
     if (currentBatch && Array.isArray(currentBatch.peserta) && currentBatch.peserta.length > 0) {
-      return currentBatch.peserta.map(p => ({
-        id: p.kru_id || `batch-p-${p.nama_kru}`,
-        nama_kru: p.nama_kru,
-        divisi: p.divisi || 'Kitchen',
-        kode_outlet: 'Kantor Lempongsari',
-        posisi: p.jabatan || 'Crew',
-        status_aktif: 'Aktif' as const,
-        created_at: new Date().toISOString(),
-      }));
+      return currentBatch.peserta
+        .filter(p => p && p.nama_kru && !p.nama_kru.toLowerCase().includes('ridha'))
+        .map(p => ({
+          id: p.kru_id || `batch-p-${p.nama_kru}`,
+          nama_kru: p.nama_kru,
+          divisi: p.divisi || 'Kitchen',
+          kode_outlet: p.kode_outlet || 'Kantor Lempongsari',
+          jabatan: p.jabatan || 'Kru (Onboarding TC)',
+          tanggal_masuk: p.tanggal_masuk || '2026-10-30',
+          status_aktif: 'Aktif' as const,
+          created_at: new Date().toISOString(),
+        }));
     }
-    return kruList;
+
+    return kruList.filter(k => k && k.nama_kru && !k.nama_kru.toLowerCase().includes('ridha'));
   }, [batches, selectedBatchId, kruList]);
 
   // 13 Peserta Monitoring Matrix (Page 5 PDF) & Rubrik 7 Kriteria (Page 6 PDF)
@@ -436,8 +476,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const prodDef = allAvailableProducts.find(p => p.nama === prodName) || allAvailableProducts[0];
     const newId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
 
-    const candidateId = initialKru?.id || (kruList[0]?.id ?? 'manual-1');
-    const candidateName = initialKru?.nama_kru || (kruList[0]?.nama_kru ?? 'Iqbal Muzzaki');
+    const defaultFirstCandidate = candidateKrus[0] || kruList[0];
+    const candidateId = initialKru?.id || defaultFirstCandidate?.id || 'kru-ob-3001';
+    const candidateName = initialKru?.nama_kru || defaultFirstCandidate?.nama_kru || 'Haudy Rizky';
     const queue = defaultQueue && defaultQueue.length > 0 ? defaultQueue : [prodDef.nama];
 
     return {
@@ -489,17 +530,38 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
     // Resilient local draft check: NEVER overwrite active working sessions with initial defaults!
     setSessions(prev => {
-      if (prev && prev.length > 0) return prev;
+      const defaultFirst = candidateKrus[0] || k[0] || { id: 'kru-ob-3001', nama_kru: 'Haudy Rizky', kode_outlet: 'Kantor Lempongsari', divisi: 'Kitchen' };
+      if (prev && prev.length > 0) {
+        return prev.map(s => {
+          if (!s.namaKru || s.namaKru.toLowerCase().includes('ridha') || s.namaKru === 'Iqbal Muzzaki') {
+            return {
+              ...s,
+              kruId: defaultFirst.id,
+              namaKru: defaultFirst.nama_kru,
+            };
+          }
+          return s;
+        });
+      }
       try {
         const saved = localStorage.getItem('hara_active_assessment_sessions');
         if (saved) {
-          const parsed = JSON.parse(saved);
+          const parsed: AssessmentSessionTab[] = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed;
+            return parsed.map(s => {
+              if (!s.namaKru || s.namaKru.toLowerCase().includes('ridha') || s.namaKru === 'Iqbal Muzzaki') {
+                return {
+                  ...s,
+                  kruId: defaultFirst.id,
+                  namaKru: defaultFirst.nama_kru,
+                };
+              }
+              return s;
+            });
           }
         }
       } catch {}
-      const init = createNewSession(k[0]);
+      const init = createNewSession(defaultFirst as Kru);
       setActiveTabId(init.id);
       return [init];
     });

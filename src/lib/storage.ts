@@ -22,6 +22,7 @@ import {
 } from './officialAuditData';
 import { INITIAL_HASIL_UJIAN_MINGGUAN } from '../data/bankSoalMingguan';
 import { INITIAL_PENILAIAN_ONBOARDING_TC } from '../data/onboardingAssessmentData';
+import { DAFTAR_PESERTA_ONBOARDING_TC } from '../data/trainingCenterData';
 
 const STORAGE_KEYS = {
   OUTLETS: 'hara_pd_outlets_v2',
@@ -540,13 +541,13 @@ const INITIAL_KRU: Kru[] = [
   },
   {
     id: 'kru-ob-3011',
-    nama_kru: 'Andra Ilyas Erlangga (New)',
+    nama_kru: 'Edvin Perdana Yulianto',
     jabatan: 'Kru Kitchen (Onboarding TC)',
     divisi: 'Kitchen',
-    kode_outlet: 'HC-MOBILE',
+    kode_outlet: 'HC-GOD01',
     tanggal_masuk: '2026-10-30',
     status_aktif: 'Aktif',
-    catatan: 'Peserta 11 - Support Mobile Outlet',
+    catatan: 'Peserta 11 - Area Godean',
     created_at: '2026-10-30T08:00:00.000Z',
   },
   {
@@ -777,11 +778,11 @@ const INITIAL_PENILAIAN_SIKAP_KEBERSIHAN: PenilaianSikapKebersihanKru[] = [
     id: 'psk-ob-3011',
     tanggal: '2026-10-30',
     kru_id: 'kru-ob-3011',
-    nama_kru: 'Andra Ilyas Erlangga (New)',
+    nama_kru: 'Edvin Perdana Yulianto',
     batch_id: 'batch-ob-2026-10-30',
     batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
-    kode_outlet: 'HC-MOBILE',
-    station: 'Station 1',
+    kode_outlet: 'HC-GOD01',
+    station: 'Station 2',
     skor_grooming: 19,
     skor_sanitasi: 23,
     skor_keaktifan: 24,
@@ -790,7 +791,7 @@ const INITIAL_PENILAIAN_SIKAP_KEBERSIHAN: PenilaianSikapKebersihanKru[] = [
     skor_total: 94,
     predikat: 'Sangat Baik',
     status: 'Lulus',
-    catatan: 'Sangat responsif dan mendukung persiapan stasiun mobile outlet secara sigap.',
+    catatan: 'Sangat responsif dan mendukung persiapan stasiun kerja Godean secara sigap.',
     penilai_nama: 'Onboarding Team',
     created_at: '2026-10-30T11:30:00.000Z',
   },
@@ -802,7 +803,7 @@ const INITIAL_PENILAIAN_SIKAP_KEBERSIHAN: PenilaianSikapKebersihanKru[] = [
     batch_id: 'batch-ob-2026-10-30',
     batch_name: 'Batch Onboarding TC Lempongsari 30-31 Okt',
     kode_outlet: 'HC-KMD01',
-    station: 'Station 2',
+    station: 'Station 3',
     skor_grooming: 18,
     skor_sanitasi: 23,
     skor_keaktifan: 23,
@@ -2235,6 +2236,96 @@ class StorageDatabase {
           localStorage.setItem(STORAGE_KEYS.APP_USERS, JSON.stringify(filtered));
         } catch {
           localStorage.setItem(STORAGE_KEYS.APP_USERS, JSON.stringify(INITIAL_USERS));
+        }
+      }
+      // Always force sync 12 Batch 30-31 kru into STORAGE_KEYS.KRU
+      const storedKru = localStorage.getItem(STORAGE_KEYS.KRU);
+      let kruList: Kru[] = INITIAL_KRU;
+      if (storedKru) {
+        try {
+          const parsed: Kru[] = JSON.parse(storedKru);
+          const filtered = parsed.filter(k => k && k.nama_kru && !k.nama_kru.toLowerCase().includes('ridha'));
+          // Merge missing INITIAL_KRU items into filtered
+          INITIAL_KRU.forEach(ik => {
+            const idx = filtered.findIndex(f => f.id === ik.id || f.nama_kru.toLowerCase().trim() === ik.nama_kru.toLowerCase().trim());
+            if (idx >= 0) {
+              filtered[idx] = { ...filtered[idx], ...ik };
+            } else {
+              filtered.push(ik);
+            }
+          });
+          kruList = filtered;
+        } catch {
+          kruList = INITIAL_KRU;
+        }
+      }
+      localStorage.setItem(STORAGE_KEYS.KRU, JSON.stringify(kruList));
+
+      // Always force sync INITIAL_ONBOARDING_BATCHES into STORAGE_KEYS.ONBOARDING_BATCHES
+      const storedBatches = localStorage.getItem(STORAGE_KEYS.ONBOARDING_BATCHES);
+      let batchList: OnboardingBatch[] = INITIAL_ONBOARDING_BATCHES;
+      if (storedBatches) {
+        try {
+          const parsed: OnboardingBatch[] = JSON.parse(storedBatches);
+          parsed.forEach(b => {
+            if (Array.isArray(b.peserta)) {
+              b.peserta = b.peserta.filter(p => p && p.nama_kru && !p.nama_kru.toLowerCase().includes('ridha'));
+            }
+          });
+          // Update or insert batch-ob-2026-10-30 from INITIAL_ONBOARDING_BATCHES
+          INITIAL_ONBOARDING_BATCHES.forEach(ib => {
+            const idx = parsed.findIndex(p => p.id === ib.id || p.nomor_batch === ib.nomor_batch);
+            if (idx >= 0) {
+              parsed[idx] = ib;
+            } else {
+              parsed.unshift(ib);
+            }
+          });
+          batchList = parsed;
+        } catch {
+          batchList = INITIAL_ONBOARDING_BATCHES;
+        }
+      }
+      localStorage.setItem(STORAGE_KEYS.ONBOARDING_BATCHES, JSON.stringify(batchList));
+
+      // Always force sync INITIAL_PENILAIAN_SIKAP_KEBERSIHAN into STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU
+      const storedSikap = localStorage.getItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU);
+      let sikapList: PenilaianSikapKebersihanKru[] = INITIAL_PENILAIAN_SIKAP_KEBERSIHAN;
+      if (storedSikap) {
+        try {
+          const parsed: PenilaianSikapKebersihanKru[] = JSON.parse(storedSikap);
+          const filtered = parsed.filter(s => s && s.nama_kru && !s.nama_kru.toLowerCase().includes('ridha'));
+          INITIAL_PENILAIAN_SIKAP_KEBERSIHAN.forEach(is => {
+            const idx = filtered.findIndex(f => f.id === is.id || f.nama_kru.toLowerCase().trim() === is.nama_kru.toLowerCase().trim());
+            if (idx >= 0) {
+              filtered[idx] = { ...filtered[idx], ...is };
+            } else {
+              filtered.push(is);
+            }
+          });
+          sikapList = filtered;
+        } catch {
+          sikapList = INITIAL_PENILAIAN_SIKAP_KEBERSIHAN;
+        }
+      }
+      localStorage.setItem(STORAGE_KEYS.PENILAIAN_SIKAP_KEBERSIHAN_KRU, JSON.stringify(sikapList));
+
+      // Force update peserta matrix TC
+      localStorage.setItem('hara_pd_peserta_matrix_tc', JSON.stringify(DAFTAR_PESERTA_ONBOARDING_TC));
+
+      // Sanitize active assessment sessions draft in localStorage if it contains "Ridha"
+      const activeSessionsRaw = localStorage.getItem('hara_active_assessment_sessions');
+      if (activeSessionsRaw) {
+        try {
+          const sessionsParsed = JSON.parse(activeSessionsRaw);
+          if (Array.isArray(sessionsParsed)) {
+            const hasRidha = sessionsParsed.some(s => s && s.namaKru && s.namaKru.toLowerCase().includes('ridha'));
+            if (hasRidha) {
+              localStorage.removeItem('hara_active_assessment_sessions');
+            }
+          }
+        } catch {
+          localStorage.removeItem('hara_active_assessment_sessions');
         }
       }
     } catch {

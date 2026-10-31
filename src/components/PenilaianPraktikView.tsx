@@ -179,8 +179,7 @@ export const PenilaianPraktikView: React.FC<PenilaianPraktikViewProps> = ({ sele
   // Master kru operasional cabang
   const [kruList, setKruList] = useState<Kru[]>(() => {
     try {
-      const all = db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif');
-      return all;
+      return db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif' && !k.nama_kru.toLowerCase().includes('ridha'));
     } catch {
       return [];
     }
@@ -202,15 +201,43 @@ export const PenilaianPraktikView: React.FC<PenilaianPraktikViewProps> = ({ sele
   // Active SOP Standard
   const currentStandard = OPERATIONAL_SOP_STANDARDS[selectedDivisi] || OPERATIONAL_SOP_STANDARDS.Kasir;
 
-  // Filter kru by outlet & division
+  // Auto-subscribe to database updates
+  useEffect(() => {
+    const loadKru = () => {
+      try {
+        const all = db.getTable<Kru>('kru').filter((k) => k && k.status_aktif === 'Aktif' && !k.nama_kru.toLowerCase().includes('ridha'));
+        setKruList(all);
+      } catch {
+        setKruList([]);
+      }
+    };
+    loadKru();
+    const unsub = db.subscribe('*', loadKru);
+    return () => unsub();
+  }, []);
+
+  // Filter kru by outlet & division with flexible fallback for Onboarding TC crew
   const filteredKruList = useMemo(() => {
-    return kruList.filter((k) => {
-      const matchOutlet = selectedOutletCode === 'ALL' || k.kode_outlet === selectedOutletCode;
+    const list = kruList.filter((k) => {
+      const isTC = k.jabatan?.includes('Onboarding') || k.catatan?.includes('Peserta');
+      const matchOutlet = selectedOutletCode === 'ALL' || k.kode_outlet === selectedOutletCode || isTC;
       const matchDivisi = k.divisi === selectedDivisi;
       const matchSearch = searchKruQuery
         ? k.nama_kru.toLowerCase().includes(searchKruQuery.toLowerCase())
         : true;
       return matchOutlet && matchDivisi && matchSearch;
+    });
+
+    if (list.length > 0) return list;
+
+    // Fallback if no exact division match: show outlet/TC crew matching search
+    return kruList.filter((k) => {
+      const isTC = k.jabatan?.includes('Onboarding') || k.catatan?.includes('Peserta');
+      const matchOutlet = selectedOutletCode === 'ALL' || k.kode_outlet === selectedOutletCode || isTC;
+      const matchSearch = searchKruQuery
+        ? k.nama_kru.toLowerCase().includes(searchKruQuery.toLowerCase())
+        : true;
+      return matchOutlet && matchSearch;
     });
   }, [kruList, selectedOutletCode, selectedDivisi, searchKruQuery]);
 

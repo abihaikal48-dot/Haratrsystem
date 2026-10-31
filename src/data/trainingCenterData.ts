@@ -89,7 +89,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
     stasiun: 'Station 3',
     paketMenu: 'Goreng Terong, Sambal, Nasgor Geprek, Keju Parut',
     keterangan: 'New',
-    divisi: 'Geprek',
+    divisi: 'Kasir',
     default_status: 'Onboarding',
     nilaiBawaan: { ketepatan: 84, langkahSop: 82, kecepatan: 80, knowledge: 82, kerjaSama: 84, kebersihan: 86, keaktifan: 84, skorAkhir: 83.1, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
@@ -100,13 +100,13 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
     stasiun: 'Station 1',
     paketMenu: 'Nasi 4 Cup, Teh 10L, Milkshake',
     keterangan: 'New',
-    divisi: 'Kasir',
+    divisi: 'Kitchen',
     default_status: 'Onboarding',
     nilaiBawaan: { ketepatan: 88, langkahSop: 86, kecepatan: 85, knowledge: 86, kerjaSama: 88, kebersihan: 90, keaktifan: 86, skorAkhir: 87.0, status: 'LULUS MAHIR (GRADE A)' }
   },
   {
     no: 5,
-    nama: 'Mahfud Attoriq',
+    nama: 'Mahfud Attoriq (Outlet : New)',
     outlet: 'Pandowoharjo',
     stasiun: 'Station 2',
     paketMenu: 'Goreng Ayam, Indomie, Mentai',
@@ -117,7 +117,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 6,
-    nama: 'Davi Dwi Eriyanto',
+    nama: 'Davi Dwi Eriyanto (Outlet : New)',
     outlet: 'Jambon',
     stasiun: 'Station 3',
     paketMenu: 'Sambal Bawang, Geprek Ayoli',
@@ -128,7 +128,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 7,
-    nama: 'Dimas Mahardika',
+    nama: 'Dimas Mahardika (Outlet : New)',
     outlet: 'Purworejo',
     stasiun: 'Station 1',
     paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur',
@@ -139,7 +139,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 8,
-    nama: 'Muhammad Nadziiful Affan',
+    nama: 'Muhammad Nadziiful Affan (Outlet : New)',
     outlet: 'Sorogenen',
     stasiun: 'Station 2',
     paketMenu: 'Goreng Ayam, Krisbar, Nashville',
@@ -150,7 +150,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 9,
-    nama: 'Kevin Irawan',
+    nama: 'Kevin Irawan (Outlet : New)',
     outlet: 'Monjali',
     stasiun: 'Station 3',
     paketMenu: 'Goreng Terong, Sambal Matah',
@@ -161,7 +161,7 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 10,
-    nama: 'Dhiya Aida Yumna',
+    nama: 'Dhiya Aida Yumna (New)',
     outlet: 'Support Mobile Outlet',
     stasiun: 'Station 1',
     paketMenu: 'Milkshake, Teh 8L, Kasir 5S',
@@ -172,31 +172,20 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
   },
   {
     no: 11,
-    nama: 'Alinzki Ridha Pratama',
-    outlet: 'Lempong (Area Godean)',
-    stasiun: 'Station 2',
-    paketMenu: 'Goreng Ayam, Indomie, Mentai',
-    keterangan: 'New',
-    divisi: 'Kitchen',
-    default_status: 'Onboarding',
-    nilaiBawaan: { ketepatan: 83, langkahSop: 82, kecepatan: 80, knowledge: 82, kerjaSama: 85, kebersihan: 86, keaktifan: 83, skorAkhir: 83.2, status: 'LULUS KOMPETEN (KKM >=75)' }
-  },
-  {
-    no: 12,
     nama: 'Edvin Perdana Yulianto',
-    outlet: 'Kamdanen',
-    stasiun: 'Station 3',
+    outlet: 'Area Godean',
+    stasiun: 'Station 2',
     paketMenu: 'Goreng Terong, Sambal Bawang, Geprek',
     keterangan: 'New',
-    divisi: 'Geprek',
+    divisi: 'Kitchen',
     default_status: 'Onboarding',
     nilaiBawaan: { ketepatan: 85, langkahSop: 84, kecepatan: 82, knowledge: 83, kerjaSama: 86, kebersihan: 88, keaktifan: 85, skorAkhir: 84.8, status: 'LULUS KOMPETEN (KKM >=75)' }
   },
   {
-    no: 13,
-    nama: 'Sigit Nur Prasetyo',
+    no: 12,
+    nama: 'Sigit Nur Prasetyo (Outlet : New)',
     outlet: 'Kamdanen',
-    stasiun: 'Station 1',
+    stasiun: 'Station 3',
     paketMenu: 'Nasi 4 Cup, Teh 10L, Sup Sayur',
     keterangan: 'New',
     divisi: 'Kitchen',
