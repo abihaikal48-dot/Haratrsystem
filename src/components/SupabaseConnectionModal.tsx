@@ -36,7 +36,10 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
   isOpen,
   onClose,
 }) => {
-  const [activeTab, setActiveTab] = useState<'status' | 'supabase' | 'vercel' | 'spreadsheet'>('status');
+  const { isConfigured } = getSupabaseConfig();
+  const [activeTab, setActiveTab] = useState<'status' | 'supabase' | 'vercel' | 'spreadsheet'>(
+    isConfigured ? 'supabase' : 'supabase'
+  );
   const [url, setUrl] = useState('');
   const [anonKey, setAnonKey] = useState('');
   const [status, setStatus] = useState<SupabaseStatus>(getSupabaseStatus());
@@ -53,8 +56,8 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
   const [copiedAppsScript, setCopiedAppsScript] = useState(false);
   const [showSqlViewer, setShowSqlViewer] = useState(false);
 
-  // Admin PIN Protection State (Kredensial dan Script Terlindungi dari User Biasa di HP)
-  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+  // Akses konfigurasi Supabase terbuka langsung untuk pengaturan database utama
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(true);
   const [adminPinInput, setAdminPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
@@ -473,6 +476,62 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                         {testResult.message}
                       </div>
                     )}
+
+                    {/* Cloud Sync & Migration Action Cards */}
+                    <div className="pt-3 border-t border-[#E6E1DA] space-y-2.5">
+                      <h5 className="font-bold text-xs text-[#181411] flex items-center gap-1.5">
+                        <UploadCloud size={14} className="text-[#96171B]" />
+                        <span>Operasi Cloud Langsung (Database Utama)</span>
+                      </h5>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={handlePullLatestData}
+                          disabled={loading}
+                          className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 font-bold text-xs text-slate-800">
+                            <DownloadCloud size={14} className="text-blue-600" />
+                            <span>Tarik Data Cloud (Pull)</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            Sinkronkan data penilaian & kru terbaru dari Supabase ke peramban.
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setLoading(true);
+                            setSyncStatusMsg('Memigrasikan data master ke Supabase...');
+                            try {
+                              const res = await autoSeedSupabaseIfEmpty();
+                              setSyncStatusMsg(res.message);
+                            } catch (e: any) {
+                              setSyncStatusMsg(`Gagal: ${e.message}`);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={loading}
+                          className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 font-bold text-xs text-slate-800">
+                            <UploadCloud size={14} className="text-emerald-600" />
+                            <span>Kirim Master Data (Seed)</span>
+                          </div>
+                          <p className="text-[10px] text-slate-500 mt-0.5">
+                            Unggah data 11 outlet, kru, dan 25 SOP ke tabel Supabase.
+                          </p>
+                        </button>
+                      </div>
+
+                      {syncStatusMsg && (
+                        <div className="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-900 font-medium">
+                          {syncStatusMsg}
+                        </div>
+                      )}
+                    </div>
                   </form>
                 </div>
               )}

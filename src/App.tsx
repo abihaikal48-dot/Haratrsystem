@@ -137,13 +137,24 @@ export function App() {
     refreshAppData();
     const unsub = db.subscribe('*', refreshAppData);
 
-    // Initialize Supabase client if configured (for push/sync)
+    // Inisialisasi Supabase sebagai Database Cloud Utama
     let unsubSupabase = () => {};
     const { isConfigured } = getSupabaseConfig();
     if (isConfigured) {
-      testSupabaseConnection();
+      testSupabaseConnection().then((res) => {
+        if (res.success) {
+          pullAllFromSupabase().then(() => {
+            refreshAppData();
+          });
+        }
+      });
       unsubSupabase = initSupabaseRealtimeSync();
     }
+
+    // Auto-sync cadangan via server proxy
+    initClientDataFromServer().then((loaded) => {
+      if (loaded) refreshAppData();
+    });
 
     // Test connection
     testFirestoreConnection();

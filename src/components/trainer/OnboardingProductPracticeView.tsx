@@ -602,14 +602,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }));
   };
 
-  // Stopwatch Interval - Keep active timer and productStates in sync
+  // Background Multi-Session Stopwatch Interval - Keeps all running timers ticking simultaneously
   useEffect(() => {
-    const active = sessions.find(s => s.id === activeTabId);
-    if (!active || !active.isTimerRunning) return;
+    const hasRunningSession = sessions.some(s => s.isTimerRunning);
+    if (!hasRunningSession) return;
 
     const interval = setInterval(() => {
       setSessions(prev => prev.map(s => {
-        if (s.id === activeTabId && s.isTimerRunning) {
+        if (s.isTimerRunning) {
           const newSeconds = s.timerSeconds + 1;
           const currProd = s.productNama;
           const currProdState: ProductPracticeState = {
@@ -636,7 +636,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [activeTabId, sessions]);
+  }, [sessions]);
 
   // Switch product safely without losing timer or checklist state
   const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
@@ -1023,7 +1023,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       };
     }
 
-    // 1. Prosedur SOP (Bobot: 40%)
+    // 1. Prosedur Langkah SOP (Bobot: 40%)
     const totalSteps = activeSession.stepChecklist.length;
     const passedSteps = activeSession.stepChecklist.filter(s => s.tercapai).length;
     let skorProsedur = totalSteps > 0 ? Math.round((passedSteps / totalSteps) * 100) : 100;
@@ -1032,7 +1032,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const missedKritis = activeSession.stepChecklist.filter(s => s.isKritis && !s.tercapai);
     const failedCriticalPoints = missedKritis.map(m => m.langkah);
 
-    // Suhu fryer critical check
+    // Suhu fryer critical check (jika ada)
     if (currentProductDef.requiresOilTemp && currentProductDef.targetSuhuMinyak) {
       const tempDiff = Math.abs((activeSession.suhuMinyakProbe || 0) - currentProductDef.targetSuhuMinyak);
       if (tempDiff > 5) {
@@ -1040,54 +1040,46 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       }
     }
 
-    // Gramatur critical check
-    if (currentProductDef.requiresGramatur && currentProductDef.targetGramatur) {
-      const gramDiff = Math.abs((activeSession.gramaturAktual || 0) - currentProductDef.targetGramatur);
-      const pctGram = (gramDiff / currentProductDef.targetGramatur) * 100;
-      if (pctGram > 15) {
-        failedCriticalPoints.push(`Deviasi Gramatur (${activeSession.gramaturAktual}g vs Target ${currentProductDef.targetGramatur}g)`);
-      }
-    }
-
     const hasTitikKritisViolation = failedCriticalPoints.length > 0;
     if (hasTitikKritisViolation) {
-      skorProsedur = Math.min(skorProsedur, 65);
+      skorProsedur = Math.min(skorProsedur, 60);
     }
 
-    // 2. Kecepatan Waktu Akumulasi (Persiapan s/d Produk Jadi) (Bobot: 30%)
+    // 2. Kecepatan Waktu Akumulasi SOS (Bobot: 40%) - Strict Curve
     const targetDetik = currentProductDef.stdDetik;
     const actualDetik = activeSession.timerSeconds;
     const timeDiff = actualDetik - targetDetik;
     let skorWaktu = 100;
-    if (actualDetik > targetDetik) {
+    if (actualDetik > targetDetik && targetDetik > 0) {
       const overSec = actualDetik - targetDetik;
-      const penalty = Math.min(60, Math.floor(overSec / 5) * 5);
-      skorWaktu = Math.max(40, 100 - penalty);
+      const overPct = (overSec / targetDetik) * 100;
+      // Deduct 2 points for every 1% delay over target time
+      skorWaktu = Math.max(0, Math.round(100 - overPct * 2));
     }
 
-    // 3. Knowledge SOP Lisan (Bobot: 30%)
+    // 3. Knowledge SOP Lisan (Bobot: 20%)
     const skorKnowledge = activeSession.skorKnowledge;
 
-    // Nilai Akhir Individu: Prosedur 40% + Waktu Akumulasi 30% + Knowledge 30% = 100%
+    // Nilai Akhir Komposit: Prosedur 40% + Waktu SOS 40% + Knowledge 20% = 100%
     let skorAkhir = Math.round(
       skorProsedur * 0.40 +
-      skorWaktu * 0.30 +
-      skorKnowledge * 0.30
+      skorWaktu * 0.40 +
+      skorKnowledge * 0.20
     );
 
     if (hasTitikKritisViolation) {
-      skorAkhir = Math.min(skorAkhir, 75);
+      skorAkhir = Math.min(skorAkhir, 69);
     }
 
     const isKompetenMandiri = skorAkhir >= 85 && !hasTitikKritisViolation;
-    const isLulusPendampingan = skorAkhir >= 80 && skorAkhir < 85 && !hasTitikKritisViolation;
-    const isRemedial = skorAkhir < 80 || hasTitikKritisViolation;
+    const isLulusKompeten = skorAkhir >= 70 && skorAkhir < 85 && !hasTitikKritisViolation;
+    const isRemedial = skorAkhir < 70 || hasTitikKritisViolation;
 
     const statusKelulusan = isKompetenMandiri
-      ? 'KOMPETEN MANDIRI'
-      : isLulusPendampingan
-      ? 'LULUS PENDAMPINGAN'
-      : 'REMEDIAL KRITIS';
+      ? 'LULUS MAHIR (GRADE A)'
+      : isLulusKompeten
+      ? 'LULUS KOMPETEN (KKM ≥ 70)'
+      : 'WAJIB REMEDIAL (< 70)';
 
     return {
       skorProsedur,
@@ -1095,7 +1087,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       skorKnowledge,
       skorAkhir,
       isKompetenMandiri,
-      isLulusPendampingan,
+      isLulusKompeten,
       isRemedial,
       statusKelulusan,
       hasTitikKritisViolation,
@@ -1892,77 +1884,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 const currentIdx = activeSession.currentProductIndex || 0;
 
                 return (
-                  <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2.5">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        <Layers size={14} className="text-[#96171B]" />
-                        <span className="text-xs font-bold text-[#181411]">
-                          Daftar Tugas Produk Praktik ({queue.length} Menu Terjadwal)
-                        </span>
-                        <span className="text-[11px] text-[#645D55]">
-                          • Menu Aktif #{currentIdx + 1} dari {queue.length}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setIsManageQueueOpen(true)}
-                          className="px-2.5 py-1.5 rounded-lg bg-white border border-[#E6E1DA] hover:border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                          title="Tambah atau atur menu yang diujikan untuk kru ini"
-                        >
-                          <Plus size={13} />
-                          <span>Atur / Tambah Menu Praktik</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Stepper Buttons Bar */}
-                    <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-0.5">
-                      {queue.map((prodName, pIdx) => {
-                        const isCurrent = pIdx === currentIdx;
-                        const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === prodName);
-                        const isDone = !!completedRecord;
-
-                        return (
-                          <button
-                            key={`${prodName}-${pIdx}`}
-                            type="button"
-                            onClick={() => {
-                              switchSessionProduct(prodName, pIdx);
-                            }}
-                            className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
-                              isCurrent
-                                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                                : isDone
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                : 'bg-white text-[#645D55] border-[#E6E1DA] hover:border-neutral-400'
-                            }`}
-                          >
-                            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
-                              isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-700'
-                            }`}>
-                              {isDone ? '✓' : pIdx + 1}
-                            </span>
-                            <span className="truncate max-w-[170px]">{prodName}</span>
-                            {completedRecord && (
-                              <span className={`text-[10px] font-mono px-1 rounded ${
-                                isCurrent ? 'bg-white/30 text-white' : 'bg-emerald-200/60 text-emerald-900'
-                              }`}>
-                                {completedRecord.skorAkhir}
-                              </span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })()}
-
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                {/* Peserta Praktik (Clean Crew Selector without hardcoded pills) */}
-                <div className="lg:col-span-5 space-y-1.5">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+                {/* LEFT: PESERTA KRU SELECTOR */}
+                <div className="lg:col-span-5 p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-2 flex flex-col justify-between">
                   <div className="flex items-center justify-between">
                     <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider flex items-center gap-1">
                       <User size={13} />
@@ -2036,82 +1960,112 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       </div>
                     </div>
                   )}
+
+                  <div className="pt-2 text-[11px] text-[#645D55] flex items-center justify-between border-t border-[#E6E1DA]/60">
+                    <span>Sesi Aktif: <strong className="text-[#181411]">{activeSession.namaKru}</strong></span>
+                    <span className="text-[10px] bg-red-50 text-[#96171B] font-bold px-1.5 py-0.5 rounded">KKM 70</span>
+                  </div>
                 </div>
 
-                {/* PRODUCT CARD SELECTOR */}
-                <div className="lg:col-span-7 space-y-1.5">
-                  <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
-                    Menu / SOP Produk yang Sedang Dibuat:
-                  </label>
-
-                  <div
-                    onClick={() => setIsProductPickerOpen(true)}
-                    className="p-3 rounded-lg border border-[#E6E1DA] hover:border-[#96171B] bg-[#FAF8F5] hover:bg-white cursor-pointer transition-all flex items-center justify-between gap-3 group"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-red-50 text-[#96171B] flex items-center justify-center shrink-0 border border-red-100 group-hover:bg-[#96171B] group-hover:text-white transition-colors">
-                        <UtensilsCrossed size={16} />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-extrabold text-sm text-[#181411] truncate">{currentProductDef.nama}</span>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-white border border-[#E6E1DA] text-[#645D55]">
-                            {currentProductDef.day}
-                          </span>
-                        </div>
-                        <div className="text-[11px] text-[#645D55] truncate mt-0.5">
-                          {currentProductDef.stationLabel} • Target Akumulasi {Math.round(currentProductDef.stdDetik / 60)} mnt ({currentProductDef.stdDetik}s)
-                          {currentProductDef.requiresOilTemp ? ` • Fryer ${currentProductDef.targetSuhuMinyak}°C` : ''}
-                          {currentProductDef.requiresGramatur ? ` • Timbang ${currentProductDef.targetGramatur}g` : ''}
-                        </div>
+                {/* RIGHT: SINGLE UNIFIED SOP & MENU QUEUE SELECTOR CARD */}
+                <div className="lg:col-span-7 p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#E6E1DA]">
+                    <div className="flex items-center gap-2">
+                      <UtensilsCrossed size={16} className="text-[#96171B]" />
+                      <div>
+                        <span className="text-xs font-bold text-[#181411] block">
+                          Menu / SOP Produk yang Sedang Dinilai
+                        </span>
+                        <span className="text-[10.5px] text-[#645D55]">
+                          Target Akumulasi: {Math.round(currentProductDef.stdDetik / 60)} Mnt ({currentProductDef.stdDetik}s) • {currentProductDef.stationLabel}
+                        </span>
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      className="px-3 py-1.5 rounded-lg bg-[#96171B] group-hover:bg-[#7A1216] text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors shadow-2xs"
-                    >
-                      <Search size={13} />
-                      <span>Cari Produk</span>
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => setIsProductPickerOpen(true)}
+                        className="px-2.5 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
+                        title="Pilih atau cari produk SOP dari bank SOP"
+                      >
+                        <Search size={13} />
+                        <span>Cari / Ganti SOP</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => setIsManageQueueOpen(true)}
+                        className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 border border-[#E6E1DA] text-[#181411] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                        title="Atur daftar menu yang diujikan"
+                      >
+                        <Plus size={13} />
+                        <span>Atur List ({queue.length})</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* 3-Stage Target Breakdown from Master PDF */}
-                  {currentProductDef.tahapanWaktu && (
-                    <div className="mt-3 pt-3 border-t border-[#E6E1DA] grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                      <div className="p-2.5 rounded-xl bg-white border border-[#E6E1DA]">
-                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">1. Prep Alat & Bahan:</span>
-                        <span className="text-sm font-extrabold text-[#181411] font-mono">
-                          {currentProductDef.tahapanWaktu.persiapanMenit} Mnt
-                        </span>
-                        <span className="text-[10.5px] text-[#645D55] block">({currentProductDef.tahapanWaktu.persiapanDetik} detik)</span>
+                  {/* Stepper Buttons for Queue */}
+                  {(() => {
+                    const currentIdx = activeSession.currentProductIndex || 0;
+                    return (
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-[11px] font-bold text-[#645D55]">
+                          <span>Antrean Menu Terjadwal Kru ({currentIdx + 1}/{queue.length}):</span>
+                          <span className="text-[#96171B] font-extrabold">{currentProductDef.nama}</span>
+                        </div>
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
+                          {queue.map((prodName, pIdx) => {
+                            const isCurrent = pIdx === currentIdx;
+                            const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === prodName);
+                            const isDone = !!completedRecord;
+
+                            return (
+                              <button
+                                key={`${prodName}-${pIdx}`}
+                                type="button"
+                                onClick={() => switchSessionProduct(prodName, pIdx)}
+                                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+                                  isCurrent
+                                    ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                                    : isDone
+                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                                    : 'bg-stone-50 text-[#645D55] border-[#E6E1DA] hover:border-neutral-400'
+                                }`}
+                              >
+                                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
+                                  isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-700'
+                                }`}>
+                                  {isDone ? '✓' : pIdx + 1}
+                                </span>
+                                <span className="truncate max-w-[150px]">{prodName}</span>
+                                {completedRecord && (
+                                  <span className={`text-[10px] font-mono px-1 rounded ${
+                                    isCurrent ? 'bg-white/30 text-white' : 'bg-emerald-200/60 text-emerald-900'
+                                  }`}>
+                                    {completedRecord.skorAkhir}
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-[#E6E1DA]">
-                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">2. Masak / Rebus Inti:</span>
-                        <span className="text-sm font-extrabold text-[#181411] font-mono">
-                          {currentProductDef.tahapanWaktu.prosesMasakMenit} Mnt
-                        </span>
-                        <span className="text-[10.5px] text-[#645D55] block">({currentProductDef.tahapanWaktu.prosesMasakDetik} detik)</span>
-                      </div>
-                      <div className="p-2.5 rounded-xl bg-white border border-[#E6E1DA]">
-                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">3. Saji & Packing:</span>
-                        <span className="text-sm font-extrabold text-[#181411] font-mono">
-                          {currentProductDef.tahapanWaktu.finishingPlatingMenit} Mnt
-                        </span>
-                        <span className="text-[10.5px] text-[#645D55] block">({currentProductDef.tahapanWaktu.finishingPlatingDetik} detik)</span>
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
+
                   {currentProductDef.alatBahan && (
-                    <div className="mt-2.5 p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950">
-                      <span className="font-bold uppercase tracking-wider block text-[10px] text-amber-900 mb-0.5">Persiapan Peralatan & Takaran Bahan Baku (SOP):</span>
-                      <p className="leading-relaxed">{currentProductDef.alatBahan}</p>
+                    <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950">
+                      <span className="font-bold uppercase tracking-wider block text-[10px] text-amber-900 mb-0.5">Persiapan & Alat Bahan SOP:</span>
+                      <p className="leading-relaxed truncate">{currentProductDef.alatBahan}</p>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
+        </div>
+      )}
 
           {/* MAIN ASSESSMENT SPLIT:
               LEFT: STOPWATCH AKUMULASI WAKTU, PARAMETER TEKNIS, & SOP STEPS
@@ -2320,30 +2274,6 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         </div>
                       ) : null}
 
-                      {currentProductDef.requiresGramatur ? (
-                        <div className="p-3.5 rounded-lg border border-[#E6E1DA] bg-amber-50/20">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-bold text-[#181411] flex items-center gap-1.5">
-                              <Scale size={14} className="text-amber-700" />
-                              <span>Gramatur Timbangan (g)</span>
-                            </span>
-                            <span className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">
-                              Target: {currentProductDef.targetGramatur}g
-                            </span>
-                          </div>
-                          <input
-                            type="number"
-                            value={activeSession.gramaturAktual}
-                            onChange={(e) => updateActiveSession({ gramaturAktual: Number(e.target.value) })}
-                            className="w-full p-2 rounded-lg border border-[#E6E1DA] text-sm font-bold font-mono text-[#181411]"
-                            min="0"
-                            max="500"
-                          />
-                          <p className="text-[10px] text-[#645D55] mt-1">
-                            {currentProductDef.gramaturLabel || 'Timbang dengan timbangan digital HARA.'}
-                          </p>
-                        </div>
-                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -2421,24 +2351,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     <div className={`px-2.5 py-1 rounded-md text-xs font-bold border flex items-center gap-1 ${
                       calculatedScores.isKompetenMandiri
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
-                        : calculatedScores.isLulusPendampingan
-                        ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                        : calculatedScores.isLulusKompeten
+                        ? 'bg-sky-500/20 text-sky-300 border-sky-500/40'
                         : 'bg-rose-500/20 text-rose-300 border-rose-500/40'
                     }`}>
                       {calculatedScores.isKompetenMandiri ? (
                         <>
                           <CheckCircle2 size={13} />
-                          <span>KOMPETEN MANDIRI</span>
+                          <span>LULUS MAHIR (GRADE A)</span>
                         </>
-                      ) : calculatedScores.isLulusPendampingan ? (
+                      ) : calculatedScores.isLulusKompeten ? (
                         <>
                           <CheckCircle2 size={13} />
-                          <span>LULUS PENDAMPINGAN</span>
+                          <span>LULUS KOMPETEN (KKM ≥ 70)</span>
                         </>
                       ) : (
                         <>
                           <AlertTriangle size={13} />
-                          <span>REMEDIAL KRITIS</span>
+                          <span>WAJIB REMEDIAL (&lt; 70)</span>
                         </>
                       )}
                     </div>
@@ -2451,7 +2381,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <span className="text-lg font-normal text-gray-400 ml-1">/ 100</span>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">
-                      Ambang Mandiri: <strong className="text-white">≥ 85 Poin & 0 Gagal Kritis</strong>
+                      Standar Kelulusan: <strong className="text-white">KKM ≥ 70 Poin</strong> (Grade A ≥ 85)
                     </p>
                   </div>
 
@@ -2462,11 +2392,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <span className="font-bold text-white">{calculatedScores.skorProsedur} / 100</span>
                     </div>
                     <div className="flex justify-between text-gray-300">
-                      <span>2. Waktu Akumulasi SOS (30%)</span>
+                      <span>2. Waktu Akumulasi SOS (40%)</span>
                       <span className="font-bold text-white">{calculatedScores.skorWaktu} / 100</span>
                     </div>
                     <div className="flex justify-between text-gray-300">
-                      <span>3. Knowledge SOP Lisan (30%)</span>
+                      <span>3. Knowledge SOP Lisan (20%)</span>
                       <span className="font-bold text-white">{calculatedScores.skorKnowledge} / 100</span>
                     </div>
                   </div>

@@ -2359,7 +2359,7 @@ class StorageDatabase {
     };
   }
 
-  private notify(key: string) {
+  public notify(key: string = '*') {
     // Defer listener execution to microtask/macrotask so React renders complete cleanly
     setTimeout(() => {
       const specific = this.listeners.get(key);
@@ -2485,10 +2485,20 @@ class StorageDatabase {
 
   public setTable(tableName: string, data: any[]): void {
     this.setDirectLocalOnly(tableName, data);
+
+    // Online Real-time Sync write to Supabase (Primary Cloud Database)
+    import('./supabase').then(({ syncTableToSupabase }) => {
+      syncTableToSupabase(tableName, data).catch(() => {});
+    }).catch(() => {});
   }
 
   public setDirect(tableName: string, data: any[]): void {
     this.setDirectLocalOnly(tableName, data);
+
+    // Online Real-time Sync write to Supabase (Primary Cloud Database)
+    import('./supabase').then(({ syncTableToSupabase }) => {
+      syncTableToSupabase(tableName, data).catch(() => {});
+    }).catch(() => {});
 
     // Online Real-time Sync write to Cloud Firestore
     if (Array.isArray(data) && data.length > 0) {

@@ -336,20 +336,48 @@ export function hitungSkorKomposit7Kriteria(scores: {
     scores.keaktifan * 0.10;
 
   const skorRounded = Math.round(skorKomposit * 10) / 10;
-  let status: 'LULUS MAHIR (GRADE A)' | 'LULUS KOMPETEN (KKM >=75)' | 'WAJIB REMEDIAL (<75)';
+  let status: 'LULUS MAHIR (GRADE A)' | 'LULUS KOMPETEN (KKM >=70)' | 'WAJIB REMEDIAL (<70)';
   let grade: 'A' | 'B' | 'C' | 'Remedial';
 
   if (skorRounded >= 85.0) {
     status = 'LULUS MAHIR (GRADE A)';
     grade = 'A';
-  } else if (skorRounded >= 75.0) {
-    status = 'LULUS KOMPETEN (KKM >=75)';
+  } else if (skorRounded >= 70.0) {
+    status = 'LULUS KOMPETEN (KKM >=70)';
     grade = 'B';
   } else {
-    status = 'WAJIB REMEDIAL (<75)';
+    status = 'WAJIB REMEDIAL (<70)';
     grade = 'Remedial';
   }
 
   return { skorKomposit: skorRounded, status, grade };
+}
+
+export function hitungSkorKompositPraktik404020(params: {
+  skorLangkahSop: number;
+  skorWaktuSos: number;
+  skorKnowledge: number;
+  hasKritisViolation?: boolean;
+}) {
+  const { skorLangkahSop, skorWaktuSos, skorKnowledge, hasKritisViolation } = params;
+  let rawScore = Math.round(skorLangkahSop * 0.40 + skorWaktuSos * 0.40 + skorKnowledge * 0.20);
+  if (hasKritisViolation) {
+    rawScore = Math.min(rawScore, 69);
+  }
+  let status: 'LULUS MAHIR (GRADE A)' | 'LULUS KOMPETEN (KKM >=70)' | 'WAJIB REMEDIAL (<70)';
+  let grade: 'A' | 'B' | 'C' | 'Remedial';
+
+  if (rawScore >= 85) {
+    status = 'LULUS MAHIR (GRADE A)';
+    grade = 'A';
+  } else if (rawScore >= 70) {
+    status = 'LULUS KOMPETEN (KKM >=70)';
+    grade = 'B';
+  } else {
+    status = 'WAJIB REMEDIAL (<70)';
+    grade = 'Remedial';
+  }
+
+  return { skorAkhir: rawScore, status, grade };
 }
 

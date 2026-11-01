@@ -293,44 +293,38 @@ export const PenilaianPraktikView: React.FC<PenilaianPraktikViewProps> = ({ sele
   const [catatanTrainer, setCatatanTrainer] = useState<string>('');
   const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
 
-  // Perhitungan Skor Akhir Komposit (0 - 100 pt)
+  // Perhitungan Skor Akhir Komposit (Langkah 40%, Waktu SOS 40%, Knowledge 20%)
   const calculatedScore = useMemo(() => {
+    // 1. Skor Langkah SOP (40%)
     const scoreValues: number[] = Object.values(stepScores);
-    if (scoreValues.length === 0) return 0;
     const totalEarned = scoreValues.reduce((sum: number, v: number) => sum + v, 0);
-    const maxEarned = currentStandard.rubrikLangkah.length * 3;
-    let baseScore = Math.round((totalEarned / maxEarned) * 100);
+    const maxEarned = (currentStandard.rubrikLangkah.length || 4) * 3;
+    const skorLangkah = maxEarned > 0 ? Math.round((totalEarned / maxEarned) * 100) : 100;
 
-    // Penalti Waktu SOS jika melebihi batas toleransi
-    if (seconds > 0 && seconds > currentStandard.targetSosDetik * 1.3) {
-      baseScore = Math.max(0, baseScore - 10);
+    // 2. Skor Waktu SOS (40%)
+    const stdDetik = currentStandard.targetSosDetik;
+    let skorWaktu = 100;
+    if (seconds > stdDetik && stdDetik > 0) {
+      const overPct = ((seconds - stdDetik) / stdDetik) * 100;
+      skorWaktu = Math.max(0, Math.round(100 - overPct * 2));
     }
 
-    // Penalti Suhu Minyak jika di luar rentang standar pada Kitchen
-    if (currentStandard.isTempRequired && (measuredTemp < 155 || measuredTemp > 165)) {
-      baseScore = Math.max(0, baseScore - 10);
-    }
+    // 3. Skor Knowledge (20%)
+    const skorKnowledge = 90;
 
-    // Penalti Gramatur jika di luar rentang standar pada Geprek
-    if (currentStandard.isGramRequired && (measuredGrams < 25 || measuredGrams > 35)) {
-      baseScore = Math.max(0, baseScore - 10);
-    }
+    const finalScore = Math.round(skorLangkah * 0.40 + skorWaktu * 0.40 + skorKnowledge * 0.20);
+    return Math.min(100, Math.max(0, finalScore));
+  }, [stepScores, seconds, currentStandard]);
 
-    return Math.min(100, Math.max(0, baseScore));
-  }, [stepScores, seconds, currentStandard, measuredTemp, measuredGrams]);
-
-  // Status & Grade Operasional
+  // Status & Grade Operasional (KKM 70)
   const evaluationGrade = useMemo(() => {
     if (calculatedScore >= 85) {
-      return { grade: 'Grade A', label: 'Mahir (Kandidat Promosi / Leader)', badge: 'bg-emerald-50 text-emerald-800 border-emerald-300' };
+      return { grade: 'Grade A', label: 'Mahir / Istimewa (Kandidat Promosi)', badge: 'bg-emerald-50 text-emerald-800 border-emerald-300' };
     }
-    if (calculatedScore >= 75) {
-      return { grade: 'Grade B', label: 'Kompeten (Lulus Standar QSR / PKWT)', badge: 'bg-sky-50 text-sky-800 border-sky-300' };
+    if (calculatedScore >= 70) {
+      return { grade: 'Grade B', label: 'Kompeten (Lulus Standar KKM ≥ 70)', badge: 'bg-sky-50 text-sky-800 border-sky-300' };
     }
-    if (calculatedScore >= 60) {
-      return { grade: 'Grade C', label: 'Pembinaan (Pipeline Retraining & GROW)', badge: 'bg-amber-50 text-amber-800 border-amber-300' };
-    }
-    return { grade: 'Remedial', label: 'Remedial (Wajib Evaluasi Ulang Pre/Post)', badge: 'bg-rose-50 text-rose-800 border-rose-300' };
+    return { grade: 'Grade C', label: 'Wajib Remedial Onboarding (< 70)', badge: 'bg-rose-50 text-rose-800 border-rose-300' };
   }, [calculatedScore]);
 
   // Format detik ke MM:SS

@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana implementasi penataan master produk dan stasiun sesuai dokumen agenda training (pemisahan varian ayoli/mentai/krisbar, Day 1 Batch 1 goreng ayam utuh), pemeliharaan state mandiri per produk (timer pause-resume tanpa reset saat pindah menu), dan pengembangan sistem penilaian tim stasiun objektif berbasis rubrik level perilaku konkret (Station 1 & Station 2).",
-  "updatedAt":  "2026-10-30T23:18:11.918117754Z",
+  "summary":  "Rencana arsitektur dan strategi transisi ke Supabase sebagai Database Cloud Utama (Online First) dengan sinkronisasi Realtime, auto-pull data saat inisialisasi aplikasi, dan indikator status online di antarmuka.",
+  "updatedAt":  "2026-11-01T23:22:26.268666258Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

@@ -451,7 +451,8 @@ export async function autoSeedSupabaseIfEmpty(): Promise<{
 }
 
 /**
- * Menarik (pull) data terbaru dari Supabase ke localStorage aplikasi
+ * Menarik (pull) data terbaru dari Supabase ke aplikasi (authoritative merge).
+ * Supabase adalah Primary Database Cloud: data cloud diselaraskan ke local cache.
  */
 export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRecords: number }> {
   const supabase = getSupabase();
@@ -460,77 +461,90 @@ export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRe
   try {
     let total = 0;
 
-    // Helper untuk hanya mengisi jika tabel lokal benar-benar kosong
-    const setIfLocalEmpty = (key: string, data: any[]) => {
-      const storageKey = 'hara_pd_' + key + '_v1';
-      const storageKeyV2 = 'hara_pd_' + key + '_v2';
-      const existing = localStorage.getItem(storageKey) || localStorage.getItem(storageKeyV2) || localStorage.getItem(key);
-      if (existing === null) {
-        db.setTable(key, data);
-        total += data.length;
-      }
+    // Helper untuk merge array data secara cerdas berbasis 'id'
+    const mergeTableData = (tableKey: string, remoteData: any[]) => {
+      if (!Array.isArray(remoteData) || remoteData.length === 0) return;
+      const localData = db.getTable<any>(tableKey);
+      const seenIds = new Set<string>();
+      const mergedList: any[] = [];
+
+      // 1. Prioritaskan dan masukkan data terbaru dari Cloud Supabase
+      remoteData.forEach(item => {
+        if (item && item.id) {
+          mergedList.push(item);
+          seenIds.add(String(item.id));
+        } else if (item) {
+          mergedList.push(item);
+        }
+      });
+
+      // 2. Jika ada rekaman lokal yang belum ada di cloud, pertahankan dan sync balik
+      localData.forEach(item => {
+        if (item && item.id && !seenIds.has(String(item.id))) {
+          mergedList.push(item);
+          seenIds.add(String(item.id));
+          syncRecordToSupabase(tableKey, item).catch(() => {});
+        }
+      });
+
+      db.setDirectLocalOnly(tableKey, mergedList);
+      total += mergedList.length;
     };
 
-    // 1. Tarik dari app_store hanya jika lokal belum ada
+    // 1. Tarik dari app_store
     const { data: storeData } = await supabase.from('app_store').select('*');
     if (storeData && storeData.length > 0) {
       for (const item of storeData) {
         if (item.key && Array.isArray(item.value) && item.value.length > 0) {
-          setIfLocalEmpty(item.key, item.value);
+          mergeTableData(item.key, item.value);
         }
       }
     }
 
-    // 2. Tarik tabel utama jika lokal kosong
-    const { data: outletsData } = await supabase.from('outlets').select('*');
-    if (outletsData && outletsData.length > 0) {
-      setIfLocalEmpty('outlets', outletsData);
+    // 2. Tarik tabel terstruktur utama
+    const tablesToPull = [
+      'penilaian_praktik_onboarding_produk',
+      'onboarding_batches',
+      'kru',
+      'outlets',
+      'bank_sop',
+      'hasil_ujian_mingguan',
+      'app_users',
+      'penilaian_sikap_kebersihan_kru',
+      'penilaian_jobdesk_stasiun',
+      'attitude_hara',
+      'penugasan_trainer',
+      'tna',
+      'rencana_training',
+      'observasi_lapangan',
+      'coaching_log',
+      'gap_analysis',
+      'kartu_keluhan',
+      'talent_tracker',
+      'ojt_monitoring'
+    ];
+
+    for (const tbl of tablesToPull) {
+      try {
+        const { data, error } = await supabase.from(tbl).select('*').limit(1000);
+        if (!error && Array.isArray(data) && data.length > 0) {
+          mergeTableData(tbl, data);
+          if (tbl === 'penilaian_praktik_onboarding_produk') {
+            mergeTableData('penilaian_onboarding_rnd', data);
+            mergeTableData('penilaian_onboarding_tc', data);
+          }
+        }
+      } catch {
+        // Table mungkin belum dibuat via script SQL; app_store bertindak sebagai fallback
+      }
     }
 
-    const { data: kruData } = await supabase.from('kru').select('*');
-    if (kruData && kruData.length > 0) {
-      setIfLocalEmpty('kru', kruData);
-    }
-
-    const { data: sopData } = await supabase.from('bank_sop').select('*');
-    if (sopData && sopData.length > 0) {
-      setIfLocalEmpty('bank_sop', sopData);
-    }
-
-    const { data: ujianData } = await supabase.from('hasil_ujian_mingguan').select('*');
-    if (ujianData && ujianData.length > 0) {
-      setIfLocalEmpty('hasil_ujian_mingguan', ujianData);
-    }
-
-    const { data: userData } = await supabase.from('app_users').select('*');
-    if (userData && userData.length > 0) {
-      setIfLocalEmpty('app_users', userData);
-    }
-
-    const { data: batchData } = await supabase.from('onboarding_batches').select('*');
-    if (batchData && batchData.length > 0) {
-      setIfLocalEmpty('onboarding_batches', batchData);
-    }
-
-    const { data: praktikData } = await supabase.from('penilaian_praktik_onboarding_produk').select('*');
-    if (praktikData && praktikData.length > 0) {
-      setIfLocalEmpty('penilaian_praktik_onboarding_produk', praktikData);
-      setIfLocalEmpty('penilaian_onboarding_rnd', praktikData);
-    }
-
-    const { data: sikapData } = await supabase.from('penilaian_sikap_kebersihan_kru').select('*');
-    if (sikapData && sikapData.length > 0) {
-      setIfLocalEmpty('penilaian_sikap_kebersihan_kru', sikapData);
-    }
-
-    const { data: attitudeData } = await supabase.from('attitude_hara').select('*');
-    if (attitudeData && attitudeData.length > 0) {
-      setIfLocalEmpty('attitude_hara', attitudeData);
-    }
+    // Trigger update untuk seluruh komponen UI
+    db.notify('*');
 
     return { success: true, totalRecords: total };
   } catch (err) {
-    console.error('Error saat memeriksa data dari Supabase:', err);
+    console.error('Error saat menarik data dari Supabase:', err);
     return { success: false, totalRecords: 0 };
   }
 }
@@ -539,14 +553,16 @@ let realtimeChannelSubscription: any = null;
 
 /**
  * Setup Supabase Realtime channel listener.
- * Sinkronisasi data seketika saat ada perubahan dari kru/cabang lain.
+ * Sinkronisasi data seketika saat ada perubahan dari kru/trainer lain.
  */
 export function initSupabaseRealtimeSync(): () => void {
   const supabase = getSupabase();
   if (!supabase) return () => {};
 
   if (realtimeChannelSubscription) {
-    supabase.removeChannel(realtimeChannelSubscription);
+    try {
+      supabase.removeChannel(realtimeChannelSubscription);
+    } catch {}
   }
 
   const channel = supabase
@@ -561,7 +577,9 @@ export function initSupabaseRealtimeSync(): () => void {
         if (table === 'app_store') {
           const newRec = payload.new as any;
           if (newRec && newRec.key && Array.isArray(newRec.value)) {
-            db.setTable(newRec.key, newRec.value);
+            db.setDirectLocalOnly(newRec.key, newRec.value);
+            db.notify(newRec.key);
+            db.notify('*');
           }
           return;
         }
@@ -577,14 +595,26 @@ export function initSupabaseRealtimeSync(): () => void {
             } else {
               list.unshift(row);
             }
-            db.setTable(table, list);
+            db.setDirectLocalOnly(table, list);
+            if (table === 'penilaian_praktik_onboarding_produk') {
+              db.setDirectLocalOnly('penilaian_onboarding_rnd', list);
+              db.setDirectLocalOnly('penilaian_onboarding_tc', list);
+            }
+            db.notify(table);
+            db.notify('*');
           }
         } else if (eventType === 'DELETE') {
           const oldRow = payload.old;
           if (oldRow && (oldRow as any).id) {
             const list = db.getTable(table);
             const filtered = list.filter((item: any) => item.id !== (oldRow as any).id);
-            db.setTable(table, filtered);
+            db.setDirectLocalOnly(table, filtered);
+            if (table === 'penilaian_praktik_onboarding_produk') {
+              db.setDirectLocalOnly('penilaian_onboarding_rnd', filtered);
+              db.setDirectLocalOnly('penilaian_onboarding_tc', filtered);
+            }
+            db.notify(table);
+            db.notify('*');
           }
         }
       }
@@ -601,10 +631,51 @@ export function initSupabaseRealtimeSync(): () => void {
 
   return () => {
     if (realtimeChannelSubscription) {
-      supabase.removeChannel(realtimeChannelSubscription);
+      try {
+        supabase.removeChannel(realtimeChannelSubscription);
+      } catch {}
       realtimeChannelSubscription = null;
     }
   };
+}
+
+/**
+ * Menyinkronkan seluruh tabel ke Supabase app_store & structured table
+ */
+export async function syncTableToSupabase(tableName: string, data: any[]): Promise<boolean> {
+  const supabase = getSupabase();
+  if (!supabase) return false;
+
+  try {
+    // 1. Simpan ke app_store key-value
+    await supabase.from('app_store').upsert({
+      key: tableName,
+      value: data,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key' });
+
+    // 2. Simpan juga ke structured table jika ada dan data berupa array
+    const validTables = new Set([
+      'outlets', 'kru', 'bank_sop', 'hasil_ujian_mingguan', 'app_users',
+      'onboarding_batches', 'penilaian_praktik_onboarding_produk',
+      'penilaian_sikap_kebersihan_kru', 'attitude_hara'
+    ]);
+
+    if (validTables.has(tableName) && Array.isArray(data) && data.length > 0) {
+      const chunks: any[][] = [];
+      const chunkSize = 50;
+      for (let i = 0; i < data.length; i += chunkSize) {
+        chunks.push(data.slice(i, i + chunkSize));
+      }
+      for (const chunk of chunks) {
+        await supabase.from(tableName).upsert(chunk, { onConflict: 'id' });
+      }
+    }
+    return true;
+  } catch (err) {
+    console.warn(`[Supabase Sync] Gagal sync table ${tableName}:`, err);
+    return false;
+  }
 }
 
 /**
@@ -619,14 +690,15 @@ export async function syncRecordToSupabase(table: string, record: any): Promise<
     // 1. Coba simpan langsung ke tabel spesifik
     const { error } = await supabase.from(table).upsert(record, { onConflict: 'id' });
     if (error) {
-      // 2. Fallback aman: simpan snapshot tabel lengkap ke app_store
-      const currentList = db.getTable(table);
-      await supabase.from('app_store').upsert({
-        key: table,
-        value: currentList,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'key' });
+      console.warn(`[Supabase Auto-Sync] Warning simpan ke ${table}:`, error.message);
     }
+    // 2. Update snapshot tabel lengkap di app_store
+    const currentList = db.getTable(table);
+    await supabase.from('app_store').upsert({
+      key: table,
+      value: currentList,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'key' });
     return true;
   } catch (e) {
     console.warn(`[Supabase Auto-Sync] Gagal menyimpan ke ${table}:`, e);
@@ -792,7 +864,79 @@ CREATE TABLE IF NOT EXISTS public.attitude_hara (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 8. MATIKAN ROW LEVEL SECURITY (RLS) AGAR INPUT REAL-TIME DARI CLIENT DIIZINKAN
+-- 8. Tabel Penilaian Sikap & Higiene Kru
+CREATE TABLE IF NOT EXISTS public.penilaian_sikap_kebersihan_kru (
+  id TEXT PRIMARY KEY,
+  tanggal TEXT NOT NULL,
+  kru_id TEXT,
+  nama_kru TEXT NOT NULL,
+  kode_outlet TEXT,
+  nama_outlet TEXT,
+  batch_id TEXT,
+  shift TEXT,
+  skor_grooming NUMERIC,
+  skor_resik NUMERIC,
+  skor_attitude NUMERIC,
+  skor_disiplin NUMERIC,
+  skor_total NUMERIC NOT NULL,
+  status_kelulusan TEXT,
+  checklist_detail JSONB,
+  catatan TEXT,
+  penilai_nama TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 9. Tabel Evaluasi Jobdesk & 5S Stasiun
+CREATE TABLE IF NOT EXISTS public.penilaian_jobdesk_stasiun (
+  id TEXT PRIMARY KEY,
+  tanggal TEXT NOT NULL,
+  batch_id TEXT,
+  batch_name TEXT,
+  kode_outlet TEXT,
+  nama_outlet TEXT,
+  stasiun TEXT NOT NULL,
+  shift TEXT,
+  kru_names JSONB,
+  penilai_nama TEXT,
+  skor_5s_kebersihan NUMERIC,
+  detail_5s JSONB,
+  skor_kerjasama_komunikasi NUMERIC,
+  detail_kerjasama JSONB,
+  skor_akhir NUMERIC NOT NULL,
+  catatan TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 10. Tabel Hasil Ujian Kru Mingguan
+CREATE TABLE IF NOT EXISTS public.hasil_ujian_mingguan (
+  id TEXT PRIMARY KEY,
+  tanggal TEXT NOT NULL,
+  nama_kru TEXT NOT NULL,
+  kru_id TEXT,
+  kode_outlet TEXT NOT NULL,
+  divisi TEXT NOT NULL,
+  minggu_ke INT,
+  tipe_ujian TEXT,
+  skor NUMERIC NOT NULL,
+  status_kelulusan TEXT,
+  jawaban_detail JSONB,
+  topik_salah JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 11. Tabel Akun & Pengguna Sistem (Users)
+CREATE TABLE IF NOT EXISTS public.app_users (
+  id TEXT PRIMARY KEY,
+  email TEXT UNIQUE NOT NULL,
+  nama TEXT NOT NULL,
+  role TEXT NOT NULL,
+  outlet_akses JSONB,
+  divisi_akses JSONB,
+  status_aktif BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 12. MATIKAN ROW LEVEL SECURITY (RLS) AGAR INPUT REAL-TIME DARI CLIENT DIIZINKAN
 ALTER TABLE public.app_store DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.outlets DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.kru DISABLE ROW LEVEL SECURITY;
@@ -800,8 +944,12 @@ ALTER TABLE public.bank_sop DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.onboarding_batches DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.penilaian_praktik_onboarding_produk DISABLE ROW LEVEL SECURITY;
 ALTER TABLE public.attitude_hara DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.penilaian_sikap_kebersihan_kru DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.penilaian_jobdesk_stasiun DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.hasil_ujian_mingguan DISABLE ROW LEVEL SECURITY;
+ALTER TABLE public.app_users DISABLE ROW LEVEL SECURITY;
 
--- 9. BERIKAN HAK AKSES PENUH KE ROLE ANON & AUTHENTICATED
+-- 13. BERIKAN HAK AKSES PENUH KE ROLE ANON & AUTHENTICATED
 GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
 `;
