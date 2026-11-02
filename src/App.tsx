@@ -45,7 +45,7 @@ import {
   testSupabaseConnection,
   pullAllFromSupabase,
 } from './lib/supabase';
-import { initClientDataFromServer } from './lib/serverSync';
+import { initClientDataFromServer, startAutoSyncPolling } from './lib/serverSync';
 import {
   seedFirestoreIfEmpty,
   setupFirestoreRealtimeSync,
@@ -151,10 +151,8 @@ export function App() {
       unsubSupabase = initSupabaseRealtimeSync();
     }
 
-    // Auto-sync cadangan via server proxy
-    initClientDataFromServer().then((loaded) => {
-      if (loaded) refreshAppData();
-    });
+    // Auto-sync berkala server proxy multi-perangkat (HP 1 & HP 2 otomatis sinkron seketika saat disimpan)
+    const stopAutoSync = startAutoSyncPolling(3500);
 
     // Test connection
     testFirestoreConnection();
@@ -177,6 +175,7 @@ export function App() {
       unsub();
       unsubSupabase();
       unsubPresence();
+      stopAutoSync();
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);

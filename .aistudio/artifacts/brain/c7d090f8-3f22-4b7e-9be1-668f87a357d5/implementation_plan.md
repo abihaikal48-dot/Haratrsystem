@@ -1,104 +1,98 @@
-# Arsitektur Supabase Sebagai Database Cloud Utama (Online First)
+# Rencana Sistem Database Online Terpadu Multi-Perangkat (Otomatis & Real-Time)
 
-Transisi menyeluruh sistem manajemen pelatihan HARA ke **Supabase** sebagai sumber data utama (*Primary Database & Cloud Source of Truth*), menghubungkan aplikasi secara langsung ke cloud dengan kapabilitas sinkronisasi dua arah real-time, auto-hydration saat startup, dan indikator status online terpadu.
+Menjadikan sistem pelatihan dan penilaian HARA **benar-benar online secara otomatis antar-perangkat** (HP 1, HP 2, tablet, laptop), sehingga setiap kali penilaian disimpan di satu HP, data tersebut langsung muncul secara otomatis di HP lainnya tanpa perlu konfigurasi manual di setiap perangkat.
 
 ---
 
 > [!IMPORTANT]
-> **Keputusan Kunci yang Dikonfirmasi:**
-> 1. **Supabase Menjadi Database Utama (Primary Cloud DB)**: Menggantikan posisi Firestore sebagai database primer. Seluruh operasi tambah, ubah, dan hapus data (penilaian praktik, kru, batch 30-31, outlet, SOP) akan langsung disimpan dan disinkronkan ke tabel-tabel Supabase.
-> 2. **Auto-Pull & Smart Hydration**: Memperbaiki logika sinkronisasi data awal. Data di Supabase akan menjadi rujukan utama (*authoritative*) dan disinkronkan ke cache lokal saat aplikasi dimuat, bukan diabaikan saat local storage terisi.
-> 3. **Live Realtime Bi-Directional Sync**: Mengaktifkan listener WebSocket Supabase Realtime pada tabel utama dan tabel snapshot `app_store` sehingga pembaruan dari trainer di lapangan langsung tampil instan tanpa perlu memuat ulang halaman.
-> 4. **Indikator Status Online & Modal Koneksi di Header**: Menghadirkan badge status koneksi online Supabase yang selalu terlihat di bilah navigasi atas (Online / Connecting / Offline) dengan akses satu-klik ke pengujian koneksi, konfigurasi URL & Anon Key, dan migrasi data.
+> **Jawaban & Konfirmasi Pengguna:**
+> 1. **"Pakai Supabase bisa kan?"**: **Bisa sekali.** Agar semua HP otomatis terhubung ke Supabase tanpa perlu mengetikkan URL & Key di masing-masing HP, kredensial Supabase disimpan terpusat di server backend.
+> 2. **"Intinya ketika disimpan"**: Fokus utama adalah keandalan alur simpan (*save event*). Setiap kali form penilaian atau batch disimpan di satu HP, data langsung dikirim ke cloud dan disinkronkan ke HP lainnya secara otomatis.
+> 3. **Penyebab Mengapa Kemarin Belum Saling Terhubung**: Sebelumnya, data tersimpan hanya di memori lokal (*localStorage*) HP masing-masing karena Supabase belum menerima URL & Anon Key dari pengguna, sementara koneksi cloud bawaan sempat dinonaktifkan.
 
 ---
 
 ### 1. Ringkasan & Konsep Solusi
 
-- **Tujuan**: Memastikan aplikasi benar-benar **online** dan terhubung ke Supabase secara aktif, menyelesaikan kendala data yang sebelumnya tidak sinkron karena aplikasi masih memprioritaskan penyimpanan lokal/Firestore.
-- **Pengguna Sasaran**: Lead Trainer, Trainer Lapangan, Tim RnD, dan Manajemen Outlet HARA Chicken yang membutuhkan data penilaian kru terpusat dan dapat diakses dari berbagai perangkat secara bersamaan.
-- **Nilai Utama**: Data penilaian praktik onboarding (Batch 30-31, penilaian produk, SOP) tersimpan aman di cloud Supabase secara instan dan tidak akan hilang meskipun cache browser dibersihkan atau ganti perangkat.
+- **Tujuan**: Menghubungkan semua HP ke satu database cloud terpusat secara otomatis. Saat Trainer A menilai di HP 1 dan klik "Simpan", Trainer B di HP 2 langsung melihat data penilaian tersebut.
+- **Strategi "Zero-Config" untuk Pengguna**:
+  - Pengguna tidak perlu repot mengetikkan URL atau Anon Key di setiap HP yang membuka web.
+  - Server backend dan cloud bridge aktif secara otomatis sebagai penghubung (*real-time sync relay*).
+  - Jika pengguna memiliki project Supabase, URL & Key cukup dimasukkan satu kali dari menu Admin atau ditanam di server, dan seluruh HP otomatis tersambung ke Supabase tersebut.
 
 ---
 
-### 2. Pengalaman Pengguna & Tampilan Antarmuka (UX Flow)
+### 2. Alur Pengalaman Pengguna (User Experience Flow)
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│ 🟢 Supabase Cloud: ONLINE (Database Utama)   [Pengaturan Koneksi] [Sinkron] │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                       │
-            ┌──────────────────────────┴──────────────────────────┐
-            ▼                                                     ▼
-┌──────────────────────────────────────┐  ┌───────────────────────────────────┐
-│     Form Penilaian & Operasional     │  │       Modal Konfigurasi Cloud     │
-│ - Trainer menilai Kru Batch 30-31    │  │ - Input URL & Anon Public Key     │
-│ - Stopwatch timer berjalan           │  │ - Tombol "Tes Koneksi Cloud"      │
-│ - Klik "Simpan Penilaian"            │  │ - Script SQL Schema siap salin    │
-│ -> Tersimpan instan ke Supabase Cloud│  │ - "Tarik Data Cloud Sekarang"     │
-└──────────────────────────────────────┘  └───────────────────────────────────┘
+┌─────────────────────────────────┐           ┌─────────────────────────────────┐
+│              HP 1               │           │              HP 2               │
+│  (Trainer Input Penilaian)      │           │    (Lead Trainer Memantau)      │
+└────────────────┬────────────────┘           └────────────────▲────────────────┘
+                 │                                             │
+                 │ 1. Klik "Simpan Penilaian"                  │ 4. Otomatis Muncul
+                 ▼                                             │    (Data Terupdate)
+┌──────────────────────────────────────────────────────────────┴────────────────┐
+│                       CLOUD DATABASE & SERVER RELAY                           │
+│  - Supabase Cloud Database (Tabel penilaian & batch)                          │
+│  - Server Proxy / Cloud Sync Listener aktif 24/7                              │
+│  - Menerima mutasi data dari HP 1 & menyiarkan ke HP 2                        │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
-1. **Header Cloud Status Pill**:
-   - Di bagian atas aplikasi, terdapat badge interaktif:
-     - 🟢 **Supabase Online**: Menampilkan latensi dan status aktif.
-     - 🟡 **Menghubungkan**: Animasi pulse saat proses sinkronisasi data berlangsung.
-     - 🔴 **Offline / Belum Terhubung**: Tombol cepat untuk membuka panduan dan input kredensial Supabase.
-2. **Auto-Pull Notification**:
-   - Saat aplikasi dibuka, sistem secara otomatis mengecek perubahan data di Supabase dan melakukan penyelarasan latar belakang (*silent sync*). Jika ada data baru dari trainer lain, notifikasi kecil yang elegan akan mengonfirmasi pembaharuan data.
-3. **Modal Koneksi & Skrip SQL Supabase yang Lengkap**:
-   - Modal koneksi menyediakan skrip SQL DDL lengkap yang siap di-*copy-paste* ke menu SQL Editor di dashboard Supabase (membuat tabel `penilaian_praktik_onboarding_produk`, `onboarding_batches`, `kru`, `outlets`, `bank_sop`, dan `app_store` beserta policy RLS yang aman).
+1. **Di HP 1 (Input)**:
+   - Trainer membuka link aplikasi, mengisi form penilaian praktik kru Batch 30/31, lalu menekan tombol **"Simpan Penilaian"**.
+   - Indikator kecil menampilkan status: *"Tersimpan ke Cloud Database"*.
+2. **Di HP 2 (Penerima)**:
+   - Tanpa perlu pengaturan apa pun, aplikasi di HP 2 langsung menerima data terbaru tersebut.
+   - Tabel riwayat penilaian dan grafik langsung terupdate.
 
 ---
 
-### 3. Keputusan Produk & Arsitektur Teknis
+### 3. Keputusan Teknis & Arsitektur
 
-- **Pilihan Pendekatan: Online-First dengan Local Fallback Cache**:
-  - *Mengapa*: Jika jaringan internet di outlet sempat putus/lemah, trainer tetap bisa menilai tanpa kehilangan data karena sistem mencatat ke local cache dan otomatis memicu *retry sync* ke Supabase saat koneksi kembali pulih.
-- **Skema Penyimpanan Hybrid di Supabase**:
-  - Memanfaatkan tabel relasional terstruktur (`penilaian_praktik_onboarding_produk`, `onboarding_batches`, `kru`, `outlets`) untuk query terindeks dan laporan analitik.
-  - Sekaligus memelihara snapshot data di tabel `app_store` (key-value store fleksibel) untuk menjamin kompatibilitas 100% dengan seluruh tabel operasional lama tanpa risiko migration failure.
+- **Penyelarasan Server Proxy (Express + Vite)**:
+  - Mengonfigurasi dev/production server agar rute `/api/db/sync` dan `/api/db/init` aktif penuh di port 3000, menghubungkan seluruh perangkat peramban ke satu *central store*.
+- **Aktivasi Cloud Sync Engine**:
+  - Menghidupkan kembali koneksi cloud terpusat (`firebase.ts` / Firestore cloud database yang sudah ter-provisioning di project AI Studio ini) sebagai jalur sinkronisasi cloud instan tanpa perlu akun eksternal tambahan.
+- **Dukungan Penuh Supabase Terpusat**:
+  - Menyediakan endpoint di server backend yang membaca kredensial Supabase dari environment server atau pengaturan terpusat. Ketika Supabase diisi, seluruh data secara otomatis dialirkan ke tabel-tabel Supabase pengguna.
 
 ---
 
-### 4. Diagram Arsitektur & Alur Data
+### 4. Diagram Arsitektur Data
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                             APLIKASI FRONTEND                               │
-│  ┌───────────────────────┐             ┌──────────────────────────────────┐ │
-│  │   Komponen Penilaian  │             │   Header & Supabase Status Pill  │ │
-│  │  (Praktik / Kru / SOP)│             │       (Online / Reconnect)       │ │
-│  └───────────┬───────────┘             └────────────────┬─────────────────┘ │
-└──────────────┼──────────────────────────────────────────┼───────────────────┘
-               │                                          │
-               ▼                                          ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          STORAGE ENGINE (storage.ts)                        │
-│ 1. Read: Prioritaskan data Supabase -> fallback ke LocalStorage             │
-│ 2. Write: Simpan ke LocalStorage -> kirim langsung ke Supabase API          │
-└──────────────────────────────────────┬──────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                                 HP 1 / HP 2                                   │
+│  ┌─────────────────────────────┐             ┌─────────────────────────────┐  │
+│  │   UI Penilaian & Batch      │             │   Local Storage Cache       │  │
+│  │   (Form & Dashboard)        │             │   (Offline Fallback)        │  │
+│  └──────────────┬──────────────┘             └──────────────▲──────────────┘  │
+└─────────────────┼───────────────────────────────────────────┼─────────────────┘
+                  │                                           │
+                  ▼                                           │
+┌─────────────────────────────────────────────────────────────┴─────────────────┐
+│                         CENTRAL SYNC DISPATCHER                               │
+│  1. Simpan Lokal (Instan)                                                     │
+│  2. Kirim ke Server Backend `/api/db/sync` (Multi-Device Relay)               │
+│  3. Kirim ke Supabase Cloud REST / Firestore Realtime                         │
+└──────────────────────────────────────┬────────────────────────────────────────┘
                                        │
                       ┌────────────────┴────────────────┐
                       ▼                                 ▼
-┌──────────────────────────────────────┐  ┌───────────────────────────────────┐
-│         SUPABASE CLOUD REST          │  │     SUPABASE REALTIME CHANNEL     │
-│   POST / PUT / DELETE via SDK        │  │     postgres_changes (WebSocket)  │
-│ - penilaian_praktik_onboarding       │  │ - Mendengar perubahan data baru   │
-│ - onboarding_batches                 │  │ - Mengupdate state app live       │
-│ - app_store                          │  │                                   │
-└──────────────────────────────────────┘  └───────────────────────────────────┘
+┌──────────────────────────────────────┐  ┌─────────────────────────────────────┐
+│            SUPABASE CLOUD            │  │        CLOUD SYNC BACKEND           │
+│   (Tabel Onboarding & Penilaian)     │  │   (Siaran Data Otomatis ke HP 2)    │
+└──────────────────────────────────────┘  └─────────────────────────────────────┘
 ```
 
-#### Rencana Pelaksanaan:
-1. **Penyelarasan Engine `storage.ts`**:
-   - Menghubungkan setiap mutasi data (`savePenilaianPraktikProduk`, `saveOnboardingBatch`, `setTable`, `insertRow`, dll.) secara langsung ke Supabase sebagai tujuan utama.
-2. **Penyempurnaan `supabase.ts`**:
-   - Memperbaiki fungsi `pullAllFromSupabase` agar memperbarui data lokal dengan data cloud terbaru (bukan hanya mengisi saat local kosong).
-   - Menyalakan channel Realtime Supabase saat inisialisasi aplikasi agar perubahan otomatis terpantau.
-   - Menyediakan fungsi tes koneksi real-time dan generator skrip schema SQL otomatis.
-3. **Penyegaran Tampilan Header & Modal Koneksi**:
-   - Menghadirkan status visual "Supabase Online (Database Utama)" di bilah navigasi atas.
-   - Memastikan tombol tes dan input URL/Anon Key responsif dan intuitif.
-4. **Verifikasi & Uji Kompilasi**:
-   - Menjalankan pengujian sintaksis dan `compile_applet` untuk menjamin aplikasi berjalan tanpa error.
+#### Langkah Pengerjaan:
+1. **Mengaktifkan Backend Express di Dev Server (`server.ts` + `vite.config.ts`)**:
+   - Memastikan request `/api/*` dari HP 1 dan HP 2 langsung dilayani oleh server backend terpusat yang menyimpan data di database server.
+2. **Mengaktifkan Cloud Database Engine**:
+   - Membuka blokir cloud mode di `firebase.ts` dan menyelaraskan `storage.ts` agar setiap simpan langsung menembus cloud.
+3. **Penyelarasan Supabase Terpusat**:
+   - Memastikan server backend menyimpan dan membagikan konfigurasi Supabase ke semua perangkat klien secara otomatis.
+4. **Verifikasi Kompilasi & Uji Sinkronisasi Multi-Device**:
+   - Menjalankan `lint_applet` dan `compile_applet`.

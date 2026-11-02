@@ -116,8 +116,18 @@ function geminiApiDevPlugin(): Plugin {
         if (req.url === '/api/db/init' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           const store = readDevStore();
+          const supabaseConfig = (store as any)._supabase_config || {
+            url: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+            anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '',
+          };
           res.statusCode = 200;
-          res.end(JSON.stringify({ success: true, data: store, supabaseConnected: true, timestamp: new Date().toISOString() }));
+          res.end(JSON.stringify({
+            success: true,
+            data: store,
+            supabaseConfig: supabaseConfig.url && supabaseConfig.anonKey ? supabaseConfig : null,
+            supabaseConnected: !!(supabaseConfig.url && supabaseConfig.anonKey),
+            timestamp: new Date().toISOString(),
+          }));
           return;
         }
 
@@ -153,6 +163,16 @@ function geminiApiDevPlugin(): Plugin {
           }
 
           res.setHeader('Content-Type', 'application/json');
+
+          if (req.url === '/api/db/config' && req.method === 'POST') {
+            const { url, anonKey } = body;
+            const currentStore = readDevStore();
+            (currentStore as any)._supabase_config = { url, anonKey };
+            writeDevStore(currentStore);
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, message: 'Kredensial Supabase berhasil disimpan di server pusat.' }));
+            return;
+          }
 
           if (req.url === '/api/db/sync' && req.method === 'POST') {
             const { table, records, record, action } = body;

@@ -303,14 +303,33 @@ app.get('/api/db/init', async (_req, res) => {
       }
     }
 
+    const supabaseConfig = (store as any)._supabase_config || {
+      url: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
+      anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '',
+    };
+
     return res.json({
       success: true,
       data: store,
-      supabaseConnected: !!serverSupabase,
+      supabaseConfig: supabaseConfig.url && supabaseConfig.anonKey ? supabaseConfig : null,
+      supabaseConnected: !!serverSupabase || !!(supabaseConfig.url && supabaseConfig.anonKey),
       timestamp: new Date().toISOString()
     });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err?.message || 'Gagal memuat data dari server' });
+  }
+});
+
+// Endpoint untuk menyimpan kredensial Supabase terpusat dari admin
+app.post('/api/db/config', (req, res) => {
+  try {
+    const { url, anonKey } = req.body;
+    const store = readServerStore();
+    (store as any)._supabase_config = { url, anonKey };
+    writeServerStore(store);
+    return res.json({ success: true, message: 'Kredensial Supabase berhasil disimpan di server.' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, error: err?.message });
   }
 });
 

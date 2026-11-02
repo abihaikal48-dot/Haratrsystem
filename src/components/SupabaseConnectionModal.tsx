@@ -23,7 +23,7 @@ import {
   HARA_APPS_SCRIPT_TEMPLATE,
   exportPenilaianToCSV
 } from '../lib/googleSheetSync';
-import { checkServerStatus, initClientDataFromServer, ServerDbStatus } from '../lib/serverSync';
+import { checkServerStatus, initClientDataFromServer, saveCentralSupabaseConfig, ServerDbStatus } from '../lib/serverSync';
 import { db } from '../lib/storage';
 
 interface SupabaseConnectionModalProps {
@@ -149,7 +149,8 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
       return;
     }
     setLoading(true);
-    saveSupabaseCredentials(url.trim(), anonKey.trim());
+    await saveSupabaseCredentials(url.trim(), anonKey.trim());
+    await saveCentralSupabaseConfig(url.trim(), anonKey.trim());
     const res = await testSupabaseConnection(url.trim(), anonKey.trim());
     setTestResult(res);
     setLoading(false);

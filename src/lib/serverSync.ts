@@ -1,14 +1,15 @@
 /**
  * HARA CHICKEN - SERVER DATABASE & CLOUD SYNC PROXY
- * Bertanggung jawab melakukan sinkronisasi aman dua arah ke backend server.ts & Supabase.
- * Kredensial dan script tidak terekspos ke perangkat klien.
+ * Bertanggung jawab melakukan sinkronisasi aman dua arah ke backend server & Supabase.
+ * Menjamin multi-perangkat (HP 1, HP 2, Laptop) selalu terhubung dan otomatis sinkron.
  */
 
 import { db } from './storage';
-import { OnboardingBatch, PenilaianPraktikOnboardingProduk, PenilaianSikapKebersihanKru } from '../types';
+import { getSupabaseConfig, saveSupabaseCredentials, getSupabase } from './supabase';
 
 let isSyncing = false;
 let lastSyncTimestamp: string | null = null;
+let lastDataSignature = '';
 
 export interface ServerDbStatus {
   online: boolean;
@@ -28,12 +29,12 @@ export async function checkServerStatus(): Promise<ServerDbStatus> {
       return {
         online: true,
         supabaseConfigured: !!data.supabaseConfigured,
-        supabaseUrlConfigured: !!data.supabaseUrlConfigured,
+        supabaseUrlConfigured: !!data.supabaseConfigured,
         lastSync: lastSyncTimestamp,
       };
     }
   } catch {
-    // Offline / dev server
+    // offline
   }
   return {
     online: false,
@@ -44,7 +45,58 @@ export async function checkServerStatus(): Promise<ServerDbStatus> {
 }
 
 /**
- * Tarik data master dan riwayat terbaru dari Server saat perangkat baru membuka aplikasi
+ * Helper merge rekaman berdasarkan id dengan menjaga keutuhan data terbaru
+ */
+function mergeRecords<T extends { id?: string; created_at?: string; updated_at?: string }>(
+  localList: T[],
+  remoteList: T[]
+): { merged: T[]; changed: boolean } {
+  if (!Array.isArray(localList)) localList = [];
+  if (!Array.isArray(remoteList)) remoteList = [];
+
+  const map = new Map<string, T>();
+  let changed = false;
+
+  // 1. Masukkan semua data lokal ke map
+  localList.forEach((item) => {
+    if (item && item.id) {
+      map.set(String(item.id), item);
+    }
+  });
+
+  const initialCount = map.size;
+
+  // 2. Gabungkan data remote (cloud/server)
+  remoteList.forEach((remoteItem) => {
+    if (!remoteItem || !remoteItem.id) return;
+    const idStr = String(remoteItem.id);
+    const existing = map.get(idStr);
+
+    if (!existing) {
+      map.set(idStr, remoteItem);
+      changed = true;
+    } else {
+      // Bandingkan timestamp jika ada
+      const remoteTime = (remoteItem as any).updated_at || (remoteItem as any).created_at || '';
+      const localTime = (existing as any).updated_at || (existing as any).created_at || '';
+      if (remoteTime && (!localTime || remoteTime >= localTime)) {
+        if (JSON.stringify(existing) !== JSON.stringify(remoteItem)) {
+          map.set(idStr, { ...existing, ...remoteItem });
+          changed = true;
+        }
+      }
+    }
+  });
+
+  if (map.size !== initialCount) {
+    changed = true;
+  }
+
+  return { merged: Array.from(map.values()), changed };
+}
+
+/**
+ * Tarik data master dan riwayat terbaru dari Server saat membuka aplikasi atau via polling
  */
 export async function initClientDataFromServer(): Promise<boolean> {
   if (isSyncing) return false;
@@ -60,38 +112,79 @@ export async function initClientDataFromServer(): Promise<boolean> {
     const json = await res.json();
     if (json.success && json.data) {
       const data = json.data;
+      let anyTableChanged = false;
 
-      // 1. Sinkronkan Onboarding Batches hanya jika lokal belum pernah diinisialisasi
-      if (Array.isArray(data.onboarding_batches) && data.onboarding_batches.length > 0) {
-        const key = 'hara_pd_onboarding_batches_v1';
-        if (localStorage.getItem(key) === null) {
-          db.setTable('onboarding_batches', data.onboarding_batches);
+      // 1. Jika server menyediakan kredensial Supabase terpusat dan lokal belum punya, otomatis adopsi
+      if (json.supabaseConfig && json.supabaseConfig.url && json.supabaseConfig.anonKey) {
+        const localCfg = getSupabaseConfig();
+        if (!localCfg.isConfigured) {
+          saveSupabaseCredentials(json.supabaseConfig.url, json.supabaseConfig.anonKey);
         }
       }
 
-      // 2. Sinkronkan Penilaian Praktik Produk hanya jika lokal belum ada
-      if (Array.isArray(data.penilaian_praktik_onboarding_produk) && data.penilaian_praktik_onboarding_produk.length > 0) {
-        const key = 'hara_pd_penilaian_praktik_onboarding_produk_v1';
-        if (localStorage.getItem(key) === null) {
-          db.setTable('penilaian_praktik_onboarding_produk', data.penilaian_praktik_onboarding_produk);
-          db.setTable('penilaian_onboarding_rnd', data.penilaian_praktik_onboarding_produk);
+      // 2. Daftar tabel yang harus disinkronkan secara otomatis antar-HP
+      const tablesToSync = [
+        'penilaian_praktik_onboarding_produk',
+        'onboarding_batches',
+        'kru',
+        'outlets',
+        'bank_sop',
+        'penilaian_sikap_kebersihan_kru',
+        'penilaian_jobdesk_stasiun',
+        'penilaian_tim_stasiun',
+        'attitude_hara',
+        'hasil_ujian_mingguan',
+        'penugasan_trainer',
+        'tna',
+        'rencana_training',
+        'observasi_lapangan',
+        'coaching_log',
+        'gap_analysis',
+        'kartu_keluhan',
+        'talent_tracker',
+        'ojt_monitoring',
+      ];
+
+      for (const tableKey of tablesToSync) {
+        const remoteTable = data[tableKey];
+        if (Array.isArray(remoteTable)) {
+          const localTable = db.getTable<any>(tableKey);
+          const { merged, changed } = mergeRecords(localTable, remoteTable);
+          if (changed) {
+            db.setDirectLocalOnly(tableKey, merged);
+            if (tableKey === 'penilaian_praktik_onboarding_produk') {
+              db.setDirectLocalOnly('penilaian_onboarding_rnd', merged);
+              db.setDirectLocalOnly('penilaian_onboarding_tc', merged);
+            }
+            db.notify(tableKey);
+            anyTableChanged = true;
+          }
         }
       }
 
-      // 3. Sinkronkan Penilaian Sikap & Higiene hanya jika lokal belum ada
-      if (Array.isArray(data.penilaian_sikap_kebersihan_kru) && data.penilaian_sikap_kebersihan_kru.length > 0) {
-        const key = 'hara_pd_penilaian_sikap_kebersihan_kru_v1';
-        if (localStorage.getItem(key) === null) {
-          db.setTable('penilaian_sikap_kebersihan_kru', data.penilaian_sikap_kebersihan_kru);
+      // Periksa tabel lain yang ada di server store
+      for (const [key, val] of Object.entries(data)) {
+        if (!key.startsWith('_') && !tablesToSync.includes(key) && Array.isArray(val) && val.length > 0) {
+          const localTable = db.getTable<any>(key);
+          const { merged, changed } = mergeRecords(localTable, val);
+          if (changed) {
+            db.setDirectLocalOnly(key, merged);
+            db.notify(key);
+            anyTableChanged = true;
+          }
         }
+      }
+
+      if (anyTableChanged) {
+        db.notify('*');
       }
 
       lastSyncTimestamp = new Date().toISOString();
       isSyncing = false;
-      return true;
+      return anyTableChanged;
     }
   } catch (err) {
-    console.warn('Gagal init data dari server:', err);
+    // Server fetch warning (offline mode fallback)
   }
 
   isSyncing = false;
@@ -130,8 +223,57 @@ export async function pushToServer(
 }
 
 /**
+ * Simpan konfigurasi Supabase terpusat ke server agar seluruh HP otomatis tersambung
+ */
+export async function saveCentralSupabaseConfig(url: string, anonKey: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/db/config', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, anonKey }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Jalankan polling otomatis (setiap 3.5 detik dan saat aplikasi dibuka/fokus)
+ * Menjamin perubahan yang diinput di HP 1 langsung muncul di HP 2 secara otomatis.
+ */
+export function startAutoSyncPolling(intervalMs: number = 3500): () => void {
+  // 1. Sinkronkan langsung saat pertama kali dipanggil
+  initClientDataFromServer().catch(() => {});
+
+  // 2. Jalankan polling berkala
+  const timer = setInterval(() => {
+    initClientDataFromServer().catch(() => {});
+  }, intervalMs);
+
+  // 3. Sinkronkan seketika saat window/tab kembali aktif (fokus)
+  const onFocus = () => {
+    initClientDataFromServer().catch(() => {});
+  };
+
+  const onVisibilityChange = () => {
+    if (!document.hidden) {
+      initClientDataFromServer().catch(() => {});
+    }
+  };
+
+  window.addEventListener('focus', onFocus);
+  document.addEventListener('visibilitychange', onVisibilityChange);
+
+  return () => {
+    clearInterval(timer);
+    window.removeEventListener('focus', onFocus);
+    document.removeEventListener('visibilitychange', onVisibilityChange);
+  };
+}
+
+/**
  * Kirim rekaman penilaian ke Google Spreadsheet via Backend Proxy
- * Mencegah kebocoran URL Apps Script & mengatasi masalah CORS browser
  */
 export async function proxyGoogleSheetSync(
   payload: any,
@@ -155,27 +297,4 @@ export async function proxyGoogleSheetSync(
       message: `Gagal menghubungi server proxy spreadsheet: ${err?.message || 'Koneksi putus'}`,
     };
   }
-}
-
-/**
- * Helper merge rekaman berdasarkan id dengan menjaga tanggal update terbaru
- */
-function mergeRecords<T extends { id: string; created_at?: string; updated_at?: string }>(
-  localList: T[],
-  remoteList: T[]
-): T[] {
-  const map = new Map<string, T>();
-  // Masukkan remote terlebih dahulu
-  for (const item of remoteList) {
-    if (item && item.id) map.set(item.id, item);
-  }
-  // Masukkan atau timpa jika lokal lebih baru
-  for (const item of localList) {
-    if (item && item.id) {
-      if (!map.has(item.id)) {
-        map.set(item.id, item);
-      }
-    }
-  }
-  return Array.from(map.values());
 }

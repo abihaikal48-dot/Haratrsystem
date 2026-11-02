@@ -2490,6 +2490,11 @@ class StorageDatabase {
     import('./supabase').then(({ syncTableToSupabase }) => {
       syncTableToSupabase(tableName, data).catch(() => {});
     }).catch(() => {});
+
+    // Online Sync to central server store (Relay to all other devices)
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer(tableName, data, 'UPSERT').catch(() => {});
+    }).catch(() => {});
   }
 
   public setDirect(tableName: string, data: any[]): void {
@@ -2498,6 +2503,11 @@ class StorageDatabase {
     // Online Real-time Sync write to Supabase (Primary Cloud Database)
     import('./supabase').then(({ syncTableToSupabase }) => {
       syncTableToSupabase(tableName, data).catch(() => {});
+    }).catch(() => {});
+
+    // Online Sync to central server store (Relay to all other devices)
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer(tableName, data, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
     // Online Real-time Sync write to Cloud Firestore
@@ -2575,6 +2585,11 @@ class StorageDatabase {
     // Async write to Supabase so database is stored online real-time
     import('./supabase').then(({ syncRowToSupabase }) => {
       syncRowToSupabase(tableName, newRow);
+    }).catch(() => {});
+
+    // Push to central server store for instant relay to other devices
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer(tableName, newRow, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
     return newRow as unknown as T;
@@ -2680,6 +2695,11 @@ class StorageDatabase {
       syncRowToSupabase(tableName, updated);
     }).catch(() => {});
 
+    // Push update to central server store for instant relay to other devices
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer(tableName, updated, 'UPSERT').catch(() => {});
+    }).catch(() => {});
+
     return true;
   }
 
@@ -2720,6 +2740,11 @@ class StorageDatabase {
     // Async delete from Supabase real-time
     import('./supabase').then(({ deleteRowFromSupabase }) => {
       deleteRowFromSupabase(tableName, id);
+    }).catch(() => {});
+
+    // Push delete to central server store
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer(tableName, { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
 
     return true;
@@ -3730,6 +3755,11 @@ class StorageDatabase {
       syncRecordToSupabase('penilaian_sikap_kebersihan_kru', item).catch(() => {});
     }).catch(() => {});
 
+    // Server Proxy auto-sync
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_sikap_kebersihan_kru', item, 'UPSERT').catch(() => {});
+    }).catch(() => {});
+
     // Firestore async sync
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
@@ -3747,6 +3777,11 @@ class StorageDatabase {
     // Supabase auto-delete
     import('./supabase').then(({ deleteRecordFromSupabase }) => {
       deleteRecordFromSupabase('penilaian_sikap_kebersihan_kru', id).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-delete
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_sikap_kebersihan_kru', { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
 
     import('./firebase').then(({ firestore }) => {
@@ -3782,6 +3817,11 @@ class StorageDatabase {
       syncRecordToSupabase('penilaian_tim_stasiun', item).catch(() => {});
     }).catch(() => {});
 
+    // Server Proxy auto-sync
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_tim_stasiun', item, 'UPSERT').catch(() => {});
+    }).catch(() => {});
+
     // Firestore async sync
     import('./firebase').then(({ firestore }) => {
       import('firebase/firestore').then(({ doc, setDoc }) => {
@@ -3799,6 +3839,11 @@ class StorageDatabase {
     // Supabase auto-delete
     import('./supabase').then(({ deleteRecordFromSupabase }) => {
       deleteRecordFromSupabase('penilaian_tim_stasiun', id).catch(() => {});
+    }).catch(() => {});
+
+    // Server Proxy auto-delete
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_tim_stasiun', { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
 
     import('./firebase').then(({ firestore }) => {
