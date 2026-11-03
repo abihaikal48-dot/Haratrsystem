@@ -19,6 +19,8 @@ import {
 import {
   getGoogleSheetWebhookUrl,
   saveGoogleSheetWebhookUrl,
+  getSavedGoogleSheetDocUrl,
+  saveGoogleSheetDocUrl,
   testGoogleSheetWebhook,
   HARA_APPS_SCRIPT_TEMPLATE,
   exportPenilaianToCSV
@@ -61,8 +63,9 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
   const [adminPinInput, setAdminPinInput] = useState('');
   const [pinError, setPinError] = useState(false);
 
-  // Spreadsheet Webhook State
+  // Spreadsheet Webhook & Document State
   const [sheetWebhookUrl, setSheetWebhookUrl] = useState('');
+  const [sheetDocUrl, setSheetDocUrl] = useState('');
   const [sheetTesting, setSheetTesting] = useState(false);
   const [sheetTestResult, setSheetTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
@@ -72,6 +75,7 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
       setUrl(cfg.url);
       setAnonKey(cfg.anonKey);
       setSheetWebhookUrl(getGoogleSheetWebhookUrl());
+      setSheetDocUrl(getSavedGoogleSheetDocUrl());
       checkServerStatus().then(setServerStatus);
     }
     return subscribeSupabaseStatus(setStatus);
@@ -569,19 +573,96 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
           {activeTab === 'spreadsheet' && isAdminUnlocked && (
             <div className="space-y-4 text-xs text-[#181411]">
               <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-1.5">
-                <h5 className="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
-                  <FileSpreadsheet size={15} className="text-emerald-700" />
-                  <span>Integrasi Google Spreadsheet Terpadu</span>
-                </h5>
+                <div className="flex items-center justify-between">
+                  <h5 className="font-bold text-emerald-950 text-xs flex items-center gap-1.5">
+                    <FileSpreadsheet size={15} className="text-emerald-700" />
+                    <span>Integrasi Google Spreadsheet Terpadu</span>
+                  </h5>
+                  <a
+                    href="https://sheets.new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-[10.5px] font-bold flex items-center gap-1 transition-colors"
+                  >
+                    <ExternalLink size={11} />
+                    <span>Buat Sheet Baru (sheets.new)</span>
+                  </a>
+                </div>
                 <p className="text-[11px] text-emerald-800 leading-relaxed">
-                  Pengiriman data dari handphone ditangani melalui <strong>Server Proxy Backend</strong> untuk memastikan keamanan script dan mencegah pemblokiran CORS oleh peramban.
+                  Data otomatis dikirim ke Google Spreadsheet Anda setiap kali trainer menekan tombol <strong>Simpan Penilaian</strong> di handphone manapun.
                 </p>
               </div>
 
-              <div className="space-y-2">
+              {/* 1. Link Dokumen Google Spreadsheet */}
+              <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
                 <label className="block text-[11px] font-bold text-[#645D55] uppercase tracking-wider">
-                  URL Webhook Google Apps Script:
+                  1. Link Dokumen Google Spreadsheet Anda:
                 </label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={sheetDocUrl}
+                    onChange={(e) => setSheetDocUrl(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/1.../edit"
+                    className="flex-1 p-2.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-mono focus:outline-none focus:border-[#96171B]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveGoogleSheetDocUrl(sheetDocUrl.trim());
+                      alert('Link Google Spreadsheet berhasil disimpan!');
+                    }}
+                    className="px-4 py-2 bg-[#96171B] hover:bg-[#7D1216] text-white font-bold rounded-lg cursor-pointer"
+                  >
+                    Simpan
+                  </button>
+                </div>
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-[10.5px] text-[#645D55]">
+                    Simpan link sheet agar Anda bisa membukanya langsung dengan 1 tombol di aplikasi.
+                  </span>
+                  {sheetDocUrl && (
+                    <a
+                      href={sheetDocUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-700 font-bold hover:underline flex items-center gap-1 text-[11px]"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Buka Google Sheet Saya</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* 2. Webhook URL Google Apps Script */}
+              <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="block text-[11px] font-bold text-[#645D55] uppercase tracking-wider">
+                    2. URL Webhook Google Apps Script:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!sheetWebhookUrl.trim()) {
+                        alert('Harap isi URL Webhook Apps Script terlebih dahulu.');
+                        return;
+                      }
+                      setSheetTesting(true);
+                      setSheetTestResult(null);
+                      try {
+                        const res = await testGoogleSheetWebhook(sheetWebhookUrl.trim());
+                        setSheetTestResult(res);
+                      } finally {
+                        setSheetTesting(false);
+                      }
+                    }}
+                    disabled={sheetTesting}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer disabled:opacity-50"
+                  >
+                    {sheetTesting ? 'Menguji...' : 'Uji Koneksi Webhook'}
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <input
                     type="url"
@@ -594,23 +675,40 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                     type="button"
                     onClick={() => {
                       saveGoogleSheetWebhookUrl(sheetWebhookUrl.trim());
-                      alert('URL Webhook berhasil disimpan.');
+                      alert('URL Webhook berhasil disimpan!');
                     }}
                     className="px-4 py-2 bg-[#96171B] hover:bg-[#7D1216] text-white font-bold rounded-lg cursor-pointer"
                   >
                     Simpan
                   </button>
                 </div>
+
+                {sheetTestResult && (
+                  <div className={`p-2.5 rounded-lg text-xs font-medium border ${
+                    sheetTestResult.success ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-rose-50 text-rose-900 border-rose-200'
+                  }`}>
+                    {sheetTestResult.message}
+                  </div>
+                )}
               </div>
 
-              <div className="pt-2 flex items-center justify-between border-t border-[#E6E1DA]">
+              {/* Panduan 4 Langkah Singkat */}
+              <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950 space-y-1 leading-relaxed">
+                <span className="font-bold text-amber-900 block text-xs">Cara Pasang Script di Google Sheet:</span>
+                <p>1. Buka Google Sheet Anda (atau klik tombol hijau "Buat Sheet Baru" di atas).</p>
+                <p>2. Di menu Google Sheet, klik <strong>Ekstensi (Extensions)</strong> &rarr; <strong>Apps Script</strong>.</p>
+                <p>3. Hapus kode bawaan, lalu klik tombol <strong>"Salin Kode Google Apps Script"</strong> di bawah dan tempel.</p>
+                <p>4. Klik <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Pilih type <strong>Web app</strong> &rarr; Atur <em>Who has access</em> ke <strong>Anyone</strong> &rarr; Deploy & salin URL Webhook ke kolom di atas.</p>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#E6E1DA]">
                 <button
                   type="button"
                   onClick={copyAppsScript}
                   className="px-3.5 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
                 >
-                  {copiedAppsScript ? <Check size={13} /> : <Copy size={13} />}
-                  <span>{copiedAppsScript ? 'Script Tersalin!' : 'Salin Kode Google Apps Script'}</span>
+                  {copiedAppsScript ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                  <span>{copiedAppsScript ? 'Script Berhasil Disalin!' : 'Salin Kode Google Apps Script'}</span>
                 </button>
 
                 <button

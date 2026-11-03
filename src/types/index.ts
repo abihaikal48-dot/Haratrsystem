@@ -62,6 +62,8 @@ export interface Kru {
   jabatan?: string;
   divisi: Division;
   kode_outlet: string;
+  lokasi_tc?: string; // e.g. 'Kantor Lempongsari'
+  outlet_penempatan?: string; // e.g. 'Gito Gati', 'Glagahsari'
   tanggal_masuk: string;
   status_aktif: StatusAktif;
   catatan?: string;
@@ -1104,6 +1106,8 @@ export interface PenilaianPraktikOnboardingProduk {
   nama_kru: string;
   kode_outlet: string;
   nama_outlet?: string;
+  lokasi_tc?: string; // Lokasi Pelatihan TC (Kantor Lempongsari)
+  outlet_penempatan?: string; // Outlet Penempatan Riil (Gito Gati, Glagahsari, dll)
   batch_id?: string;
   nama_batch?: string;
   divisi: Division;

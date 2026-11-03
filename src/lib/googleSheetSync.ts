@@ -1,6 +1,7 @@
 import { PenilaianPraktikOnboardingProduk } from '../types';
 
 export const GOOGLE_SHEET_WEBHOOK_STORAGE_KEY = 'hara_google_sheet_webhook_url';
+export const GOOGLE_SHEET_DOC_STORAGE_KEY = 'hara_google_sheet_doc_url';
 
 export function getSavedGoogleSheetWebhook(): string {
   try {
@@ -18,8 +19,71 @@ export function saveGoogleSheetWebhook(url: string): void {
   }
 }
 
+export function getSavedGoogleSheetDocUrl(): string {
+  try {
+    return localStorage.getItem(GOOGLE_SHEET_DOC_STORAGE_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function saveGoogleSheetDocUrl(url: string): void {
+  try {
+    localStorage.setItem(GOOGLE_SHEET_DOC_STORAGE_KEY, url.trim());
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 export const getGoogleSheetWebhookUrl = getSavedGoogleSheetWebhook;
 export const saveGoogleSheetWebhookUrl = saveGoogleSheetWebhook;
+export const getGoogleSheetDocUrl = getSavedGoogleSheetDocUrl;
+
+export const OUTLET_REAL_NAME_MAP: Record<string, string> = {
+  'gto': 'Gito Gati',
+  'glg': 'Glagahsari',
+  'brb': 'Borobudur',
+  'pdg': 'Pandega',
+  'pdw': 'Pandowoharjo',
+  'jmb': 'Jambon',
+  'pwj': 'Purworejo',
+  'srg': 'Sorogenen',
+  'mjl': 'Monjali',
+  'smo': 'Support Mobile Outlet',
+  'gdn': 'Area Godean',
+  'kmd': 'Kamdanen',
+  'lmp': 'Kantor Lempongsari',
+  'out-001': 'Gito Gati',
+  'out-002': 'Glagahsari',
+  'out-003': 'Borobudur',
+  'out-004': 'Pandega',
+  'out-005': 'Pandowoharjo',
+  'out-006': 'Jambon',
+  'out-007': 'Purworejo',
+  'out-008': 'Sorogenen',
+  'out-009': 'Monjali',
+  'out-010': 'Support Mobile Outlet',
+  'out-011': 'Area Godean',
+  'out-012': 'Kamdanen',
+  'out-tc': 'Kantor Lempongsari',
+};
+
+export function resolveRealOutletName(raw?: string): string {
+  if (!raw) return 'Gito Gati';
+  const clean = raw.trim().toLowerCase();
+  if (OUTLET_REAL_NAME_MAP[clean]) {
+    return OUTLET_REAL_NAME_MAP[clean];
+  }
+  const knownRealNames = [
+    'Gito Gati', 'Glagahsari', 'Borobudur', 'Pandega', 'Pandowoharjo',
+    'Jambon', 'Purworejo', 'Sorogenen', 'Monjali', 'Support Mobile Outlet',
+    'Area Godean', 'Kamdanen', 'Kantor Lempongsari'
+  ];
+  for (const n of knownRealNames) {
+    if (clean.includes(n.toLowerCase())) return n;
+  }
+  return raw;
+}
 
 /**
  * Kirim rekaman penilaian ke Google Spreadsheet via Webhook Google Apps Script.
@@ -38,20 +102,22 @@ export async function syncPenilaianToGoogleSheets(
   }
 
   const kruNama = penilaian.nama_kru || penilaian.kru_nama || 'Kru HARA';
-  const outlet = penilaian.nama_outlet || penilaian.kode_outlet || penilaian.outlet || 'HARA Pusat';
+  const lokasiTC = penilaian.lokasi_tc || 'Kantor Lempongsari';
+  const rawOutlet = penilaian.outlet_penempatan || penilaian.nama_outlet || penilaian.kode_outlet || penilaian.outlet || 'Gito Gati';
+  const outletPenempatan = resolveRealOutletName(rawOutlet);
   const stasiun = penilaian.station_label || penilaian.station || penilaian.posisi_stasiun || '-';
   const durasi = penilaian.waktu_detik ?? penilaian.durasi_detik ?? 0;
   const target = penilaian.target_detik ?? penilaian.standar_durasi_detik ?? 0;
+  const durasiMenitTeks = (durasi / 60).toFixed(1) + ' menit';
+  const targetMenitTeks = (target / 60).toFixed(1) + ' menit';
   const statusWaktu = penilaian.status_waktu || (durasi && target ? (durasi <= target ? 'Tepat Waktu' : 'Terlambat') : 'Tepat Waktu');
-  const skorLangkah = penilaian.skor_prosedur ?? penilaian.skor_langkah_sop ?? penilaian.skor_langkah_teknis ?? 80;
-  const skorWaktu = penilaian.skor_waktu ?? 80;
-  const skorKnowledge = penilaian.skor_knowledge ?? 80;
-  const skorKebersihan = penilaian.skor_kebersihan ?? 80;
-  const skorKerjasama = penilaian.skor_kerjasama ?? 80;
-  const subTeknis = penilaian.subskor_teknis ?? Math.round((skorLangkah * 0.4) + (skorWaktu * 0.3) + (skorKnowledge * 0.3));
-  const subSikap = penilaian.subskor_sikap ?? Math.round((skorKebersihan * 0.5) + (skorKerjasama * 0.5));
-  const totalSkor = penilaian.skor_akhir ?? penilaian.total_skor ?? Math.round((subTeknis * 0.5) + (subSikap * 0.5));
-  const kelulusan = penilaian.status_kelulusan || penilaian.status || (totalSkor >= 75 ? 'Lulus Kompeten' : 'Perlu Remedial');
+  const skorLangkah = penilaian.skor_prosedur ?? penilaian.skor_langkah_sop ?? penilaian.skor_langkah_teknis ?? 85;
+  const skorWaktu = penilaian.skor_waktu ?? 85;
+  const skorKnowledge = penilaian.skor_knowledge ?? 85;
+  const skorKebersihan = penilaian.skor_kebersihan ?? 90;
+  const skorKerjasama = penilaian.skor_kerjasama ?? 90;
+  const totalSkor = penilaian.skor_akhir ?? penilaian.total_skor ?? Math.round((skorLangkah * 0.4) + (skorWaktu * 0.4) + (skorKnowledge * 0.2));
+  const kelulusan = penilaian.status_kelulusan || penilaian.status || (totalSkor >= 70 ? 'Lulus Kompeten' : 'Perlu Remedial');
   const trainer = penilaian.penilai_nama || penilaian.nama_trainer || penilaian.trainer_nama || 'Trainer HARA';
   const catatan = penilaian.catatan || penilaian.catatan_evaluasi || '-';
 
@@ -60,22 +126,26 @@ export async function syncPenilaianToGoogleSheets(
     timestamp: new Date().toISOString(),
     id: penilaian.id,
     tanggal: penilaian.tanggal,
-    batch_id: penilaian.batch_id || penilaian.batch_name || '-',
+    batch_id: penilaian.batch_id || penilaian.batch_name || 'Batch 30-31 Okt 2026',
     kru_nama: kruNama,
     kru_id: penilaian.kru_id || '-',
-    outlet: outlet,
+    lokasi_tc: lokasiTC,
+    outlet_penempatan: outletPenempatan,
+    outlet: outletPenempatan,
     posisi_stasiun: stasiun,
     produk_nama: penilaian.produk_nama,
     durasi_detik: durasi,
     target_detik: target,
+    durasi_menit: Number((durasi / 60).toFixed(1)),
+    target_menit: Number((target / 60).toFixed(1)),
+    durasi_menit_teks: durasiMenitTeks,
+    target_menit_teks: targetMenitTeks,
     status_waktu: statusWaktu,
     skor_langkah_teknis: skorLangkah,
     skor_waktu: skorWaktu,
     skor_knowledge: skorKnowledge,
-    skor_kebersihan: skorKebersihan,
-    skor_kerjasama: skorKerjasama,
-    subskor_teknis: subTeknis,
-    subskor_sikap: subSikap,
+    skor_kebersihan_5s: skorKebersihan,
+    skor_kerjasama_tim: skorKerjasama,
     total_skor: totalSkor,
     status_kelulusan: kelulusan,
     trainer_nama: trainer,
@@ -149,74 +219,77 @@ export async function testGoogleSheetWebhook(webhookUrl: string): Promise<{ succ
 
 /**
  * Ekspor daftar penilaian langsung ke format CSV (bisa langsung dibuka di Excel & Google Sheets)
+ * Lengkap dengan Nilai Sikap 5S, Kerjasama Tim, Outlet Penempatan, dan Lokasi TC
  */
-export function exportPenilaianToCSV(data: PenilaianPraktikOnboardingProduk[], filename = 'Laporan_Penilaian_HARA.csv'): void {
+export function exportPenilaianToCSV(data: PenilaianPraktikOnboardingProduk[], filename = 'Laporan_Penilaian_Onboarding_HARA.csv'): void {
   if (!data || data.length === 0) {
     alert('Belum ada data penilaian untuk diekspor.');
     return;
   }
 
   const headers = [
-    'ID',
-    'Tanggal',
-    'Batch ID',
-    'Nama Kru',
-    'Outlet',
-    'Stasiun',
-    'Produk SOP',
-    'Durasi (Detik)',
-    'Target SOS (Detik)',
-    'Status Waktu',
-    'Skor Teknis SOP',
-    'Skor Waktu',
-    'Skor Knowledge',
-    'Skor Kebersihan 5S',
-    'Skor Kerja Sama & Sikap',
-    'Pilar 1 (Teknis 50%)',
-    'Pilar 2 (Sikap 50%)',
+    'No',
+    'ID Penilaian',
+    'Tanggal Uji',
+    'Batch Onboarding',
+    'Nama Kru (Peserta)',
+    'Lokasi Pelatihan (TC)',
+    'Outlet Penempatan',
+    'Stasiun Kerja',
+    'Menu / SOP Produk',
+    'Durasi Aktual (Menit)',
+    'Target SOS (Menit)',
+    'Status Kecepatan',
+    'Skor Teknis SOP (40%)',
+    'Skor Waktu SOS (40%)',
+    'Skor Knowledge SOP (20%)',
+    'Skor Sikap 5S & Kebersihan',
+    'Skor Kerjasama Tim',
     'Total Skor Akhir',
-    'Status Kelulusan (KKM 75)',
-    'Nama Trainer',
+    'Status Kelulusan',
+    'Trainer / Asesor',
     'Catatan Evaluasi',
   ];
 
-  const rows = data.map((item) => {
+  const rows = data.map((item, idx) => {
     const kruNama = item.nama_kru || item.kru_nama || 'Kru HARA';
-    const outlet = item.nama_outlet || item.kode_outlet || item.outlet || 'HARA Pusat';
+    const lokasiTC = item.lokasi_tc || 'Kantor Lempongsari';
+    const rawOutlet = item.outlet_penempatan || item.nama_outlet || item.kode_outlet || item.outlet || 'Gito Gati';
+    const outletPenempatan = resolveRealOutletName(rawOutlet);
     const stasiun = item.station_label || item.station || item.posisi_stasiun || '-';
     const durasi = item.waktu_detik ?? item.durasi_detik ?? 0;
     const target = item.target_detik ?? item.standar_durasi_detik ?? 0;
+    const durasiMenitTeks = (durasi / 60).toFixed(1) + ' menit';
+    const targetMenitTeks = (target / 60).toFixed(1) + ' menit';
     const statusWaktu = item.status_waktu || (durasi && target ? (durasi <= target ? 'Tepat Waktu' : 'Terlambat') : 'Tepat Waktu');
-    const skorLangkah = item.skor_prosedur ?? item.skor_langkah_sop ?? item.skor_langkah_teknis ?? 80;
-    const skorWaktu = item.skor_waktu ?? 80;
-    const skorKnowledge = item.skor_knowledge ?? 80;
-    const skorKebersihan = item.skor_kebersihan ?? 80;
-    const skorKerjasama = item.skor_kerjasama ?? 80;
-    const subTeknis = item.subskor_teknis ?? Math.round((skorLangkah * 0.4) + (skorWaktu * 0.3) + (skorKnowledge * 0.3));
-    const subSikap = item.subskor_sikap ?? Math.round((skorKebersihan * 0.5) + (skorKerjasama * 0.5));
-    const totalSkor = item.skor_akhir ?? item.total_skor ?? Math.round((subTeknis * 0.5) + (subSikap * 0.5));
-    const kelulusan = item.status_kelulusan || item.status || (totalSkor >= 75 ? 'Lulus Kompeten' : 'Perlu Remedial');
+    const skorLangkah = item.skor_prosedur ?? item.skor_langkah_sop ?? item.skor_langkah_teknis ?? 85;
+    const skorWaktu = item.skor_waktu ?? 85;
+    const skorKnowledge = item.skor_knowledge ?? 85;
+    const skorKebersihan = item.skor_kebersihan ?? 90;
+    const skorKerjasama = item.skor_kerjasama ?? 90;
+    const totalSkor = item.skor_akhir ?? item.total_skor ?? Math.round((skorLangkah * 0.4) + (skorWaktu * 0.4) + (skorKnowledge * 0.2));
+    const kelulusan = item.status_kelulusan || item.status || (totalSkor >= 70 ? 'Lulus' : 'Remedial');
     const trainer = item.penilai_nama || item.nama_trainer || item.trainer_nama || 'Trainer HARA';
     const catatan = item.catatan || item.catatan_evaluasi || '-';
 
     return [
+      idx + 1,
       `"${item.id}"`,
       `"${item.tanggal}"`,
-      `"${item.batch_id || item.batch_name || '-'}"`,
+      `"${item.batch_id || item.batch_name || 'Batch 30-31 Okt 2026'}"`,
       `"${kruNama.replace(/"/g, '""')}"`,
-      `"${outlet.replace(/"/g, '""')}"`,
+      `"${lokasiTC.replace(/"/g, '""')}"`,
+      `"${outletPenempatan.replace(/"/g, '""')}"`,
       `"${stasiun.replace(/"/g, '""')}"`,
       `"${(item.produk_nama || '').replace(/"/g, '""')}"`,
-      durasi,
-      target,
+      `"${durasiMenitTeks}"`,
+      `"${targetMenitTeks}"`,
       `"${statusWaktu}"`,
       skorLangkah,
       skorWaktu,
       skorKnowledge,
       skorKebersihan,
       skorKerjasama,
-      subTeknis,
-      subSikap,
       totalSkor,
       `"${kelulusan}"`,
       `"${trainer.replace(/"/g, '""')}"`,
@@ -263,12 +336,11 @@ function doPost(e) {
       sheetData = ss.insertSheet("Data Penilaian");
       sheetData.appendRow([
         "Waktu Input", "ID Penilaian", "Tanggal Ujian", "Batch ID", "Nama Kru", 
-        "Outlet", "Stasiun", "Produk SOP", "Durasi (Detik)", "Target (Detik)", 
-        "Status SOS", "Skor SOP (40%)", "Skor Waktu (30%)", "Skor Knowledge (30%)", 
-        "Kebersihan 5S", "Sikap & Kerja Sama", "Pilar Teknis (50%)", "Pilar Sikap (50%)", 
-        "Total Skor", "Kelulusan", "Trainer", "Catatan"
+        "Lokasi TC", "Outlet Penempatan", "Stasiun", "Produk SOP", "Durasi (Menit)", "Target (Menit)", 
+        "Status SOS", "Skor SOP (40%)", "Skor Waktu (40%)", "Skor Knowledge (20%)", 
+        "Kebersihan 5S", "Kerja Sama Tim", "Total Skor", "Kelulusan", "Trainer", "Catatan"
       ]);
-      sheetData.getRange("A1:V1").setBackground("#991b1b").setFontColor("#ffffff").setFontWeight("bold");
+      sheetData.getRange("A1:U1").setBackground("#991b1b").setFontColor("#ffffff").setFontWeight("bold");
       sheetData.setFrozenRows(1);
     }
 
@@ -285,19 +357,18 @@ function doPost(e) {
       payload.tanggal || "",
       payload.batch_id || "",
       payload.kru_nama || "",
-      payload.outlet || "",
+      payload.lokasi_tc || "Kantor Lempongsari",
+      payload.outlet_penempatan || payload.outlet || "",
       payload.posisi_stasiun || "",
       payload.produk_nama || "",
-      payload.durasi_detik || 0,
-      payload.target_detik || 0,
+      payload.durasi_menit_teks || (payload.durasi_detik ? (payload.durasi_detik / 60).toFixed(1) + " menit" : "0.0 menit"),
+      payload.target_menit_teks || (payload.target_detik ? (payload.target_detik / 60).toFixed(1) + " menit" : "0.0 menit"),
       payload.status_waktu || "",
       payload.skor_langkah_teknis || 0,
       payload.skor_waktu || 0,
       payload.skor_knowledge || 0,
-      payload.skor_kebersihan || 0,
-      payload.skor_kerjasama || 0,
-      payload.subskor_teknis || 0,
-      payload.subskor_sikap || 0,
+      payload.skor_kebersihan_5s || payload.skor_kebersihan || 0,
+      payload.skor_kerjasama_tim || payload.skor_kerjasama || 0,
       payload.total_skor || 0,
       payload.status_kelulusan || "",
       payload.trainer_nama || "",

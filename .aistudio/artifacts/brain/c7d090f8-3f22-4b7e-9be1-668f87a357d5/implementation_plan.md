@@ -1,98 +1,53 @@
-# Rencana Sistem Database Online Terpadu Multi-Perangkat (Otomatis & Real-Time)
+# Rencana Implementasi: Penyatuan Menu SOP, Format Ekspor Menit & Outlet Riil, serta Auto-Sync Google Sheets
 
-Menjadikan sistem pelatihan dan penilaian HARA **benar-benar online secara otomatis antar-perangkat** (HP 1, HP 2, tablet, laptop), sehingga setiap kali penilaian disimpan di satu HP, data tersebut langsung muncul secara otomatis di HP lainnya tanpa perlu konfigurasi manual di setiap perangkat.
-
----
-
-> [!IMPORTANT]
-> **Jawaban & Konfirmasi Pengguna:**
-> 1. **"Pakai Supabase bisa kan?"**: **Bisa sekali.** Agar semua HP otomatis terhubung ke Supabase tanpa perlu mengetikkan URL & Key di masing-masing HP, kredensial Supabase disimpan terpusat di server backend.
-> 2. **"Intinya ketika disimpan"**: Fokus utama adalah keandalan alur simpan (*save event*). Setiap kali form penilaian atau batch disimpan di satu HP, data langsung dikirim ke cloud dan disinkronkan ke HP lainnya secara otomatis.
-> 3. **Penyebab Mengapa Kemarin Belum Saling Terhubung**: Sebelumnya, data tersimpan hanya di memori lokal (*localStorage*) HP masing-masing karena Supabase belum menerima URL & Anon Key dari pengguna, sementara koneksi cloud bawaan sempat dinonaktifkan.
+Berdasarkan jawaban dan kebutuhan operasional yang telah disepakati:
+1. **Penyatuan Tombol "Pilih & Atur Menu SOP"**: Menggabungkan fitur pencarian SOP dan pengaturan antrean menu menjadi satu alur modal terpadu yang langsung menyinkronkan menu aktif dan daftar list.
+2. **Standardisasi Format File Ekspor (CSV & Google Sheets)**: Mengganti seluruh kode outlet dengan nama outlet riil dan mengubah satuan waktu durasi serta target SOS dari detik ke **desimal menit** (contoh: `2.5 menit`).
+3. **Sinkronisasi Otomatis ke Google Sheets**: Mengaktifkan pengiriman data ke Google Sheets secara otomatis di latar belakang setiap kali trainer menekan tombol **"Simpan Nilai Praktik"**.
 
 ---
 
-### 1. Ringkasan & Konsep Solusi
-
-- **Tujuan**: Menghubungkan semua HP ke satu database cloud terpusat secara otomatis. Saat Trainer A menilai di HP 1 dan klik "Simpan", Trainer B di HP 2 langsung melihat data penilaian tersebut.
-- **Strategi "Zero-Config" untuk Pengguna**:
-  - Pengguna tidak perlu repot mengetikkan URL atau Anon Key di setiap HP yang membuka web.
-  - Server backend dan cloud bridge aktif secara otomatis sebagai penghubung (*real-time sync relay*).
-  - Jika pengguna memiliki project Supabase, URL & Key cukup dimasukkan satu kali dari menu Admin atau ditanam di server, dan seluruh HP otomatis tersambung ke Supabase tersebut.
-
----
-
-### 2. Alur Pengalaman Pengguna (User Experience Flow)
-
-```
-┌─────────────────────────────────┐           ┌─────────────────────────────────┐
-│              HP 1               │           │              HP 2               │
-│  (Trainer Input Penilaian)      │           │    (Lead Trainer Memantau)      │
-└────────────────┬────────────────┘           └────────────────▲────────────────┘
-                 │                                             │
-                 │ 1. Klik "Simpan Penilaian"                  │ 4. Otomatis Muncul
-                 ▼                                             │    (Data Terupdate)
-┌──────────────────────────────────────────────────────────────┴────────────────┐
-│                       CLOUD DATABASE & SERVER RELAY                           │
-│  - Supabase Cloud Database (Tabel penilaian & batch)                          │
-│  - Server Proxy / Cloud Sync Listener aktif 24/7                              │
-│  - Menerima mutasi data dari HP 1 & menyiarkan ke HP 2                        │
-└───────────────────────────────────────────────────────────────────────────────┘
-```
-
-1. **Di HP 1 (Input)**:
-   - Trainer membuka link aplikasi, mengisi form penilaian praktik kru Batch 30/31, lalu menekan tombol **"Simpan Penilaian"**.
-   - Indikator kecil menampilkan status: *"Tersimpan ke Cloud Database"*.
-2. **Di HP 2 (Penerima)**:
-   - Tanpa perlu pengaturan apa pun, aplikasi di HP 2 langsung menerima data terbaru tersebut.
-   - Tabel riwayat penilaian dan grafik langsung terupdate.
+## 1. Penyatuan Tombol "Pilih & Atur Menu SOP"
+- **Masalah Saat Ini**: Terdapat dua tombol terpisah (*"Atur Antrean Menu"* dan *"Cari & Ganti SOP"*), di mana memilih SOP dari pencarian tidak otomatis memperbarui antrean menu, membingungkan pengguna.
+- **Solusi Terpadu**:
+  - Hapus tombol redundan dan sediakan satu tombol utama yang elegan: **"Pilih & Atur Menu SOP"** (atau pintasan cepat di header sesi kru).
+  - Modal terpadu menyediakan 2 mode yang saling terhubung:
+    - **Pilih Produk Langsung (SOP Cepat)**: Daftar ringkas dengan pencarian, filter stasiun, dan tombol *"Jadikan Menu Aktif"* yang otomatis memperbarui menu berjalan serta menambahkan ke daftar menu kru.
+    - **Susun Antrean Menu (Multi-SOP Queue)**: Memilih beberapa paket menu SOP sekaligus (misal: Nasi 4 Cup, Ayam Crispy, Sambal Korek) dengan kemampuan reorder (drag/geser urutan) dan estimasi total waktu menit.
+  - Memilih produk baru langsung memperbarui `activeSession.productNama`, `activeSession.productQueue`, dan me-load checklist serta standar waktu yang relevan tanpa lag.
 
 ---
 
-### 3. Keputusan Teknis & Arsitektur
-
-- **Penyelarasan Server Proxy (Express + Vite)**:
-  - Mengonfigurasi dev/production server agar rute `/api/db/sync` dan `/api/db/init` aktif penuh di port 3000, menghubungkan seluruh perangkat peramban ke satu *central store*.
-- **Aktivasi Cloud Sync Engine**:
-  - Menghidupkan kembali koneksi cloud terpusat (`firebase.ts` / Firestore cloud database yang sudah ter-provisioning di project AI Studio ini) sebagai jalur sinkronisasi cloud instan tanpa perlu akun eksternal tambahan.
-- **Dukungan Penuh Supabase Terpusat**:
-  - Menyediakan endpoint di server backend yang membaca kredensial Supabase dari environment server atau pengaturan terpusat. Ketika Supabase diisi, seluruh data secara otomatis dialirkan ke tabel-tabel Supabase pengguna.
+## 2. Standardisasi Ekspor: Nama Outlet Riil & Satuan Desimal Menit
+- **Berkas yang Diperbarui**:
+  - `src/lib/googleSheetSync.ts`:
+    - Fungsi `exportPenilaianToCSV()` dan `syncPenilaianToGoogleSheets()`.
+    - Template Google Apps Script (`HARA_APPS_SCRIPT_TEMPLATE`).
+    - Format Durasi Aktual: `(durasi_detik / 60).toFixed(1) + ' menit'` (contoh: `2.5 menit`, `1.8 menit`).
+    - Format Target SOS: `(target_sos_detik / 60).toFixed(1) + ' menit'` (contoh: `2.0 menit`).
+    - Nama Outlet: Mengganti kode outlet seperti `GTO`, `GLG`, `BRB`, `OUT-001` menjadi nama outlet riil lengkap (misal: `HARA Chicken Gito Gati`, `HARA Chicken Glagahsari`, `Kantor Lempongsari (Training Center)`).
+  - `src/components/trainer/OnboardingProductPracticeView.tsx`:
+    - Helper mapping nama outlet riil pada seluruh baris ekspor riwayat dan analitik outlet.
 
 ---
 
-### 4. Diagram Arsitektur Data
+## 3. Sinkronisasi Otomatis ke Google Sheets Saat Simpan
+- **Implementasi Alur Kerja**:
+  - Pada fungsi `handleSaveAssessment` di `OnboardingProductPracticeView.tsx`:
+    - Saat trainer menekan **"Simpan Nilai Praktik"** atau saat antrean menu kru selesai dinilai:
+    - Data langsung disimpan ke database lokal dan server store (Supabase online sync).
+    - Secara bersamaan, fungsi `syncPenilaianToGoogleSheets(savedRecord)` dipanggil di latar belakang (*non-blocking asynchronous*).
+    - Tampilkan notifikasi toast: `✅ Nilai tersimpan & otomatis disinkronkan ke Google Sheets!`.
+  - Tetap menyediakan tombol manual *"Sinkronkan Seluruh Riwayat ke Spreadsheet"* di sub-tab riwayat untuk kemudahan pengiriman ulang jika sewaktu-waktu perangkat sempat offline.
 
-```
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                                 HP 1 / HP 2                                   │
-│  ┌─────────────────────────────┐             ┌─────────────────────────────┐  │
-│  │   UI Penilaian & Batch      │             │   Local Storage Cache       │  │
-│  │   (Form & Dashboard)        │             │   (Offline Fallback)        │  │
-│  └──────────────┬──────────────┘             └──────────────▲──────────────┘  │
-└─────────────────┼───────────────────────────────────────────┼─────────────────┘
-                  │                                           │
-                  ▼                                           │
-┌─────────────────────────────────────────────────────────────┴─────────────────┐
-│                         CENTRAL SYNC DISPATCHER                               │
-│  1. Simpan Lokal (Instan)                                                     │
-│  2. Kirim ke Server Backend `/api/db/sync` (Multi-Device Relay)               │
-│  3. Kirim ke Supabase Cloud REST / Firestore Realtime                         │
-└──────────────────────────────────────┬────────────────────────────────────────┘
-                                       │
-                      ┌────────────────┴────────────────┐
-                      ▼                                 ▼
-┌──────────────────────────────────────┐  ┌─────────────────────────────────────┐
-│            SUPABASE CLOUD            │  │        CLOUD SYNC BACKEND           │
-│   (Tabel Onboarding & Penilaian)     │  │   (Siaran Data Otomatis ke HP 2)    │
-└──────────────────────────────────────┘  └─────────────────────────────────────┘
-```
+---
 
-#### Langkah Pengerjaan:
-1. **Mengaktifkan Backend Express di Dev Server (`server.ts` + `vite.config.ts`)**:
-   - Memastikan request `/api/*` dari HP 1 dan HP 2 langsung dilayani oleh server backend terpusat yang menyimpan data di database server.
-2. **Mengaktifkan Cloud Database Engine**:
-   - Membuka blokir cloud mode di `firebase.ts` dan menyelaraskan `storage.ts` agar setiap simpan langsung menembus cloud.
-3. **Penyelarasan Supabase Terpusat**:
-   - Memastikan server backend menyimpan dan membagikan konfigurasi Supabase ke semua perangkat klien secara otomatis.
-4. **Verifikasi Kompilasi & Uji Sinkronisasi Multi-Device**:
-   - Menjalankan `lint_applet` dan `compile_applet`.
+## 4. Verifikasi dan Pengujian
+- **Uji UI**:
+  - Buka modal "Pilih & Atur Menu SOP", pilih produk baru, dan pastikan form checklist, timer, dan queue bar langsung berganti secara mulus.
+- **Uji Ekspor CSV**:
+  - Unduh CSV dan periksa kolom: tidak ada lagi kode outlet singkat, kolom durasi berformat `X.X menit`, serta skor sikap 5S dan kerjasama tim tampil lengkap.
+- **Uji Auto-Sync Google Sheets**:
+  - Simpan penilaian kru dan pastikan webhook Google Apps Script menerima baris data dengan format nama outlet riil dan menit.
+- **Uji Kompilasi**:
+  - Jalankan `compile_applet` dan `lint_applet` untuk memastikan zero TypeScript error.

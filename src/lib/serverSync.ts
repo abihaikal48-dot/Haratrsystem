@@ -239,10 +239,10 @@ export async function saveCentralSupabaseConfig(url: string, anonKey: string): P
 }
 
 /**
- * Jalankan polling otomatis (setiap 3.5 detik dan saat aplikasi dibuka/fokus)
+ * Jalankan polling otomatis (setiap 2.5 detik dan saat aplikasi dibuka/fokus)
  * Menjamin perubahan yang diinput di HP 1 langsung muncul di HP 2 secara otomatis.
  */
-export function startAutoSyncPolling(intervalMs: number = 3500): () => void {
+export function startAutoSyncPolling(intervalMs: number = 2500): () => void {
   // 1. Sinkronkan langsung saat pertama kali dipanggil
   initClientDataFromServer().catch(() => {});
 

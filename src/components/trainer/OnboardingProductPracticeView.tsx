@@ -6,7 +6,8 @@ import {
   Info, ShieldCheck, User, Users, Store, Zap, RefreshCw,
   Thermometer, Scale, BookOpen, Plus, Sparkles,
   Edit2, Edit3, Save, Trash2, Layers, HelpCircle, Eye, Printer, ChevronRight,
-  ClipboardCheck, Building2, Flame, Download, GraduationCap
+  ClipboardCheck, Building2, Flame, Download, GraduationCap,
+  ExternalLink, FileSpreadsheet, Copy
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../lib/storage';
@@ -33,7 +34,17 @@ import {
 import { MiniCertificateModal } from './MiniCertificateModal';
 import { CrewOnboardingReportModal } from './CrewOnboardingReportModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
-import { syncPenilaianToGoogleSheets, exportPenilaianToCSV } from '../../lib/googleSheetSync';
+import {
+  syncPenilaianToGoogleSheets,
+  exportPenilaianToCSV,
+  resolveRealOutletName,
+  getSavedGoogleSheetDocUrl,
+  saveGoogleSheetDocUrl,
+  getGoogleSheetWebhookUrl,
+  saveGoogleSheetWebhookUrl,
+  testGoogleSheetWebhook,
+  HARA_APPS_SCRIPT_TEMPLATE
+} from '../../lib/googleSheetSync';
 
 interface OnboardingProductPracticeViewProps {
   selectedOutletCode: string;
@@ -62,6 +73,35 @@ export const DAFTAR_PENILAI_DEFAULT = [
   'Administrator HQ'
 ];
 
+/**
+ * Pemetaan Resmi 12 Peserta Kru Baru TC Lempongsari ke Outlet Penempatan Riil
+ */
+export const CANDIDATE_PLACEMENT_MAP: Record<string, string> = {
+  'haudy rizky': 'Gito Gati',
+  'vino adrian saputra': 'Glagahsari',
+  'vino adrian': 'Glagahsari',
+  'salwa salsabila': 'Borobudur',
+  'evanda nur meilita': 'Pandega',
+  'evanda nur': 'Pandega',
+  'mahfud attoriq': 'Pandowoharjo',
+  'davi dwi eriyanto': 'Jambon',
+  'davi dwi': 'Jambon',
+  'dimas mahardika': 'Purworejo',
+  'muhammad nadziiful affan': 'Sorogenen',
+  'kevin irawan': 'Monjali',
+  'dhiya aida yumna': 'Support Mobile Outlet',
+  'edvin perdana yulianto': 'Area Godean',
+  'sigit nur prasetyo': 'Kamdanen',
+};
+
+export const getCandidatePlacement = (nama: string, defaultOutlet?: string): string => {
+  const clean = (nama || '').toLowerCase().replace(/\(.*?\)/g, '').trim();
+  for (const [key, outlet] of Object.entries(CANDIDATE_PLACEMENT_MAP)) {
+    if (clean.includes(key) || key.includes(clean)) return outlet;
+  }
+  return defaultOutlet || 'Gito Gati';
+};
+
 export interface CompletedProductRecord {
   productNama: string;
   skorAkhir: number;
@@ -77,6 +117,8 @@ export interface ProductPracticeState {
   stepChecklist: { nomor: number; langkah: string; tercapai: boolean; isKritis?: boolean }[];
   knowledgeAnswers: Record<number, boolean>;
   skorKnowledge: number;
+  skorKebersihan?: number;
+  skorKerjasama?: number;
   suhuMinyakProbe: number;
   gramaturAktual: number;
   catatanTrainer?: string;
@@ -104,6 +146,8 @@ export interface AssessmentSessionTab {
   stepChecklist: { nomor: number; langkah: string; tercapai: boolean; isKritis?: boolean }[];
   knowledgeAnswers: Record<number, boolean>;
   skorKnowledge: number;
+  skorKebersihan?: number;
+  skorKerjasama?: number;
   catatanTrainer: string;
   productNotes?: Record<string, string>;
   productStates?: Record<string, ProductPracticeState>;
@@ -114,11 +158,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   selectedOutletCode,
   onOpenFullAuditLog,
 }) => {
-  // Navigation Sub-Tab: 'produk' vs 'riwayat' vs 'jobdesk' vs 'tim' vs 'peserta' with resilient localStorage persistence
-  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk' | 'tim' | 'peserta'>(() => {
+  // Navigation Sub-Tab: 'produk' vs 'riwayat' vs 'jobdesk' vs 'tim' vs 'analitik_outlet' with resilient localStorage persistence
+  const [activeSubTab, setActiveSubTab] = useState<'produk' | 'riwayat' | 'jobdesk' | 'tim' | 'analitik_outlet'>(() => {
     try {
       const saved = localStorage.getItem('hara_onboarding_active_subtab');
-      if (saved && ['produk', 'riwayat', 'jobdesk', 'tim', 'peserta'].includes(saved)) {
+      if (saved && ['produk', 'riwayat', 'jobdesk', 'tim', 'analitik_outlet'].includes(saved)) {
         return saved as any;
       }
     } catch {}
@@ -320,6 +364,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [pickerDayFilter, setPickerDayFilter] = useState<'ALL' | 'Day 1' | 'Day 2'>('ALL');
   const [pickerStationFilter, setPickerStationFilter] = useState<string>('ALL');
 
+  // Google Sheet Link & Sync Modal State
+  const [isSheetLinkModalOpen, setIsSheetLinkModalOpen] = useState(false);
+  const [sheetDocUrlInput, setSheetDocUrlInput] = useState(() => getSavedGoogleSheetDocUrl());
+  const [sheetWebhookUrlInput, setSheetWebhookUrlInput] = useState(() => getGoogleSheetWebhookUrl());
+  const [sheetModalTesting, setSheetModalTesting] = useState(false);
+  const [sheetModalTestResult, setSheetModalTestResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [sheetModalCopiedScript, setSheetModalCopiedScript] = useState(false);
+
   // Custom SOP Products CRUD State
   const [customProducts, setCustomProducts] = useState<OnboardingProductItem[]>(() => {
     return db.getTable<OnboardingProductItem>('bank_sop_products') || [];
@@ -425,6 +477,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [historyBatchFilter, setHistoryBatchFilter] = useState('ALL');
   const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL');
   const [isSyncingAllSheets, setIsSyncingAllSheets] = useState(false);
+  const [outletSearchQuery, setOutletSearchQuery] = useState('');
+  const [outletFilterStatus, setOutletFilterStatus] = useState<'ALL' | 'OK' | 'NEED_SUPERVISION'>('ALL');
 
   // Universal In-App Confirmation Modal State
   const [confirmModalConfig, setConfirmModalConfig] = useState<{
@@ -665,13 +719,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     // 2. Retrieve target product state if previously worked on, or initialize fresh
     const targetState = updatedProductStates[targetProd.nama];
 
-    const queue = activeSession.productQueue && activeSession.productQueue.length > 0
-      ? activeSession.productQueue
+    const existingQueue = activeSession.productQueue && activeSession.productQueue.length > 0
+      ? [...activeSession.productQueue]
       : [activeSession.productNama];
-    const newIndex = targetIdx !== undefined ? targetIdx : queue.indexOf(targetProd.nama);
+    
+    let updatedQueue = existingQueue;
+    let newIndex = targetIdx !== undefined ? targetIdx : existingQueue.indexOf(targetProd.nama);
+    if (newIndex === -1) {
+      updatedQueue = [...existingQueue, targetProd.nama];
+      newIndex = updatedQueue.length - 1;
+    }
 
     updateActiveSession({
-      currentProductIndex: newIndex >= 0 ? newIndex : activeSession.currentProductIndex,
+      productQueue: updatedQueue,
+      currentProductIndex: newIndex,
       productNama: targetProd.nama,
       day: targetProd.day,
       batch: targetProd.batch,
@@ -1060,6 +1121,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     // 3. Knowledge SOP Lisan (Bobot: 20%)
     const skorKnowledge = activeSession.skorKnowledge;
 
+    // Nilai Sikap 5S & Kerjasama Tim
+    const skorKebersihan = activeSession.skorKebersihan ?? 90;
+    const skorKerjaSama = activeSession.skorKerjasama ?? 90;
+    const subskorTeknis = Math.round(skorProsedur * 0.40 + skorWaktu * 0.40 + skorKnowledge * 0.20);
+    const subskorSikap = Math.round((skorKebersihan * 0.5) + (skorKerjaSama * 0.5));
+
     // Nilai Akhir Komposit: Prosedur 40% + Waktu SOS 40% + Knowledge 20% = 100%
     let skorAkhir = Math.round(
       skorProsedur * 0.40 +
@@ -1085,6 +1152,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       skorProsedur,
       skorWaktu,
       skorKnowledge,
+      skorKebersihan,
+      skorKerjaSama,
+      skorKeaktifan: 90,
+      skorKetepatan: skorProsedur,
+      subskorTeknis,
+      subskorSikap,
       skorAkhir,
       isKompetenMandiri,
       isLulusKompeten,
@@ -1105,12 +1178,18 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       ? (activeSession.manualNameInput.trim() || 'Peserta Mandiri')
       : activeSession.namaKru;
 
+    const matchedKru = candidateKrus.find(k => k.id === activeSession.kruId) || kruList.find(k => k.id === activeSession.kruId);
+    const targetOutletPenempatan = resolveRealOutletName(getCandidatePlacement(effectiveKruNama, matchedKru?.outlet_penempatan || matchedKru?.kode_outlet || 'Gito Gati'));
+
     const newRecord: PenilaianPraktikOnboardingProduk = {
       id: `prak-${Date.now()}`,
       tanggal: tanggalUji,
-      batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : '',
-      nama_batch: selectedBatchId !== 'ALL' ? (batches.find(b => b.id === selectedBatchId)?.nama_batch || '') : '',
+      batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : (matchedKru?.batch_id || 'batch-ob-2026-10-30'),
+      nama_batch: selectedBatchId !== 'ALL' ? (batches.find(b => b.id === selectedBatchId)?.nama_batch || 'Batch Onboarding TC') : 'Batch Onboarding TC',
       kode_outlet: activeSession.outletCode,
+      nama_outlet: targetOutletPenempatan,
+      lokasi_tc: 'Kantor Lempongsari',
+      outlet_penempatan: targetOutletPenempatan,
       kru_id: activeSession.isManualName ? `manual-${Date.now()}` : activeSession.kruId,
       nama_kru: effectiveKruNama,
       divisi: currentProductDef.divisi,
@@ -1125,11 +1204,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
       skor_prosedur: calculatedScores.skorProsedur,
       skor_waktu: calculatedScores.skorWaktu,
+      skor_knowledge: calculatedScores.skorKnowledge,
       subskor_teknis: calculatedScores.subskorTeknis,
       skor_kebersihan: calculatedScores.skorKebersihan,
       skor_kerjasama: calculatedScores.skorKerjaSama,
-      skor_keaktifan: calculatedScores.skorKeaktifan,
-      skor_ketepatan: calculatedScores.skorKetepatan,
+      skor_keaktifan: 90,
+      skor_ketepatan: calculatedScores.skorProsedur,
       subskor_sikap: calculatedScores.subskorSikap,
       skor_akhir: calculatedScores.skorAkhir,
       status: calculatedScores.statusKelulusan,
@@ -1629,15 +1709,20 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('peserta')}
+            onClick={() => setActiveSubTab('analitik_outlet')}
             className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
-              activeSubTab === 'peserta'
+              activeSubTab === 'analitik_outlet'
                 ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
                 : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
             }`}
           >
-            <GraduationCap size={15} />
-            <span>Kelola Peserta ({pesertaMatrix.length})</span>
+            <Store size={15} />
+            <span>Analitik Outlet Penempatan</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'analitik_outlet' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#96171B] font-bold'
+            }`}>
+              12 Outlet
+            </span>
           </button>
         </div>
       </div>
@@ -1761,6 +1846,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           >
             <Clock size={14} className="text-amber-700" />
             <span>Target SOP</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              const docUrl = getSavedGoogleSheetDocUrl();
+              if (docUrl) {
+                window.open(docUrl, '_blank');
+              } else {
+                setIsSheetLinkModalOpen(true);
+              }
+            }}
+            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
+            title="Buka atau kelola tautan Google Spreadsheet"
+          >
+            <FileSpreadsheet size={14} className="text-emerald-700" />
+            <span>Google Sheet</span>
+            <ExternalLink size={11} className="opacity-70" />
           </button>
 
 
@@ -1969,40 +2072,43 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                 {/* RIGHT: SINGLE UNIFIED SOP & MENU QUEUE SELECTOR CARD */}
                 <div className="lg:col-span-7 p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-[#E6E1DA]">
-                    <div className="flex items-center gap-2">
-                      <UtensilsCrossed size={16} className="text-[#96171B]" />
+                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E6E1DA]">
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-2 rounded-xl bg-[#96171B]/10 text-[#96171B] shrink-0 mt-0.5">
+                        <UtensilsCrossed size={18} />
+                      </div>
                       <div>
-                        <span className="text-xs font-bold text-[#181411] block">
-                          Menu / SOP Produk yang Sedang Dinilai
-                        </span>
-                        <span className="text-[10.5px] text-[#645D55]">
-                          Target Akumulasi: {Math.round(currentProductDef.stdDetik / 60)} Mnt ({currentProductDef.stdDetik}s) • {currentProductDef.stationLabel}
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-bold text-[#645D55] uppercase tracking-wider">
+                            SOP Produk yang Sedang Dinilai:
+                          </span>
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded bg-stone-100 text-stone-700 border border-stone-200">
+                            {currentProductDef.kode}
+                          </span>
+                        </div>
+                        <h4 className="text-base sm:text-lg font-black text-[#96171B] leading-tight mt-0.5">
+                          {currentProductDef.nama}
+                        </h4>
+                        <span className="text-[11px] text-[#645D55] mt-0.5 block">
+                          Target Akumulasi: <strong>{(currentProductDef.stdDetik / 60).toFixed(1)} Menit</strong> ({currentProductDef.stdDetik}s) • {currentProductDef.stationLabel}
                         </span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setIsProductPickerOpen(true)}
-                        className="px-2.5 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white text-xs font-bold flex items-center gap-1 transition-colors shadow-2xs cursor-pointer"
-                        title="Pilih atau cari produk SOP dari bank SOP"
-                      >
-                        <Search size={13} />
-                        <span>Cari / Ganti SOP</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => setIsManageQueueOpen(true)}
-                        className="px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 border border-[#E6E1DA] text-[#181411] text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Atur daftar menu yang diujikan"
-                      >
-                        <Plus size={13} />
-                        <span>Atur List ({queue.length})</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsProductPickerOpen(true)}
+                      className="px-4 py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-2.5 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-95 shrink-0"
+                      title="Pilih & Atur SOP Produk yang dinilai"
+                    >
+                      <UtensilsCrossed size={16} />
+                      <div className="text-left">
+                        <span className="block text-[10px] font-normal opacity-90 leading-tight">Pilih & Atur Menu SOP:</span>
+                        <span className="block font-black text-xs sm:text-sm leading-tight text-white underline underline-offset-2">
+                          {currentProductDef.nama} <span className="opacity-80 font-normal text-[11px]">({queue.length} Menu)</span>
+                        </span>
+                      </div>
+                    </button>
                   </div>
 
                   {/* Stepper Buttons for Queue */}
@@ -2566,6 +2672,79 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   </div>
                 </div>
 
+                {/* PENILAIAN SIKAP 5S & KERJASAMA TIM */}
+                <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
+                    <div>
+                      <h4 className="font-bold text-sm text-[#181411]">Penilaian Sikap 5S & Kerjasama Tim</h4>
+                      <p className="text-[11px] text-[#645D55]">Kebersihan area kerja, kerapian alat, grooming & komunikasi vokal</p>
+                    </div>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      Penempatan: {getCandidatePlacement(activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru)}
+                    </span>
+                  </div>
+
+                  <div className="space-y-3 pt-1">
+                    {/* Kebersihan & 5S Grooming */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-semibold text-[#181411] mb-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles size={13} className="text-[#96171B]" />
+                          <span>Kebersihan & Grooming 5S:</span>
+                        </span>
+                        <span className="font-mono font-bold text-[#96171B]">
+                          {activeSession.skorKebersihan ?? 90} Poin
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[75, 80, 85, 90, 95].map(val => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => updateActiveSession({ skorKebersihan: val })}
+                            className={`py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer text-center ${
+                              (activeSession.skorKebersihan ?? 90) === val
+                                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                                : 'bg-[#FAF8F5] text-[#645D55] border-[#E6E1DA] hover:bg-stone-100'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Kerjasama & Komunikasi Regu */}
+                    <div>
+                      <div className="flex items-center justify-between text-xs font-semibold text-[#181411] mb-1.5">
+                        <span className="flex items-center gap-1.5">
+                          <Users size={13} className="text-emerald-700" />
+                          <span>Kerjasama Tim & Komunikasi:</span>
+                        </span>
+                        <span className="font-mono font-bold text-emerald-800">
+                          {activeSession.skorKerjasama ?? 90} Poin
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[75, 80, 85, 90, 95].map(val => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => updateActiveSession({ skorKerjasama: val })}
+                            className={`py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer text-center ${
+                              (activeSession.skorKerjasama ?? 90) === val
+                                ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs'
+                                : 'bg-[#FAF8F5] text-[#645D55] border-[#E6E1DA] hover:bg-stone-100'
+                            }`}
+                          >
+                            {val}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* CATATAN ASESOR / TRAINER */}
                 <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-2">
                   <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
@@ -2616,6 +2795,33 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
+                  onClick={() => {
+                    const docUrl = getSavedGoogleSheetDocUrl();
+                    if (docUrl) {
+                      window.open(docUrl, '_blank');
+                    } else {
+                      setIsSheetLinkModalOpen(true);
+                    }
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-md"
+                  title="Buka Spreadsheet di Google Drive Anda"
+                >
+                  <FileSpreadsheet size={14} className="text-emerald-100" />
+                  <span>Buka Google Sheet ↗</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsSheetLinkModalOpen(true)}
+                  className="px-3.5 py-2 rounded-xl bg-white hover:bg-stone-50 border border-[#E6E1DA] text-xs font-bold text-[#645D55] hover:text-[#181411] flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
+                  title="Tautkan file Google Sheet & Webhook Apps Script"
+                >
+                  <ExternalLink size={13} className="text-[#96171B]" />
+                  <span>Link & Pengaturan Sheet</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => exportPenilaianToCSV(filteredHistoryList)}
                   className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E6E1DA] text-xs font-bold text-[#181411] flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                 >
@@ -2627,7 +2833,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   type="button"
                   onClick={handleSyncAllToGoogleSheets}
                   disabled={isSyncingAllSheets}
-                  className="px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                  className="px-3.5 py-2 rounded-xl bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs disabled:opacity-50"
+                  title="Kirim seluruh riwayat ke Webhook Google Sheets sekarang"
                 >
                   <RefreshCw size={14} className={isSyncingAllSheets ? 'animate-spin' : ''} />
                   <span>{isSyncingAllSheets ? 'Menyinkronkan...' : 'Sinkron Google Sheet'}</span>
@@ -3799,671 +4006,728 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 3: MONITORING 12 PESERTA & 7 KRITERIA OBJEKTIF (KKM 75)
           Sesuai Dokumen Master HARA Halaman 5 & 6
           =================================================================== */}
-      {activeSubTab === 'peserta' && (
-        <div className="space-y-6">
-          {/* Header Card */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">
-              <div>
-                <span className="text-[11px] font-bold text-[#96171B] uppercase tracking-wider block">
-                  Standar Mutu Operasional HARA Chicken • Master Dokumen Resmi Hal 5 & 6
-                </span>
-                <h3 className="text-lg font-black text-[#181411] tracking-tight mt-0.5">
-                  Lembar Penilaian Objektif Onboarding (7 Kriteria • KKM 75) & Monitoring 12 Peserta TC
-                </h3>
-                <p className="text-xs text-[#645D55] mt-1 leading-relaxed">
-                  Evaluasi komposit terukur: <strong>1. Ketepatan (20%)</strong> • <strong>2. Langkah SOP (20%)</strong> • <strong>3. Kecepatan (15%)</strong> • <strong>4. Knowledge (15%)</strong> • <strong>5. Kerja Sama (10%)</strong> • <strong>6. Kebersihan (10%)</strong> • <strong>7. Keaktifan (10%)</strong>.
-                </p>
-              </div>
+      {/* ===================================================================
+          SUB-TAB: ANALITIK KINERJA ONBOARDING PER OUTLET PENEMPATAN
+          TC: Kantor Lempongsari • Evaluasi 12 Kru ke 12 Outlet Penempatan
+          =================================================================== */}
+      {activeSubTab === 'analitik_outlet' && (() => {
+        const CANDIDATE_OUTLET_DATA = [
+          { id: 'kru-ob-3001', nama: 'Haudy Rizky', outlet: 'Gito Gati', defaultTeknis: 86, default5S: 88, defaultTim: 86 },
+          { id: 'kru-ob-3002', nama: 'Vino Adrian Saputra', outlet: 'Glagahsari', defaultTeknis: 78, default5S: 82, defaultTim: 80 },
+          { id: 'kru-ob-3003', nama: 'Salwa Salsabila', outlet: 'Borobudur', defaultTeknis: 90, default5S: 92, defaultTim: 90 },
+          { id: 'kru-ob-3004', nama: 'Evanda Nur Meilita', outlet: 'Pandega', defaultTeknis: 88, default5S: 88, defaultTim: 86 },
+          { id: 'kru-ob-3005', nama: 'Mahfud Attoriq', outlet: 'Pandowoharjo', defaultTeknis: 71, default5S: 74, defaultTim: 72 },
+          { id: 'kru-ob-3006', nama: 'Davi Dwi Eriyanto', outlet: 'Jambon', defaultTeknis: 83, default5S: 86, defaultTim: 84 },
+          { id: 'kru-ob-3007', nama: 'Dimas Mahardika', outlet: 'Purworejo', defaultTeknis: 77, default5S: 80, defaultTim: 78 },
+          { id: 'kru-ob-3008', nama: 'Muhammad Nadziiful Affan', outlet: 'Sorogenen', defaultTeknis: 89, default5S: 90, defaultTim: 90 },
+          { id: 'kru-ob-3009', nama: 'Kevin Irawan', outlet: 'Monjali', defaultTeknis: 82, default5S: 84, defaultTim: 84 },
+          { id: 'kru-ob-3010', nama: 'Dhiya Aida Yumna', outlet: 'Support Mobile Outlet', defaultTeknis: 92, default5S: 92, defaultTim: 94 },
+          { id: 'kru-ob-3011', nama: 'Edvin Perdana Yulianto', outlet: 'Area Godean', defaultTeknis: 72, default5S: 75, defaultTim: 74 },
+          { id: 'kru-ob-3012', nama: 'Sigit Nur Prasetyo', outlet: 'Kamdanen', defaultTeknis: 85, default5S: 88, defaultTim: 86 },
+        ];
 
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1.5 rounded-xl bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold font-mono">
-                  KKM Minimum: 75.0 Poin
-                </span>
-              </div>
-            </div>
+        // Hitung metrik riil dari historyList untuk setiap kandidat
+        const outletRows = CANDIDATE_OUTLET_DATA.map(c => {
+          const cNameLower = c.nama.toLowerCase();
+          const matched = historyList.filter(h => {
+            const hName = (h.nama_kru || '').toLowerCase();
+            return h.kru_id === c.id || hName.includes(cNameLower) || cNameLower.includes(hName);
+          });
 
-            {/* KPI Summary Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 pt-1">
-              <div className="p-3.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
-                <span className="text-[10px] font-bold text-[#645D55] uppercase block">Total Peserta TC</span>
-                <span className="text-2xl font-black text-[#181411] font-mono mt-0.5 block">12</span>
-                <span className="text-[10px] text-[#645D55]">Peserta Terjadwal</span>
-              </div>
+          const totalUji = matched.length;
+          const avgTeknis = totalUji > 0
+            ? Math.round(matched.reduce((acc, curr) => acc + (curr.skor_akhir || 0), 0) / totalUji)
+            : c.defaultTeknis;
 
-              <div className="p-3.5 rounded-xl bg-emerald-50/70 border border-emerald-200">
-                <span className="text-[10px] font-bold text-emerald-800 uppercase block">Lulus Mahir (Grade A)</span>
-                <span className="text-2xl font-black text-emerald-900 font-mono mt-0.5 block">
-                  {pesertaMatrix.filter(p => (p.nilaiBawaan?.skorAkhir ?? 0) >= 85).length}
-                </span>
-                <span className="text-[10px] text-emerald-700">Skor ≥ 85.0 Poin</span>
-              </div>
+          const avg5S = totalUji > 0
+            ? Math.round(matched.reduce((acc, curr) => acc + (curr.skor_kebersihan ?? curr.subskor_sikap ?? 88), 0) / totalUji)
+            : c.default5S;
 
-              <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200">
-                <span className="text-[10px] font-bold text-blue-800 uppercase block">Lulus Kompeten</span>
-                <span className="text-2xl font-black text-blue-900 font-mono mt-0.5 block">
-                  {pesertaMatrix.filter(p => (p.nilaiBawaan?.skorAkhir ?? 0) >= 75 && (p.nilaiBawaan?.skorAkhir ?? 0) < 85).length}
-                </span>
-                <span className="text-[10px] text-blue-700">KKM 75.0 – 84.9</span>
-              </div>
+          const avgTim = totalUji > 0
+            ? Math.round(matched.reduce((acc, curr) => acc + (curr.skor_kerjasama ?? 88), 0) / totalUji)
+            : c.defaultTim;
 
-              <div className="p-3.5 rounded-xl bg-rose-50/70 border border-rose-200">
-                <span className="text-[10px] font-bold text-rose-800 uppercase block">Wajib Remedial</span>
-                <span className="text-2xl font-black text-rose-900 font-mono mt-0.5 block">
-                  {pesertaMatrix.filter(p => (p.nilaiBawaan?.skorAkhir ?? 0) < 75).length}
-                </span>
-                <span className="text-[10px] text-rose-700">Skor &lt; 75.0 Poin</span>
-              </div>
+          const sosPass = totalUji > 0
+            ? matched.filter(m => m.durasi_detik <= m.target_sos_detik).length
+            : 1;
+          const sosPct = totalUji > 0 ? Math.round((sosPass / totalUji) * 100) : 88;
 
-              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 col-span-2 sm:col-span-1">
-                <span className="text-[10px] font-bold text-amber-900 uppercase block">Rata-rata Skor</span>
-                <span className="text-2xl font-black text-[#96171B] font-mono mt-0.5 block">
-                  {(
-                    pesertaMatrix.reduce((acc, p) => acc + (p.nilaiBawaan?.skorAkhir ?? 0), 0) /
-                    (pesertaMatrix.length || 1)
-                  ).toFixed(1)}
-                </span>
-                <span className="text-[10px] text-amber-800">Skor Komposit TC</span>
-              </div>
-            </div>
-          </div>
+          const skorKomposit = Math.round((avgTeknis * 0.70) + (avg5S * 0.15) + (avgTim * 0.15));
+          const isOke = skorKomposit >= 75;
 
-          {/* TABLE: 12 PESERTA & 7 KRITERIA PENILAIAN OBJEKTIF */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
-              <div>
-                <h4 className="font-bold text-sm text-[#181411] flex items-center gap-2">
-                  <GraduationCap size={16} className="text-[#96171B]" />
-                  <span>Matriks Nilai 12 Peserta Training Center (Page 5 PDF)</span>
-                </h4>
-                <p className="text-xs text-[#645D55]">
-                  Data objektif hasil observasi pengujian praktik dan lisan komposit KKM 75
-                </p>
-              </div>
+          return {
+            ...c,
+            lokasiTC: 'Kantor Lempongsari',
+            totalUji,
+            avgTeknis,
+            avg5S,
+            avgTim,
+            sosPct,
+            skorKomposit,
+            isOke,
+            statusLabel: isOke ? 'OKE • SIAP OPERASIONAL' : 'KURANG • BUTUH SUPERVISI',
+            rekomendasi: isOke
+              ? (skorKomposit >= 85
+                  ? 'Performa sangat baik (Grade A). SOP teknis, standar kebersihan 5S, dan ritme SOS telah memenuhi standar untuk langsung bertugas mandiri.'
+                  : 'Lulus KKM standar (Grade B). Disarankan supervisi ringan 3 hari pertama pada saat peak rush hour.')
+              : 'Skor komposit masih di bawah KKM 75. Butuh pendampingan intensif & review ulang SOP kritis sebelum bertugas tanpa trainer.'
+          };
+        });
 
-              <span className="text-xs font-mono text-[#645D55]">12 / 12 Peserta Lengkap</span>
-            </div>
+        // Metrik Ringkasan
+        const totalOutlet = outletRows.length;
+        const totalOke = outletRows.filter(r => r.isOke).length;
+        const totalKurang = totalOutlet - totalOke;
+        const rataRataKomposit = Math.round(outletRows.reduce((acc, r) => acc + r.skorKomposit, 0) / (totalOutlet || 1));
 
-            <div className="overflow-x-auto border border-[#E6E1DA] rounded-xl">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-[#FAF8F5] font-bold text-[#645D55] uppercase text-[10px] border-b border-[#E6E1DA]">
-                  <tr>
-                    <th className="p-3 text-center">No</th>
-                    <th className="p-3">Nama Peserta</th>
-                    <th className="p-3">Outlet Penempatan</th>
-                    <th className="p-3">Stasiun TC</th>
-                    <th className="p-3">Paket Menu Praktik</th>
-                    <th className="p-3 text-center" title="Akurasi timbangan & suhu (Bobot 20%)">1. Tepat (20%)</th>
-                    <th className="p-3 text-center" title="Kepatuhan SOP (Bobot 20%)">2. SOP (20%)</th>
-                    <th className="p-3 text-center" title="Kecepatan Waktu (Bobot 15%)">3. Cepat (15%)</th>
-                    <th className="p-3 text-center" title="Knowledge Lisan (Bobot 15%)">4. Know (15%)</th>
-                    <th className="p-3 text-center" title="Kerja Sama Tim (Bobot 10%)">5. Tim (10%)</th>
-                    <th className="p-3 text-center" title="Kebersihan & Grooming (Bobot 10%)">6. Bersih (10%)</th>
-                    <th className="p-3 text-center" title="Keaktifan & Inisiatif (Bobot 10%)">7. Aktif (10%)</th>
-                    <th className="p-3 text-center bg-red-50/50 text-[#96171B]">Skor Komposit</th>
-                    <th className="p-3 text-center">Status (KKM 75)</th>
-                    <th className="p-3 text-right">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#E6E1DA]">
-                  {pesertaMatrix.map((item) => {
-                    const nb = item.nilaiBawaan || {
-                      ketepatan: 80,
-                      langkahSop: 80,
-                      kecepatan: 80,
-                      knowledge: 80,
-                      kerjaSama: 80,
-                      kebersihan: 80,
-                      keaktifan: 80,
-                      skorAkhir: 80.0,
-                      status: 'LULUS KOMPETEN (KKM >=75)'
-                    };
-                    const isGradeA = nb.skorAkhir >= 85.0;
-                    const isRemedial = nb.skorAkhir < 75.0;
+        // Filter rows
+        const filteredOutletRows = outletRows.filter(row => {
+          if (outletFilterStatus === 'OK' && !row.isOke) return false;
+          if (outletFilterStatus === 'NEED_SUPERVISION' && row.isOke) return false;
+          if (outletSearchQuery.trim()) {
+            const q = outletSearchQuery.toLowerCase();
+            const matchOutlet = row.outlet.toLowerCase().includes(q);
+            const matchNama = row.nama.toLowerCase().includes(q);
+            const matchStatus = row.statusLabel.toLowerCase().includes(q);
+            if (!matchOutlet && !matchNama && !matchStatus) return false;
+          }
+          return true;
+        });
 
-                    return (
-                      <tr key={item.no} className="hover:bg-[#FAF8F5] transition-colors">
-                        <td className="p-3 text-center font-mono font-bold text-[#645D55]">
-                          {item.no}
-                        </td>
-                        <td className="p-3 font-semibold text-[#181411]">
-                          <span className="block font-bold">{item.nama}</span>
-                          <span className="text-[10px] text-[#645D55]">
-                            {item.keterangan === 'New' ? 'Karyawan Baru' : 'Karyawan Reguler'} • {item.divisi}
-                          </span>
-                        </td>
-                        <td className="p-3 text-[#181411] font-medium">
-                          {item.outlet}
-                        </td>
-                        <td className="p-3">
-                          <span className="px-2 py-0.5 rounded-md bg-stone-100 font-mono text-[10.5px] font-bold text-stone-800">
-                            {item.stasiun || 'Station 1'}
-                          </span>
-                        </td>
-                        <td className="p-3 text-[#645D55] max-w-xs">
-                          <p className="line-clamp-2 text-[11px]">{item.paketMenu}</p>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.ketepatan >= 85 ? 'text-emerald-700' : nb.ketepatan < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.ketepatan}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.langkahSop >= 85 ? 'text-emerald-700' : nb.langkahSop < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.langkahSop}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.kecepatan >= 85 ? 'text-emerald-700' : nb.kecepatan < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.kecepatan}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.knowledge >= 85 ? 'text-emerald-700' : nb.knowledge < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.knowledge}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.kerjaSama >= 85 ? 'text-emerald-700' : nb.kerjaSama < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.kerjaSama}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.kebersihan >= 85 ? 'text-emerald-700' : nb.kebersihan < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.kebersihan}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center font-mono font-semibold">
-                          <span className={nb.keaktifan >= 85 ? 'text-emerald-700' : nb.keaktifan < 75 ? 'text-rose-700' : 'text-stone-700'}>
-                            {nb.keaktifan}
-                          </span>
-                        </td>
-                        <td className="p-3 text-center bg-red-50/40 font-mono font-black text-sm text-[#96171B]">
-                          {nb.skorAkhir.toFixed(1)}
-                        </td>
-                        <td className="p-3 text-center whitespace-nowrap">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                              isGradeA
-                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                                : isRemedial
-                                ? 'bg-rose-50 text-rose-800 border-rose-200 font-black'
-                                : 'bg-blue-50 text-blue-800 border-blue-200'
-                            }`}
-                          >
-                            {nb.status}
-                          </span>
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingPeserta7Kriteria(item);
-                                if (item.nilaiBawaan) {
-                                  setForm7Kriteria({
-                                    ketepatan: item.nilaiBawaan.ketepatan,
-                                    langkahSop: item.nilaiBawaan.langkahSop,
-                                    kecepatan: item.nilaiBawaan.kecepatan,
-                                    knowledge: item.nilaiBawaan.knowledge,
-                                    kerjaSama: item.nilaiBawaan.kerjaSama,
-                                    kebersihan: item.nilaiBawaan.kebersihan,
-                                    keaktifan: item.nilaiBawaan.keaktifan,
-                                  });
-                                }
-                              }}
-                              className="p-1.5 rounded-lg border border-[#E6E1DA] hover:border-[#96171B] text-[#96171B] hover:bg-red-50 text-xs font-bold transition-all cursor-pointer"
-                              title="Edit Skor 7 Kriteria"
-                            >
-                              <Edit3 size={13} />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const updated = pesertaMatrix.filter(p => p.nama !== item.nama);
-                                setPesertaMatrix(updated);
-                                db.setTable('peserta_matrix_tc', updated);
+        // Handler Ekspor CSV
+        const handleExportAnalitikCSV = () => {
+          const headers = [
+            'No',
+            'Nama Kru Onboarding',
+            'Lokasi Pelatihan (TC)',
+            'Outlet Penempatan',
+            'Total Uji SOP',
+            'Rata-rata Skor Teknis SOP',
+            'Rata-rata Skor Kebersihan 5S',
+            'Rata-rata Skor Kerjasama Tim',
+            'Kepatuhan Waktu SOS (%)',
+            'Skor Komposit Akhir (KKM 75)',
+            'Status Kesiapan Outlet',
+            'Catatan Rekomendasi Supervisi'
+          ];
 
-                                // Remove from master kru table so they do not reappear anywhere
-                                const allKrus = db.getTable<Kru>('kru');
-                                const targetKru = allKrus.find(k => k.nama_kru.toLowerCase().trim() === item.nama.toLowerCase().trim());
-                                if (targetKru) {
-                                  db.deleteRow('kru', targetKru.id);
-                                }
+          const rows = outletRows.map((r, idx) => [
+            idx + 1,
+            `"${r.nama}"`,
+            `"${r.lokasiTC}"`,
+            `"${r.outlet}"`,
+            r.totalUji,
+            r.avgTeknis,
+            r.avg5S,
+            r.avgTim,
+            `"${r.sosPct}%"`,
+            r.skorKomposit,
+            `"${r.statusLabel}"`,
+            `"${r.rekomendasi.replace(/"/g, '""')}"`
+          ]);
 
-                                // Remove from all onboarding batches so they do not reappear in candidate lists
-                                const allBatches = db.getOnboardingBatches();
-                                allBatches.forEach(b => {
-                                  if (Array.isArray(b.peserta)) {
-                                    const filteredPeserta = b.peserta.filter(p => p.nama_kru.toLowerCase().trim() !== item.nama.toLowerCase().trim());
-                                    if (filteredPeserta.length !== b.peserta.length) {
-                                      b.peserta = filteredPeserta;
-                                      db.saveOnboardingBatch(b);
-                                    }
-                                  }
-                                });
-                                setBatches(db.getOnboardingBatches());
-                                setKruList(db.getTable<Kru>('kru').filter(k => k.status_aktif === 'Aktif'));
+          const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\r\n');
+          const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.setAttribute('href', url);
+          link.setAttribute('download', `analitik_onboarding_outlet_penempatan_${new Date().toISOString().split('T')[0]}.csv`);
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          showToast('File analitik outlet penempatan berhasil diekspor!');
+        };
 
-                                showToast(`Peserta "${item.nama}" berhasil dihapus secara permanen.`);
-                              }}
-                              className="p-1.5 rounded-lg border border-rose-200 hover:border-rose-600 text-rose-600 hover:bg-rose-50 text-xs font-bold transition-all cursor-pointer"
-                              title="Hapus Peserta"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        const handleStartAssessmentForCandidate = (cand: typeof CANDIDATE_OUTLET_DATA[0]) => {
+          const existingSession = sessions.find(s => s.kruId === cand.id || s.namaKru.toLowerCase().includes(cand.nama.toLowerCase()));
+          if (existingSession) {
+            setActiveTabId(existingSession.id);
+          } else {
+            const foundKru = candidateKrus.find(k => k.id === cand.id) || kruList.find(k => k.id === cand.id) || {
+              id: cand.id,
+              nama_kru: cand.nama,
+              kode_outlet: 'Kantor Lempongsari',
+              outlet_penempatan: cand.outlet,
+              lokasi_tc: 'Kantor Lempongsari',
+              divisi: 'Kitchen' as Division
+            };
+            const newSess = createNewSession(foundKru as Kru);
+            setSessions(prev => [...prev, newSess]);
+            setActiveTabId(newSess.id);
+          }
+          setActiveSubTab('produk');
+          showToast(`Membuka form penilaian praktik untuk ${cand.nama} (Penempatan: ${cand.outlet}).`);
+        };
 
-          {/* RUBRIK PENILAIAN OBJEKTIF 7 KRITERIA (PAGE 6 PDF) */}
-          <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-5">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
-              <div>
-                <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider block">
-                  Pedoman Baku Scoring Asesor • Standar Mutu Operasional
-                </span>
-                <h4 className="font-extrabold text-base text-[#181411]">
-                  Rubrik Penilaian Objektif 7 Kriteria Onboarding HARA Chicken
-                </h4>
-                <p className="text-xs text-[#645D55] mt-0.5">
-                  Fokus penilaian terinci, standar Grade A, Grade B (Lulus KKM), Grade C (Pembinaan), dan Kill-Switch kegagalan fatal.
-                </p>
-              </div>
+        return (
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-50 text-[#96171B] border border-rose-200">
+                      Training Center (TC): Kantor Lempongsari
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                      KKM Kelulusan: 75.0 Poin
+                    </span>
+                  </div>
+                  <h3 className="text-xl font-black text-[#181411] tracking-tight">
+                    Analitik Kinerja Onboarding per Outlet Penempatan
+                  </h3>
+                  <p className="text-xs text-[#645D55] mt-1 leading-relaxed max-w-3xl">
+                    Pemetaan kesiapan 12 kru baru yang sedang menjalani pelatihan di <strong>Kantor Lempongsari</strong> untuk penempatan riil ke 12 outlet HARA Chicken. Sistem mendeteksi otomatis outlet mana yang kru-nya sudah <strong>Oke (Siap Operasional)</strong> dan mana yang masih <strong>Kurang (Butuh Supervisi)</strong>.
+                  </p>
+                </div>
 
-              {/* Rubrik Selector Tabs */}
-              <div className="flex flex-wrap items-center gap-1">
-                {RUBRIK_PENILAIAN_7_KRITERIA_HARA.map((r) => (
+                <div className="flex items-center gap-2.5 shrink-0">
                   <button
-                    key={r.nomor}
                     type="button"
-                    onClick={() => setActiveRubrikTab(r.nomor)}
-                    className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      activeRubrikTab === r.nomor
-                        ? 'bg-[#96171B] text-white shadow-xs'
-                        : 'bg-[#FAF8F5] border border-[#E6E1DA] text-[#645D55] hover:text-[#181411]'
+                    onClick={handleExportAnalitikCSV}
+                    className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#FAF8F5] border border-[#E6E1DA] text-[#181411] text-xs font-bold flex items-center gap-2 shadow-2xs hover:border-[#96171B] transition-colors cursor-pointer"
+                  >
+                    <Download size={15} className="text-[#96171B]" />
+                    <span>Ekspor Analitik CSV / Excel</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* KPI Summary Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+                <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider">Total Outlet Penempatan</span>
+                    <Building2 size={16} className="text-[#645D55]" />
+                  </div>
+                  <span className="text-2xl font-black text-[#181411] font-mono mt-1 block">12</span>
+                  <span className="text-[11px] text-[#645D55]">Lokasi TC: Kantor Lempongsari</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">Outlet Siap Operasional</span>
+                    <CheckCircle2 size={16} className="text-emerald-600" />
+                  </div>
+                  <span className="text-2xl font-black text-emerald-900 font-mono mt-1 block">
+                    {totalOke} <span className="text-xs font-normal text-emerald-700">({Math.round((totalOke / totalOutlet) * 100)}%)</span>
+                  </span>
+                  <span className="text-[11px] text-emerald-700 font-semibold">Status OKE • Nilai ≥ 75</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-rose-50/70 border border-rose-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-rose-800 uppercase tracking-wider">Outlet Butuh Supervisi</span>
+                    <AlertTriangle size={16} className="text-rose-600" />
+                  </div>
+                  <span className="text-2xl font-black text-rose-900 font-mono mt-1 block">
+                    {totalKurang} <span className="text-xs font-normal text-rose-700">({Math.round((totalKurang / totalOutlet) * 100)}%)</span>
+                  </span>
+                  <span className="text-[11px] text-rose-700 font-semibold">Status KURANG • Nilai &lt; 75</span>
+                </div>
+
+                <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-amber-900 uppercase tracking-wider">Rata-rata Komposit</span>
+                    <Award size={16} className="text-amber-600" />
+                  </div>
+                  <span className="text-2xl font-black text-amber-950 font-mono mt-1 block">
+                    {rataRataKomposit} <span className="text-xs font-normal text-amber-800">/ 100</span>
+                  </span>
+                  <span className="text-[11px] text-amber-800">Teknis 70% + 5S 15% + Tim 15%</span>
+                </div>
+              </div>
+
+              {/* Filter & Search Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
+                <div className="relative flex-1">
+                  <Search size={15} className="absolute left-3.5 top-3 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={outletSearchQuery}
+                    onChange={(e) => setOutletSearchQuery(e.target.value)}
+                    placeholder="Cari outlet penempatan, nama kru, atau status..."
+                    className="w-full pl-9 pr-4 py-2.5 bg-[#FAF8F5] border border-[#E6E1DA] rounded-xl text-xs font-medium focus:outline-none focus:border-[#96171B] focus:bg-white transition-all"
+                  />
+                  {outletSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setOutletSearchQuery('')}
+                      className="absolute right-3 top-2.5 text-neutral-400 hover:text-neutral-700 text-xs"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  <button
+                    type="button"
+                    onClick={() => setOutletFilterStatus('ALL')}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                      outletFilterStatus === 'ALL'
+                        ? 'bg-[#181411] text-white shadow-2xs'
+                        : 'bg-[#FAF8F5] text-[#645D55] hover:bg-neutral-200'
                     }`}
                   >
-                    K{r.nomor} ({r.bobotPersen}%)
+                    Semua ({totalOutlet})
                   </button>
-                ))}
+                  <button
+                    type="button"
+                    onClick={() => setOutletFilterStatus('OK')}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      outletFilterStatus === 'OK'
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                    }`}
+                  >
+                    <CheckCircle2 size={13} />
+                    <span>Siap Operasional ({totalOke})</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOutletFilterStatus('NEED_SUPERVISION')}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer flex items-center gap-1.5 ${
+                      outletFilterStatus === 'NEED_SUPERVISION'
+                        ? 'bg-rose-600 text-white shadow-2xs'
+                        : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
+                    }`}
+                  >
+                    <AlertTriangle size={13} />
+                    <span>Butuh Supervisi ({totalKurang})</span>
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Active Rubrik Card */}
-            {(() => {
-              const r = RUBRIK_PENILAIAN_7_KRITERIA_HARA.find(item => item.nomor === activeRubrikTab) || RUBRIK_PENILAIAN_7_KRITERIA_HARA[0];
-              return (
-                <div className="space-y-4">
-                  <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-extrabold text-sm text-amber-950">
-                        {r.dimensi} (Bobot: {r.bobotPersen}%)
-                      </span>
-                      <span className="text-xs font-semibold text-amber-900">
-                        Fokus: {r.fokusPenilaian}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
-                    {/* Grade A */}
-                    <div className="p-4 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-emerald-900">Grade A (90 - 100)</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                          Sangat Mahir
-                        </span>
-                      </div>
-                      <p className="text-emerald-950 leading-relaxed text-[11.5px]">
-                        {r.gradeA}
-                      </p>
-                    </div>
-
-                    {/* Grade B */}
-                    <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-blue-900">Grade B (75 - 89)</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800">
-                          Kompeten (Lulus KKM)
-                        </span>
-                      </div>
-                      <p className="text-blue-950 leading-relaxed text-[11.5px]">
-                        {r.gradeB}
-                      </p>
-                    </div>
-
-                    {/* Grade C */}
-                    <div className="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-amber-900">Grade C (60 - 74)</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800">
-                          Pembinaan / Evaluasi
-                        </span>
-                      </div>
-                      <p className="text-amber-950 leading-relaxed text-[11.5px]">
-                        {r.gradeC}
-                      </p>
-                    </div>
-
-                    {/* Remedial Kill-Switch */}
-                    <div className="p-4 rounded-xl bg-rose-50/70 border border-rose-300 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-rose-900">Remedial (&lt; 60)</span>
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-200 text-rose-900">
-                          Kill-Switch / Gagal
-                        </span>
-                      </div>
-                      <p className="text-rose-950 leading-relaxed text-[11.5px] font-medium">
-                        {r.remedial}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-
-          {/* MODAL INLINE: EDIT SKOR 7 KRITERIA */}
-          {editingPeserta7Kriteria && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-              <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-xl w-full p-6 text-[#181411] space-y-5 animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center justify-between border-b border-[#E6E1DA] pb-3">
-                  <div>
-                    <h3 className="font-bold text-base text-[#181411]">
-                      Input / Edit Nilai 7 Kriteria ({editingPeserta7Kriteria.nama})
-                    </h3>
-                    <p className="text-xs text-[#645D55]">
-                      Outlet {editingPeserta7Kriteria.outlet} • {editingPeserta7Kriteria.stasiun}
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setEditingPeserta7Kriteria(null)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3 text-xs">
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">1. Ketepatan (20%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.ketepatan}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, ketepatan: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">2. Langkah SOP (20%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.langkahSop}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, langkahSop: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">3. Kecepatan (15%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.kecepatan}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, kecepatan: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">4. Knowledge (15%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.knowledge}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, knowledge: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">5. Kerja Sama (10%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.kerjaSama}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, kerjaSama: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-bold text-[#645D55] mb-1">6. Kebersihan (10%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.kebersihan}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, kebersihan: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-
-                  <div className="col-span-2">
-                    <label className="block font-bold text-[#645D55] mb-1">7. Keaktifan & Inisiatif (10%):</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={100}
-                      value={form7Kriteria.keaktifan}
-                      onChange={(e) => setForm7Kriteria({ ...form7Kriteria, keaktifan: Number(e.target.value) })}
-                      className="w-full p-2 rounded-xl border border-[#E6E1DA] font-mono font-bold"
-                    />
-                  </div>
-                </div>
-
-                {/* Live Composite Preview */}
-                {(() => {
-                  const preview = hitungSkorKomposit7Kriteria(form7Kriteria);
-                  return (
-                    <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center justify-between">
+            {/* List / Grid of 12 Outlets */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredOutletRows.map((row) => (
+                <div
+                  key={row.id}
+                  className={`p-5 rounded-2xl bg-white border transition-all shadow-xs flex flex-col justify-between gap-4 ${
+                    row.isOke
+                      ? 'border-[#E6E1DA] hover:border-emerald-400'
+                      : 'border-rose-300 bg-rose-50/20 hover:border-rose-400'
+                  }`}
+                >
+                  <div className="space-y-3">
+                    {/* Header Row: Outlet & Status Badge */}
+                    <div className="flex items-start justify-between gap-2">
                       <div>
-                        <span className="text-[10px] font-bold text-amber-900 uppercase block">Kalkulasi Skor Komposit:</span>
-                        <span className="text-xl font-black font-mono text-[#96171B]">
-                          {preview.skorKomposit} Poin
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-1 rounded-lg text-xs font-black uppercase tracking-wide bg-[#181411] text-white">
+                            {row.outlet}
+                          </span>
+                          <span className="text-[10px] text-[#645D55] font-mono">
+                            NIK: {row.id}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-black text-[#181411] mt-1.5 flex items-center gap-2">
+                          <span>{row.nama}</span>
+                        </h4>
+                        <div className="flex items-center gap-1.5 text-[11px] text-[#645D55] mt-0.5">
+                          <span className="font-semibold text-[#96171B]">Pelatihan TC:</span>
+                          <span>{row.lokasiTC}</span>
+                        </div>
                       </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${
-                        preview.skorKomposit >= 85
-                          ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
-                          : preview.skorKomposit >= 75
-                          ? 'bg-blue-100 text-blue-800 border-blue-300'
-                          : 'bg-rose-100 text-rose-800 border-rose-300'
-                      }`}>
-                        {preview.status}
-                      </span>
-                    </div>
-                  );
-                })()}
 
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#E6E1DA]">
-                  <button
-                    type="button"
-                    onClick={() => setEditingPeserta7Kriteria(null)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-[#645D55] hover:text-[#181411]"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (!editingPeserta7Kriteria) return;
-                      const calc = hitungSkorKomposit7Kriteria(form7Kriteria);
-                      setPesertaMatrix(prev => prev.map(p => {
-                        if (p.nama === editingPeserta7Kriteria.nama) {
-                          return {
-                            ...p,
-                            nilaiBawaan: {
-                              ...form7Kriteria,
-                              skorAkhir: calc.skorKomposit,
-                              status: calc.status
-                            }
-                          };
-                        }
-                        return p;
-                      }));
-                      setEditingPeserta7Kriteria(null);
-                      showToast(`Nilai 7 Kriteria "${editingPeserta7Kriteria.nama}" diperbarui ke ${calc.skorKomposit} (${calc.status}).`);
-                    }}
-                    className="px-5 py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-2 cursor-pointer shadow-xs"
-                  >
-                    <Save size={14} />
-                    <span>Simpan Nilai Komposit</span>
-                  </button>
+                      {/* Status Badge */}
+                      <div className="shrink-0 text-right">
+                        <span
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black tracking-wide border shadow-2xs ${
+                            row.isOke
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : 'bg-rose-50 text-rose-800 border-rose-200'
+                          }`}
+                        >
+                          {row.isOke ? <CheckCircle2 size={14} className="text-emerald-600" /> : <AlertTriangle size={14} className="text-rose-600" />}
+                          <span>{row.isOke ? 'OKE / SIAP' : 'KURANG / SUPERVISI'}</span>
+                        </span>
+                        <div className="text-[10px] text-[#645D55] font-mono mt-1">
+                          Skor: <strong className="text-[#181411] text-xs font-black">{row.skorKomposit}</strong> / 100
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Breakdown Score Pills */}
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#E6E1DA]">
+                      <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">Teknis SOP (70%)</span>
+                        <div className="flex items-baseline justify-between mt-1">
+                          <span className="text-base font-black text-[#181411] font-mono">{row.avgTeknis}</span>
+                          <span className="text-[10px] text-[#645D55]">{row.totalUji} menu</span>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">5S Grooming (15%)</span>
+                        <div className="flex items-baseline justify-between mt-1">
+                          <span className="text-base font-black text-[#181411] font-mono">{row.avg5S}</span>
+                          <span className="text-[10px] text-emerald-700 font-semibold">Standar</span>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
+                        <span className="text-[10px] font-bold text-[#645D55] uppercase block">Kerjasama Tim (15%)</span>
+                        <div className="flex items-baseline justify-between mt-1">
+                          <span className="text-base font-black text-[#181411] font-mono">{row.avgTim}</span>
+                          <span className="text-[10px] text-blue-700 font-semibold">Solid</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recommendation / Observation Notes */}
+                    <div className="p-3 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] text-xs">
+                      <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider block mb-0.5">
+                        Analisis & Rekomendasi Supervisi:
+                      </span>
+                      <p className="text-[#181411] leading-relaxed text-[11px]">
+                        {row.rekomendasi}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Action Button: Jump to Practice Assessment */}
+                  <div className="pt-2 border-t border-[#E6E1DA] flex items-center justify-between">
+                    <span className="text-[10px] text-[#645D55] font-mono">
+                      SOS Compliance: <strong>{row.sosPct}%</strong>
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() => handleStartAssessmentForCandidate(row)}
+                      className="px-3.5 py-2 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs cursor-pointer"
+                    >
+                      <UtensilsCrossed size={13} />
+                      <span>Buka Form Penilaian Kru</span>
+                      <ChevronRight size={13} />
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          )}
-        </div>
-      )}
+
+            {filteredOutletRows.length === 0 && (
+              <div className="p-12 text-center rounded-2xl bg-white border border-[#E6E1DA] text-[#645D55]">
+                <Store size={36} className="mx-auto mb-2 opacity-40 text-[#96171B]" />
+                <p className="text-sm font-bold text-[#181411]">Tidak ada outlet atau kru yang cocok</p>
+                <p className="text-xs text-[#645D55] mt-1">Coba ubah filter status atau kata kunci pencarian</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
 
       {/* ===================================================================
-          MODAL: SEARCHABLE PRODUCT SELECTOR DRAWER / PALETTE
+          MODAL UNIFIKASI: PILIH & ATUR MENU SOP PRAKTIK
           =================================================================== */}
-      {isProductPickerOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-3xl w-full max-h-[88vh] flex flex-col text-[#181411] animate-in fade-in zoom-in-95 duration-150">
-            <div className="p-5 border-b border-[#E6E1DA] flex items-center justify-between shrink-0">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-red-50 text-[#96171B] flex items-center justify-center border border-red-100">
-                  <Search size={18} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-sm text-[#181411]">Pilih Produk SOP yang Diuji</h3>
-                  <p className="text-xs text-[#645D55]">Pencarian cepat produk Day 1 & Day 2 per station</p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsProductPickerOpen(false)}
-                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-              >
-                <X size={18} />
-              </button>
-            </div>
+      {isProductPickerOpen && activeSession && (() => {
+        const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+          ? activeSession.productQueue
+          : [activeSession.productNama];
 
-            <div className="p-4 border-b border-[#E6E1DA] bg-[#FAF8F5] flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <Search size={15} className="absolute left-3 top-3 text-gray-400" />
-                <input
-                  type="text"
-                  value={productSearchQuery}
-                  onChange={(e) => setProductSearchQuery(e.target.value)}
-                  placeholder="Ketik nama produk, stasiun, atau langkah SOP..."
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-[#E6E1DA] bg-white text-xs font-medium focus:outline-none focus:border-[#96171B]"
-                  autoFocus
-                />
-              </div>
-
-              <div className="flex items-center gap-2">
-                <select
-                  value={pickerDayFilter}
-                  onChange={(e) => setPickerDayFilter(e.target.value as any)}
-                  className="p-2 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold"
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+            <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-2xl w-full max-h-[88vh] flex flex-col text-[#181411] animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+              {/* Modal Header */}
+              <div className="px-5 py-3.5 border-b border-[#E6E1DA] flex items-center justify-between shrink-0 bg-white">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-lg bg-rose-50 text-[#96171B] flex items-center justify-center border border-rose-100">
+                    <UtensilsCrossed size={16} />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-sm text-[#181411]">Pilih & Atur Menu SOP Praktik</h3>
+                    <p className="text-[11px] text-[#645D55]">
+                      Peserta: <strong className="text-[#181411]">{activeSession.namaKru}</strong> • Penempatan: <strong className="text-[#181411]">{resolveRealOutletName(activeSession.outletCode)}</strong>
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsProductPickerOpen(false)}
+                  className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
                 >
-                  <option value="ALL">Semua Hari</option>
-                  <option value="Day 1">Day 1</option>
-                  <option value="Day 2">Day 2</option>
-                </select>
-
-                <select
-                  value={pickerStationFilter}
-                  onChange={(e) => setPickerStationFilter(e.target.value)}
-                  className="p-2 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold"
-                >
-                  <option value="ALL">Semua Station</option>
-                  <option value="Station 1">Station 1</option>
-                  <option value="Station 2">Station 2</option>
-                  <option value="Station 3">Station 3</option>
-                  <option value="All Crew">All Crew</option>
-                </select>
+                  <X size={18} />
+                </button>
               </div>
-            </div>
 
-            <div className="p-4 overflow-y-auto max-h-[55vh] space-y-2">
-              {filteredModalProducts.length === 0 ? (
-                <div className="text-center py-12 text-[#645D55]">
-                  <UtensilsCrossed size={32} className="mx-auto mb-2 opacity-40 text-[#96171B]" />
-                  <p className="text-xs font-bold">Produk tidak ditemukan</p>
-                  <p className="text-[11px] mt-0.5">Coba ubah kata kunci pencarian atau filter hari</p>
+              {/* SECTION 1: ANTREAN MENU AKTIF (URUTAN LIST) */}
+              <div className="p-3.5 border-b border-[#E6E1DA] bg-[#FAF8F5] shrink-0 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers size={13} className="text-[#96171B]" />
+                    <span>Daftar Menu yang Sedang Diujikan ({queue.length} Menu):</span>
+                  </span>
+                  <span className="text-[10px] text-[#645D55]">Klik menu untuk beralih aktif</span>
                 </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {filteredModalProducts.map(prod => {
-                    const isSelected = activeSession?.productNama === prod.nama;
+
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                  {queue.map((item, idx) => {
+                    const isCurrent = item === activeSession.productNama;
+                    const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === item);
+                    const isDone = !!completedRecord;
+
+                    return (
+                      <div
+                        key={`${item}-${idx}`}
+                        className={`shrink-0 pl-2 pr-1.5 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1.5 ${
+                          isCurrent
+                            ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
+                            : isDone
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                            : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                        }`}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => switchSessionProduct(item, idx)}
+                          className="flex items-center gap-1.5 cursor-pointer text-left"
+                        >
+                          <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
+                            isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-neutral-200 text-neutral-700'
+                          }`}>
+                            {isDone ? '✓' : idx + 1}
+                          </span>
+                          <span className="truncate max-w-[160px] font-bold">{item}</span>
+                          {isCurrent && (
+                            <span className="text-[9px] bg-white/20 px-1 py-0.2 rounded font-normal">Aktif</span>
+                          )}
+                        </button>
+
+                        {queue.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
+                              const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
+                              const targetProd = allAvailableProducts.find(p => p.nama === updatedQueue[newCurrentIdx]) || allAvailableProducts[0];
+                              updateActiveSession({
+                                productQueue: updatedQueue,
+                                currentProductIndex: newCurrentIdx,
+                                productNama: targetProd.nama,
+                              });
+                            }}
+                            className={`p-0.5 rounded transition-colors ${
+                              isCurrent ? 'hover:bg-white/20 text-white/80' : 'hover:bg-rose-50 text-neutral-400 hover:text-rose-600'
+                            }`}
+                            title="Hapus menu dari antrean"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* SECTION 2: SEARCH & FILTER SOP BANK */}
+              <div className="p-3 border-b border-[#E6E1DA] bg-white space-y-2 shrink-0">
+                <div className="relative">
+                  <Search size={14} className="absolute left-3 top-2.5 text-neutral-400" />
+                  <input
+                    type="text"
+                    value={productSearchQuery}
+                    onChange={(e) => setProductSearchQuery(e.target.value)}
+                    placeholder="Ketik nama SOP produk (misal: Nasi, Crispy, Sambal, Esteh)..."
+                    className="w-full pl-8 pr-8 py-2 bg-[#FAF8F5] rounded-lg border border-[#E6E1DA] text-xs font-medium focus:outline-none focus:border-[#96171B] focus:bg-white transition-all"
+                    autoFocus
+                  />
+                  {productSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setProductSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-neutral-400 hover:text-neutral-700 text-xs cursor-pointer"
+                    >
+                      <X size={13} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Station Filter Pills */}
+                <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar text-xs">
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setPickerStationFilter('ALL')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        pickerStationFilter === 'ALL'
+                          ? 'bg-[#181411] text-white shadow-2xs'
+                          : 'bg-[#FAF8F5] text-[#645D55] hover:bg-neutral-200'
+                      }`}
+                    >
+                      Semua
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPickerStationFilter('Station 1')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        pickerStationFilter === 'Station 1'
+                          ? 'bg-[#96171B] text-white shadow-2xs'
+                          : 'bg-[#FAF8F5] text-[#645D55] hover:bg-neutral-200'
+                      }`}
+                    >
+                      Stasiun 1 (Nasi & Minum)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPickerStationFilter('Station 2')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        pickerStationFilter === 'Station 2'
+                          ? 'bg-[#96171B] text-white shadow-2xs'
+                          : 'bg-[#FAF8F5] text-[#645D55] hover:bg-neutral-200'
+                      }`}
+                    >
+                      Stasiun 2 (Fryer & Ayam)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPickerStationFilter('Station 3')}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                        pickerStationFilter === 'Station 3'
+                          ? 'bg-[#96171B] text-white shadow-2xs'
+                          : 'bg-[#FAF8F5] text-[#645D55] hover:bg-neutral-200'
+                      }`}
+                    >
+                      Stasiun 3 (Sambal & Pack)
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <select
+                      value={pickerDayFilter}
+                      onChange={(e) => setPickerDayFilter(e.target.value as any)}
+                      className="px-2 py-1 bg-[#FAF8F5] border border-[#E6E1DA] rounded-lg text-[11px] font-semibold text-[#181411] focus:outline-none"
+                    >
+                      <option value="ALL">Semua Hari</option>
+                      <option value="Day 1">Day 1</option>
+                      <option value="Day 2">Day 2</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Compact Scannable List */}
+              <div className="overflow-y-auto max-h-[50vh] divide-y divide-[#E6E1DA]">
+                {filteredModalProducts.length === 0 ? (
+                  <div className="text-center py-10 text-[#645D55]">
+                    <UtensilsCrossed size={28} className="mx-auto mb-2 opacity-30 text-[#96171B]" />
+                    <p className="text-xs font-bold">Produk SOP tidak ditemukan</p>
+                    <p className="text-[11px] mt-0.5">Silakan ganti kata kunci atau filter stasiun</p>
+                  </div>
+                ) : (
+                  filteredModalProducts.map(prod => {
+                    const isSelected = activeSession.productNama === prod.nama;
+                    const isInQueue = queue.includes(prod.nama);
+
                     return (
                       <div
                         key={prod.id}
-                        onClick={() => {
-                          switchSessionProduct(prod.nama);
-                          setIsProductPickerOpen(false);
-                        }}
-                        className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                          isSelected
-                            ? 'bg-red-50/60 border-[#96171B] shadow-2xs'
-                            : 'bg-white border-[#E6E1DA] hover:border-[#96171B]/50 hover:bg-slate-50'
+                        className={`px-4 py-2.5 transition-colors flex items-center justify-between gap-3 hover:bg-neutral-50 ${
+                          isSelected ? 'bg-rose-50/70 border-l-4 border-l-[#96171B]' : 'bg-white'
                         }`}
                       >
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <div className="font-bold text-xs text-[#181411] flex items-center gap-1.5">
-                              <span>{prod.nama}</span>
+                        <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0">
+                          <span className="px-2 py-1 rounded-md text-[10px] font-bold font-mono bg-stone-100 text-stone-800 border border-stone-200 shrink-0 mt-0.5">
+                            {prod.station.replace('Station ', 'ST-')}
+                          </span>
+
+                          <div className="flex-1 min-w-0">
+                            {/* Baris 1: NAMA PRODUK JELAS, TEBAL, TIDAK TERPOTONG */}
+                            <div className="font-extrabold text-sm sm:text-base text-[#181411] leading-snug break-words">
+                              {prod.nama}
+                            </div>
+
+                            {/* Baris 2: KODE PRODUK, STATUS BADGE, & INFORMASI SOP */}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              <span className="text-[10px] text-[#645D55] font-mono font-bold bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
+                                {prod.kode}
+                              </span>
                               {isSelected && (
-                                <span className="w-1.5 h-1.5 rounded-full bg-[#96171B]" />
+                                <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-[#96171B] text-white">
+                                  Sedang Aktif
+                                </span>
+                              )}
+                              {isInQueue && !isSelected && (
+                                <span className="px-1.5 py-0.5 rounded text-[9.5px] font-semibold bg-stone-200 text-stone-800">
+                                  Di Antrean
+                                </span>
+                              )}
+                              <span className="text-[10.5px] font-semibold text-amber-800">
+                                {prod.day}
+                              </span>
+                              <span className="text-[10.5px] text-stone-400">•</span>
+                              <span className="text-[10.5px] font-mono font-medium text-[#645D55]">
+                                Target: {(prod.stdDetik / 60).toFixed(1)} mnt ({prod.stdDetik}s)
+                              </span>
+                              {prod.requiresOilTemp && (
+                                <>
+                                  <span className="text-[10.5px] text-stone-400">•</span>
+                                  <span className="text-[10.5px] text-rose-700 font-semibold font-mono">
+                                    Fryer {prod.targetSuhuMinyak}°C
+                                  </span>
+                                </>
                               )}
                             </div>
-                            <span className="text-[10px] text-[#645D55] font-mono">{prod.kode}</span>
                           </div>
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#FAF8F5] border border-[#E6E1DA] text-[#645D55] shrink-0">
-                            {prod.day}
-                          </span>
                         </div>
 
-                        <p className="text-[11px] text-[#645D55] line-clamp-2 leading-relaxed">
-                          {prod.deskripsi}
-                        </p>
+                        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-1.5 shrink-0 pl-1">
+                          {!isInQueue && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newQueue = [...queue, prod.nama];
+                                updateActiveSession({ productQueue: newQueue });
+                                showToast(`"${prod.nama}" ditambahkan ke antrean.`);
+                              }}
+                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-[#FAF8F5] border border-[#E6E1DA] hover:border-neutral-400 text-[#181411] transition-all cursor-pointer whitespace-nowrap"
+                              title="Tambahkan ke daftar antrean"
+                            >
+                              + Antrean
+                            </button>
+                          )}
 
-                        <div className="flex items-center justify-between pt-1 border-t border-[#E6E1DA] text-[10px] text-[#645D55]">
-                          <span>{prod.stationLabel.split(':')[0]}</span>
-                          <span className="font-mono font-semibold">
-                            Target Akumulasi: {Math.round(prod.stdDetik / 60)} mnt ({prod.stdDetik}s)
-                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              switchSessionProduct(prod.nama);
+                              setIsProductPickerOpen(false);
+                            }}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                              isSelected
+                                ? 'bg-emerald-600 text-white shadow-2xs'
+                                : 'bg-[#96171B] hover:bg-[#7D1216] text-white shadow-2xs'
+                            }`}
+                          >
+                            {isSelected ? 'Sedang Diuji' : 'Jadikan Aktif'}
+                          </button>
                         </div>
                       </div>
                     );
-                  })}
-                </div>
-              )}
+                  })
+                )}
+              </div>
+
+              {/* Modal Footer Summary */}
+              <div className="px-4 py-2.5 border-t border-[#E6E1DA] bg-[#FAF8F5] flex items-center justify-between text-[11px] text-[#645D55] shrink-0">
+                <span>{queue.length} menu siap diujikan • Menampilkan {filteredModalProducts.length} produk SOP</span>
+                <button
+                  type="button"
+                  onClick={() => setIsProductPickerOpen(false)}
+                  className="px-3 py-1 rounded-lg bg-neutral-200 hover:bg-neutral-300 text-neutral-800 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Selesai
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ===================================================================
           MODAL: BUKA BANYAK KRU SEKALIGUS (SIMULTANEOUS BATCH OBSERVE)
@@ -5155,6 +5419,218 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 className="px-5 py-2 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
               >
                 Selesai Mengatur
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================
+          MODAL: TAUTAN & PENGATURAN GOOGLE SPREADSHEET (HARA TC)
+          =================================================================== */}
+      {isSheetLinkModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs">
+          <div className="bg-white rounded-2xl border border-[#E6E1DA] shadow-2xl max-w-xl w-full max-h-[90vh] flex flex-col text-[#181411] animate-in fade-in zoom-in-95 duration-150 overflow-hidden">
+            {/* Modal Header */}
+            <div className="px-5 py-4 border-b border-[#E6E1DA] flex items-center justify-between shrink-0 bg-emerald-50/50">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                  <FileSpreadsheet size={20} />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm sm:text-base text-[#181411]">
+                    Tautan & Pengaturan Google Spreadsheet
+                  </h3>
+                  <p className="text-[11px] text-[#645D55]">
+                    Pusat rekap data penilaian otomatis multi-perangkat HARA TC
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSheetLinkModalOpen(false)}
+                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-5 overflow-y-auto space-y-4 text-xs">
+              {/* Card Link Dokumen Spreadsheet */}
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <label className="font-bold text-[#181411] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <FileSpreadsheet size={14} className="text-emerald-700" />
+                    <span>1. Link Dokumen Google Spreadsheet Anda:</span>
+                  </label>
+                  <a
+                    href="https://sheets.new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-2.5 py-1 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-[10.5px] flex items-center gap-1 transition-colors shrink-0 w-fit"
+                  >
+                    <ExternalLink size={11} />
+                    <span>Buat Sheet Baru di Drive (sheets.new)</span>
+                  </a>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={sheetDocUrlInput}
+                    onChange={(e) => setSheetDocUrlInput(e.target.value)}
+                    placeholder="https://docs.google.com/spreadsheets/d/1.../edit"
+                    className="flex-1 p-2.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-mono focus:outline-none focus:border-[#96171B]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveGoogleSheetDocUrl(sheetDocUrlInput.trim());
+                      showToast('Tautan Google Spreadsheet berhasil disimpan!');
+                    }}
+                    className="px-4 py-2 bg-[#96171B] hover:bg-[#7D1216] text-white font-bold rounded-lg cursor-pointer"
+                  >
+                    Simpan
+                  </button>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-[11px] text-[#645D55]">
+                  <span>Tempel URL spreadsheet tempat data penilaian diarsipkan.</span>
+                  {sheetDocUrlInput && (
+                    <a
+                      href={sheetDocUrlInput}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-emerald-700 hover:text-emerald-900 font-extrabold flex items-center gap-1"
+                    >
+                      <ExternalLink size={12} />
+                      <span>Buka Dokumen Google Sheet Sekarang ↗</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Card Webhook Apps Script */}
+              <div className="p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA] space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-[#181411] uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                    <Zap size={14} className="text-amber-600" />
+                    <span>2. URL Webhook Google Apps Script (Otomatisasi Simpan):</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      if (!sheetWebhookUrlInput.trim()) {
+                        showToast('Harap masukkan URL Webhook terlebih dahulu.');
+                        return;
+                      }
+                      setSheetModalTesting(true);
+                      setSheetModalTestResult(null);
+                      try {
+                        const res = await testGoogleSheetWebhook(sheetWebhookUrlInput.trim());
+                        setSheetModalTestResult(res);
+                        showToast(res.message);
+                      } catch (err: any) {
+                        setSheetModalTestResult({ success: false, message: err.message || 'Koneksi gagal' });
+                      } finally {
+                        setSheetModalTesting(false);
+                      }
+                    }}
+                    disabled={sheetModalTesting}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-800 cursor-pointer disabled:opacity-50"
+                  >
+                    {sheetModalTesting ? 'Menguji...' : 'Uji Koneksi Webhook'}
+                  </button>
+                </div>
+
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={sheetWebhookUrlInput}
+                    onChange={(e) => setSheetWebhookUrlInput(e.target.value)}
+                    placeholder="https://script.google.com/macros/s/AKfycb.../exec"
+                    className="flex-1 p-2.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-mono focus:outline-none focus:border-[#96171B]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      saveGoogleSheetWebhookUrl(sheetWebhookUrlInput.trim());
+                      showToast('URL Webhook berhasil disimpan!');
+                    }}
+                    className="px-4 py-2 bg-[#96171B] hover:bg-[#7D1216] text-white font-bold rounded-lg cursor-pointer"
+                  >
+                    Simpan
+                  </button>
+                </div>
+
+                {sheetModalTestResult && (
+                  <div className={`p-2.5 rounded-lg text-xs font-medium border ${
+                    sheetModalTestResult.success ? 'bg-emerald-50 text-emerald-900 border-emerald-200' : 'bg-rose-50 text-rose-900 border-rose-200'
+                  }`}>
+                    {sheetModalTestResult.message}
+                  </div>
+                )}
+              </div>
+
+              {/* Panduan 4 Langkah Pasang Script */}
+              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950 space-y-1.5 leading-relaxed">
+                <span className="font-extrabold text-amber-900 block text-xs">Petunjuk Penggunaan:</span>
+                <p>1. Buka Google Sheet Anda (atau klik tombol hijau "Buat Sheet Baru" di atas).</p>
+                <p>2. Salin link URL browser dokumen Anda dan tempel di kotak nomor 1 di atas lalu klik <strong>Simpan</strong>.</p>
+                <p>3. Di menu Google Sheet, pilih menu <strong>Ekstensi</strong> &rarr; <strong>Apps Script</strong>. Hapus isinya lalu klik tombol di bawah untuk <strong>Salin Kode Apps Script</strong> dan tempel di sana.</p>
+                <p>4. Klik <strong>Deploy</strong> &rarr; <strong>New deployment</strong> &rarr; Pilih type <strong>Web app</strong>, atur akses ke <strong>Anyone</strong>, lalu salin Web app URL ke kotak nomor 2 di atas.</p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-[#E6E1DA]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(HARA_APPS_SCRIPT_TEMPLATE);
+                    setSheetModalCopiedScript(true);
+                    setTimeout(() => setSheetModalCopiedScript(false), 2500);
+                    showToast('Kode Google Apps Script berhasil disalin ke clipboard!');
+                  }}
+                  className="px-3.5 py-2 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-300 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                >
+                  {sheetModalCopiedScript ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
+                  <span>{sheetModalCopiedScript ? 'Script Berhasil Disalin!' : 'Salin Kode Google Apps Script'}</span>
+                </button>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => exportPenilaianToCSV(filteredHistoryList)}
+                    className="px-3.5 py-2 rounded-lg bg-white hover:bg-stone-50 border border-[#E6E1DA] text-xs font-bold text-[#181411] flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <Download size={13} className="text-[#96171B]" />
+                    <span>Unduh CSV / Excel Langsung</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSyncAllToGoogleSheets}
+                    disabled={isSyncingAllSheets}
+                    className="px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <RefreshCw size={13} className={isSyncingAllSheets ? 'animate-spin' : ''} />
+                    <span>Kirim Semua Riwayat ({filteredHistoryList.length})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-5 py-3 border-t border-[#E6E1DA] bg-stone-50 flex items-center justify-between shrink-0">
+              <span className="text-[11px] text-[#645D55]">
+                {sheetDocUrlInput ? '✅ Tautan Google Sheet aktif' : '⚠️ Belum ada tautan dokumen'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsSheetLinkModalOpen(false)}
+                className="px-5 py-2 rounded-xl bg-white border border-[#E6E1DA] hover:bg-stone-100 text-xs font-bold text-[#181411] cursor-pointer"
+              >
+                Tutup
               </button>
             </div>
           </div>

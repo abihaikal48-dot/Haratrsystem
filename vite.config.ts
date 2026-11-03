@@ -105,15 +105,28 @@ function geminiApiDevPlugin(): Plugin {
           return next();
         }
 
+        // Enable CORS for multi-device (mobile/desktop) testing
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+        if (req.method === 'OPTIONS') {
+          res.statusCode = 204;
+          res.end();
+          return;
+        }
+
+        const urlPath = (req.url || '').split('?')[0].replace(/\/+$/, '');
+
         // Handle DB and Sync Endpoints
-        if (req.url === '/api/db/status' && req.method === 'GET') {
+        if (urlPath === '/api/db/status' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           res.statusCode = 200;
           res.end(JSON.stringify({ ok: true, online: true, supabaseConfigured: true, timestamp: new Date().toISOString() }));
           return;
         }
 
-        if (req.url === '/api/db/init' && req.method === 'GET') {
+        if (urlPath === '/api/db/init' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           const store = readDevStore();
           const supabaseConfig = (store as any)._supabase_config || {
@@ -164,7 +177,7 @@ function geminiApiDevPlugin(): Plugin {
 
           res.setHeader('Content-Type', 'application/json');
 
-          if (req.url === '/api/db/config' && req.method === 'POST') {
+          if (urlPath === '/api/db/config' && req.method === 'POST') {
             const { url, anonKey } = body;
             const currentStore = readDevStore();
             (currentStore as any)._supabase_config = { url, anonKey };
@@ -174,7 +187,7 @@ function geminiApiDevPlugin(): Plugin {
             return;
           }
 
-          if (req.url === '/api/db/sync' && req.method === 'POST') {
+          if (urlPath === '/api/db/sync' && req.method === 'POST') {
             const { table, records, record, action } = body;
             const currentStore = readDevStore();
             if (!currentStore[table]) currentStore[table] = [];
@@ -196,7 +209,7 @@ function geminiApiDevPlugin(): Plugin {
             return;
           }
 
-          if (req.url === '/api/sync/spreadsheet' && req.method === 'POST') {
+          if (urlPath === '/api/sync/spreadsheet' && req.method === 'POST') {
             const { payload, webhookUrl } = body;
             const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl;
             if (targetUrl) {
@@ -220,7 +233,7 @@ function geminiApiDevPlugin(): Plugin {
             return;
           }
 
-          if (req.url === '/api/gemini/advisor' && req.method === 'POST') {
+          if (urlPath === '/api/gemini/advisor' && req.method === 'POST') {
             try {
               const { prompt, contextData } = body;
               const systemInstruction = `Anda adalah "Hara Trainer AI Advisor" - Konsultan Ahli Trainer Operasional & Pelatihan Lapangan Restoran Cepat Saji (F&B) untuk Hara Chicken (Spesialis Ayam Goreng Krispi & Geprek Multi-Outlet).
