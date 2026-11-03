@@ -195,6 +195,27 @@ export const DAFTAR_PESERTA_ONBOARDING_TC: TrainingParticipantItem[] = [
 ];
 
 /**
+ * 14 PESERTA ONBOARDING BATCH 3-4 NOVEMBER 2026
+ * Sesuai Rundown Training HARA TC Kantor Lempongsari
+ */
+export const DAFTAR_PESERTA_BATCH_03_NOV_2026: TrainingParticipantItem[] = [
+  { no: 1, nama: 'Achmad Luthfi Khakim', outlet: 'Kertek', stasiun: 'Station 1', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 2, nama: 'Maulida Mega', outlet: 'Borobudur', stasiun: 'Station 2', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 3, nama: 'Lulu Hidayati', outlet: 'RSI', stasiun: 'Station 3', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 4, nama: 'Muhammad Kelvin Febrianto', outlet: 'RSI', stasiun: 'Station 1', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 5, nama: 'Anisyatul Azizah', outlet: 'Magelang Tidar', stasiun: 'Station 2', keterangan: 'New', divisi: 'Kasir', default_status: 'Onboarding' },
+  { no: 6, nama: 'Elva Rahmawati', outlet: 'Jakal 13', stasiun: 'Station 3', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 7, nama: 'Difa Safitri', outlet: 'Mobile Outlet', stasiun: 'Station 1', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 8, nama: 'Hilda Nur Mafitiyas', outlet: 'Jl Wonosari', stasiun: 'Station 2', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 9, nama: 'Arifatul Kurniasih New', outlet: 'Jl Parangtritis', stasiun: 'Station 3', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 10, nama: 'Reval Arfinza Putra New', outlet: 'Jl Parangtritis', stasiun: 'Station 1', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 11, nama: 'Iqfantri Mae Dinar', outlet: 'Event : Jl Parangtritis', stasiun: 'Station 2', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 12, nama: 'Farelyno Mahesa Nugroho New', outlet: 'Mobile Outlet', stasiun: 'Station 3', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 13, nama: 'Imron Irsyadi New', outlet: 'Ronggolawe', stasiun: 'Station 1', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+  { no: 14, nama: 'Teadora Mayca Syilvina Sebastian New', outlet: 'Mobile Outlet', stasiun: 'Station 2', keterangan: 'New', divisi: 'Kitchen', default_status: 'Onboarding' },
+];
+
+/**
  * DAFTAR TUGAS STATION & TIMER RESMI DARI AGENDA TRAINING CENTER
  * STRICT SESUAI DOKUMEN SOP RESMI HARA CHICKEN INDONESIA
  * Tidak ada produk digabung (Scramble mandiri, Indomie mandiri, Nashville mandiri).

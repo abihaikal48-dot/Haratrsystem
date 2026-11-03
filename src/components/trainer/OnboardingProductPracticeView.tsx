@@ -179,7 +179,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [kruList, setKruList] = useState<Kru[]>([]);
   const [outlets, setOutlets] = useState<Outlet[]>([]);
   const [batches, setBatches] = useState<OnboardingBatch[]>([]);
-  const [selectedBatchId, setSelectedBatchId] = useState<string>('ALL');
+  const [selectedBatchId, setSelectedBatchId] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('hara_onboarding_selected_batch_id');
+      if (saved) return saved;
+    } catch {}
+    return 'batch-ob-2026-11-03';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('hara_onboarding_selected_batch_id', selectedBatchId);
+    } catch {}
+  }, [selectedBatchId]);
 
   // Integrasi Batch Kru Dinamis: Mengambil peserta langsung dari Batch yang dipilih atau seluruh batch
   const candidateKrus = useMemo(() => {
@@ -1721,7 +1733,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
               activeSubTab === 'analitik_outlet' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#96171B] font-bold'
             }`}>
-              12 Outlet
+              {candidateKrus.length > 0 ? candidateKrus.length : 14} Outlet
             </span>
           </button>
         </div>
@@ -4011,23 +4023,38 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           TC: Kantor Lempongsari • Evaluasi 12 Kru ke 12 Outlet Penempatan
           =================================================================== */}
       {activeSubTab === 'analitik_outlet' && (() => {
-        const CANDIDATE_OUTLET_DATA = [
-          { id: 'kru-ob-3001', nama: 'Haudy Rizky', outlet: 'Gito Gati', defaultTeknis: 86, default5S: 88, defaultTim: 86 },
-          { id: 'kru-ob-3002', nama: 'Vino Adrian Saputra', outlet: 'Glagahsari', defaultTeknis: 78, default5S: 82, defaultTim: 80 },
-          { id: 'kru-ob-3003', nama: 'Salwa Salsabila', outlet: 'Borobudur', defaultTeknis: 90, default5S: 92, defaultTim: 90 },
-          { id: 'kru-ob-3004', nama: 'Evanda Nur Meilita', outlet: 'Pandega', defaultTeknis: 88, default5S: 88, defaultTim: 86 },
-          { id: 'kru-ob-3005', nama: 'Mahfud Attoriq', outlet: 'Pandowoharjo', defaultTeknis: 71, default5S: 74, defaultTim: 72 },
-          { id: 'kru-ob-3006', nama: 'Davi Dwi Eriyanto', outlet: 'Jambon', defaultTeknis: 83, default5S: 86, defaultTim: 84 },
-          { id: 'kru-ob-3007', nama: 'Dimas Mahardika', outlet: 'Purworejo', defaultTeknis: 77, default5S: 80, defaultTim: 78 },
-          { id: 'kru-ob-3008', nama: 'Muhammad Nadziiful Affan', outlet: 'Sorogenen', defaultTeknis: 89, default5S: 90, defaultTim: 90 },
-          { id: 'kru-ob-3009', nama: 'Kevin Irawan', outlet: 'Monjali', defaultTeknis: 82, default5S: 84, defaultTim: 84 },
-          { id: 'kru-ob-3010', nama: 'Dhiya Aida Yumna', outlet: 'Support Mobile Outlet', defaultTeknis: 92, default5S: 92, defaultTim: 94 },
-          { id: 'kru-ob-3011', nama: 'Edvin Perdana Yulianto', outlet: 'Area Godean', defaultTeknis: 72, default5S: 75, defaultTim: 74 },
-          { id: 'kru-ob-3012', nama: 'Sigit Nur Prasetyo', outlet: 'Kamdanen', defaultTeknis: 85, default5S: 88, defaultTim: 86 },
-        ];
+        // Ambil kandidat secara dinamis berdasarkan batch yang aktif (atau candidateKrus)
+        const candidatesToAnalyze = candidateKrus.length > 0
+          ? candidateKrus.map(c => {
+              const realOutlet = resolveRealOutletName((c as any).outlet_penempatan || c.kode_outlet || 'Kantor Lempongsari');
+              return {
+                id: c.id,
+                nama: c.nama_kru,
+                outlet: realOutlet === 'Kantor Lempongsari' && (c as any).outlet_penempatan ? resolveRealOutletName((c as any).outlet_penempatan) : realOutlet,
+                defaultTeknis: 85,
+                default5S: 88,
+                defaultTim: 86
+              };
+            })
+          : [
+              { id: 'kru-ob-1101', nama: 'Achmad Luthfi Khakim', outlet: 'Kertek', defaultTeknis: 86, default5S: 88, defaultTim: 86 },
+              { id: 'kru-ob-1102', nama: 'Maulida Mega', outlet: 'Borobudur', defaultTeknis: 88, default5S: 90, defaultTim: 88 },
+              { id: 'kru-ob-1103', nama: 'Lulu Hidayati', outlet: 'RSI', defaultTeknis: 85, default5S: 88, defaultTim: 86 },
+              { id: 'kru-ob-1104', nama: 'Muhammad Kelvin Febrianto', outlet: 'RSI', defaultTeknis: 85, default5S: 88, defaultTim: 86 },
+              { id: 'kru-ob-1105', nama: 'Anisyatul Azizah', outlet: 'Magelang Tidar', defaultTeknis: 87, default5S: 90, defaultTim: 88 },
+              { id: 'kru-ob-1106', nama: 'Elva Rahmawati', outlet: 'Jakal 13', defaultTeknis: 84, default5S: 86, defaultTim: 85 },
+              { id: 'kru-ob-1107', nama: 'Difa Safitri', outlet: 'Mobile Outlet', defaultTeknis: 88, default5S: 90, defaultTim: 90 },
+              { id: 'kru-ob-1108', nama: 'Hilda Nur Mafitiyas', outlet: 'Jl Wonosari', defaultTeknis: 86, default5S: 88, defaultTim: 86 },
+              { id: 'kru-ob-1109', nama: 'Arifatul Kurniasih New', outlet: 'Jl Parangtritis', defaultTeknis: 85, default5S: 87, defaultTim: 86 },
+              { id: 'kru-ob-1110', nama: 'Reval Arfinza Putra New', outlet: 'Jl Parangtritis', defaultTeknis: 86, default5S: 88, defaultTim: 87 },
+              { id: 'kru-ob-1111', nama: 'Iqfantri Mae Dinar', outlet: 'Event : Jl Parangtritis', defaultTeknis: 88, default5S: 89, defaultTim: 88 },
+              { id: 'kru-ob-1112', nama: 'Farelyno Mahesa Nugroho New', outlet: 'Mobile Outlet', defaultTeknis: 85, default5S: 88, defaultTim: 86 },
+              { id: 'kru-ob-1113', nama: 'Imron Irsyadi New', outlet: 'Ronggolawe', defaultTeknis: 87, default5S: 89, defaultTim: 88 },
+              { id: 'kru-ob-1114', nama: 'Teadora Mayca Syilvina Sebastian New', outlet: 'Mobile Outlet', defaultTeknis: 86, default5S: 88, defaultTim: 86 },
+            ];
 
         // Hitung metrik riil dari historyList untuk setiap kandidat
-        const outletRows = CANDIDATE_OUTLET_DATA.map(c => {
+        const outletRows = candidatesToAnalyze.map(c => {
           const cNameLower = c.nama.toLowerCase();
           const matched = historyList.filter(h => {
             const hName = (h.nama_kru || '').toLowerCase();
@@ -4139,7 +4166,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           showToast('File analitik outlet penempatan berhasil diekspor!');
         };
 
-        const handleStartAssessmentForCandidate = (cand: typeof CANDIDATE_OUTLET_DATA[0]) => {
+        const handleStartAssessmentForCandidate = (cand: typeof candidatesToAnalyze[0]) => {
           const existingSession = sessions.find(s => s.kruId === cand.id || s.namaKru.toLowerCase().includes(cand.nama.toLowerCase()));
           if (existingSession) {
             setActiveTabId(existingSession.id);
@@ -4178,7 +4205,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     Analitik Kinerja Onboarding per Outlet Penempatan
                   </h3>
                   <p className="text-xs text-[#645D55] mt-1 leading-relaxed max-w-3xl">
-                    Pemetaan kesiapan 12 kru baru yang sedang menjalani pelatihan di <strong>Kantor Lempongsari</strong> untuk penempatan riil ke 12 outlet HARA Chicken. Sistem mendeteksi otomatis outlet mana yang kru-nya sudah <strong>Oke (Siap Operasional)</strong> dan mana yang masih <strong>Kurang (Butuh Supervisi)</strong>.
+                    Pemetaan kesiapan <strong>{totalOutlet} kru onboarding</strong> yang sedang menjalani pelatihan di <strong>Kantor Lempongsari</strong> untuk penempatan riil ke outlet HARA Chicken ({selectedBatchId === 'ALL' ? 'Semua Batch' : (batches.find(b => b.id === selectedBatchId)?.nama_batch || 'Batch 3-4 November 2026')}). Sistem mendeteksi otomatis outlet mana yang kru-nya sudah <strong>Oke (Siap Operasional)</strong> dan mana yang masih <strong>Kurang (Butuh Supervisi)</strong>.
                   </p>
                 </div>
 

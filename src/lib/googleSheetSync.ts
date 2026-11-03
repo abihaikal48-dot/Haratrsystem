@@ -49,10 +49,30 @@ export const OUTLET_REAL_NAME_MAP: Record<string, string> = {
   'pwj': 'Purworejo',
   'srg': 'Sorogenen',
   'mjl': 'Monjali',
-  'smo': 'Support Mobile Outlet',
+  'smo': 'Mobile Outlet',
+  'mobile': 'Mobile Outlet',
+  'mobile outlet': 'Mobile Outlet',
   'gdn': 'Area Godean',
   'kmd': 'Kamdanen',
   'lmp': 'Kantor Lempongsari',
+  'krt': 'Kertek',
+  'kertek': 'Kertek',
+  'rsi': 'RSI',
+  'mgl': 'Magelang Tidar',
+  'tidar': 'Magelang Tidar',
+  'magelang tidar': 'Magelang Tidar',
+  'jkl13': 'Jakal 13',
+  'jakal 13': 'Jakal 13',
+  'wns': 'Jl Wonosari',
+  'wonosari': 'Jl Wonosari',
+  'jl wonosari': 'Jl Wonosari',
+  'prg': 'Jl Parangtritis',
+  'parangtritis': 'Jl Parangtritis',
+  'jl parangtritis': 'Jl Parangtritis',
+  'event : jl parangtritis': 'Event : Jl Parangtritis',
+  'event jl parangtritis': 'Event : Jl Parangtritis',
+  'rgl': 'Ronggolawe',
+  'ronggolawe': 'Ronggolawe',
   'out-001': 'Gito Gati',
   'out-002': 'Glagahsari',
   'out-003': 'Borobudur',
@@ -62,22 +82,23 @@ export const OUTLET_REAL_NAME_MAP: Record<string, string> = {
   'out-007': 'Purworejo',
   'out-008': 'Sorogenen',
   'out-009': 'Monjali',
-  'out-010': 'Support Mobile Outlet',
+  'out-010': 'Mobile Outlet',
   'out-011': 'Area Godean',
   'out-012': 'Kamdanen',
   'out-tc': 'Kantor Lempongsari',
 };
 
 export function resolveRealOutletName(raw?: string): string {
-  if (!raw) return 'Gito Gati';
+  if (!raw) return 'Kantor Lempongsari';
   const clean = raw.trim().toLowerCase();
   if (OUTLET_REAL_NAME_MAP[clean]) {
     return OUTLET_REAL_NAME_MAP[clean];
   }
   const knownRealNames = [
-    'Gito Gati', 'Glagahsari', 'Borobudur', 'Pandega', 'Pandowoharjo',
-    'Jambon', 'Purworejo', 'Sorogenen', 'Monjali', 'Support Mobile Outlet',
-    'Area Godean', 'Kamdanen', 'Kantor Lempongsari'
+    'Kertek', 'Borobudur', 'RSI', 'Magelang Tidar', 'Jakal 13',
+    'Mobile Outlet', 'Jl Wonosari', 'Jl Parangtritis', 'Event : Jl Parangtritis',
+    'Ronggolawe', 'Gito Gati', 'Glagahsari', 'Pandega', 'Pandowoharjo',
+    'Jambon', 'Purworejo', 'Sorogenen', 'Monjali', 'Area Godean', 'Kamdanen', 'Kantor Lempongsari'
   ];
   for (const n of knownRealNames) {
     if (clean.includes(n.toLowerCase())) return n;
