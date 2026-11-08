@@ -257,7 +257,7 @@ export function sanitizeRecordForTable(table: string, record: any): any {
     };
   }
 
-  // 2. Kru & Peserta
+  // 2. Kru & Peserta (Tanpa shift karena tidak ada di schema database Supabase)
   if (table === 'kru') {
     return {
       id: cleanId,
@@ -266,7 +266,6 @@ export function sanitizeRecordForTable(table: string, record: any): any {
       divisi: record.divisi || 'Kitchen',
       jabatan: record.jabatan || 'Crew Store',
       status_karyawan: record.status_karyawan || 'Karyawan Baru',
-      shift: record.shift || 'Shift 1',
       status_aktif: record.status_aktif || 'Aktif',
       created_at: record.created_at || new Date().toISOString(),
     };
@@ -454,7 +453,114 @@ export function sanitizeRecordForTable(table: string, record: any): any {
     };
   }
 
-  return { id: cleanId, ...record };
+  // 11. TNA (Training Needs Analysis) - Tanpa updated_at
+  if (table === 'tna') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      divisi: record.divisi || 'Kitchen',
+      sumber_temuan: record.sumber_temuan || '',
+      deskripsi_gap: record.deskripsi_gap || '',
+      jenis_gap: record.jenis_gap || 'Keterampilan',
+      prioritas: record.prioritas || 'Sedang',
+      rencana_tindak_lanjut: record.rencana_tindak_lanjut || '',
+      status: record.status || 'Belum',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 12. Rencana Training - Tanpa updated_at
+  if (table === 'rencana_training') {
+    return {
+      id: cleanId,
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      topik: record.topik || '',
+      tujuan_pembelajaran: record.tujuan_pembelajaran || '',
+      peserta: record.peserta || '',
+      metode: record.metode || '',
+      durasi: record.durasi || '',
+      alat_bantu: record.alat_bantu || '',
+      fasilitator: record.fasilitator || '',
+      tanggal_pelaksanaan: record.tanggal_pelaksanaan || new Date().toISOString().split('T')[0],
+      status: record.status || 'Direncanakan',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 13. Observasi Lapangan
+  if (table === 'observasi_lapangan') {
+    return {
+      id: cleanId,
+      tanggal_shift: record.tanggal_shift || record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      nama_kru: record.nama_kru || 'Kru HARA',
+      divisi: record.divisi || 'Kitchen',
+      standar_sop_diamati: record.standar_sop_diamati || '',
+      hasil: record.hasil || 'Sesuai Standar',
+      catatan_detail: record.catatan_detail || '',
+      rencana_follow_up: record.rencana_follow_up || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 14. Coaching Log
+  if (table === 'coaching_log') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      nama_kru: record.nama_kru || 'Kru HARA',
+      goal: record.goal || '',
+      reality: record.reality || '',
+      options: record.options || '',
+      will: record.will || '',
+      hasil_follow_up: record.hasil_follow_up || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 15. Gap Analysis
+  if (table === 'gap_analysis') {
+    return {
+      id: cleanId,
+      nama_kru: record.nama_kru || 'Kru HARA',
+      divisi: record.divisi || 'Kitchen',
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      kompetensi_dinilai: record.kompetensi_dinilai || '',
+      skor_standar: Number(record.skor_standar || 85),
+      skor_aktual: Number(record.skor_aktual || 0),
+      gap_score: Number(record.gap_score || 0),
+      rekomendasi: record.rekomendasi || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 16. Kartu Keluhan
+  if (table === 'kartu_keluhan') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      pelapor: record.pelapor || '',
+      keluhan: record.keluhan || '',
+      divisi_terkait: record.divisi_terkait || 'Kitchen',
+      akar_masalah: record.akar_masalah || '',
+      tindakan_perbaikan: record.tindakan_perbaikan || '',
+      status: record.status || 'Dalam kajian',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // Generic fallback: sanitasi kolom asing (seperti updated_at, shift) yang tidak ada di schema tabel
+  const safeFallback: any = { id: cleanId };
+  for (const [key, val] of Object.entries(record)) {
+    if (key === 'updated_at' || key === 'shift' || key === 'raw_data' || key.startsWith('_') || typeof val === 'function') {
+      continue;
+    }
+    safeFallback[key] = val;
+  }
+  return safeFallback;
 }
 
 /**
@@ -515,7 +621,11 @@ export async function syncRowToSupabase(tableName: string, row: any): Promise<vo
       const sanitized = sanitizeRecordForTable(targetTable, row);
       const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
       if (error) {
-        console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+        if (error.code === 'PGRST204') {
+          console.warn(`[Supabase Schema Notice] Tabel ${targetTable}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
+        } else {
+          console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+        }
       }
     }
   } catch (err) {
@@ -979,11 +1089,15 @@ export async function syncRecordToSupabase(table: string, record: any): Promise<
     const sanitized = sanitizeRecordForTable(targetTable, record);
     const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
     if (error) {
-      console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+      if (error.code === 'PGRST204') {
+        console.warn(`[Supabase Schema Notice] Tabel ${targetTable}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
+      } else {
+        console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+      }
     }
     return true;
   } catch (e) {
-    console.error(`[Supabase Auto-Sync] Gagal menyimpan ke ${table}:`, e);
+    console.warn(`[Supabase Auto-Sync] Warning menyimpan ke ${table}:`, e);
     return false;
   }
 }
@@ -1044,7 +1158,11 @@ export async function pushAllLocalDataToSupabase(): Promise<{
         const chunk = sanitizedRows.slice(i, i + chunkSize);
         const { error } = await supabase.from(table).upsert(chunk, { onConflict: 'id' });
         if (error) {
-          console.error(`[Supabase Push Error] Gagal push batch ${table}:`, error);
+          if (error.code === 'PGRST204') {
+            console.warn(`[Supabase Schema Notice] Tabel ${table}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
+          } else {
+            console.error(`[Supabase Push Error] Gagal push batch ${table}:`, error);
+          }
         }
       }
 
@@ -1128,7 +1246,6 @@ CREATE TABLE IF NOT EXISTS public.kru (
   divisi TEXT NOT NULL,
   jabatan TEXT,
   status_karyawan TEXT,
-  shift TEXT,
   status_aktif TEXT DEFAULT 'Aktif',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
