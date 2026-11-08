@@ -136,6 +136,7 @@ export async function initClientDataFromServer(): Promise<boolean> {
 
       // 2. Daftar tabel yang harus disinkronkan secara otomatis antar-HP
       const tablesToSync = [
+        'app_users',
         'penilaian_praktik_onboarding_produk',
         'onboarding_batches',
         'kru',
@@ -160,6 +161,13 @@ export async function initClientDataFromServer(): Promise<boolean> {
       for (const tableKey of tablesToSync) {
         const remoteTable = data[tableKey];
         if (Array.isArray(remoteTable)) {
+          if (tableKey === 'app_users' && remoteTable.length > 0) {
+            db.setDirectLocalOnly('app_users', remoteTable);
+            db.notify('app_users');
+            anyTableChanged = true;
+            continue;
+          }
+
           const localTable = db.getTable<any>(tableKey);
           const { merged, changed } = mergeRecords(localTable, remoteTable);
           if (changed) {
@@ -283,6 +291,8 @@ export function startAutoSyncPolling(intervalMs: number = 2500): () => void {
     document.removeEventListener('visibilitychange', onVisibilityChange);
   };
 }
+
+export const startServerPollingSync = startAutoSyncPolling;
 
 /**
  * Kirim rekaman penilaian ke Google Spreadsheet via Backend Proxy

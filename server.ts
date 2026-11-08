@@ -90,14 +90,194 @@ const MASTER_STAFF_REGISTRY = [
   },
 ];
 
-// Seed Supabase master data on server startup if missing
+// Helper sanitize record server side to match Supabase table columns and prevent PGRST204 errors
+function sanitizeRecordServerSide(table: string, record: any): any {
+  if (!record || typeof record !== 'object') return {};
+  const cleanId = String(record.id || ('rec-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7)));
+
+  if (table === 'outlets') {
+    return {
+      id: cleanId,
+      nama_outlet: record.nama_outlet || record.nama || 'Outlet HARA',
+      kode_outlet: record.kode_outlet || record.kode || cleanId,
+      alamat: record.alamat || '',
+      kepala_outlet: record.kepala_outlet || record.manager || '',
+      area_supervisor: record.area_supervisor || record.supervisor || '',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'kru') {
+    return {
+      id: cleanId,
+      nama_kru: record.nama_kru || record.nama || 'Kru HARA',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      divisi: record.divisi || 'Kitchen',
+      jabatan: record.jabatan || 'Crew Store',
+      status_karyawan: record.status_karyawan || 'Karyawan Baru',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'bank_sop') {
+    return {
+      id: cleanId,
+      kode_sop: record.kode_sop || record.kode || '',
+      judul_sop: record.judul_sop || record.judul || record.nama || '',
+      divisi: record.divisi || 'Kitchen',
+      station: record.station || '',
+      durasi_standar_detik: Number(record.durasi_standar_detik || record.stdDetik || 300),
+      langkah: record.langkah || record.langkahSOP || [],
+      poin_kritis: record.poin_kritis || '',
+      standar_waktu: record.standar_waktu || '',
+      alat_bahan: record.alat_bahan || '',
+      sumber: record.sumber || 'Standar Mutu HARA HQ',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'onboarding_batches') {
+    return {
+      id: cleanId,
+      nomor_batch: record.nomor_batch || record.kode || '',
+      nama_batch: record.nama_batch || record.nama || 'Batch Onboarding',
+      tanggal_mulai: record.tanggal_mulai || record.tanggal || new Date().toISOString().split('T')[0],
+      tanggal_selesai: record.tanggal_selesai || record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet_lokasi: record.kode_outlet_lokasi || record.kode_outlet || 'Kantor Lempongsari',
+      status: record.status || 'Berjalan',
+      kuota_min: Number(record.kuota_min || 11),
+      kuota_max: Number(record.kuota_max || 17),
+      peserta: Array.isArray(record.peserta) ? record.peserta : [],
+      lead_trainer: record.lead_trainer || 'Haikal Abi',
+      catatan_batch: record.catatan_batch || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'penilaian_praktik_onboarding_produk') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || record.kru_nama || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      nama_outlet: record.nama_outlet || record.outlet_penempatan || '',
+      batch_id: record.batch_id || record.batchId || '',
+      nama_batch: record.nama_batch || record.batch || '',
+      divisi: record.divisi || 'Kitchen',
+      produk_nama: record.produk_nama || record.productNama || record.nama_produk || 'Produk SOP',
+      kode_sop: record.kode_sop || record.kode || '',
+      station: record.station || '',
+      station_label: record.station_label || record.station || '',
+      day: record.day || 'Day 1',
+      waktu_detik: Number(record.waktu_detik || record.durasi_detik || record.timerSeconds || 0),
+      target_detik: Number(record.target_detik || record.targetDetik || 300),
+      suhu_minyak_probe: record.suhu_minyak_probe !== undefined ? Number(record.suhu_minyak_probe) : null,
+      gramatur_aktual: record.gramatur_aktual !== undefined ? Number(record.gramatur_aktual) : (record.gramaturAktual !== undefined ? Number(record.gramaturAktual) : null),
+      skor_prosedur: Number(record.skor_prosedur || 0),
+      skor_waktu: Number(record.skor_waktu || 0),
+      skor_knowledge: Number(record.skor_knowledge !== undefined ? record.skor_knowledge : 100),
+      skor_kebersihan: Number(record.skor_kebersihan || 90),
+      skor_kerjasama: Number(record.skor_kerjasama || 90),
+      skor_keaktifan: Number(record.skor_keaktifan || 90),
+      skor_ketepatan: Number(record.skor_ketepatan || 90),
+      subskor_teknis: Number(record.subskor_teknis || 0),
+      subskor_sikap: Number(record.subskor_sikap || 0),
+      skor_akhir: Number(record.skor_akhir || 0),
+      status_kelulusan: record.status_kelulusan || record.status || 'Kompeten',
+      status: record.status || record.status_kelulusan || 'Kompeten',
+      gagal_titik_kritis: Boolean(record.gagal_titik_kritis),
+      titik_kritis_gagal_detail: Array.isArray(record.titik_kritis_gagal_detail) ? record.titik_kritis_gagal_detail : [],
+      knowledge_questions: record.knowledge_questions || null,
+      checklist_langkah: Array.isArray(record.checklist_langkah) ? record.checklist_langkah : (record.stepChecklist || []),
+      penilai_nama: record.penilai_nama || record.trainer_nama || 'Trainer HARA',
+      catatan: record.catatan || record.catatanTrainer || '',
+      catatan_trainer: record.catatan_trainer || record.catatan || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'penilaian_sikap_kebersihan_kru') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || '',
+      nama_outlet: record.nama_outlet || '',
+      batch_id: record.batch_id || record.batchId || '',
+      shift: record.shift || 'Shift 1',
+      skor_grooming: Number(record.skor_grooming || 90),
+      skor_resik: Number(record.skor_resik || 90),
+      skor_attitude: Number(record.skor_attitude || 90),
+      skor_disiplin: Number(record.skor_disiplin || 90),
+      skor_total: Number(record.skor_total || 90),
+      status_kelulusan: record.status_kelulusan || 'Sangat Baik',
+      checklist_detail: record.checklist_detail || [],
+      catatan: record.catatan || '',
+      penilai_nama: record.penilai_nama || 'Trainer',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'penilaian_jobdesk_stasiun') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || '',
+      nama_outlet: record.nama_outlet || '',
+      station: record.station || 'Station 1',
+      shift: record.shift || 'Shift 1',
+      skor_total: Number(record.skor_total || 90),
+      status_kelulusan: record.status_kelulusan || 'Sangat Baik',
+      checklist_detail: record.checklist_detail || [],
+      catatan: record.catatan || '',
+      penilai_nama: record.penilai_nama || 'Trainer',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'app_users') {
+    return {
+      id: cleanId,
+      nama: record.nama || 'Pengguna HARA',
+      email: record.email || '',
+      username: record.username || '',
+      password_hash: record.password_hash || record.password || 'hara123',
+      role: record.role || 'Trainer',
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      status_aktif: record.status_aktif !== false,
+      created_at: record.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  return { id: cleanId, ...record };
+}
+
+// Seed Supabase master data on server startup if missing WITHOUT overwriting existing passwords
 async function seedSupabaseMasterDataIfEmpty() {
   if (!serverSupabase) return;
   try {
-    // 1. Seed App Users
+    // 1. Check existing users in Supabase to NEVER overwrite existing passwords
+    const { data: existingUsers, error: fetchErr } = await serverSupabase
+      .from('app_users')
+      .select('id, email, username');
+
+    const existingIds = new Set((existingUsers || []).map((u: any) => String(u.id || '').toLowerCase()));
+    const existingEmails = new Set((existingUsers || []).map((u: any) => String(u.email || '').toLowerCase()));
+
     for (const u of MASTER_STAFF_REGISTRY) {
+      if (existingIds.has(u.id.toLowerCase()) || existingEmails.has(u.email.toLowerCase())) {
+        continue; // NEVER overwrite existing user's password!
+      }
       try {
-        await serverSupabase.from('app_users').upsert({
+        await serverSupabase.from('app_users').insert({
           id: u.id,
           nama: u.nama,
           email: u.email,
@@ -106,29 +286,30 @@ async function seedSupabaseMasterDataIfEmpty() {
           role: u.role,
           kode_outlet: u.kode_outlet,
           status_aktif: true,
+          created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' });
+        });
       } catch (uErr) {
-        // Table might not exist or schema difference, store in app_store
+        // Table might not exist or schema difference
       }
     }
 
-    // 2. Ensure app_store has registered users
+    // 2. Fetch live users from Supabase to sync into app_store
+    const { data: liveUsers } = await serverSupabase.from('app_users').select('*');
     const store = readServerStore();
-    if (!store['app_users'] || store['app_users'].length === 0) {
-      store['app_users'] = MASTER_STAFF_REGISTRY;
+    if (Array.isArray(liveUsers) && liveUsers.length > 0) {
+      store['app_users'] = liveUsers;
       writeServerStore(store);
+      try {
+        await serverSupabase.from('app_store').upsert({
+          key: 'app_users',
+          value: liveUsers,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch {}
     }
 
-    try {
-      await serverSupabase.from('app_store').upsert({
-        key: 'app_users',
-        value: store['app_users'],
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'key' });
-    } catch {}
-
-    console.log('✅ Supabase master data verification/seeding completed.');
+    console.log('✅ Supabase master data verified without overwriting existing passwords.');
   } catch (err) {
     console.warn('⚠️ Seeding Supabase master data warning:', err);
   }
@@ -415,13 +596,21 @@ app.post('/api/auth/login', async (req, res) => {
 
         if (!error && data && data.length > 0) {
           userFound = data[0];
+          // User ditemukan langsung di Supabase: verifikasi kata sandi secara mutlak
+          const validPass = String(userFound.password_hash || userFound.password || '').trim();
+          if (inputPass !== validPass) {
+            return res.status(401).json({
+              success: false,
+              message: 'Kata sandi tidak sesuai dengan database Supabase.',
+            });
+          }
         }
       } catch (err) {
         console.warn('Supabase query app_users error:', err);
       }
     }
 
-    // 2. Fallback cek ke server store & master registry
+    // 2. Fallback hanya jika Supabase offline atau pengguna belum ada di cloud
     if (!userFound) {
       const store = readServerStore();
       const localUsers = store['app_users'] || [];
@@ -442,7 +631,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Akun dengan email/username tersebut tidak ditemukan.' });
     }
 
-    const validPass = userFound.password_hash || 'hara123';
+    const validPass = String(userFound.password_hash || userFound.password || 'hara123').trim();
     if (inputPass !== validPass) {
       return res.status(401).json({ success: false, message: 'Kata sandi tidak cocok. Silakan coba kembali.' });
     }
@@ -585,13 +774,14 @@ app.get('/api/db/init', async (_req, res) => {
     // Jika Supabase terhubung, tarik data cloud terbaru
     if (serverSupabase) {
       const tablesToFetch = [
+        'app_users',
+        'outlets',
+        'kru',
         'onboarding_batches',
         'penilaian_praktik_onboarding_produk',
         'attitude_hara',
         'penilaian_jobdesk_stasiun',
         'penilaian_sikap_kebersihan_kru',
-        'kru',
-        'outlets',
         'bank_sop',
         'hasil_ujian_mingguan',
       ];
@@ -690,6 +880,13 @@ app.post('/api/db/sync', async (req, res) => {
             // fallback
           }
         }
+        try {
+          await serverSupabase.from('app_store').upsert({
+            key: table,
+            value: currentStore[table],
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'key' });
+        } catch {}
       }
     } else {
       // Upsert
@@ -704,17 +901,31 @@ app.post('/api/db/sync', async (req, res) => {
       }
 
       if (serverSupabase) {
+        // 1. Simpan array utuh ke app_store dengan key: table dan sync_table
         try {
-          await serverSupabase.from(table).upsert(incomingRecords);
-        } catch {
+          await serverSupabase.from('app_store').upsert({
+            key: table,
+            value: currentStore[table],
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'key' });
+        } catch {}
+
+        try {
+          await serverSupabase.from('app_store').upsert({
+            key: `sync_${table}`,
+            value: currentStore[table],
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'key' });
+        } catch {}
+
+        // 2. Sanitasi dan upsert ke tabel PostgreSQL terstruktur
+        for (const rec of incomingRecords) {
+          if (!rec) continue;
+          const sanitized = sanitizeRecordServerSide(table, rec);
           try {
-            await serverSupabase.from('app_store').upsert({
-              key: `sync_${table}`,
-              value: currentStore[table],
-              updated_at: new Date().toISOString()
-            });
-          } catch {
-            // ignore
+            await serverSupabase.from(table).upsert(sanitized, { onConflict: 'id' });
+          } catch (upsertErr) {
+            // Fallback jika ada schema cache mismatch
           }
         }
       }

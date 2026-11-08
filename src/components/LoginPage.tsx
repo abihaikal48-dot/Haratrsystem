@@ -221,6 +221,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           db.insertRow('app_users', userObj);
           db.setCurrentUser(userObj);
 
+          localStorage.removeItem(`hara_user_pass_${userObj.id}`);
           setFailedAttempts(0);
           localStorage.removeItem('hara_auth_failed_attempts');
           localStorage.removeItem('hara_auth_lockout_until');
@@ -231,14 +232,14 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         }
       } else if (authRes.status === 401) {
         const errData = await authRes.json().catch(() => ({}));
-        recordFailedAttempt(errData.message || 'Kata sandi atau email yang Anda masukkan tidak cocok.');
+        recordFailedAttempt(errData.message || 'Kata sandi atau email yang Anda masukkan tidak sesuai dengan database Supabase.');
         return;
       }
     } catch (apiErr) {
-      console.warn('[Backend Auth] Server API offline/unreachable, fallback to local database:', apiErr);
+      console.warn('[Backend Auth] Server API offline/unreachable, fallback to direct Supabase check:', apiErr);
     }
 
-    // 2. Fallback cek ke database Supabase Cloud langsung jika ada
+    // 2. Fallback cek ke database Supabase Cloud langsung jika server API tidak dapat dijangkau
     const supabase = getSupabase();
     if (supabase) {
       try {
@@ -249,34 +250,34 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
         if (!userFetchError && cloudUsers && cloudUsers.length > 0) {
           const cloudUser = cloudUsers[0];
-          const localSavedPass = localStorage.getItem(`hara_user_pass_${cloudUser.id}`);
-          const masterPass = REGISTERED_STAFF_REGISTRY.find(
-            s => s.email.toLowerCase() === (cloudUser.email || '').toLowerCase()
-          )?.defaultPass;
-          const expectedCloudPass = cloudUser.password_hash || localSavedPass || masterPass || 'hara123';
+          const expectedCloudPass = String(cloudUser.password_hash || cloudUser.password || 'hara123').trim();
 
-          if (inputPass === expectedCloudPass) {
-            const userObj: AppUser = {
-              id: cloudUser.id,
-              nama: cloudUser.nama,
-              email: cloudUser.email,
-              role: cloudUser.role as any,
-              kode_outlet: cloudUser.kode_outlet || 'Kantor Lempongsari',
-              status_aktif: 'Aktif',
-              created_at: cloudUser.created_at || new Date().toISOString(),
-            };
-
-            db.insertRow('app_users', userObj);
-            db.setCurrentUser(userObj);
-
-            setFailedAttempts(0);
-            localStorage.removeItem('hara_auth_failed_attempts');
-            localStorage.removeItem('hara_auth_lockout_until');
-            db.addLog('UBAH', 'Autentikasi', `Pengguna ${userObj.nama} (${userObj.role}) berhasil masuk melalui Supabase.`);
-            onLoginSuccess(userObj);
-            setIsSubmitting(false);
+          if (inputPass !== expectedCloudPass) {
+            recordFailedAttempt('Kata sandi tidak sesuai dengan database Supabase.');
             return;
           }
+
+          localStorage.removeItem(`hara_user_pass_${cloudUser.id}`);
+          const userObj: AppUser = {
+            id: cloudUser.id,
+            nama: cloudUser.nama,
+            email: cloudUser.email,
+            role: cloudUser.role as any,
+            kode_outlet: cloudUser.kode_outlet || 'Kantor Lempongsari',
+            status_aktif: 'Aktif',
+            created_at: cloudUser.created_at || new Date().toISOString(),
+          };
+
+          db.insertRow('app_users', userObj);
+          db.setCurrentUser(userObj);
+
+          setFailedAttempts(0);
+          localStorage.removeItem('hara_auth_failed_attempts');
+          localStorage.removeItem('hara_auth_lockout_until');
+          db.addLog('UBAH', 'Autentikasi', `Pengguna ${userObj.nama} (${userObj.role}) berhasil masuk melalui Supabase.`);
+          onLoginSuccess(userObj);
+          setIsSubmitting(false);
+          return;
         }
       } catch (cloudErr) {
         console.warn('[Supabase Direct Login] Fallback error:', cloudErr);

@@ -35,6 +35,181 @@ const MASTER_STAFF_REGISTRY = [
   { id: 'usr-ari', nama: 'Ari', email: 'ari@harachicken.com', username: 'ari', password_hash: 'hara123', role: 'Trainer', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
 ];
 
+function sanitizeRecordServerSide(table: string, record: any): any {
+  if (!record || typeof record !== 'object') return {};
+  const cleanId = String(record.id || ('rec-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7)));
+
+  if (table === 'outlets') {
+    return {
+      id: cleanId,
+      nama_outlet: record.nama_outlet || record.nama || 'Outlet HARA',
+      kode_outlet: record.kode_outlet || record.kode || cleanId,
+      alamat: record.alamat || '',
+      kepala_outlet: record.kepala_outlet || record.manager || '',
+      area_supervisor: record.area_supervisor || record.supervisor || '',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'kru') {
+    return {
+      id: cleanId,
+      nama_kru: record.nama_kru || record.nama || 'Kru HARA',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      divisi: record.divisi || 'Kitchen',
+      jabatan: record.jabatan || 'Crew Store',
+      status_karyawan: record.status_karyawan || 'Karyawan Baru',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'bank_sop') {
+    return {
+      id: cleanId,
+      kode_sop: record.kode_sop || record.kode || '',
+      judul_sop: record.judul_sop || record.judul || record.nama || '',
+      divisi: record.divisi || 'Kitchen',
+      station: record.station || '',
+      durasi_standar_detik: Number(record.durasi_standar_detik || record.stdDetik || 300),
+      langkah: record.langkah || record.langkahSOP || [],
+      poin_kritis: record.poin_kritis || '',
+      standar_waktu: record.standar_waktu || '',
+      alat_bahan: record.alat_bahan || '',
+      sumber: record.sumber || 'Standar Mutu HARA HQ',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'onboarding_batches') {
+    return {
+      id: cleanId,
+      nomor_batch: record.nomor_batch || record.kode || '',
+      nama_batch: record.nama_batch || record.nama || 'Batch Onboarding',
+      tanggal_mulai: record.tanggal_mulai || record.tanggal || new Date().toISOString().split('T')[0],
+      tanggal_selesai: record.tanggal_selesai || record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet_lokasi: record.kode_outlet_lokasi || record.kode_outlet || 'Kantor Lempongsari',
+      status: record.status || 'Berjalan',
+      kuota_min: Number(record.kuota_min || 11),
+      kuota_max: Number(record.kuota_max || 17),
+      peserta: Array.isArray(record.peserta) ? record.peserta : [],
+      lead_trainer: record.lead_trainer || 'Haikal Abi',
+      catatan_batch: record.catatan_batch || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'penilaian_praktik_onboarding_produk') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || record.kru_nama || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      nama_outlet: record.nama_outlet || record.outlet_penempatan || '',
+      batch_id: record.batch_id || record.batchId || '',
+      nama_batch: record.nama_batch || record.batch || '',
+      divisi: record.divisi || 'Kitchen',
+      produk_nama: record.produk_nama || record.productNama || record.nama_produk || 'Produk SOP',
+      kode_sop: record.kode_sop || record.kode || '',
+      station: record.station || '',
+      station_label: record.station_label || record.station || '',
+      day: record.day || 'Day 1',
+      waktu_detik: Number(record.waktu_detik || record.durasi_detik || record.timerSeconds || 0),
+      target_detik: Number(record.target_detik || record.targetDetik || 300),
+      suhu_minyak_probe: record.suhu_minyak_probe !== undefined ? Number(record.suhu_minyak_probe) : null,
+      gramatur_aktual: record.gramatur_aktual !== undefined ? Number(record.gramatur_aktual) : (record.gramaturAktual !== undefined ? Number(record.gramaturAktual) : null),
+      skor_prosedur: Number(record.skor_prosedur || 0),
+      skor_waktu: Number(record.skor_waktu || 0),
+      skor_knowledge: Number(record.skor_knowledge !== undefined ? record.skor_knowledge : 100),
+      skor_kebersihan: Number(record.skor_kebersihan || 90),
+      skor_kerjasama: Number(record.skor_kerjasama || 90),
+      skor_keaktifan: Number(record.skor_keaktifan || 90),
+      skor_ketepatan: Number(record.skor_ketepatan || 90),
+      subskor_teknis: Number(record.subskor_teknis || 0),
+      subskor_sikap: Number(record.subskor_sikap || 0),
+      skor_akhir: Number(record.skor_akhir || 0),
+      status_kelulusan: record.status_kelulusan || record.status || 'Kompeten',
+      status: record.status || record.status_kelulusan || 'Kompeten',
+      gagal_titik_kritis: Boolean(record.gagal_titik_kritis),
+      titik_kritis_gagal_detail: Array.isArray(record.titik_kritis_gagal_detail) ? record.titik_kritis_gagal_detail : [],
+      knowledge_questions: record.knowledge_questions || null,
+      checklist_langkah: Array.isArray(record.checklist_langkah) ? record.checklist_langkah : (record.stepChecklist || []),
+      penilai_nama: record.penilai_nama || record.trainer_nama || 'Trainer HARA',
+      catatan: record.catatan || record.catatanTrainer || '',
+      catatan_trainer: record.catatan_trainer || record.catatan || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  if (table === 'app_users') {
+    return {
+      id: cleanId,
+      nama: record.nama || 'Pengguna HARA',
+      email: record.email || '',
+      username: record.username || '',
+      password_hash: record.password_hash || record.password || 'hara123',
+      role: record.role || 'Trainer',
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      status_aktif: record.status_aktif !== false,
+      created_at: record.created_at || new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+  }
+
+  return { id: cleanId, ...record };
+}
+
+// Seed Supabase master users without overwriting existing passwords
+async function seedSupabaseMasterDataIfEmptyDev() {
+  if (!devSupabase) return;
+  try {
+    const { data: existingUsers } = await devSupabase
+      .from('app_users')
+      .select('id, email, username');
+
+    const existingIds = new Set((existingUsers || []).map((u: any) => String(u.id || '').toLowerCase()));
+    const existingEmails = new Set((existingUsers || []).map((u: any) => String(u.email || '').toLowerCase()));
+
+    for (const u of MASTER_STAFF_REGISTRY) {
+      if (existingIds.has(u.id.toLowerCase()) || existingEmails.has(u.email.toLowerCase())) {
+        continue; // Never overwrite!
+      }
+      try {
+        await devSupabase.from('app_users').insert({
+          id: u.id,
+          nama: u.nama,
+          email: u.email,
+          username: u.username,
+          password_hash: u.password_hash,
+          role: u.role,
+          kode_outlet: u.kode_outlet,
+          status_aktif: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+      } catch {}
+    }
+
+    const { data: liveUsers } = await devSupabase.from('app_users').select('*');
+    const store = readDevStore();
+    if (Array.isArray(liveUsers) && liveUsers.length > 0) {
+      store['app_users'] = liveUsers;
+      writeDevStore(store);
+      try {
+        await devSupabase.from('app_store').upsert({
+          key: 'app_users',
+          value: liveUsers,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'key' });
+      } catch {}
+    }
+  } catch {}
+}
+seedSupabaseMasterDataIfEmptyDev().catch(() => {});
+
 const DATA_DIR = path.resolve(__dirname, 'data');
 const STORE_FILE = path.resolve(DATA_DIR, 'server_store.json');
 
@@ -123,9 +298,9 @@ Terkait topik **"${prompt}"**, berikut panduan operasional terstandarisasi untuk
    * Catat setiap anomali ke dalam Modul Observasi Lapangan & TNA untuk pemetaan tren performa outlet secara menyeluruh.`;
 }
 
-function geminiApiDevPlugin(): Plugin {
+function haraSupabaseBackendPlugin(): Plugin {
   return {
-    name: 'gemini-api-dev-middleware',
+    name: 'hara-supabase-backend-middleware',
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url?.startsWith('/api/')) {
@@ -158,13 +333,14 @@ function geminiApiDevPlugin(): Plugin {
           const store = readDevStore();
           if (devSupabase) {
             const tablesToFetch = [
+              'app_users',
+              'outlets',
+              'kru',
               'onboarding_batches',
               'penilaian_praktik_onboarding_produk',
               'attitude_hara',
               'penilaian_jobdesk_stasiun',
               'penilaian_sikap_kebersihan_kru',
-              'kru',
-              'outlets',
               'bank_sop',
               'hasil_ujian_mingguan',
             ];
@@ -248,8 +424,24 @@ function geminiApiDevPlugin(): Plugin {
 
             if (devSupabase) {
               try {
-                const { data } = await devSupabase.from('app_users').select('*').or(`email.ilike.${cleanId},username.ilike.${cleanId}`).limit(1);
-                if (data && data.length > 0) userFound = data[0];
+                const { data } = await devSupabase
+                  .from('app_users')
+                  .select('*')
+                  .or(`email.ilike.${cleanId},username.ilike.${cleanId}`)
+                  .limit(1);
+                if (data && data.length > 0) {
+                  userFound = data[0];
+                  // If user exists in Supabase, verify password strictly against Supabase
+                  const validPass = String(userFound.password_hash || userFound.password || '').trim();
+                  if (inputPass !== validPass) {
+                    res.statusCode = 401;
+                    res.end(JSON.stringify({
+                      success: false,
+                      message: 'Kata sandi tidak sesuai dengan database Supabase.',
+                    }));
+                    return;
+                  }
+                }
               } catch {}
             }
 
@@ -269,11 +461,30 @@ function geminiApiDevPlugin(): Plugin {
               return;
             }
 
-            const validPass = userFound.password_hash || 'hara123';
+            const validPass = String(userFound.password_hash || userFound.password || 'hara123').trim();
             if (inputPass !== validPass) {
               res.statusCode = 401;
               res.end(JSON.stringify({ success: false, message: 'Kata sandi tidak cocok. Silakan coba kembali.' }));
               return;
+            }
+
+            // Update last_login
+            const nowIso = new Date().toISOString();
+            if (devSupabase) {
+              try {
+                await devSupabase
+                  .from('app_users')
+                  .update({ last_login: nowIso, updated_at: nowIso })
+                  .eq('id', userFound.id);
+                await devSupabase.from('log_aktivitas').insert({
+                  id: 'log-' + Date.now(),
+                  tipe: 'LOGIN',
+                  modul: 'Autentikasi',
+                  deskripsi: `Pengguna ${userFound.nama} (${userFound.role}) berhasil login via Vite Dev Supabase.`,
+                  user_nama: userFound.nama,
+                  created_at: nowIso,
+                });
+              } catch {}
             }
 
             const safeUser = {
@@ -283,7 +494,7 @@ function geminiApiDevPlugin(): Plugin {
               role: userFound.role,
               kode_outlet: userFound.kode_outlet || 'Kantor Lempongsari',
               status_aktif: 'Aktif',
-              created_at: userFound.created_at || new Date().toISOString(),
+              created_at: userFound.created_at || nowIso,
             };
 
             res.statusCode = 200;
@@ -391,6 +602,20 @@ function geminiApiDevPlugin(): Plugin {
                     await devSupabase.from(table).delete().eq('id', id);
                   } catch {}
                 }
+                try {
+                  await devSupabase.from('app_store').upsert({
+                    key: table,
+                    value: currentStore[table],
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'key' });
+                } catch {}
+                try {
+                  await devSupabase.from('app_store').upsert({
+                    key: `sync_${table}`,
+                    value: currentStore[table],
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'key' });
+                } catch {}
               }
             } else {
               for (const inc of incoming) {
@@ -404,15 +629,27 @@ function geminiApiDevPlugin(): Plugin {
               if (devSupabase) {
                 try {
                   await devSupabase.from('app_store').upsert({
-                    key: `sync_${table}`,
+                    key: table,
                     value: currentStore[table],
                     updated_at: new Date().toISOString()
                   }, { onConflict: 'key' });
                 } catch {}
 
                 try {
-                  await devSupabase.from(table).upsert(incoming);
+                  await devSupabase.from('app_store').upsert({
+                    key: `sync_${table}`,
+                    value: currentStore[table],
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'key' });
                 } catch {}
+
+                for (const rec of incoming) {
+                  if (!rec) continue;
+                  const sanitized = sanitizeRecordServerSide(table, rec);
+                  try {
+                    await devSupabase.from(table).upsert(sanitized, { onConflict: 'id' });
+                  } catch {}
+                }
               }
 
               // Relay to Google Sheets Webhook
@@ -602,7 +839,7 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
 
 export default defineConfig(() => {
   return {
-    plugins: [react(), tailwindcss(), geminiApiDevPlugin()],
+    plugins: [react(), tailwindcss(), haraSupabaseBackendPlugin()],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

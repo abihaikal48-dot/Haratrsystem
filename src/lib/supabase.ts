@@ -752,7 +752,7 @@ export async function autoSeedSupabaseIfEmpty(): Promise<{
     // 4. Seed Akun Pengguna / User Management (Admin, Lead Trainer Haikal Abi, RnD Jihan, RnD Feri, Trainer Ari)
     if (appUsers.length > 0) {
       const sanitizedUsers = appUsers.map(u => sanitizeRecordForTable('app_users', u));
-      await supabase.from('app_users').upsert(sanitizedUsers, { onConflict: 'id' });
+      await supabase.from('app_users').upsert(sanitizedUsers, { onConflict: 'id', ignoreDuplicates: true });
       totalMigrated += appUsers.length;
     }
 
