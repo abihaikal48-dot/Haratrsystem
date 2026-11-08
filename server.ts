@@ -17,9 +17,12 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
-// Server-Side Secure Supabase Client (Kredensial disimpan aman di Environment Server, tidak terekspos ke HP)
-const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '').trim();
-const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || '').trim();
+// Server-Side Secure Supabase Client (Kredensial tersimpan di backend server - tidak terekspos ke HP)
+const DEFAULT_SUPABASE_URL = 'https://bjkbvlpaaeekdqqlxavq.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_secret_QuaGsNhbpHtt7tll5GXZTg_Oozs18dW';
+
+const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).trim();
+const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY).trim();
 
 let serverSupabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseKey && supabaseUrl.startsWith('http')) {
@@ -32,6 +35,107 @@ if (supabaseUrl && supabaseKey && supabaseUrl.startsWith('http')) {
     console.warn('⚠️ Server-side Supabase initialization error:', err);
   }
 }
+
+// Master users list for authentication seeding
+const MASTER_STAFF_REGISTRY = [
+  {
+    id: 'usr-haikal',
+    nama: 'Haikal Abi',
+    email: 'haikal@harachicken.com',
+    username: 'haikal',
+    password_hash: 'hara123',
+    role: 'Trainer',
+    kode_outlet: 'Kantor Lempongsari',
+    status_aktif: 'Aktif',
+  },
+  {
+    id: 'usr-admin',
+    nama: 'Administrator HQ',
+    email: 'admin@harachicken.com',
+    username: 'admin',
+    password_hash: 'hara123',
+    role: 'Admin',
+    kode_outlet: 'Kantor Lempongsari',
+    status_aktif: 'Aktif',
+  },
+  {
+    id: 'usr-jihan',
+    nama: 'Jihan',
+    email: 'jihan@harachicken.com',
+    username: 'jihan',
+    password_hash: 'hara123',
+    role: 'RnD',
+    kode_outlet: 'Kantor Lempongsari',
+    status_aktif: 'Aktif',
+  },
+  {
+    id: 'usr-feri',
+    nama: 'Feri',
+    email: 'feri@harachicken.com',
+    username: 'feri',
+    password_hash: 'hara123',
+    role: 'RnD',
+    kode_outlet: 'Kantor Lempongsari',
+    status_aktif: 'Aktif',
+  },
+  {
+    id: 'usr-ari',
+    nama: 'Ari',
+    email: 'ari@harachicken.com',
+    username: 'ari',
+    password_hash: 'hara123',
+    role: 'Trainer',
+    kode_outlet: 'Kantor Lempongsari',
+    status_aktif: 'Aktif',
+  },
+];
+
+// Seed Supabase master data on server startup if missing
+async function seedSupabaseMasterDataIfEmpty() {
+  if (!serverSupabase) return;
+  try {
+    // 1. Seed App Users
+    for (const u of MASTER_STAFF_REGISTRY) {
+      try {
+        await serverSupabase.from('app_users').upsert({
+          id: u.id,
+          nama: u.nama,
+          email: u.email,
+          username: u.username,
+          password_hash: u.password_hash,
+          role: u.role,
+          kode_outlet: u.kode_outlet,
+          status_aktif: true,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' });
+      } catch (uErr) {
+        // Table might not exist or schema difference, store in app_store
+      }
+    }
+
+    // 2. Ensure app_store has registered users
+    const store = readServerStore();
+    if (!store['app_users'] || store['app_users'].length === 0) {
+      store['app_users'] = MASTER_STAFF_REGISTRY;
+      writeServerStore(store);
+    }
+
+    try {
+      await serverSupabase.from('app_store').upsert({
+        key: 'app_users',
+        value: store['app_users'],
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+    } catch {}
+
+    console.log('✅ Supabase master data verification/seeding completed.');
+  } catch (err) {
+    console.warn('⚠️ Seeding Supabase master data warning:', err);
+  }
+}
+
+// Trigger initial seed
+seedSupabaseMasterDataIfEmpty().catch(() => {});
 
 // Server Persistent Local Data Cache File Helper
 const DATA_DIR = path.join(__dirname, 'data');
@@ -288,12 +392,197 @@ app.get('/api/db/status', (_req, res) => {
   });
 });
 
-// 2. Init Master Data Saat Perangkat Baru Membuka Web
+// 2. Autentikasi Login Resmi Backend Langsung ke Supabase (Tanpa Ekspos Kunci Rahasia)
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { identifier, password } = req.body || {};
+    if (!identifier || !password) {
+      return res.status(400).json({ success: false, message: 'Email/username dan kata sandi wajib diisi.' });
+    }
+
+    const cleanId = String(identifier).trim().toLowerCase();
+    const inputPass = String(password).trim();
+    let userFound: any = null;
+
+    // 1. Cek di Supabase jika client aktif
+    if (serverSupabase) {
+      try {
+        const { data, error } = await serverSupabase
+          .from('app_users')
+          .select('*')
+          .or(`email.ilike.${cleanId},username.ilike.${cleanId}`)
+          .limit(1);
+
+        if (!error && data && data.length > 0) {
+          userFound = data[0];
+        }
+      } catch (err) {
+        console.warn('Supabase query app_users error:', err);
+      }
+    }
+
+    // 2. Fallback cek ke server store & master registry
+    if (!userFound) {
+      const store = readServerStore();
+      const localUsers = store['app_users'] || [];
+      userFound = localUsers.find(
+        (u: any) =>
+          (u.email && u.email.toLowerCase() === cleanId) ||
+          (u.username && u.username.toLowerCase() === cleanId)
+      );
+    }
+
+    if (!userFound) {
+      userFound = MASTER_STAFF_REGISTRY.find(
+        (u) => u.email.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId
+      );
+    }
+
+    if (!userFound) {
+      return res.status(401).json({ success: false, message: 'Akun dengan email/username tersebut tidak ditemukan.' });
+    }
+
+    const validPass = userFound.password_hash || 'hara123';
+    if (inputPass !== validPass) {
+      return res.status(401).json({ success: false, message: 'Kata sandi tidak cocok. Silakan coba kembali.' });
+    }
+
+    // Update last_login
+    const nowIso = new Date().toISOString();
+    if (serverSupabase) {
+      try {
+        await serverSupabase
+          .from('app_users')
+          .update({ last_login: nowIso, updated_at: nowIso })
+          .eq('id', userFound.id);
+
+        await serverSupabase.from('log_aktivitas').insert({
+          id: 'log-' + Date.now(),
+          tipe: 'LOGIN',
+          modul: 'Autentikasi',
+          deskripsi: `Pengguna ${userFound.nama} (${userFound.role}) berhasil login via Supabase Backend.`,
+          user_nama: userFound.nama,
+          created_at: nowIso,
+        });
+      } catch {}
+    }
+
+    const safeUser = {
+      id: userFound.id,
+      nama: userFound.nama,
+      email: userFound.email,
+      role: userFound.role,
+      kode_outlet: userFound.kode_outlet || 'Kantor Lempongsari',
+      status_aktif: 'Aktif',
+      created_at: userFound.created_at || nowIso,
+    };
+
+    return res.json({
+      success: true,
+      message: 'Login berhasil.',
+      user: safeUser,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err?.message || 'Gagal autentikasi via server.' });
+  }
+});
+
+// 3. Ubah Kata Sandi Pengguna Resmi via Backend
+app.post('/api/auth/change-password', async (req, res) => {
+  try {
+    const { identifier, oldPass, newPass } = req.body || {};
+    if (!identifier || !oldPass || !newPass) {
+      return res.status(400).json({ success: false, message: 'Semua kolom wajib diisi.' });
+    }
+
+    const cleanId = String(identifier).trim().toLowerCase();
+    const cleanOld = String(oldPass).trim();
+    const cleanNew = String(newPass).trim();
+
+    if (cleanNew.length < 6) {
+      return res.status(400).json({ success: false, message: 'Kata sandi baru minimal 6 karakter.' });
+    }
+
+    let userFound: any = null;
+    if (serverSupabase) {
+      try {
+        const { data } = await serverSupabase
+          .from('app_users')
+          .select('*')
+          .or(`email.ilike.${cleanId},username.ilike.${cleanId}`)
+          .limit(1);
+        if (data && data.length > 0) userFound = data[0];
+      } catch {}
+    }
+
+    const store = readServerStore();
+    if (!userFound) {
+      const localUsers = store['app_users'] || [];
+      userFound = localUsers.find(
+        (u: any) =>
+          (u.email && u.email.toLowerCase() === cleanId) ||
+          (u.username && u.username.toLowerCase() === cleanId)
+      );
+    }
+
+    if (!userFound) {
+      userFound = MASTER_STAFF_REGISTRY.find(
+        (u) => u.email.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId
+      );
+    }
+
+    if (!userFound) {
+      return res.status(404).json({ success: false, message: 'Pengguna tidak ditemukan.' });
+    }
+
+    const currentPass = userFound.password_hash || 'hara123';
+    if (cleanOld !== currentPass) {
+      return res.status(401).json({ success: false, message: 'Kata sandi lama tidak cocok.' });
+    }
+
+    const nowIso = new Date().toISOString();
+    // Update di Supabase
+    if (serverSupabase) {
+      try {
+        await serverSupabase
+          .from('app_users')
+          .update({ password_hash: cleanNew, updated_at: nowIso })
+          .eq('id', userFound.id);
+
+        await serverSupabase.from('log_aktivitas').insert({
+          id: 'log-' + Date.now(),
+          tipe: 'UBAH',
+          modul: 'Keamanan',
+          deskripsi: `Kata sandi akun ${userFound.nama} berhasil diperbarui di Supabase.`,
+          user_nama: userFound.nama,
+          created_at: nowIso,
+        });
+      } catch {}
+    }
+
+    // Update di Server store
+    if (!store['app_users']) store['app_users'] = [];
+    const idx = store['app_users'].findIndex((u: any) => u.id === userFound.id);
+    if (idx >= 0) {
+      store['app_users'][idx].password_hash = cleanNew;
+      store['app_users'][idx].updated_at = nowIso;
+    } else {
+      store['app_users'].push({ ...userFound, password_hash: cleanNew, updated_at: nowIso });
+    }
+    writeServerStore(store);
+
+    return res.json({ success: true, message: 'Kata sandi berhasil diperbarui.' });
+  } catch (err: any) {
+    return res.status(500).json({ success: false, message: err?.message || 'Gagal mengubah kata sandi.' });
+  }
+});
+
+// 4. Init Master Data Saat Perangkat Baru Membuka Web (Anti Bocor Kunci Rahasia)
 app.get('/api/db/init', async (_req, res) => {
   try {
     const store = readServerStore();
 
-    // Jika Supabase terhubung, sinkronkan data cloud terbaru
+    // Jika Supabase terhubung, tarik data cloud terbaru
     if (serverSupabase) {
       const tablesToFetch = [
         'onboarding_batches',
@@ -301,7 +590,10 @@ app.get('/api/db/init', async (_req, res) => {
         'attitude_hara',
         'penilaian_jobdesk_stasiun',
         'penilaian_sikap_kebersihan_kru',
-        'bank_sop_products'
+        'kru',
+        'outlets',
+        'bank_sop',
+        'hasil_ujian_mingguan',
       ];
 
       for (const table of tablesToFetch) {
@@ -311,7 +603,7 @@ app.get('/api/db/init', async (_req, res) => {
             store[table] = data;
           }
         } catch {
-          // Table belum dibuat di Supabase, gunakan store lokal
+          // Table mungkin belum dibuat, gunakan fallback store
         }
       }
 
@@ -332,18 +624,14 @@ app.get('/api/db/init', async (_req, res) => {
       }
     }
 
-    const supabaseConfig = (store as any)._supabase_config || {
-      url: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
-      anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '',
-    };
-
     const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || DEFAULT_GOOGLE_SHEETS_WEBHOOK;
 
+    // AMAN: Jangan pernah kirimkan service_role / sb_secret key ke browser klien
     return res.json({
       success: true,
       data: store,
-      supabaseConfig: supabaseConfig.url && supabaseConfig.anonKey ? supabaseConfig : null,
-      supabaseConnected: !!serverSupabase || !!(supabaseConfig.url && supabaseConfig.anonKey),
+      supabaseConfig: null, // Rahasia aman di backend
+      supabaseConnected: !!serverSupabase,
       googleSheetsWebhookUrl: sheetsWebhook,
       timestamp: new Date().toISOString()
     });

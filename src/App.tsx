@@ -93,10 +93,7 @@ export function App() {
   const [aiActionData, setAiActionData] = useState<AIActionModalData | null>(null);
   const [globalToast, setGlobalToast] = useState<string | null>(null);
   const [isSessionLocked, setIsSessionLocked] = useState<boolean>(false);
-  const [supabaseModalOpen, setSupabaseModalOpen] = useState<boolean>(() => {
-    const cfg = getSupabaseConfig();
-    return !cfg.isConfigured;
-  });
+  const [supabaseModalOpen, setSupabaseModalOpen] = useState<boolean>(false);
 
   // Master tab sub-view ('outlets' | 'kru')
   const [masterSubTab, setMasterSubTab] = useState<'outlets' | 'kru'>('outlets');
@@ -874,13 +871,6 @@ export function App() {
           onLogout={handleLogout}
         />
       )}
-
-      {/* Supabase Realtime Database Connection & Data Migration Gate */}
-      <SupabaseConnectionModal
-        isOpen={supabaseModalOpen}
-        onClose={() => setSupabaseModalOpen(false)}
-        isGateEnforced={!getSupabaseConfig().isConfigured}
-      />
     </div>
   );
 }

@@ -217,7 +217,6 @@ const GROUPS: NavGroup[] = [
     category: 'all',
     items: [
       { id: 'master', label: 'Master Outlet & Kru Cabang', icon: Building2 },
-      { id: 'settings', label: 'Pengaturan & Sinkronisasi Cloud', icon: Settings },
       { id: 'users', label: 'Manajemen Akun Pengguna', icon: Shield },
       { id: 'bantuan', label: 'Panduan Sistem & SOP', icon: HelpCircle },
     ],
@@ -414,17 +413,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
             {!collapsed && (
               <div className="flex items-center gap-0.5 shrink-0">
-                <button
-                  onClick={() => onSelectTab('settings')}
-                  className="p-1.5 hover:bg-slate-200 text-slate-500 hover:text-slate-900 rounded-lg transition-colors cursor-pointer"
-                  title="Pengaturan Akun & Cloud"
-                >
-                  <Settings size={14} />
-                </button>
                 {onLogout && (
                   <button
                     onClick={onLogout}
                     className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors cursor-pointer"
+                    title="Keluar dari Akun"
                   >
                     <LogOut size={14} />
                   </button>

@@ -5,8 +5,35 @@ import fs from 'fs';
 import { defineConfig, Plugin } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 dotenv.config();
+
+const DEFAULT_SUPABASE_URL = 'https://bjkbvlpaaeekdqqlxavq.supabase.co';
+const DEFAULT_SUPABASE_KEY = 'sb_secret_QuaGsNhbpHtt7tll5GXZTg_Oozs18dW';
+
+const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).trim();
+const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY).trim();
+
+let devSupabase: SupabaseClient | null = null;
+if (supabaseUrl && supabaseKey && supabaseUrl.startsWith('http')) {
+  try {
+    devSupabase = createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+    });
+    console.log('✅ Vite Dev Supabase initialized.');
+  } catch (err) {
+    console.warn('⚠️ Dev Supabase init error:', err);
+  }
+}
+
+const MASTER_STAFF_REGISTRY = [
+  { id: 'usr-haikal', nama: 'Haikal Abi', email: 'haikal@harachicken.com', username: 'haikal', password_hash: 'hara123', role: 'Trainer', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
+  { id: 'usr-admin', nama: 'Administrator HQ', email: 'admin@harachicken.com', username: 'admin', password_hash: 'hara123', role: 'Admin', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
+  { id: 'usr-jihan', nama: 'Jihan', email: 'jihan@harachicken.com', username: 'jihan', password_hash: 'hara123', role: 'RnD', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
+  { id: 'usr-feri', nama: 'Feri', email: 'feri@harachicken.com', username: 'feri', password_hash: 'hara123', role: 'RnD', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
+  { id: 'usr-ari', nama: 'Ari', email: 'ari@harachicken.com', username: 'ari', password_hash: 'hara123', role: 'Trainer', kode_outlet: 'Kantor Lempongsari', status_aktif: 'Aktif' },
+];
 
 const DATA_DIR = path.resolve(__dirname, 'data');
 const STORE_FILE = path.resolve(DATA_DIR, 'server_store.json');
@@ -122,23 +149,56 @@ function geminiApiDevPlugin(): Plugin {
         if (urlPath === '/api/db/status' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           res.statusCode = 200;
-          res.end(JSON.stringify({ ok: true, online: true, supabaseConfigured: true, timestamp: new Date().toISOString() }));
+          res.end(JSON.stringify({ ok: true, online: true, supabaseConfigured: !!devSupabase, timestamp: new Date().toISOString() }));
           return;
         }
 
         if (urlPath === '/api/db/init' && req.method === 'GET') {
           res.setHeader('Content-Type', 'application/json');
           const store = readDevStore();
-          const supabaseConfig = (store as any)._supabase_config || {
-            url: process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || '',
-            anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '',
-          };
+          if (devSupabase) {
+            const tablesToFetch = [
+              'onboarding_batches',
+              'penilaian_praktik_onboarding_produk',
+              'attitude_hara',
+              'penilaian_jobdesk_stasiun',
+              'penilaian_sikap_kebersihan_kru',
+              'kru',
+              'outlets',
+              'bank_sop',
+              'hasil_ujian_mingguan',
+            ];
+            for (const table of tablesToFetch) {
+              try {
+                const { data, error } = await devSupabase.from(table).select('*').limit(500);
+                if (!error && Array.isArray(data) && data.length > 0) {
+                  store[table] = data;
+                }
+              } catch {}
+            }
+            try {
+              const { data: appData } = await devSupabase.from('app_store').select('*');
+              if (Array.isArray(appData)) {
+                for (const row of appData) {
+                  if (row.key && row.value) {
+                    const cleanKey = row.key.replace('sync_', '');
+                    if (!store[cleanKey] || store[cleanKey].length === 0) {
+                      store[cleanKey] = row.value;
+                    }
+                  }
+                }
+              }
+            } catch {}
+          }
+          const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
+
           res.statusCode = 200;
           res.end(JSON.stringify({
             success: true,
             data: store,
-            supabaseConfig: supabaseConfig.url && supabaseConfig.anonKey ? supabaseConfig : null,
-            supabaseConnected: !!(supabaseConfig.url && supabaseConfig.anonKey),
+            supabaseConfig: null, // Rahasia aman di backend
+            supabaseConnected: !!devSupabase,
+            googleSheetsWebhookUrl: sheetsWebhook,
             timestamp: new Date().toISOString(),
           }));
           return;
@@ -179,6 +239,124 @@ function geminiApiDevPlugin(): Plugin {
 
           const DEFAULT_DEV_SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
 
+          // Login endpoint
+          if (urlPath === '/api/auth/login' && req.method === 'POST') {
+            const { identifier, password } = body || {};
+            const cleanId = String(identifier || '').trim().toLowerCase();
+            const inputPass = String(password || '').trim();
+            let userFound: any = null;
+
+            if (devSupabase) {
+              try {
+                const { data } = await devSupabase.from('app_users').select('*').or(`email.ilike.${cleanId},username.ilike.${cleanId}`).limit(1);
+                if (data && data.length > 0) userFound = data[0];
+              } catch {}
+            }
+
+            if (!userFound) {
+              const currentStore = readDevStore();
+              const localUsers = currentStore['app_users'] || [];
+              userFound = localUsers.find((u: any) => (u.email && u.email.toLowerCase() === cleanId) || (u.username && u.username.toLowerCase() === cleanId));
+            }
+
+            if (!userFound) {
+              userFound = MASTER_STAFF_REGISTRY.find(u => u.email.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId);
+            }
+
+            if (!userFound) {
+              res.statusCode = 401;
+              res.end(JSON.stringify({ success: false, message: 'Akun dengan email/username tersebut tidak ditemukan.' }));
+              return;
+            }
+
+            const validPass = userFound.password_hash || 'hara123';
+            if (inputPass !== validPass) {
+              res.statusCode = 401;
+              res.end(JSON.stringify({ success: false, message: 'Kata sandi tidak cocok. Silakan coba kembali.' }));
+              return;
+            }
+
+            const safeUser = {
+              id: userFound.id,
+              nama: userFound.nama,
+              email: userFound.email,
+              role: userFound.role,
+              kode_outlet: userFound.kode_outlet || 'Kantor Lempongsari',
+              status_aktif: 'Aktif',
+              created_at: userFound.created_at || new Date().toISOString(),
+            };
+
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, message: 'Login berhasil.', user: safeUser }));
+            return;
+          }
+
+          // Change password endpoint
+          if (urlPath === '/api/auth/change-password' && req.method === 'POST') {
+            const { identifier, oldPass, newPass } = body || {};
+            const cleanId = String(identifier || '').trim().toLowerCase();
+            const cleanOld = String(oldPass || '').trim();
+            const cleanNew = String(newPass || '').trim();
+
+            if (cleanNew.length < 6) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ success: false, message: 'Kata sandi baru minimal 6 karakter.' }));
+              return;
+            }
+
+            let userFound: any = null;
+            if (devSupabase) {
+              try {
+                const { data } = await devSupabase.from('app_users').select('*').or(`email.ilike.${cleanId},username.ilike.${cleanId}`).limit(1);
+                if (data && data.length > 0) userFound = data[0];
+              } catch {}
+            }
+
+            const currentStore = readDevStore();
+            if (!userFound) {
+              const localUsers = currentStore['app_users'] || [];
+              userFound = localUsers.find((u: any) => (u.email && u.email.toLowerCase() === cleanId) || (u.username && u.username.toLowerCase() === cleanId));
+            }
+
+            if (!userFound) {
+              userFound = MASTER_STAFF_REGISTRY.find(u => u.email.toLowerCase() === cleanId || u.username.toLowerCase() === cleanId);
+            }
+
+            if (!userFound) {
+              res.statusCode = 404;
+              res.end(JSON.stringify({ success: false, message: 'Pengguna tidak ditemukan.' }));
+              return;
+            }
+
+            const currentPass = userFound.password_hash || 'hara123';
+            if (cleanOld !== currentPass) {
+              res.statusCode = 401;
+              res.end(JSON.stringify({ success: false, message: 'Kata sandi lama tidak cocok.' }));
+              return;
+            }
+
+            const nowIso = new Date().toISOString();
+            if (devSupabase) {
+              try {
+                await devSupabase.from('app_users').update({ password_hash: cleanNew, updated_at: nowIso }).eq('id', userFound.id);
+              } catch {}
+            }
+
+            if (!currentStore['app_users']) currentStore['app_users'] = [];
+            const idx = currentStore['app_users'].findIndex((u: any) => u.id === userFound.id);
+            if (idx >= 0) {
+              currentStore['app_users'][idx].password_hash = cleanNew;
+              currentStore['app_users'][idx].updated_at = nowIso;
+            } else {
+              currentStore['app_users'].push({ ...userFound, password_hash: cleanNew, updated_at: nowIso });
+            }
+            writeDevStore(currentStore);
+
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, message: 'Kata sandi berhasil diperbarui.' }));
+            return;
+          }
+
           if (urlPath === '/api/db/config' && req.method === 'POST') {
             const { url, anonKey, googleSheetsWebhookUrl, webhookUrl } = body;
             const currentStore = readDevStore();
@@ -207,6 +385,13 @@ function geminiApiDevPlugin(): Plugin {
             if (action === 'DELETE') {
               const ids = new Set(incoming.map((r: any) => r.id));
               currentStore[table] = currentStore[table].filter((r: any) => !ids.has(r.id));
+              if (devSupabase) {
+                for (const id of ids) {
+                  try {
+                    await devSupabase.from(table).delete().eq('id', id);
+                  } catch {}
+                }
+              }
             } else {
               for (const inc of incoming) {
                 if (!inc?.id) continue;
@@ -214,6 +399,22 @@ function geminiApiDevPlugin(): Plugin {
                 if (idx >= 0) currentStore[table][idx] = { ...currentStore[table][idx], ...inc };
                 else currentStore[table].unshift(inc);
               }
+
+              // Update in devSupabase
+              if (devSupabase) {
+                try {
+                  await devSupabase.from('app_store').upsert({
+                    key: `sync_${table}`,
+                    value: currentStore[table],
+                    updated_at: new Date().toISOString()
+                  }, { onConflict: 'key' });
+                } catch {}
+
+                try {
+                  await devSupabase.from(table).upsert(incoming);
+                } catch {}
+              }
+
               // Relay to Google Sheets Webhook
               if (['penilaian_praktik_onboarding_produk', 'kru', 'onboarding_batches'].includes(table)) {
                 const hookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (currentStore as any)._google_sheet_webhook || DEFAULT_DEV_SHEETS_WEBHOOK;

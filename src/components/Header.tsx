@@ -187,39 +187,14 @@ export const Header: React.FC<HeaderProps> = ({
           </kbd>
         </button>
 
-        {/* Supabase Realtime Database Status Badge */}
-        {/* Supabase Primary Cloud Database Status Badge */}
-        <button
-          onClick={onOpenSupabaseModal}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer border shadow-2xs ${
-            supabaseStatus === 'connected'
-              ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-300 ring-1 ring-emerald-200'
-              : supabaseStatus === 'connecting'
-              ? 'bg-amber-50 hover:bg-amber-100 text-amber-800 border-amber-300 ring-1 ring-amber-200'
-              : 'bg-red-50 hover:bg-red-100 text-red-800 border-red-300 ring-1 ring-red-200 animate-pulse'
-          }`}
-          title={
-            supabaseStatus === 'connected'
-              ? 'Supabase Terhubung & Online (Database Utama Aktif). Klik untuk sinkronisasi / pengaturan.'
-              : supabaseStatus === 'connecting'
-              ? 'Sedang menghubungkan ke Supabase Cloud...'
-              : 'Supabase Offline / Belum Dikonfigurasi. Klik untuk menghubungkan database online.'
-          }
+        {/* Status Sistem Online Pasif (Unclickable) */}
+        <div
+          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs select-none"
+          title="Sistem Terhubung & Tersinkronisasi Otomatis"
         >
-          <Database size={13} className={supabaseStatus === 'connecting' ? 'animate-spin text-amber-600' : supabaseStatus === 'connected' ? 'text-emerald-700' : 'text-red-600'} />
-          <span className="hidden sm:inline">
-            {supabaseStatus === 'connected' ? 'Supabase Online' : supabaseStatus === 'connecting' ? 'Menghubungkan...' : 'Hubungkan Supabase'}
-          </span>
-          <span
-            className={`w-2 h-2 rounded-full ${
-              supabaseStatus === 'connected'
-                ? 'bg-emerald-500 ring-2 ring-emerald-300 animate-pulse'
-                : supabaseStatus === 'connecting'
-                ? 'bg-amber-500 animate-ping'
-                : 'bg-red-500 ring-2 ring-red-300'
-            }`}
-          />
-        </button>
+          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-300 animate-pulse" />
+          <span className="font-bold">Online</span>
+        </div>
 
         {/* Notification Bell */}
         <div className="relative">

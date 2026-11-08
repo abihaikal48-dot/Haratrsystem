@@ -197,7 +197,48 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setIsSubmitting(false);
     };
 
-    // 1. Cek langsung ke database Supabase Cloud (public.app_users) jika terhubung
+    // 1. Panggil Endpoint Autentikasi Backend Resmi Supabase
+    try {
+      const authRes = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier: inputEmail, password: inputPass }),
+      });
+
+      if (authRes.ok) {
+        const authData = await authRes.json();
+        if (authData.success && authData.user) {
+          const userObj: AppUser = {
+            id: authData.user.id,
+            nama: authData.user.nama,
+            email: authData.user.email,
+            role: authData.user.role as any,
+            kode_outlet: authData.user.kode_outlet || 'Kantor Lempongsari',
+            status_aktif: 'Aktif',
+            created_at: authData.user.created_at || new Date().toISOString(),
+          };
+
+          db.insertRow('app_users', userObj);
+          db.setCurrentUser(userObj);
+
+          setFailedAttempts(0);
+          localStorage.removeItem('hara_auth_failed_attempts');
+          localStorage.removeItem('hara_auth_lockout_until');
+          db.addLog('UBAH', 'Autentikasi', `Pengguna ${userObj.nama} (${userObj.role}) berhasil masuk melalui Supabase.`);
+          onLoginSuccess(userObj);
+          setIsSubmitting(false);
+          return;
+        }
+      } else if (authRes.status === 401) {
+        const errData = await authRes.json().catch(() => ({}));
+        recordFailedAttempt(errData.message || 'Kata sandi atau email yang Anda masukkan tidak cocok.');
+        return;
+      }
+    } catch (apiErr) {
+      console.warn('[Backend Auth] Server API offline/unreachable, fallback to local database:', apiErr);
+    }
+
+    // 2. Fallback cek ke database Supabase Cloud langsung jika ada
     const supabase = getSupabase();
     if (supabase) {
       try {
@@ -225,26 +266,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               created_at: cloudUser.created_at || new Date().toISOString(),
             };
 
-            // Simpan ke local db cache
             db.insertRow('app_users', userObj);
             db.setCurrentUser(userObj);
-
-            // Perbarui last_login di Supabase
-            const nowIso = new Date().toISOString();
-            await supabase.from('app_users').update({
-              last_login: nowIso,
-              updated_at: nowIso,
-            }).eq('id', cloudUser.id);
-
-            // Catat log aktivitas ke Supabase
-            await supabase.from('log_aktivitas').insert({
-              id: 'log-' + Date.now(),
-              tipe: 'LOGIN',
-              modul: 'Autentikasi',
-              deskripsi: `Pengguna ${userObj.nama} (${userObj.role}) berhasil login via Supabase.`,
-              user_nama: userObj.nama,
-              created_at: nowIso,
-            });
 
             setFailedAttempts(0);
             localStorage.removeItem('hara_auth_failed_attempts');
@@ -256,11 +279,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           }
         }
       } catch (cloudErr) {
-        console.warn('[Supabase Cloud Login] Gagal verifikasi via cloud:', cloudErr);
+        console.warn('[Supabase Direct Login] Fallback error:', cloudErr);
       }
     }
 
-    // 2. Cek akun master terdaftar (Offline / Fallback registry)
+    // 3. Cek akun master terdaftar (Offline / Fallback registry)
     const targetStaff = REGISTERED_STAFF_REGISTRY.find(
       (a) => a.email.toLowerCase() === inputEmail || a.username.toLowerCase() === inputEmail
     );
@@ -649,7 +672,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               </div>
 
               <form
-                onSubmit={(e) => {
+                onSubmit={async (e) => {
                   e.preventDefault();
                   const { identifier, oldPass, newPass, confirmPass } = changePassForm;
                   const targetIdClean = identifier.trim().toLowerCase();
@@ -687,6 +710,37 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   if (oldPass !== currentExpected) {
                     setChangePassStatus({ type: 'error', message: 'Kata sandi lama yang Anda masukkan tidak sesuai.' });
                     return;
+                  }
+
+                  // Panggil backend API resmi
+                  try {
+                    const apiRes = await fetch('/api/auth/change-password', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ identifier: targetIdClean, oldPass, newPass }),
+                    });
+                    if (apiRes.ok) {
+                      const resData = await apiRes.json();
+                      if (resData.success) {
+                        const targetId = (dbUser && dbUser.id) || (staffMatch && `usr-${staffMatch.username}`);
+                        if (targetId) localStorage.setItem(`hara_user_pass_${targetId}`, newPass);
+                        db.addLog('UBAH', 'Keamanan', `Pengguna ${targetIdClean} berhasil memperbarui kata sandi via Supabase.`);
+                        setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diperbarui! Silakan masuk kembali.' });
+                        setTimeout(() => {
+                          setShowChangePasswordModal(false);
+                          setPassword(newPass);
+                          setChangePassForm({ identifier: '', oldPass: '', newPass: '', confirmPass: '' });
+                          setChangePassStatus({ type: 'idle', message: '' });
+                        }, 1400);
+                        return;
+                      }
+                    } else if (apiRes.status === 401 || apiRes.status === 404) {
+                      const errData = await apiRes.json().catch(() => ({}));
+                      setChangePassStatus({ type: 'error', message: errData.message || 'Kata sandi lama yang Anda masukkan tidak sesuai.' });
+                      return;
+                    }
+                  } catch (apiErr) {
+                    console.warn('[Change Pass API] Offline or unreachable, fallback local:', apiErr);
                   }
 
                   if (targetId) {

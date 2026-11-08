@@ -829,31 +829,67 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   useEffect(() => {
     const interval = setInterval(() => {
       setSessions(prev => {
-        const hasRunning = prev.some(s => s.isTimerRunning);
+        const hasRunning = prev.some(s => s.isTimerRunning || Object.values(s.productStates || {}).some((ps: any) => ps?.isTimerRunning));
         if (!hasRunning) return prev;
 
         return prev.map(s => {
-          if (!s.isTimerRunning) return s;
-          const newSeconds = (s.timerSeconds || 0) + 1;
-          const currProd = s.productNama;
-          const currProdState: ProductPracticeState = {
-            timerSeconds: newSeconds,
-            isTimerRunning: true,
-            stepChecklist: s.stepChecklist,
-            knowledgeAnswers: s.knowledgeAnswers,
-            skorKnowledge: s.skorKnowledge,
-            suhuMinyakProbe: s.suhuMinyakProbe,
-            gramaturAktual: s.gramaturAktual,
-            catatanTrainer: s.catatanTrainer,
-          };
-          return {
-            ...s,
-            timerSeconds: newSeconds,
-            productStates: {
-              ...(s.productStates || {}),
-              [currProd]: currProdState
+          const updatedProdStates: Record<string, ProductPracticeState> = { ...(s.productStates || {}) };
+          let stateChanged = false;
+
+          // Update timer untuk semua produk di background yang sedang berjalan
+          for (const [prodKey, prodStateRaw] of Object.entries(updatedProdStates)) {
+            const prodState = prodStateRaw as ProductPracticeState;
+            if (prodState && prodState.isTimerRunning) {
+              updatedProdStates[prodKey] = {
+                ...prodState,
+                timerSeconds: (prodState.timerSeconds || 0) + 1,
+              };
+              stateChanged = true;
             }
-          };
+          }
+
+          // Sinkronkan produk aktif yang sedang tampil
+          const currProdKey = s.productNama;
+          if (s.isTimerRunning) {
+            const nextSec = (s.timerSeconds || 0) + 1;
+            const existingCurr = updatedProdStates[currProdKey];
+            updatedProdStates[currProdKey] = {
+              ...(existingCurr || {
+                stepChecklist: s.stepChecklist,
+                knowledgeAnswers: s.knowledgeAnswers,
+                skorKnowledge: s.skorKnowledge,
+                suhuMinyakProbe: s.suhuMinyakProbe,
+                gramaturAktual: s.gramaturAktual,
+                catatanTrainer: s.catatanTrainer,
+              }),
+              timerSeconds: nextSec,
+              isTimerRunning: true,
+            };
+            return {
+              ...s,
+              timerSeconds: nextSec,
+              productStates: updatedProdStates,
+            };
+          }
+
+          // Jika produk aktif tidak jalan tetapi di productStates jalan
+          if (updatedProdStates[currProdKey]?.isTimerRunning) {
+            return {
+              ...s,
+              timerSeconds: updatedProdStates[currProdKey].timerSeconds,
+              isTimerRunning: true,
+              productStates: updatedProdStates,
+            };
+          }
+
+          if (stateChanged) {
+            return {
+              ...s,
+              productStates: updatedProdStates,
+            };
+          }
+
+          return s;
         });
       });
     }, 1000);
@@ -861,17 +897,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     return () => clearInterval(interval);
   }, []); // Mounts once: never cancelled on session state updates
 
-  // Switch product safely without losing timer or checklist state
+  // Switch product safely with INDEPENDENT stopwatch timer per product
   const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
     if (!activeSession) return;
     const currentProd = activeSession.productNama;
     const targetProd = findProductDefinition(targetProdName);
     if (!targetProd) return;
 
-    // Check whether stopwatch is actively running in this candidate's session
+    // Check whether stopwatch is actively running for the current product
     const wasTimerRunning = !!activeSession.isTimerRunning;
 
-    // 1. Snapshot current active product state
+    // 1. Snapshot current active product state with its individual timerSeconds and isTimerRunning
     const currentSnapshot: ProductPracticeState = {
       timerSeconds: activeSession.timerSeconds,
       isTimerRunning: wasTimerRunning,
@@ -905,10 +941,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     // Resolves steps directly from targetProd SOP steps to guarantee exact procedure match
     const nextSteps = resolveStepsForProduct(targetProd, targetState?.stepChecklist);
 
-    // KETIKA GANTI PRODUK DI ORANG YANG SAMA: Timer tetap berjalan dan detik timer berlanjut tanpa terhenti/reset!
-    const maintainedTimerSeconds = wasTimerRunning
-      ? activeSession.timerSeconds
-      : (targetState ? targetState.timerSeconds : 0);
+    // KETIKA GANTI PRODUK DI ORANG YANG SAMA: Tiap produk punya timer mandiri!
+    // Produk lama tetap jalan di background via updatedProductStates[currentProd].
+    // Produk target memuat timer miliknya sendiri (misal 0 jika baru dibuka).
+    const nextTimerSeconds = targetState ? targetState.timerSeconds : 0;
+    const nextIsTimerRunning = targetState ? !!targetState.isTimerRunning : false;
 
     updateActiveSession({
       productQueue: updatedQueue,
@@ -917,8 +954,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       day: targetProd.day,
       batch: targetProd.batch,
       station: targetProd.station,
-      timerSeconds: maintainedTimerSeconds,
-      isTimerRunning: wasTimerRunning, // TETAP BERJALAN: stopwatch terus berdetik tanpa jeda
+      timerSeconds: nextTimerSeconds,
+      isTimerRunning: nextIsTimerRunning,
       stepChecklist: nextSteps,
       knowledgeAnswers: targetState ? targetState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
       skorKnowledge: targetState ? targetState.skorKnowledge : 100,
@@ -929,7 +966,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       isSaved: false,
     });
 
-    showToast(`Beralih ke: ${targetProd.nama} ${wasTimerRunning ? '(Timer tetap berjalan berlanjut)' : ''}`);
+    showToast(`Beralih ke: ${targetProd.nama} ${nextIsTimerRunning ? '(Timer berjalan)' : ''}`);
   };
 
   // Format Time mm:ss
@@ -1475,6 +1512,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       const nextProdDef = findProductDefinition(nextProdName);
       const nextSavedState = updatedProductStates[nextProdDef.nama];
 
+      const nextTimerSeconds = nextSavedState ? nextSavedState.timerSeconds : 0;
+      const nextIsTimerRunning = nextSavedState ? !!nextSavedState.isTimerRunning : false;
+
       updateActiveSession({
         currentProductIndex: nextIndex,
         productNama: nextProdDef.nama,
@@ -1486,8 +1526,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         stepChecklist: resolveStepsForProduct(nextProdDef, nextSavedState?.stepChecklist),
         knowledgeAnswers: nextSavedState ? nextSavedState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
         skorKnowledge: nextSavedState ? nextSavedState.skorKnowledge : 100,
-        timerSeconds: wasTimerRunning ? activeSession.timerSeconds : (nextSavedState ? nextSavedState.timerSeconds : 0),
-        isTimerRunning: wasTimerRunning, // TETAP BERJALAN: jika timer sedang berjalan, timer lanjut berjalan untuk menu berikutnya!
+        timerSeconds: nextTimerSeconds,
+        isTimerRunning: nextIsTimerRunning,
         catatanTrainer: nextSavedState ? (nextSavedState.catatanTrainer || '') : (activeSession.productNotes?.[nextProdDef.nama] || ''),
         isSaved: false,
         completedProducts: newCompleted,
@@ -2358,7 +2398,30 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     <div className="flex flex-wrap items-center gap-1.5 pt-1">
                       <button
                         type="button"
-                        onClick={() => updateActiveSession({ isTimerRunning: !activeSession.isTimerRunning })}
+                        onClick={() => {
+                          const nextRunning = !activeSession.isTimerRunning;
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            timerSeconds: activeSession.timerSeconds,
+                            isTimerRunning: nextRunning,
+                          };
+                          updateActiveSession({
+                            isTimerRunning: nextRunning,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                        }}
                         className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer ${
                           activeSession.isTimerRunning
                             ? 'bg-amber-600 hover:bg-amber-700'
@@ -2371,7 +2434,30 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                       <button
                         type="button"
-                        onClick={() => updateActiveSession({ timerSeconds: currentProductDef.stdDetik, isTimerRunning: false })}
+                        onClick={() => {
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            timerSeconds: currentProductDef.stdDetik,
+                            isTimerRunning: false,
+                          };
+                          updateActiveSession({
+                            timerSeconds: currentProductDef.stdDetik,
+                            isTimerRunning: false,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                        }}
                         className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold transition-colors cursor-pointer"
                         title="Set tepat target"
                       >
@@ -2380,7 +2466,30 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                       <button
                         type="button"
-                        onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds + 30) })}
+                        onClick={() => {
+                          const newSec = Math.max(0, activeSession.timerSeconds + 30);
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            timerSeconds: newSec,
+                            isTimerRunning: activeSession.isTimerRunning,
+                          };
+                          updateActiveSession({
+                            timerSeconds: newSec,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                        }}
                         className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-mono font-bold transition-colors cursor-pointer"
                       >
                         +30s
@@ -2388,7 +2497,30 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                       <button
                         type="button"
-                        onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds - 30) })}
+                        onClick={() => {
+                          const newSec = Math.max(0, activeSession.timerSeconds - 30);
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            timerSeconds: newSec,
+                            isTimerRunning: activeSession.isTimerRunning,
+                          };
+                          updateActiveSession({
+                            timerSeconds: newSec,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                        }}
                         className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-mono font-bold transition-colors cursor-pointer"
                       >
                         -30s
@@ -2396,7 +2528,30 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                       <button
                         type="button"
-                        onClick={() => updateActiveSession({ timerSeconds: 0, isTimerRunning: false })}
+                        onClick={() => {
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            timerSeconds: 0,
+                            isTimerRunning: false,
+                          };
+                          updateActiveSession({
+                            timerSeconds: 0,
+                            isTimerRunning: false,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                        }}
                         className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 text-xs transition-colors cursor-pointer"
                         title="Reset stopwatch ke 0"
                       >
