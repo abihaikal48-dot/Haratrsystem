@@ -11,6 +11,7 @@ import {
   testSupabaseConnection,
   autoSeedSupabaseIfEmpty,
   pullAllFromSupabase,
+  pushAllLocalDataToSupabase,
   getSupabaseStatus,
   subscribeSupabaseStatus,
   SupabaseStatus,
@@ -156,12 +157,20 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
     await saveSupabaseCredentials(url.trim(), anonKey.trim());
     await saveCentralSupabaseConfig(url.trim(), anonKey.trim());
     const res = await testSupabaseConnection(url.trim(), anonKey.trim());
-    setTestResult(res);
+    if (res.success) {
+      const pushRes = await pushAllLocalDataToSupabase();
+      setTestResult({
+        success: true,
+        message: `${res.message} ${pushRes.message}`,
+      });
+    } else {
+      setTestResult(res);
+    }
     setLoading(false);
     if (res.success) {
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 2000);
     }
   };
 
@@ -488,7 +497,7 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                         <UploadCloud size={14} className="text-[#96171B]" />
                         <span>Operasi Cloud Langsung (Database Utama)</span>
                       </h5>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                         <button
                           type="button"
                           onClick={handlePullLatestData}
@@ -501,6 +510,32 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
                           </div>
                           <p className="text-[10px] text-slate-500 mt-0.5">
                             Sinkronkan data penilaian & kru terbaru dari Supabase ke peramban.
+                          </p>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            setLoading(true);
+                            setSyncStatusMsg('Mendorong seluruh data lokal ke tabel Supabase...');
+                            try {
+                              const res = await pushAllLocalDataToSupabase();
+                              setSyncStatusMsg(res.message);
+                            } catch (e: any) {
+                              setSyncStatusMsg(`Gagal: ${e.message}`);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                          disabled={loading}
+                          className="p-2.5 rounded-xl border border-red-200 bg-red-50/70 hover:bg-red-100/70 text-left transition-colors cursor-pointer"
+                        >
+                          <div className="flex items-center gap-2 font-bold text-xs text-[#96171B]">
+                            <UploadCloud size={14} className="text-[#96171B]" />
+                            <span>Push Semua Data</span>
+                          </div>
+                          <p className="text-[10px] text-slate-600 mt-0.5">
+                            Unggah seluruh data lokal (kru, outlet, batch, penilaian produk, user) ke Supabase.
                           </p>
                         </button>
 

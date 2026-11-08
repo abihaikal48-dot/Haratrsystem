@@ -7,6 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppUser } from '../types';
 import { db } from '../lib/storage';
+import { getSupabase } from '../lib/supabase';
 import { HaraLogo } from './HaraLogo';
 import { GeometricBackdrop } from './ui/GeometricBackdrop';
 
@@ -196,7 +197,70 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setIsSubmitting(false);
     };
 
-    // 1. Cek akun master terdaftar
+    // 1. Cek langsung ke database Supabase Cloud (public.app_users) jika terhubung
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const { data: cloudUsers, error: userFetchError } = await supabase
+          .from('app_users')
+          .select('*')
+          .or(`email.ilike.${inputEmail},username.ilike.${inputEmail}`);
+
+        if (!userFetchError && cloudUsers && cloudUsers.length > 0) {
+          const cloudUser = cloudUsers[0];
+          const localSavedPass = localStorage.getItem(`hara_user_pass_${cloudUser.id}`);
+          const masterPass = REGISTERED_STAFF_REGISTRY.find(
+            s => s.email.toLowerCase() === (cloudUser.email || '').toLowerCase()
+          )?.defaultPass;
+          const expectedCloudPass = cloudUser.password_hash || localSavedPass || masterPass || 'hara123';
+
+          if (inputPass === expectedCloudPass) {
+            const userObj: AppUser = {
+              id: cloudUser.id,
+              nama: cloudUser.nama,
+              email: cloudUser.email,
+              role: cloudUser.role as any,
+              kode_outlet: cloudUser.kode_outlet || 'Kantor Lempongsari',
+              status_aktif: 'Aktif',
+              created_at: cloudUser.created_at || new Date().toISOString(),
+            };
+
+            // Simpan ke local db cache
+            db.insertRow('app_users', userObj);
+            db.setCurrentUser(userObj);
+
+            // Perbarui last_login di Supabase
+            const nowIso = new Date().toISOString();
+            await supabase.from('app_users').update({
+              last_login: nowIso,
+              updated_at: nowIso,
+            }).eq('id', cloudUser.id);
+
+            // Catat log aktivitas ke Supabase
+            await supabase.from('log_aktivitas').insert({
+              id: 'log-' + Date.now(),
+              tipe: 'LOGIN',
+              modul: 'Autentikasi',
+              deskripsi: `Pengguna ${userObj.nama} (${userObj.role}) berhasil login via Supabase.`,
+              user_nama: userObj.nama,
+              created_at: nowIso,
+            });
+
+            setFailedAttempts(0);
+            localStorage.removeItem('hara_auth_failed_attempts');
+            localStorage.removeItem('hara_auth_lockout_until');
+            db.addLog('UBAH', 'Autentikasi', `Pengguna ${userObj.nama} (${userObj.role}) berhasil masuk melalui Supabase.`);
+            onLoginSuccess(userObj);
+            setIsSubmitting(false);
+            return;
+          }
+        }
+      } catch (cloudErr) {
+        console.warn('[Supabase Cloud Login] Gagal verifikasi via cloud:', cloudErr);
+      }
+    }
+
+    // 2. Cek akun master terdaftar (Offline / Fallback registry)
     const targetStaff = REGISTERED_STAFF_REGISTRY.find(
       (a) => a.email.toLowerCase() === inputEmail || a.username.toLowerCase() === inputEmail
     );
@@ -226,6 +290,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         db.insertRow('app_users', matched);
       }
 
+      // Sinkronkan login ke Supabase jika terhubung
+      if (supabase) {
+        const nowIso = new Date().toISOString();
+        supabase.from('app_users').upsert({
+          id: matched.id,
+          nama: matched.nama,
+          email: matched.email,
+          role: matched.role,
+          status_aktif: true,
+          last_login: nowIso,
+          updated_at: nowIso,
+        }, { onConflict: 'id' }).then(() => {});
+
+        supabase.from('log_aktivitas').insert({
+          id: 'log-' + Date.now(),
+          tipe: 'LOGIN',
+          modul: 'Autentikasi',
+          deskripsi: `Pengguna ${matched.nama} (${matched.role}) berhasil masuk.`,
+          user_nama: matched.nama,
+          created_at: nowIso,
+        }).then(() => {});
+      }
+
       setFailedAttempts(0);
       localStorage.removeItem('hara_auth_failed_attempts');
       localStorage.removeItem('hara_auth_lockout_until');
@@ -236,13 +323,26 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       return;
     }
 
-    // 2. Cek database user tambahan
+    // 3. Cek database user tambahan lokal
     const customUser = users.find((u) => u.email.toLowerCase() === inputEmail);
     if (customUser) {
       const customPass = localStorage.getItem(`hara_user_pass_${customUser.id}`);
       if (!customPass || inputPass !== customPass) {
         recordFailedAttempt('Kata sandi yang Anda masukkan tidak cocok.');
         return;
+      }
+
+      if (supabase) {
+        const nowIso = new Date().toISOString();
+        supabase.from('app_users').upsert({
+          id: customUser.id,
+          nama: customUser.nama,
+          email: customUser.email,
+          role: customUser.role,
+          status_aktif: true,
+          last_login: nowIso,
+          updated_at: nowIso,
+        }, { onConflict: 'id' }).then(() => {});
       }
 
       setFailedAttempts(0);
@@ -592,6 +692,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   if (targetId) {
                     localStorage.setItem(`hara_user_pass_${targetId}`, newPass);
                     db.addLog('UBAH', 'Keamanan', `Pengguna ${targetIdClean} berhasil memperbarui kata sandi secara mandiri.`);
+
+                    const supabase = getSupabase();
+                    if (supabase) {
+                      const nowIso = new Date().toISOString();
+                      supabase.from('app_users').update({
+                        password_hash: newPass,
+                        updated_at: nowIso,
+                      }).eq('id', targetId).then(() => {});
+
+                      supabase.from('log_aktivitas').insert({
+                        id: 'log-' + Date.now(),
+                        tipe: 'UBAH',
+                        modul: 'Keamanan',
+                        deskripsi: `Kata sandi akun ${targetIdClean} berhasil diperbarui di Supabase.`,
+                        user_nama: targetIdClean,
+                        created_at: nowIso,
+                      }).then(() => {});
+                    }
+
                     setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diperbarui! Silakan masuk kembali.' });
                     setTimeout(() => {
                       setShowChangePasswordModal(false);

@@ -778,10 +778,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const currentSteps = activeSession.stepChecklist;
     const expectedSteps = currentProductDef.langkahSOP;
 
-    // Check if the current steps in state accurately belong to currentProductDef
+    // Check if the current steps in state accurately belong to currentProductDef (strictly verify every step)
     const isMatched = Array.isArray(currentSteps) &&
       currentSteps.length === expectedSteps.length &&
-      (expectedSteps.length === 0 || currentSteps[0]?.langkah === expectedSteps[0]?.teks);
+      expectedSteps.every((s, idx) => currentSteps[idx]?.langkah === s.teks);
 
     if (isMatched) {
       return currentSteps;
@@ -800,7 +800,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
     const isOutOfSync = !Array.isArray(currentSteps) ||
       currentSteps.length !== expectedSteps.length ||
-      (currentSteps.length > 0 && expectedSteps.length > 0 && currentSteps[0].langkah !== expectedSteps[0].teks);
+      !expectedSteps.every((s, idx) => currentSteps[idx]?.langkah === s.teks);
 
     if (isOutOfSync) {
       const targetState = activeSession.productStates?.[currentProductDef.nama];
@@ -825,15 +825,16 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }));
   };
 
-  // Background Multi-Session Stopwatch Interval - Keeps all running timers ticking simultaneously
+  // Background Multi-Session Stopwatch Interval - Keeps all running timers ticking continuously without resetting
   useEffect(() => {
-    const hasRunningSession = sessions.some(s => s.isTimerRunning);
-    if (!hasRunningSession) return;
-
     const interval = setInterval(() => {
-      setSessions(prev => prev.map(s => {
-        if (s.isTimerRunning) {
-          const newSeconds = s.timerSeconds + 1;
+      setSessions(prev => {
+        const hasRunning = prev.some(s => s.isTimerRunning);
+        if (!hasRunning) return prev;
+
+        return prev.map(s => {
+          if (!s.isTimerRunning) return s;
+          const newSeconds = (s.timerSeconds || 0) + 1;
           const currProd = s.productNama;
           const currProdState: ProductPracticeState = {
             timerSeconds: newSeconds,
@@ -853,13 +854,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               [currProd]: currProdState
             }
           };
-        }
-        return s;
-      }));
+        });
+      });
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [sessions]);
+  }, []); // Mounts once: never cancelled on session state updates
 
   // Switch product safely without losing timer or checklist state
   const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
@@ -905,6 +905,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     // Resolves steps directly from targetProd SOP steps to guarantee exact procedure match
     const nextSteps = resolveStepsForProduct(targetProd, targetState?.stepChecklist);
 
+    // KETIKA GANTI PRODUK DI ORANG YANG SAMA: Timer tetap berjalan dan detik timer berlanjut tanpa terhenti/reset!
+    const maintainedTimerSeconds = wasTimerRunning
+      ? activeSession.timerSeconds
+      : (targetState ? targetState.timerSeconds : 0);
+
     updateActiveSession({
       productQueue: updatedQueue,
       currentProductIndex: newIndex,
@@ -912,8 +917,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       day: targetProd.day,
       batch: targetProd.batch,
       station: targetProd.station,
-      timerSeconds: targetState ? targetState.timerSeconds : 0,
-      isTimerRunning: wasTimerRunning, // TETAP BERJALAN: jika timer sedang berjalan, timer tetap berjalan tanpa terhenti!
+      timerSeconds: maintainedTimerSeconds,
+      isTimerRunning: wasTimerRunning, // TETAP BERJALAN: stopwatch terus berdetik tanpa jeda
       stepChecklist: nextSteps,
       knowledgeAnswers: targetState ? targetState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
       skorKnowledge: targetState ? targetState.skorKnowledge : 100,
@@ -924,7 +929,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       isSaved: false,
     });
 
-    showToast(`Beralih ke: ${targetProd.nama} ${wasTimerRunning ? '(Timer tetap berjalan)' : ''}`);
+    showToast(`Beralih ke: ${targetProd.nama} ${wasTimerRunning ? '(Timer tetap berjalan berlanjut)' : ''}`);
   };
 
   // Format Time mm:ss
@@ -1481,7 +1486,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         stepChecklist: resolveStepsForProduct(nextProdDef, nextSavedState?.stepChecklist),
         knowledgeAnswers: nextSavedState ? nextSavedState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
         skorKnowledge: nextSavedState ? nextSavedState.skorKnowledge : 100,
-        timerSeconds: nextSavedState ? nextSavedState.timerSeconds : 0,
+        timerSeconds: wasTimerRunning ? activeSession.timerSeconds : (nextSavedState ? nextSavedState.timerSeconds : 0),
         isTimerRunning: wasTimerRunning, // TETAP BERJALAN: jika timer sedang berjalan, timer lanjut berjalan untuk menu berikutnya!
         catatanTrainer: nextSavedState ? (nextSavedState.catatanTrainer || '') : (activeSession.productNotes?.[nextProdDef.nama] || ''),
         isSaved: false,
@@ -4669,14 +4674,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                           <div className="flex-1 min-w-0">
                             {/* Baris 1: NAMA PRODUK JELAS, TEBAL, TIDAK TERPOTONG */}
-                            <div className="font-extrabold text-sm sm:text-base text-[#181411] leading-snug break-words">
-                              {prod.nama}
+                            <div className="font-black text-sm sm:text-base text-[#181411] leading-snug break-words">
+                              {prod.nama || (prod as any).judul_sop || (prod as any).produk_nama || (prod as any).judul || prod.kode || 'Produk Standar SOP'}
                             </div>
 
                             {/* Baris 2: KODE PRODUK, STATUS BADGE, & INFORMASI SOP */}
                             <div className="flex flex-wrap items-center gap-1.5 mt-1">
                               <span className="text-[10px] text-[#645D55] font-mono font-bold bg-stone-100 px-1.5 py-0.5 rounded border border-stone-200">
-                                {prod.kode}
+                                {prod.kode || (prod as any).kode_sop || ''}
                               </span>
                               {isSelected && (
                                 <span className="px-1.5 py-0.5 rounded text-[9.5px] font-bold bg-[#96171B] text-white">

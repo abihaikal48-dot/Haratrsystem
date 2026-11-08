@@ -235,6 +235,229 @@ export function removeSupabaseCredentials(): void {
 }
 
 /**
+ * Sanitasi payload objek sebelum di-upsert ke tabel PostgreSQL Supabase
+ * agar tidak ditolak dengan error PGRST204 (Column not found in schema cache).
+ */
+export function sanitizeRecordForTable(table: string, record: any): any {
+  if (!record || typeof record !== 'object') return {};
+
+  const cleanId = String(record.id || ('rec-' + Date.now() + '-' + Math.random().toString(36).substring(2, 7)));
+
+  // 1. Outlets
+  if (table === 'outlets') {
+    return {
+      id: cleanId,
+      nama_outlet: record.nama_outlet || record.nama || 'Outlet HARA',
+      kode_outlet: record.kode_outlet || record.kode || cleanId,
+      alamat: record.alamat || '',
+      kepala_outlet: record.kepala_outlet || record.manager || '',
+      area_supervisor: record.area_supervisor || record.supervisor || '',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 2. Kru & Peserta
+  if (table === 'kru') {
+    return {
+      id: cleanId,
+      nama_kru: record.nama_kru || record.nama || 'Kru HARA',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      divisi: record.divisi || 'Kitchen',
+      jabatan: record.jabatan || 'Crew Store',
+      status_karyawan: record.status_karyawan || 'Karyawan Baru',
+      shift: record.shift || 'Shift 1',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 3. Bank SOP
+  if (table === 'bank_sop') {
+    return {
+      id: cleanId,
+      kode_sop: record.kode_sop || record.kode || '',
+      judul_sop: record.judul_sop || record.judul || record.nama || '',
+      divisi: record.divisi || 'Kitchen',
+      station: record.station || '',
+      durasi_standar_detik: Number(record.durasi_standar_detik || record.stdDetik || 300),
+      langkah: record.langkah || record.langkahSOP || [],
+      poin_kritis: record.poin_kritis || '',
+      standar_waktu: record.standar_waktu || '',
+      alat_bahan: record.alat_bahan || '',
+      sumber: record.sumber || 'Standar Mutu HARA HQ',
+      status_aktif: record.status_aktif || 'Aktif',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 4. Onboarding Batches
+  if (table === 'onboarding_batches') {
+    return {
+      id: cleanId,
+      nomor_batch: record.nomor_batch || record.kode || '',
+      nama_batch: record.nama_batch || record.nama || 'Batch Onboarding',
+      tanggal_mulai: record.tanggal_mulai || record.tanggal || new Date().toISOString().split('T')[0],
+      tanggal_selesai: record.tanggal_selesai || record.tanggal || new Date().toISOString().split('T')[0],
+      kode_outlet_lokasi: record.kode_outlet_lokasi || record.kode_outlet || 'Kantor Lempongsari',
+      status: record.status || 'Berjalan',
+      kuota_min: Number(record.kuota_min || 11),
+      kuota_max: Number(record.kuota_max || 17),
+      peserta: Array.isArray(record.peserta) ? record.peserta : [],
+      lead_trainer: record.lead_trainer || 'Haikal Abi',
+      catatan_batch: record.catatan_batch || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 5. Penilaian Praktik Produk SOP
+  if (table === 'penilaian_praktik_onboarding_produk') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || record.kru_nama || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || 'Kantor Lempongsari',
+      nama_outlet: record.nama_outlet || record.outlet_penempatan || '',
+      batch_id: record.batch_id || record.batchId || '',
+      nama_batch: record.nama_batch || record.batch || '',
+      divisi: record.divisi || 'Kitchen',
+      produk_nama: record.produk_nama || record.productNama || record.nama_produk || 'Produk SOP',
+      kode_sop: record.kode_sop || record.kode || '',
+      station: record.station || '',
+      station_label: record.station_label || record.station || '',
+      day: record.day || 'Day 1',
+      waktu_detik: Number(record.waktu_detik || record.durasi_detik || record.timerSeconds || 0),
+      target_detik: Number(record.target_detik || record.targetDetik || 300),
+      suhu_minyak_probe: record.suhu_minyak_probe !== undefined ? Number(record.suhu_minyak_probe) : null,
+      gramatur_aktual: record.gramatur_aktual !== undefined ? Number(record.gramatur_aktual) : (record.gramaturAktual !== undefined ? Number(record.gramaturAktual) : null),
+      skor_prosedur: Number(record.skor_prosedur || 0),
+      skor_waktu: Number(record.skor_waktu || 0),
+      skor_knowledge: Number(record.skor_knowledge !== undefined ? record.skor_knowledge : 100),
+      skor_kebersihan: Number(record.skor_kebersihan || 90),
+      skor_kerjasama: Number(record.skor_kerjasama || 90),
+      skor_keaktifan: Number(record.skor_keaktifan || 90),
+      skor_ketepatan: Number(record.skor_ketepatan || 90),
+      subskor_teknis: Number(record.subskor_teknis || 0),
+      subskor_sikap: Number(record.subskor_sikap || 0),
+      skor_akhir: Number(record.skor_akhir || 0),
+      status_kelulusan: record.status_kelulusan || record.status || 'Kompeten',
+      status: record.status || record.status_kelulusan || 'Kompeten',
+      gagal_titik_kritis: Boolean(record.gagal_titik_kritis),
+      titik_kritis_gagal_detail: Array.isArray(record.titik_kritis_gagal_detail) ? record.titik_kritis_gagal_detail : [],
+      knowledge_questions: record.knowledge_questions || null,
+      checklist_langkah: Array.isArray(record.checklist_langkah) ? record.checklist_langkah : (record.stepChecklist || []),
+      penilai_nama: record.penilai_nama || record.trainer_nama || 'Trainer HARA',
+      catatan: record.catatan || record.catatanTrainer || '',
+      catatan_trainer: record.catatan_trainer || record.catatan || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 6. Penilaian Sikap & Kebersihan Kru
+  if (table === 'penilaian_sikap_kebersihan_kru') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || record.kruId || '',
+      nama_kru: record.nama_kru || record.namaKru || 'Peserta',
+      kode_outlet: record.kode_outlet || record.outletCode || '',
+      nama_outlet: record.nama_outlet || '',
+      batch_id: record.batch_id || record.batchId || '',
+      shift: record.shift || 'Shift 1',
+      skor_grooming: Number(record.skor_grooming || 90),
+      skor_resik: Number(record.skor_resik || 90),
+      skor_attitude: Number(record.skor_attitude || 90),
+      skor_disiplin: Number(record.skor_disiplin || 90),
+      skor_total: Number(record.skor_total || 90),
+      status_kelulusan: record.status_kelulusan || 'Sangat Baik',
+      checklist_detail: record.checklist_detail || [],
+      catatan: record.catatan || '',
+      penilai_nama: record.penilai_nama || 'Trainer',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 7. Penilaian Jobdesk Stasiun
+  if (table === 'penilaian_jobdesk_stasiun') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      batch_id: record.batch_id || '',
+      batch_name: record.batch_name || '',
+      kode_outlet: record.kode_outlet || '',
+      nama_outlet: record.nama_outlet || '',
+      stasiun: record.stasiun || 'Station 1',
+      shift: record.shift || 'Shift 1',
+      kru_names: Array.isArray(record.kru_names) ? record.kru_names : [],
+      penilai_nama: record.penilai_nama || 'Trainer',
+      skor_5s_kebersihan: Number(record.skor_5s_kebersihan || 90),
+      detail_5s: record.detail_5s || {},
+      skor_kerjasama_komunikasi: Number(record.skor_kerjasama_komunikasi || 90),
+      detail_kerjasama: record.detail_kerjasama || {},
+      skor_akhir: Number(record.skor_akhir || 90),
+      catatan: record.catatan || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 8. Hasil Ujian Kru Mingguan
+  if (table === 'hasil_ujian_mingguan') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      nama_kru: record.nama_kru || record.nama || 'Peserta',
+      kru_id: record.kru_id || '',
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
+      divisi: record.divisi || 'Kitchen',
+      minggu_ke: Number(record.minggu_ke || 1),
+      tipe_ujian: record.tipe_ujian || 'Teori',
+      skor: Number(record.skor || 0),
+      status_kelulusan: record.status_kelulusan || (Number(record.skor || 0) >= 80 ? 'Lulus' : 'Remedial'),
+      jawaban_detail: record.jawaban_detail || {},
+      topik_salah: Array.isArray(record.topik_salah) ? record.topik_salah : [],
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 9. Akun Pengguna / Users
+  if (table === 'app_users') {
+    return {
+      id: cleanId,
+      email: (record.email || '').toLowerCase().trim(),
+      nama: record.nama || 'Pengguna HARA',
+      role: record.role || 'Trainer',
+      outlet_akses: Array.isArray(record.outlet_akses) ? record.outlet_akses : ['ALL'],
+      divisi_akses: Array.isArray(record.divisi_akses) ? record.divisi_akses : ['Kitchen', 'Service'],
+      status_aktif: record.status_aktif !== false,
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  // 10. Attitude HARA
+  if (table === 'attitude_hara') {
+    return {
+      id: cleanId,
+      tanggal: record.tanggal || new Date().toISOString().split('T')[0],
+      kru_id: record.kru_id || '',
+      nama_kru: record.nama_kru || '',
+      kode_outlet: record.kode_outlet || '',
+      divisi: record.divisi || 'Kitchen',
+      skor_h_higienis: Number(record.skor_h_higienis || 90),
+      skor_a_antusias: Number(record.skor_a_antusias || 90),
+      skor_r_resik: Number(record.skor_r_resik || 90),
+      skor_a_amanah: Number(record.skor_a_amanah || 90),
+      skor_rata_rata: Number(record.skor_rata_rata || 90),
+      checklist_items: record.checklist_items || {},
+      catatan_perilaku: record.catatan_perilaku || '',
+      created_at: record.created_at || new Date().toISOString(),
+    };
+  }
+
+  return { id: cleanId, ...record };
+}
+
+/**
  * Menulis / menyinkronkan 1 baris ke tabel Supabase spesifik secara asynchronous.
  */
 export async function syncRowToSupabase(tableName: string, row: any): Promise<void> {
@@ -287,9 +510,13 @@ export async function syncRowToSupabase(tableName: string, row: any): Promise<vo
       { onConflict: 'key' }
     );
 
-    // 2. Simpan juga ke structured table jika didukung
-    if (targetTable && row && row.id) {
-      await supabase.from(targetTable).upsert(row, { onConflict: 'id' });
+    // 2. Simpan juga ke structured table jika didukung dengan sanitasi kolom
+    if (targetTable && row) {
+      const sanitized = sanitizeRecordForTable(targetTable, row);
+      const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
+      if (error) {
+        console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+      }
     }
   } catch (err) {
     console.warn(`[Supabase Sync] Gagal sinkron baris ke ${tableName}:`, err);
@@ -393,25 +620,29 @@ export async function autoSeedSupabaseIfEmpty(): Promise<{
 
     // 1. Seed Outlets Resmi (11 Outlet)
     if (outlets.length > 0) {
-      const { error } = await supabase.from('outlets').upsert(outlets, { onConflict: 'id' });
+      const sanitizedOutlets = outlets.map(o => sanitizeRecordForTable('outlets', o));
+      const { error } = await supabase.from('outlets').upsert(sanitizedOutlets, { onConflict: 'id' });
       if (!error) totalMigrated += outlets.length;
     }
 
     // 2. Seed Kru Resmi (12 Kru: 7 Karyawan Baru + 5 Retraining)
     if (kru.length > 0) {
-      const { error } = await supabase.from('kru').upsert(kru, { onConflict: 'id' });
+      const sanitizedKru = kru.map(k => sanitizeRecordForTable('kru', k));
+      const { error } = await supabase.from('kru').upsert(sanitizedKru, { onConflict: 'id' });
       if (!error) totalMigrated += kru.length;
     }
 
     // 3. Seed Bank SOP Resmi (25 SOP Standar Produk & Mutu)
     if (bankSop.length > 0) {
-      const { error } = await supabase.from('bank_sop').upsert(bankSop, { onConflict: 'id' });
+      const sanitizedSop = bankSop.map(s => sanitizeRecordForTable('bank_sop', s));
+      const { error } = await supabase.from('bank_sop').upsert(sanitizedSop, { onConflict: 'id' });
       if (!error) totalMigrated += bankSop.length;
     }
 
     // 4. Seed Akun Pengguna / User Management (Admin, Lead Trainer Haikal Abi, RnD Jihan, RnD Feri, Trainer Ari)
     if (appUsers.length > 0) {
-      await supabase.from('app_users').upsert(appUsers, { onConflict: 'id' });
+      const sanitizedUsers = appUsers.map(u => sanitizeRecordForTable('app_users', u));
+      await supabase.from('app_users').upsert(sanitizedUsers, { onConflict: 'id' });
       totalMigrated += appUsers.length;
     }
 
@@ -437,7 +668,7 @@ export async function autoSeedSupabaseIfEmpty(): Promise<{
 
     return {
       seeded: true,
-      message: `Sukses memigrasikan ${totalMigrated} data master (11 outlet, 12 peserta kru, 25 SOP, bank soal, dan akun trainer/admin) ke Supabase (Data contoh ditiadakan).`,
+      message: `Sukses memigrasikan ${totalMigrated} data master (11 outlet, 12 peserta kru, 25 SOP, bank soal, dan akun trainer/admin) ke Supabase.`,
       count: totalMigrated
     };
   } catch (err: any) {
@@ -700,29 +931,141 @@ export async function syncTableToSupabase(tableName: string, data: any[]): Promi
 
 /**
  * Sinkronkan record data secara otomatis dan instan ke Supabase.
- * Mengutamakan upsert ke tabel bersangkutan atau app_store key-value.
+ * Mengutamakan snapshot ke app_store dan upsert tersanitasi ke tabel terstruktur.
  */
 export async function syncRecordToSupabase(table: string, record: any): Promise<boolean> {
   const supabase = getSupabase();
   if (!supabase || !record) return false;
 
   try {
-    // 1. Coba simpan langsung ke tabel spesifik
-    const { error } = await supabase.from(table).upsert(record, { onConflict: 'id' });
-    if (error) {
-      console.warn(`[Supabase Auto-Sync] Warning simpan ke ${table}:`, error.message);
-    }
-    // 2. Update snapshot tabel lengkap di app_store
+    // 1. Selalu perbarui snapshot tabel di app_store terlebih dahulu (Zero schema error)
     const currentList = db.getTable(table);
     await supabase.from('app_store').upsert({
       key: table,
       value: currentList,
       updated_at: new Date().toISOString()
     }, { onConflict: 'key' });
+
+    // 2. Simpan juga ke structured table jika didukung dengan sanitasi kolom
+    const validTableMap: Record<string, string> = {
+      outlets: 'outlets',
+      kru: 'kru',
+      bank_sop: 'bank_sop',
+      bank_soal: 'bank_soal',
+      hasil_ujian_mingguan: 'hasil_ujian_mingguan',
+      kartu_keluhan: 'kartu_keluhan',
+      tna: 'tna',
+      rencana_training: 'rencana_training',
+      observasi_lapangan: 'observasi_lapangan',
+      coaching_log: 'coaching_log',
+      gap_analysis: 'gap_analysis',
+      penilaian_teori: 'penilaian_teori',
+      penilaian_praktik: 'penilaian_praktik',
+      penilaian_lisan: 'penilaian_lisan',
+      talent_tracker: 'talent_tracker',
+      ojt_monitoring: 'ojt_monitoring',
+      log_aktivitas: 'log_aktivitas',
+      app_users: 'app_users',
+      users: 'app_users',
+      onboarding_batches: 'onboarding_batches',
+      penilaian_praktik_onboarding_produk: 'penilaian_praktik_onboarding_produk',
+      penilaian_onboarding_rnd: 'penilaian_praktik_onboarding_produk',
+      penilaian_onboarding_tc: 'penilaian_praktik_onboarding_produk',
+      attitude_hara: 'attitude_hara',
+      bank_sop_products: 'bank_sop',
+    };
+
+    const targetTable = validTableMap[table] || table;
+    const sanitized = sanitizeRecordForTable(targetTable, record);
+    const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
+    if (error) {
+      console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+    }
     return true;
   } catch (e) {
-    console.warn(`[Supabase Auto-Sync] Gagal menyimpan ke ${table}:`, e);
+    console.error(`[Supabase Auto-Sync] Gagal menyimpan ke ${table}:`, e);
     return false;
+  }
+}
+
+/**
+ * Mendorong (push) SELURUH data lokal aplikasi ke Supabase Cloud.
+ * Menyimpan cadangan lengkap di app_store dan menulis data tersanitasi ke setiap tabel PostgreSQL.
+ */
+export async function pushAllLocalDataToSupabase(): Promise<{
+  success: boolean;
+  message: string;
+  totalPushed: number;
+  details: Record<string, number>;
+}> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    return {
+      success: false,
+      message: 'Koneksi Supabase belum terkonfigurasi. Harap isi URL dan Anon Key.',
+      totalPushed: 0,
+      details: {},
+    };
+  }
+
+  const tablesToPush = [
+    'outlets',
+    'kru',
+    'bank_sop',
+    'onboarding_batches',
+    'penilaian_praktik_onboarding_produk',
+    'penilaian_sikap_kebersihan_kru',
+    'penilaian_jobdesk_stasiun',
+    'attitude_hara',
+    'hasil_ujian_mingguan',
+    'app_users',
+    'bank_soal',
+  ];
+
+  let total = 0;
+  const details: Record<string, number> = {};
+
+  try {
+    for (const table of tablesToPush) {
+      const data = db.getTable<any>(table);
+      if (!Array.isArray(data) || data.length === 0) continue;
+
+      // 1. Simpan ke app_store
+      await supabase.from('app_store').upsert({
+        key: table,
+        value: data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'key' });
+
+      // 2. Upsert ke tabel terstruktur
+      const sanitizedRows = data.map(item => sanitizeRecordForTable(table, item));
+      const chunkSize = 50;
+      for (let i = 0; i < sanitizedRows.length; i += chunkSize) {
+        const chunk = sanitizedRows.slice(i, i + chunkSize);
+        const { error } = await supabase.from(table).upsert(chunk, { onConflict: 'id' });
+        if (error) {
+          console.error(`[Supabase Push Error] Gagal push batch ${table}:`, error);
+        }
+      }
+
+      details[table] = data.length;
+      total += data.length;
+    }
+
+    return {
+      success: true,
+      message: `Berhasil mengunggah ${total} data lokal ke database Supabase Cloud!`,
+      totalPushed: total,
+      details,
+    };
+  } catch (err: any) {
+    console.error('Error saat push semua data ke Supabase:', err);
+    return {
+      success: false,
+      message: `Gagal mengunggah data: ${err.message || 'Kesalahan jaringan'}`,
+      totalPushed: total,
+      details,
+    };
   }
 }
 
