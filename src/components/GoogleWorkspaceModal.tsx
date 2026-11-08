@@ -12,10 +12,8 @@ import {
   getAccessToken,
   initGoogleAuth
 } from '../lib/googleWorkspace';
-import { testFirestoreConnection, firestore } from '../lib/firebase';
-import { syncAllToFirestore } from '../lib/firestoreSync';
+import { pullAllFromSupabase, getSupabaseStatus } from '../lib/supabase';
 import { db } from '../lib/storage';
-import { User as FirebaseUser } from 'firebase/auth';
 
 interface GoogleWorkspaceModalProps {
   isOpen: boolean;
@@ -28,30 +26,24 @@ export const GoogleWorkspaceModal: React.FC<GoogleWorkspaceModalProps> = ({
   onClose,
   onShowToast,
 }) => {
-  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [hasToken, setHasToken] = useState<boolean>(false);
   const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const [isExportingSheets, setIsExportingSheets] = useState<boolean>(false);
   const [isExportingDrive, setIsExportingDrive] = useState<boolean>(false);
-  const [isSyncingFirestore, setIsSyncingFirestore] = useState<boolean>(false);
-  const [firestoreConnected, setFirestoreConnected] = useState<boolean | null>(null);
+  const [isSyncingSupabase, setIsSyncingSupabase] = useState<boolean>(false);
 
   // Result links
   const [generatedSheetUrl, setGeneratedSheetUrl] = useState<string | null>(null);
   const [generatedDriveUrl, setGeneratedDriveUrl] = useState<string | null>(null);
 
   // Confirmation dialogs
-  const [confirmAction, setConfirmAction] = useState<null | 'sheets' | 'drive' | 'firestore'>(null);
+  const [confirmAction, setConfirmAction] = useState<null | 'sheets' | 'drive' | 'supabase'>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Check auth state on load
   useEffect(() => {
     if (!isOpen) return;
-
-    // Test Firestore connection
-    testFirestoreConnection().then((connected) => {
-      setFirestoreConnected(connected);
-    });
 
     // Check Google Auth state
     const unsub = initGoogleAuth(
@@ -155,22 +147,22 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
     }
   };
 
-  // Execute Firestore Cloud Sync
-  const executeFirestoreSync = async () => {
+  // Execute Supabase Cloud Sync
+  const executeSupabaseSync = async () => {
     setConfirmAction(null);
-    setIsSyncingFirestore(true);
+    setIsSyncingSupabase(true);
     setErrorMessage(null);
     try {
-      const res = await syncAllToFirestore();
+      const res = await pullAllFromSupabase();
       if (res.success) {
-        onShowToast(`Berhasil upload ${res.totalSynced} data ke Cloud Firestore!`);
+        onShowToast(`Berhasil menyinkronkan data dengan Supabase Cloud!`);
       } else {
-        setErrorMessage(res.message);
+        setErrorMessage('Gagal menyinkronkan data dengan Supabase Cloud.');
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'Gagal sinkronisasi Firestore.');
+      setErrorMessage(err.message || 'Gagal sinkronisasi Supabase.');
     } finally {
-      setIsSyncingFirestore(false);
+      setIsSyncingSupabase(false);
     }
   };
 
@@ -279,12 +271,12 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
           )}
         </div>
 
-        {/* Section 2: Online Cloud Firebase Firestore Status */}
+        {/* Section 2: Online Cloud Supabase Database Status */}
         <div className="p-4 rounded-2xl bg-stone-50 border border-stone-200/90 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-stone-900 flex items-center gap-1.5">
-              <Cloud size={14} className="text-blue-600" />
-              <span>Database Online (Firebase Firestore):</span>
+              <Database size={14} className="text-emerald-600" />
+              <span>Database Cloud Supabase (PostgreSQL):</span>
             </span>
             <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -292,29 +284,26 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
             </span>
           </div>
           <p className="text-xs text-stone-600 leading-relaxed">
-            Data penilaian kru, master outlet, kartu keluhan, dan hasil audit disinkronkan secara online ke database cloud Firestore. Ketika di-deploy ke Vercel atau dibuka dari HP/laptop manapun, seluruh data tersambung secara terpusat.
+            Data kru, onboarding batch, penilaian praktik produk, dan master outlet tersimpan aman dan terintegrasi di database Cloud Supabase (PostgreSQL) serta otomatis tersinkron ke Google Spreadsheets.
           </p>
           <div className="p-2.5 bg-white rounded-xl border border-stone-200 text-[11px] font-mono text-stone-600 space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-stone-400">Database ID:</span>
-              <span className="text-stone-900 font-bold">ai-studio-harapdsystempro-c7d090f8-3f22-4b7e-9be1-668f87a357d5</span>
+              <span className="text-stone-400">Penyimpanan Terpusat:</span>
+              <span className="text-stone-900 font-bold">Supabase PostgreSQL + Auto-Relay Sheets</span>
             </div>
-            <p className="text-[10px] text-stone-400 font-sans leading-normal pt-0.5">
-              *Di Firebase Console &gt; Firestore Database, pilih nama database di atas pada dropdown untuk melihat koleksi data yang terisi.
-            </p>
           </div>
           <div className="pt-1 flex items-center justify-between">
             <span className="text-[11px] text-stone-400 font-mono">
-              Status: Terkoneksi ke Cloud
+              Status: Terkoneksi ke Supabase Cloud
             </span>
             <button
               type="button"
-              onClick={() => setConfirmAction('firestore')}
-              disabled={isSyncingFirestore}
+              onClick={() => setConfirmAction('supabase')}
+              disabled={isSyncingSupabase}
               className="text-xs font-bold text-white bg-[#96171B] hover:bg-[#801216] px-3 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 cursor-pointer transition-all active:scale-[0.99]"
             >
-              <RefreshCw size={12} className={isSyncingFirestore ? 'animate-spin' : ''} />
-              <span>{isSyncingFirestore ? 'Mengunggah...' : 'Upload Semua Data ke Firestore'}</span>
+              <RefreshCw size={12} className={isSyncingSupabase ? 'animate-spin' : ''} />
+              <span>{isSyncingSupabase ? 'Menyinkronkan...' : 'Sinkronkan Data Supabase'}</span>
             </button>
           </div>
         </div>
@@ -407,8 +396,8 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
                 'Aplikasi akan membuat spreadsheet baru di akun Google Anda dan mengisi data riwayat penilaian kru dan outlet. Lanjutkan?'}
               {confirmAction === 'drive' &&
                 'Aplikasi akan mengunggah berkas teks ringkasan evaluasi operasional ke Google Drive Anda. Lanjutkan?'}
-              {confirmAction === 'firestore' &&
-                'Aplikasi akan menyinkronkan data lokal ke database online Firebase Firestore agar dapat diakses dari cabang lain. Lanjutkan?'}
+              {confirmAction === 'supabase' &&
+                'Aplikasi akan menyinkronkan data lokal dengan database online Supabase Cloud. Lanjutkan?'}
             </p>
             <div className="flex items-center justify-end gap-2 pt-1">
               <button
@@ -423,7 +412,7 @@ Data ini disinkronkan secara aman dari cloud system HARA TRAINER PRO.`;
                 onClick={() => {
                   if (confirmAction === 'sheets') executeSheetsExport();
                   if (confirmAction === 'drive') executeDriveExport();
-                  if (confirmAction === 'firestore') executeFirestoreSync();
+                  if (confirmAction === 'supabase') executeSupabaseSync();
                 }}
                 className="px-3.5 py-1.5 rounded-lg bg-stone-900 hover:bg-stone-800 text-white font-bold cursor-pointer"
               >

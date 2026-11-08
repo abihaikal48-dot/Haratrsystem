@@ -122,6 +122,18 @@ export async function initClientDataFromServer(): Promise<boolean> {
         }
       }
 
+      // Adopsi Webhook Google Sheets terpusat dari server jika ada
+      if (json.googleSheetsWebhookUrl) {
+        try {
+          const savedHook = localStorage.getItem('hara_google_sheet_webhook_url');
+          if (!savedHook) {
+            localStorage.setItem('hara_google_sheet_webhook_url', json.googleSheetsWebhookUrl);
+          }
+        } catch {
+          // ignore
+        }
+      }
+
       // 2. Daftar tabel yang harus disinkronkan secara otomatis antar-HP
       const tablesToSync = [
         'penilaian_praktik_onboarding_produk',

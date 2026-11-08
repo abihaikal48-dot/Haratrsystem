@@ -11,7 +11,6 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../lib/storage';
-import { syncAllToFirestore } from '../../lib/firestoreSync';
 import {
   Kru, Outlet, Division, OnboardingBatch,
   PenilaianPraktikOnboardingProduk, PenilaianJobdeskStasiun,
@@ -77,6 +76,29 @@ export const DAFTAR_PENILAI_DEFAULT = [
  * Pemetaan Resmi 12 Peserta Kru Baru TC Lempongsari ke Outlet Penempatan Riil
  */
 export const CANDIDATE_PLACEMENT_MAP: Record<string, string> = {
+  // Batch 3-4 November (TC Kantor Lempongsari)
+  'achmad luthfi khakim': 'Kertek',
+  'achmad luthfi': 'Kertek',
+  'maulida mega': 'Borobudur',
+  'lulu hidayati': 'RSI',
+  'muhammad kelvin febrianto': 'RSI',
+  'muhammad kelvin': 'RSI',
+  'anisyatul azizah': 'Magelang Tidar',
+  'elva rahmawati': 'Jakal 13',
+  'difa safitri': 'Mobile Outlet',
+  'hilda nur mafitiyas': 'Jl Wonosari',
+  'arifatul kurniasih': 'Jl Parangtritis',
+  'arifatul kurniasih new': 'Jl Parangtritis',
+  'reval arfinza putra': 'Jl Parangtritis',
+  'reval arfinza': 'Jl Parangtritis',
+  'iqfantri mae dinar': 'Event: Jl Parangtritis',
+  'farelyno mahesa nugroho': 'Mobile Outlet',
+  'farelyno mahesa': 'Mobile Outlet',
+  'imron irsyadi': 'Ronggolawe',
+  'imron irsyadi new': 'Ronggolawe',
+  'teadora mayca syilvina': 'Mobile Outlet',
+  'teadora mayca': 'Mobile Outlet',
+  // Kru TC Batch Sebelumnya
   'haudy rizky': 'Gito Gati',
   'vino adrian saputra': 'Glagahsari',
   'vino adrian': 'Glagahsari',
@@ -95,11 +117,11 @@ export const CANDIDATE_PLACEMENT_MAP: Record<string, string> = {
 };
 
 export const getCandidatePlacement = (nama: string, defaultOutlet?: string): string => {
-  const clean = (nama || '').toLowerCase().replace(/\(.*?\)/g, '').trim();
+  const clean = (nama || '').toLowerCase().replace(/\(.*?\)/g, '').replace(/new/g, '').trim();
   for (const [key, outlet] of Object.entries(CANDIDATE_PLACEMENT_MAP)) {
     if (clean.includes(key) || key.includes(clean)) return outlet;
   }
-  return defaultOutlet || 'Gito Gati';
+  return defaultOutlet || 'Kantor Lempongsari';
 };
 
 export interface CompletedProductRecord {
@@ -511,15 +533,107 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     setTimeout(() => setToastMsg(null), 3500);
   };
 
-  // Helper to initialize steps for a product
-  const getInitialStepsForProduct = (productName: string) => {
-    const pDef = allAvailableProducts.find(p => p.nama === productName) || allAvailableProducts[0];
-    return pDef.langkahSOP.map(s => ({
+  // Helper to find exact or fuzzy product definition
+  const findProductDefinition = (query?: string): OnboardingProductItem => {
+    if (!query || typeof query !== 'string') return allAvailableProducts[0];
+    const q = query.trim().toLowerCase();
+
+    // 1. Exact match by nama
+    const exactNama = allAvailableProducts.find(p => p.nama.toLowerCase().trim() === q);
+    if (exactNama) return exactNama;
+
+    // 2. Exact match by kode
+    const exactKode = allAvailableProducts.find(p => p.kode.toLowerCase().trim() === q);
+    if (exactKode) return exactKode;
+
+    // 3. Normalized string (strip brackets, punctuation, multiple spaces)
+    const cleanQ = q.replace(/[\(\)\-\:\,\.]/g, ' ').replace(/\s+/g, ' ').trim();
+    const cleanMatch = allAvailableProducts.find(p => {
+      const cleanP = p.nama.toLowerCase().replace(/[\(\)\-\:\,\.]/g, ' ').replace(/\s+/g, ' ').trim();
+      return cleanP === cleanQ;
+    });
+    if (cleanMatch) return cleanMatch;
+
+    // 4. Aliases and common shortcuts in HARA Training Center
+    if (cleanQ.includes('teh') && (cleanQ.includes('10') || cleanQ.includes('10l'))) {
+      const match = allAvailableProducts.find(p => p.nama === 'Teh (10lt)');
+      if (match) return match;
+    }
+    if (cleanQ.includes('teh') && (cleanQ.includes('8') || cleanQ.includes('8l'))) {
+      const match = allAvailableProducts.find(p => p.nama === 'Teh (8lt)');
+      if (match) return match;
+    }
+    if (cleanQ.includes('sambal bawang') || cleanQ === 'sambal') {
+      const match = allAvailableProducts.find(p => p.nama === 'Sambal (1 Variant)');
+      if (match) return match;
+    }
+    if (cleanQ === 'keju parut') {
+      const match = allAvailableProducts.find(p => p.nama === 'Geprek Keju Parut');
+      if (match) return match;
+    }
+    if (cleanQ === 'mentai') {
+      const match = allAvailableProducts.find(p => p.nama === 'Krispi Mentai');
+      if (match) return match;
+    }
+    if (cleanQ === 'ayoli') {
+      const match = allAvailableProducts.find(p => p.nama === 'Geprek Ayoli');
+      if (match) return match;
+    }
+    if (cleanQ.includes('ayam utuh')) {
+      const match = allAvailableProducts.find(p => p.nama === 'Goreng Ayam Utuh');
+      if (match) return match;
+    }
+    if (cleanQ === 'menggoreng ayam') {
+      const match = allAvailableProducts.find(p => p.nama === 'Menggoreng Ayam') || allAvailableProducts.find(p => p.nama === 'Goreng Ayam');
+      if (match) return match;
+    }
+    if (cleanQ === 'goreng ayam') {
+      const match = allAvailableProducts.find(p => p.nama === 'Goreng Ayam');
+      if (match) return match;
+    }
+    if (cleanQ.includes('indomie')) {
+      const match = allAvailableProducts.find(p => p.nama === 'Indomie Geprek');
+      if (match) return match;
+    }
+    if (cleanQ.includes('krisbar') && !cleanQ.includes('ori')) {
+      const match = allAvailableProducts.find(p => p.nama === 'Krisbar Geprek');
+      if (match) return match;
+    }
+
+    // 5. Partial / Substring match
+    const partialMatch = allAvailableProducts.find(p => {
+      const pLower = p.nama.toLowerCase();
+      return pLower.includes(q) || q.includes(pLower);
+    });
+    if (partialMatch) return partialMatch;
+
+    return allAvailableProducts[0];
+  };
+
+  // Helper to reliably construct steps directly from product definition SOP
+  const resolveStepsForProduct = (
+    targetProduct: OnboardingProductItem,
+    savedChecklist?: { nomor: number; langkah?: string; tercapai: boolean; isKritis?: boolean }[]
+  ) => {
+    const savedStatusMap = new Map<number, boolean>();
+    if (Array.isArray(savedChecklist) && savedChecklist.length === targetProduct.langkahSOP.length) {
+      savedChecklist.forEach(s => {
+        savedStatusMap.set(s.nomor, s.tercapai);
+      });
+    }
+
+    return targetProduct.langkahSOP.map(s => ({
       nomor: s.nomor,
       langkah: s.teks,
-      tercapai: true,
+      tercapai: savedStatusMap.has(s.nomor) ? savedStatusMap.get(s.nomor)! : true,
       isKritis: s.isKritis
     }));
+  };
+
+  // Helper to initialize steps for a product
+  const getInitialStepsForProduct = (productName: string) => {
+    const pDef = findProductDefinition(productName);
+    return resolveStepsForProduct(pDef);
   };
 
   // Helper to format duration in decimal minutes (e.g., 12.5 mnt)
@@ -652,11 +766,54 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     return null;
   }, [sessions, activeTabId, kruList]);
 
-  // Current Product Definition
+  // Current Product Definition (Always resolves accurately via fuzzy/exact match)
   const currentProductDef = useMemo(() => {
     if (!activeSession) return allAvailableProducts[0];
-    return allAvailableProducts.find(p => p.nama === activeSession.productNama) || allAvailableProducts[0];
-  }, [activeSession, allAvailableProducts]);
+    return findProductDefinition(activeSession.productNama);
+  }, [activeSession?.productNama, allAvailableProducts]);
+
+  // Synchronized Active Step Checklist: Always guarantees the steps strictly match currentProductDef
+  const activeChecklist = useMemo(() => {
+    if (!activeSession || !currentProductDef) return [];
+    const currentSteps = activeSession.stepChecklist;
+    const expectedSteps = currentProductDef.langkahSOP;
+
+    // Check if the current steps in state accurately belong to currentProductDef
+    const isMatched = Array.isArray(currentSteps) &&
+      currentSteps.length === expectedSteps.length &&
+      (expectedSteps.length === 0 || currentSteps[0]?.langkah === expectedSteps[0]?.teks);
+
+    if (isMatched) {
+      return currentSteps;
+    }
+
+    // If out of sync, immediately resolve using target product definition
+    const targetState = activeSession.productStates?.[currentProductDef.nama];
+    return resolveStepsForProduct(currentProductDef, targetState?.stepChecklist);
+  }, [activeSession?.stepChecklist, activeSession?.productStates, currentProductDef]);
+
+  // Auto-heal / synchronize checklist if stepChecklist got out of sync with currentProductDef
+  useEffect(() => {
+    if (!activeSession || !currentProductDef) return;
+    const currentSteps = activeSession.stepChecklist;
+    const expectedSteps = currentProductDef.langkahSOP;
+
+    const isOutOfSync = !Array.isArray(currentSteps) ||
+      currentSteps.length !== expectedSteps.length ||
+      (currentSteps.length > 0 && expectedSteps.length > 0 && currentSteps[0].langkah !== expectedSteps[0].teks);
+
+    if (isOutOfSync) {
+      const targetState = activeSession.productStates?.[currentProductDef.nama];
+      const reconciled = resolveStepsForProduct(currentProductDef, targetState?.stepChecklist);
+      updateActiveSession({
+        stepChecklist: reconciled,
+        productNama: currentProductDef.nama,
+        day: currentProductDef.day,
+        batch: currentProductDef.batch,
+        station: currentProductDef.station,
+      });
+    }
+  }, [activeSession?.id, activeSession?.productNama, currentProductDef]);
 
   // Auto-Update Active Session Helper
   const updateActiveSession = (patch: Partial<AssessmentSessionTab>) => {
@@ -708,14 +865,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
     if (!activeSession) return;
     const currentProd = activeSession.productNama;
-    const targetProd = allAvailableProducts.find(p => p.nama === targetProdName) || allAvailableProducts[0];
+    const targetProd = findProductDefinition(targetProdName);
     if (!targetProd) return;
+
+    // Check whether stopwatch is actively running in this candidate's session
+    const wasTimerRunning = !!activeSession.isTimerRunning;
 
     // 1. Snapshot current active product state
     const currentSnapshot: ProductPracticeState = {
       timerSeconds: activeSession.timerSeconds,
-      isTimerRunning: false, // pause on switch
-      stepChecklist: activeSession.stepChecklist,
+      isTimerRunning: wasTimerRunning,
+      stepChecklist: activeChecklist,
       knowledgeAnswers: activeSession.knowledgeAnswers,
       skorKnowledge: activeSession.skorKnowledge,
       suhuMinyakProbe: activeSession.suhuMinyakProbe,
@@ -742,6 +902,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       newIndex = updatedQueue.length - 1;
     }
 
+    // Resolves steps directly from targetProd SOP steps to guarantee exact procedure match
+    const nextSteps = resolveStepsForProduct(targetProd, targetState?.stepChecklist);
+
     updateActiveSession({
       productQueue: updatedQueue,
       currentProductIndex: newIndex,
@@ -750,8 +913,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       batch: targetProd.batch,
       station: targetProd.station,
       timerSeconds: targetState ? targetState.timerSeconds : 0,
-      isTimerRunning: false, // stay paused until trainer hits play
-      stepChecklist: targetState ? targetState.stepChecklist : getInitialStepsForProduct(targetProd.nama),
+      isTimerRunning: wasTimerRunning, // TETAP BERJALAN: jika timer sedang berjalan, timer tetap berjalan tanpa terhenti!
+      stepChecklist: nextSteps,
       knowledgeAnswers: targetState ? targetState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
       skorKnowledge: targetState ? targetState.skorKnowledge : 100,
       suhuMinyakProbe: targetState ? targetState.suhuMinyakProbe : (targetProd.targetSuhuMinyak || 160),
@@ -761,7 +924,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       isSaved: false,
     });
 
-    showToast(`Beralih ke: ${targetProd.nama} (Data & timer menu sebelumnya tetap tersimpan)`);
+    showToast(`Beralih ke: ${targetProd.nama} ${wasTimerRunning ? '(Timer tetap berjalan)' : ''}`);
   };
 
   // Format Time mm:ss
@@ -1053,7 +1216,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // Toggle checklist step
   const handleToggleStep = (nomor: number) => {
     if (!activeSession) return;
-    const nextSteps = activeSession.stepChecklist.map(s => {
+    const baseSteps = activeChecklist.length > 0 ? activeChecklist : activeSession.stepChecklist;
+    const nextSteps = baseSteps.map(s => {
       if (s.nomor === nomor) return { ...s, tercapai: !s.tercapai };
       return s;
     });
@@ -1096,13 +1260,13 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       };
     }
 
-    // 1. Prosedur Langkah SOP (Bobot: 40%)
-    const totalSteps = activeSession.stepChecklist.length;
-    const passedSteps = activeSession.stepChecklist.filter(s => s.tercapai).length;
+    // 1. Prosedur Langkah SOP (Bobot: 40%) - Strictly based on activeChecklist of currentProductDef
+    const totalSteps = activeChecklist.length;
+    const passedSteps = activeChecklist.filter(s => s.tercapai).length;
     let skorProsedur = totalSteps > 0 ? Math.round((passedSteps / totalSteps) * 100) : 100;
 
     // Check critical point violations
-    const missedKritis = activeSession.stepChecklist.filter(s => s.isKritis && !s.tercapai);
+    const missedKritis = activeChecklist.filter(s => s.isKritis && !s.tercapai);
     const failedCriticalPoints = missedKritis.map(m => m.langkah);
 
     // Suhu fryer critical check (jika ada)
@@ -1179,7 +1343,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       failedCriticalPoints,
       timeDiff,
     };
-  }, [activeSession, currentProductDef]);
+  }, [activeSession, currentProductDef, activeChecklist]);
 
   // Handle Save / Submit Individual Assessment
   const handleSaveAssessment = () => {
@@ -1230,7 +1394,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       titik_kritis_gagal_detail: calculatedScores.failedCriticalPoints,
       penilai_nama: finalPenilai,
       catatan: activeSession.catatanTrainer || (calculatedScores.isKompetenMandiri ? 'Praktik sangat rapi dan sesuai SOP.' : 'Dibutuhkan pendampingan lanjutan.'),
-      checklist_langkah: (activeSession.stepChecklist || []).map(s => ({
+      checklist_langkah: (activeChecklist || []).map(s => ({
         nomor: s.nomor,
         langkah: s.langkah,
         tercapai: !!s.tercapai,
@@ -1283,10 +1447,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       }
     ];
 
+    const wasTimerRunning = !!activeSession.isTimerRunning;
+
     const currentCompletedState: ProductPracticeState = {
       timerSeconds: activeSession.timerSeconds,
-      isTimerRunning: false,
-      stepChecklist: activeSession.stepChecklist,
+      isTimerRunning: wasTimerRunning,
+      stepChecklist: activeChecklist,
       knowledgeAnswers: activeSession.knowledgeAnswers,
       skorKnowledge: activeSession.skorKnowledge,
       suhuMinyakProbe: activeSession.suhuMinyakProbe,
@@ -1301,7 +1467,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
     if (nextIndex < queue.length) {
       const nextProdName = queue[nextIndex];
-      const nextProdDef = allAvailableProducts.find(p => p.nama === nextProdName) || allAvailableProducts[0];
+      const nextProdDef = findProductDefinition(nextProdName);
       const nextSavedState = updatedProductStates[nextProdDef.nama];
 
       updateActiveSession({
@@ -1312,11 +1478,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         station: nextProdDef.station,
         suhuMinyakProbe: nextSavedState ? nextSavedState.suhuMinyakProbe : (nextProdDef.targetSuhuMinyak || 160),
         gramaturAktual: nextSavedState ? nextSavedState.gramaturAktual : (nextProdDef.targetGramatur || 0),
-        stepChecklist: nextSavedState ? nextSavedState.stepChecklist : getInitialStepsForProduct(nextProdDef.nama),
+        stepChecklist: resolveStepsForProduct(nextProdDef, nextSavedState?.stepChecklist),
         knowledgeAnswers: nextSavedState ? nextSavedState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
         skorKnowledge: nextSavedState ? nextSavedState.skorKnowledge : 100,
         timerSeconds: nextSavedState ? nextSavedState.timerSeconds : 0,
-        isTimerRunning: false,
+        isTimerRunning: wasTimerRunning, // TETAP BERJALAN: jika timer sedang berjalan, timer lanjut berjalan untuk menu berikutnya!
         catatanTrainer: nextSavedState ? (nextSavedState.catatanTrainer || '') : (activeSession.productNotes?.[nextProdDef.nama] || ''),
         isSaved: false,
         completedProducts: newCompleted,
@@ -1621,14 +1787,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     });
   };
 
-  // Sync to Firestore
+  // Sync to Supabase & Server
   const handleSyncCohort = async () => {
-    showToast('Menyinkronkan data onboarding ke Cloud Firestore...');
+    showToast('Menyinkronkan data onboarding ke Cloud Supabase & Server...');
     try {
-      await syncAllToFirestore();
-      showToast('Sinkronisasi data ke Cloud Firestore berhasil diselesaikan!');
+      const { pullAllFromSupabase } = await import('../../lib/supabase');
+      const { pushToServer } = await import('../../lib/serverSync');
+      await pullAllFromSupabase();
+      await pushToServer('penilaian_praktik_onboarding_produk', historyList, 'UPSERT');
+      showToast('Sinkronisasi data ke Cloud Supabase & Server berhasil!');
     } catch {
-      showToast('Data tersimpan secara lokal dan akan disinkron saat online.');
+      showToast('Data tersimpan secara lokal dan otomatis disinkronkan saat terhubung.');
     }
   };
 
@@ -1645,95 +1814,95 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       {/* ===================================================================
           SUB-TAB NAVIGATION BAR: PRAKTIK PRODUK, PENILAIAN TIM, DETAIL SIKAP, RIWAYAT & PESERTA
           =================================================================== */}
-      <div className="p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#E6E1DA] shadow-2xs">
-        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth w-full py-0.5 px-0.5">
+      <div className="p-1 bg-slate-100/80 rounded-xl border border-slate-200">
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full">
           <button
             type="button"
             onClick={() => setActiveSubTab('produk')}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'produk'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <UtensilsCrossed size={15} />
-            <span>Praktik Produk & Sikap (Individu)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'produk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            <UtensilsCrossed size={14} />
+            <span>Praktik Produk & Sikap</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              activeSubTab === 'produk' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
             }`}>
-              2 Pilar KKM 75
+              Individu
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSubTab('tim')}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'tim'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <Users size={15} />
+            <Users size={14} />
             <span>Penilaian Tim (Station 1 & 2)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'tim' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              activeSubTab === 'tim' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
             }`}>
-              {timList.length} Rekap
+              {timList.length}
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSubTab('jobdesk')}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'jobdesk'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <ClipboardCheck size={15} />
-            <span>Detail Sikap & Higiene (SK 1 & SK 2)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            <ClipboardCheck size={14} />
+            <span>Detail Sikap & Higiene</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
             }`}>
-              4 Dimensi
+              5S & SK
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSubTab('riwayat')}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'riwayat'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <FileText size={15} />
-            <span>Riwayat & Rekap Penilaian</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#645D55]'
+            <FileText size={14} />
+            <span>Riwayat & Rekap</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
             }`}>
-              {historyList.length} Rekap
+              {historyList.length}
             </span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveSubTab('analitik_outlet')}
-            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
+            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'analitik_outlet'
-                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-neutral-400'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
             }`}
           >
-            <Store size={15} />
+            <Store size={14} />
             <span>Analitik Outlet Penempatan</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-mono ${
-              activeSubTab === 'analitik_outlet' ? 'bg-white/20 text-white' : 'bg-[#FAF8F5] text-[#96171B] font-bold'
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+              activeSubTab === 'analitik_outlet' ? 'bg-white/20 text-white' : 'bg-red-50 text-[#96171B] font-bold'
             }`}>
-              {candidateKrus.length > 0 ? candidateKrus.length : 14} Outlet
+              {candidateKrus.length > 0 ? candidateKrus.length : 14} Kru
             </span>
           </button>
         </div>
@@ -1742,19 +1911,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       {/* ===================================================================
           BAR ATAS: LOKASI TETAP KANTOR LEMPONGSARI, PENILAI, BATCH, TANGGAL & AUTO-SAVE
           =================================================================== */}
-      <div className="p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3 text-xs">
+      <div className="px-4 py-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex flex-wrap items-center gap-2.5">
           {/* Badge Lokasi Permanen */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-[#96171B] border border-red-200 text-xs font-bold shrink-0">
-            <Building2 size={14} className="text-[#96171B]" />
-            <span>Lokasi: Kantor Lempongsari</span>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 text-[#96171B] border border-red-200 text-xs font-bold shrink-0">
+            <Building2 size={13} className="text-[#96171B]" />
+            <span>Kantor Lempongsari (TC)</span>
           </div>
 
-          <div className="h-4 w-px bg-[#E6E1DA] hidden md:block" />
+          <div className="h-3.5 w-px bg-slate-200 hidden sm:block" />
 
           {/* Penilai Selector */}
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#645D55] uppercase text-[10.5px]">Trainer / Penilai:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-slate-500 text-[11px]">Trainer:</span>
             {!isCustomPenilai ? (
               <select
                 value={namaPenilai}
@@ -1765,38 +1934,38 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     setNamaPenilai(e.target.value);
                   }
                 }}
-                className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white font-semibold text-[#181411] text-xs"
+                className="py-1 px-2 rounded-lg border border-slate-200 bg-white font-semibold text-slate-800 text-xs focus:border-[#96171B] outline-none"
               >
                 {DAFTAR_PENILAI_DEFAULT.map(p => (
                   <option key={p} value={p}>{p}</option>
                 ))}
-                <option value="custom">+ Nama Penilai Lain...</option>
+                <option value="custom">+ Nama Lain...</option>
               </select>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <input
                   type="text"
                   value={customPenilai}
                   onChange={(e) => setCustomPenilai(e.target.value)}
                   placeholder="Ketik nama penilai..."
-                  className="p-1.5 rounded-lg border border-[#E6E1DA] text-xs font-semibold"
+                  className="py-1 px-2 rounded-lg border border-slate-200 text-xs font-semibold focus:border-[#96171B] outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setIsCustomPenilai(false)}
-                  className="p-1 rounded-lg text-gray-400 hover:text-gray-700"
+                  className="p-1 rounded text-slate-400 hover:text-slate-700"
                 >
-                  <X size={14} />
+                  <X size={13} />
                 </button>
               </div>
             )}
           </div>
 
-          <div className="h-4 w-px bg-[#E6E1DA] hidden md:block" />
+          <div className="h-3.5 w-px bg-slate-200 hidden sm:block" />
 
           {/* Batch Selector */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-[#645D55] uppercase text-[10.5px]">Batch Kelas:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-slate-500 text-[11px]">Batch:</span>
             <select
               value={selectedBatchId}
               onChange={(e) => {
@@ -1809,7 +1978,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   });
                 }
               }}
-              className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold max-w-[220px] truncate"
+              className="py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold max-w-[200px] truncate focus:border-[#96171B] outline-none"
             >
               <option value="ALL">Onboarding Umum (Semua Kru)</option>
               {batches.map(b => (
@@ -1818,47 +1987,28 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             </select>
           </div>
 
-          <div className="h-4 w-px bg-[#E6E1DA] hidden md:block" />
+          <div className="h-3.5 w-px bg-slate-200 hidden sm:block" />
 
           {/* Tanggal Pelaksanaan */}
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-[#645D55] uppercase text-[10.5px]">Tanggal:</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-semibold text-slate-500 text-[11px]">Tanggal:</span>
             <input
               type="date"
               value={tanggalUji}
               onChange={(e) => setTanggalUji(e.target.value)}
-              className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white text-xs font-semibold"
-            />
+              className="py-1 px-2 rounded-lg border border-slate-200 bg-white text-xs font-semibold focus:border-[#96171B] outline-none"
+            >
+            </input>
           </div>
         </div>
 
         {/* Action Shortcuts & Anti-Reset Controls */}
         <div className="flex items-center gap-2 flex-wrap">
           {/* Status Auto-Save Proteksi Refresh */}
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold" title="Draft penilaian Anda disimpan otomatis dan tidak hilang saat tab berpindah atau refresh">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="hidden sm:inline">Auto-Save Aktif</span>
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold" title="Draft disimpan otomatis">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Auto-Save</span>
           </div>
-
-          <button
-            type="button"
-            onClick={handleResetActiveDraft}
-            className="px-2.5 py-1.5 rounded-lg border border-[#E6E1DA] hover:border-neutral-400 bg-white text-[#645D55] hover:text-[#181411] text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            title="Bersihkan draft form saat ini dan mulai sesi penilaian baru"
-          >
-            <RotateCcw size={13} />
-            <span className="hidden sm:inline">Reset Draft</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleOpenSOPTargetEditor}
-            className="px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-            title="Sesuaikan Target Waktu SOP Baku"
-          >
-            <Clock size={14} className="text-amber-700" />
-            <span>Target SOP</span>
-          </button>
 
           <button
             type="button"
@@ -1870,43 +2020,41 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 setIsSheetLinkModalOpen(true);
               }
             }}
-            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-            title="Buka atau kelola tautan Google Spreadsheet"
+            className="px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            title="Buka Spreadsheet di Google Drive"
           >
-            <FileSpreadsheet size={14} className="text-emerald-700" />
+            <FileSpreadsheet size={13} className="text-emerald-700" />
             <span>Google Sheet</span>
-            <ExternalLink size={11} className="opacity-70" />
+            <ExternalLink size={10} className="opacity-70" />
           </button>
 
+          <button
+            type="button"
+            onClick={handleOpenSOPTargetEditor}
+            className="px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+            title="Ubah Target Waktu Baku"
+          >
+            <Clock size={13} className="text-amber-700" />
+            <span>Target SOP</span>
+          </button>
 
-          {onOpenFullAuditLog && (
-            <button
-              type="button"
-              onClick={onOpenFullAuditLog}
-              className="px-3 py-1.5 rounded-lg border border-[#E6E1DA] hover:border-[#96171B] text-[#181411] hover:text-[#96171B] text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
-            >
-              <FileText size={14} />
-              <span>Log Aktivitas</span>
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={handleResetActiveDraft}
+            className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 text-xs transition-colors cursor-pointer"
+            title="Reset draft form ini"
+          >
+            <RotateCcw size={13} />
+          </button>
 
           <button
             type="button"
             onClick={handleSyncCohort}
-            className="px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer"
-            title="Sinkronkan data ke Cloud Firestore & Supabase"
+            className="px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
+            title="Sinkronkan Cloud"
           >
-            <RefreshCw size={14} />
-            <span>Sinkronkan Cloud</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setCrewReportModalKru(activeSession?.namaKru || 'Peserta')}
-            className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-[#96171B] border border-red-200 text-xs font-semibold flex items-center gap-1.5 transition-colors shrink-0"
-          >
-            <BookOpen size={14} />
-            <span>Laporan Kru</span>
+            <RefreshCw size={12} />
+            <span>Sinkron</span>
           </button>
         </div>
       </div>
@@ -1915,558 +2063,378 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 1: PRAKTIK PRODUK (INDIVIDU)
           =================================================================== */}
       {activeSubTab === 'produk' && (
-        <div className="space-y-6">
-          {/* CONCURRENT MULTI-KRU ASSESSMENT TABS BAR */}
-          <div className="flex items-center justify-between gap-3 overflow-x-auto pb-1">
-            <div className="flex items-center gap-2 overflow-x-auto py-1">
-              {sessions.map((sess, idx) => {
-                const isActive = sess.id === activeTabId;
-                const displayName = sess.isManualName
-                  ? (sess.manualNameInput.trim() || `Peserta ${idx + 1}`)
-                  : sess.namaKru;
+        <div className="space-y-4">
+          {/* CONCURRENT MULTI-KRU TABS & CANDIDATE SELECTOR RIBBON */}
+          <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+            {/* Multi-Session Tabs Bar */}
+            <div className="flex items-center justify-between gap-3 overflow-x-auto pb-0.5">
+              <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+                {sessions.map((sess, idx) => {
+                  const isActive = sess.id === activeTabId;
+                  const displayName = sess.isManualName
+                    ? (sess.manualNameInput.trim() || `Peserta ${idx + 1}`)
+                    : sess.namaKru;
+                  const placement = getCandidatePlacement(displayName);
 
-                return (
-                  <div
-                    key={sess.id}
-                    onClick={() => setActiveTabId(sess.id)}
-                    className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold cursor-pointer transition-all border shrink-0 ${
-                      isActive
-                        ? 'bg-[#181411] text-white border-[#181411] shadow-2xs'
-                        : 'bg-white text-[#181411] border-[#E6E1DA] hover:border-[#96171B]/50'
-                    }`}
-                  >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${
-                      sess.isTimerRunning
-                        ? 'bg-amber-400 animate-pulse'
-                        : sess.isSaved
-                        ? 'bg-emerald-400'
-                        : 'bg-stone-300'
-                    }`} />
+                  return (
+                    <div
+                      key={sess.id}
+                      onClick={() => setActiveTabId(sess.id)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-semibold cursor-pointer transition-all border shrink-0 ${
+                        isActive
+                          ? 'bg-[#181411] text-white border-[#181411] shadow-2xs'
+                          : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <span className={`w-2 h-2 rounded-full shrink-0 ${
+                        sess.isTimerRunning
+                          ? 'bg-amber-400 animate-pulse'
+                          : sess.isSaved
+                          ? 'bg-emerald-400'
+                          : 'bg-slate-300'
+                      }`} />
 
-                    <div className="flex flex-col text-left">
-                      <span className="truncate max-w-[130px]">{displayName}</span>
-                      <span className="text-[10px] font-mono opacity-70">
-                        {sess.productNama} • {formatTime(sess.timerSeconds)}
+                      <div className="flex flex-col text-left">
+                        <span className="truncate max-w-[130px] font-bold">{displayName}</span>
+                        <span className={`text-[9.5px] truncate max-w-[130px] ${isActive ? 'text-slate-300' : 'text-slate-500'}`}>
+                          {placement} · {sess.productNama}
+                        </span>
+                      </div>
+
+                      {sessions.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={(e) => handleCloseSession(sess.id, e)}
+                          className="p-0.5 hover:bg-neutral-700/50 rounded text-slate-400 hover:text-white transition-colors"
+                          title="Tutup tab ini"
+                        >
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Action Buttons: Add Single / Batch Crew */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setBatchCrewModalOpen(true)}
+                  className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Buka banyak kru sekaligus dari master kru"
+                >
+                  <Users size={13} className="text-[#96171B]" />
+                  <span>Buka Sekaligus</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleAddNewSession}
+                  className="px-2.5 py-1.5 rounded-lg border border-dashed border-[#96171B] bg-red-50/40 text-[#96171B] hover:bg-red-50 text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer"
+                >
+                  <Plus size={13} />
+                  <span>+ Kru</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Active Session Kru & SOP Product Ribbon (Single Unified Row) */}
+            {activeSession && (() => {
+              const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+                ? activeSession.productQueue
+                : [activeSession.productNama];
+              const currentIdx = activeSession.currentProductIndex || 0;
+              const activePlacement = getCandidatePlacement(activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru);
+
+              return (
+                <div className="pt-2 border-t border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                  {/* Left: Kru Selector & Real Placement Outlet */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <div className="w-8 h-8 rounded-full bg-[#96171B] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                      {((activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru) || 'K')[0].toUpperCase()}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {!activeSession.isManualName ? (
+                        <select
+                          value={activeSession.kruId}
+                          onChange={(e) => {
+                            const selectedK = candidateKrus.find(k => k.id === e.target.value);
+                            if (selectedK) {
+                              updateActiveSession({
+                                kruId: selectedK.id,
+                                namaKru: selectedK.nama_kru,
+                                outletCode: selectedK.kode_outlet,
+                              });
+                            }
+                          }}
+                          className="py-1 px-2.5 rounded-lg border border-slate-200 text-xs font-bold text-slate-800 bg-white focus:border-[#96171B] outline-none max-w-[200px] truncate"
+                        >
+                          {candidateKrus.map((k) => (
+                            <option key={k.id} value={k.id}>
+                              {k.nama_kru} ({k.kode_outlet})
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          type="text"
+                          value={activeSession.manualNameInput}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            updateActiveSession({
+                              manualNameInput: val,
+                              namaKru: val.trim() || 'Peserta Mandiri',
+                              outletCode: 'Kantor Lempongsari',
+                            });
+                          }}
+                          placeholder="Nama lengkap kru..."
+                          className="py-1 px-2.5 rounded-lg border border-red-300 text-xs font-bold text-slate-800 bg-red-50/20 focus:border-[#96171B] outline-none"
+                        />
+                      )}
+
+                      {/* Outlet Penempatan Riil Badge */}
+                      <span className="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 border border-stone-200 text-[11px] font-semibold flex items-center gap-1">
+                        <Store size={11} className="text-[#96171B]" />
+                        <span>Penempatan: <strong>{activePlacement}</strong></span>
+                      </span>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateActiveSession({
+                            isManualName: !activeSession.isManualName,
+                            manualNameInput: activeSession.isManualName ? '' : activeSession.namaKru,
+                          });
+                        }}
+                        className="text-[10.5px] text-[#96171B] font-semibold hover:underline cursor-pointer"
+                      >
+                        {activeSession.isManualName ? 'Pilih Master' : 'Ketik Manual'}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Right: Active SOP, Target Menit & Unified Button "Pilih & Atur Menu SOP" */}
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    {/* Active Product Name & Target */}
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50/60 border border-red-100">
+                      <span className="text-[10px] font-mono font-bold bg-[#96171B] text-white px-1.5 py-0.2 rounded">
+                        {currentProductDef.kode}
+                      </span>
+                      <span className="font-bold text-xs text-slate-900">{currentProductDef.nama}</span>
+                      <span className="text-[10.5px] text-slate-500">
+                        • Target: <strong className="text-slate-800">{(currentProductDef.stdDetik / 60).toFixed(1)} menit</strong>
                       </span>
                     </div>
 
-                    {sessions.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleCloseSession(sess.id, e)}
-                        className="p-1 hover:bg-neutral-700/50 rounded text-gray-400 hover:text-white transition-colors"
-                        title="Tutup tab kru ini"
-                      >
-                        <X size={12} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Action Buttons: Add Single / Batch Crew */}
-            <div className="flex items-center gap-2 shrink-0">
-              <button
-                type="button"
-                onClick={() => setBatchCrewModalOpen(true)}
-                className="px-3.5 py-2 rounded-lg border border-[#181411] bg-white hover:bg-slate-50 text-[#181411] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs"
-                title="Buka banyak kru sekaligus dari master kru"
-              >
-                <Users size={14} className="text-[#96171B]" />
-                <span>Buka Kru Sekaligus</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleAddNewSession}
-                className="px-3.5 py-2 rounded-lg border border-dashed border-[#96171B] bg-red-50/40 text-[#96171B] hover:bg-red-50 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              >
-                <Plus size={14} />
-                <span>+ 1 Kru</span>
-              </button>
-            </div>
-          </div>
-
-          {/* ACTIVE SESSION CONTROLS: PESERTA & SEARCHABLE PRODUCT SELECTOR */}
-          {activeSession && (
-            <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-4">
-              {/* DAFTAR ANTREAN TUGAS PRODUK (MULTI-PRODUCT STEPPER) */}
-              {(() => {
-                const queue = activeSession.productQueue && activeSession.productQueue.length > 0
-                  ? activeSession.productQueue
-                  : [activeSession.productNama];
-                const currentIdx = activeSession.currentProductIndex || 0;
-
-                return (
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
-                {/* LEFT: PESERTA KRU SELECTOR */}
-                <div className="lg:col-span-5 p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-2 flex flex-col justify-between">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider flex items-center gap-1">
-                      <User size={13} />
-                      <span>Kru yang Dinilai:</span>
-                    </label>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        updateActiveSession({
-                          isManualName: !activeSession.isManualName,
-                          manualNameInput: activeSession.isManualName ? '' : activeSession.namaKru,
-                        });
-                      }}
-                      className="text-[11px] text-[#96171B] font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Edit2 size={11} />
-                      <span>{activeSession.isManualName ? 'Pilih dari Master Kru' : 'Ketik Nama Manual'}</span>
-                    </button>
-                  </div>
-
-                  {!activeSession.isManualName ? (
-                    <div className="grid grid-cols-3 gap-2">
-                      <select
-                        value={activeSession.kruId}
-                        onChange={(e) => {
-                          const selectedK = candidateKrus.find(k => k.id === e.target.value);
-                          if (selectedK) {
-                            updateActiveSession({
-                              kruId: selectedK.id,
-                              namaKru: selectedK.nama_kru,
-                              outletCode: selectedK.kode_outlet,
-                            });
-                          }
-                        }}
-                        className="col-span-2 p-2.5 rounded-lg border border-[#E6E1DA] text-xs font-bold text-[#181411] bg-[#FAF8F5]/50 focus:bg-white"
-                      >
-                        {candidateKrus.map((k) => (
-                          <option key={k.id} value={k.id}>
-                            {k.nama_kru} ({k.divisi} - {k.kode_outlet})
-                          </option>
-                        ))}
-                      </select>
-
-                      <div className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-[#E6E1DA] bg-stone-100 text-[#181411] text-xs font-semibold" title="Lokasi Pelatihan: Kantor Lempongsari">
-                        <Building2 size={13} className="text-[#96171B] shrink-0" />
-                        <span className="truncate">Kantor Lempongsari</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-3 gap-2">
-                      <input
-                        type="text"
-                        value={activeSession.manualNameInput}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          updateActiveSession({
-                            manualNameInput: val,
-                            namaKru: val.trim() || 'Peserta Mandiri',
-                            outletCode: 'Kantor Lempongsari',
-                          });
-                        }}
-                        placeholder="Ketik nama lengkap kru..."
-                        className="col-span-2 p-2.5 rounded-lg border border-red-300 focus:border-[#96171B] text-xs font-bold text-[#181411] bg-red-50/20"
-                        autoFocus
-                      />
-
-                      <div className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg border border-[#E6E1DA] bg-stone-100 text-[#181411] text-xs font-semibold" title="Lokasi Pelatihan: Kantor Lempongsari">
-                        <Building2 size={13} className="text-[#96171B] shrink-0" />
-                        <span className="truncate">Kantor Lempongsari</span>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="pt-2 text-[11px] text-[#645D55] flex items-center justify-between border-t border-[#E6E1DA]/60">
-                    <span>Sesi Aktif: <strong className="text-[#181411]">{activeSession.namaKru}</strong></span>
-                    <span className="text-[10px] bg-red-50 text-[#96171B] font-bold px-1.5 py-0.5 rounded">KKM 70</span>
-                  </div>
-                </div>
-
-                {/* RIGHT: SINGLE UNIFIED SOP & MENU QUEUE SELECTOR CARD */}
-                <div className="lg:col-span-7 p-4 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
-                  <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#E6E1DA]">
-                    <div className="flex items-start gap-2.5">
-                      <div className="p-2 rounded-xl bg-[#96171B]/10 text-[#96171B] shrink-0 mt-0.5">
-                        <UtensilsCrossed size={18} />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-bold text-[#645D55] uppercase tracking-wider">
-                            SOP Produk yang Sedang Dinilai:
-                          </span>
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.2 rounded bg-stone-100 text-stone-700 border border-stone-200">
-                            {currentProductDef.kode}
-                          </span>
-                        </div>
-                        <h4 className="text-base sm:text-lg font-black text-[#96171B] leading-tight mt-0.5">
-                          {currentProductDef.nama}
-                        </h4>
-                        <span className="text-[11px] text-[#645D55] mt-0.5 block">
-                          Target Akumulasi: <strong>{(currentProductDef.stdDetik / 60).toFixed(1)} Menit</strong> ({currentProductDef.stdDetik}s) • {currentProductDef.stationLabel}
-                        </span>
-                      </div>
-                    </div>
-
+                    {/* Unified Button "Pilih & Atur Menu SOP" */}
                     <button
                       type="button"
                       onClick={() => setIsProductPickerOpen(true)}
-                      className="px-4 py-2.5 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-2.5 transition-all shadow-md cursor-pointer hover:shadow-lg active:scale-95 shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
                       title="Pilih & Atur SOP Produk yang dinilai"
                     >
-                      <UtensilsCrossed size={16} />
-                      <div className="text-left">
-                        <span className="block text-[10px] font-normal opacity-90 leading-tight">Pilih & Atur Menu SOP:</span>
-                        <span className="block font-black text-xs sm:text-sm leading-tight text-white underline underline-offset-2">
-                          {currentProductDef.nama} <span className="opacity-80 font-normal text-[11px]">({queue.length} Menu)</span>
-                        </span>
-                      </div>
+                      <UtensilsCrossed size={13} />
+                      <span>Pilih & Atur Menu SOP</span>
+                      <span className="text-[10px] bg-white/20 px-1.5 py-0.2 rounded font-mono">
+                        {queue.length}
+                      </span>
                     </button>
-                  </div>
 
-                  {/* Stepper Buttons for Queue */}
-                  {(() => {
-                    const currentIdx = activeSession.currentProductIndex || 0;
-                    return (
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-[#645D55]">
-                          <span>Antrean Menu Terjadwal Kru ({currentIdx + 1}/{queue.length}):</span>
-                          <span className="text-[#96171B] font-extrabold">{currentProductDef.nama}</span>
-                        </div>
-                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth py-1">
-                          {queue.map((prodName, pIdx) => {
-                            const isCurrent = pIdx === currentIdx;
-                            const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === prodName);
-                            const isDone = !!completedRecord;
+                    {/* Queue Quick Switcher Chips */}
+                    <div className="flex items-center gap-1 overflow-x-auto no-scrollbar py-0.5">
+                      {queue.map((prodName, pIdx) => {
+                        const isCurrent = pIdx === currentIdx;
+                        const completedRecord = (activeSession.completedProducts || []).find(cp => cp.productNama === prodName);
+                        const isDone = !!completedRecord;
 
-                            return (
-                              <button
-                                key={`${prodName}-${pIdx}`}
-                                type="button"
-                                onClick={() => switchSessionProduct(prodName, pIdx)}
-                                className={`shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-2 border cursor-pointer ${
-                                  isCurrent
-                                    ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                                    : isDone
-                                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                                    : 'bg-stone-50 text-[#645D55] border-[#E6E1DA] hover:border-neutral-400'
-                                }`}
-                              >
-                                <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-mono ${
-                                  isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-stone-200 text-stone-700'
-                                }`}>
-                                  {isDone ? '✓' : pIdx + 1}
-                                </span>
-                                <span className="truncate max-w-[150px]">{prodName}</span>
-                                {completedRecord && (
-                                  <span className={`text-[10px] font-mono px-1 rounded ${
-                                    isCurrent ? 'bg-white/30 text-white' : 'bg-emerald-200/60 text-emerald-900'
-                                  }`}>
-                                    {completedRecord.skorAkhir}
-                                  </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {currentProductDef.alatBahan && (
-                    <div className="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200/80 text-[11px] text-amber-950">
-                      <span className="font-bold uppercase tracking-wider block text-[10px] text-amber-900 mb-0.5">Persiapan & Alat Bahan SOP:</span>
-                      <p className="leading-relaxed truncate">{currentProductDef.alatBahan}</p>
+                        return (
+                          <button
+                            key={`${prodName}-${pIdx}`}
+                            type="button"
+                            onClick={() => switchSessionProduct(prodName, pIdx)}
+                            className={`shrink-0 px-2 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 border cursor-pointer ${
+                              isCurrent
+                                ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
+                                : isDone
+                                ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                            title={`Beralih ke ${prodName}`}
+                          >
+                            <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-mono ${
+                              isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
+                            }`}>
+                              {isDone ? '✓' : pIdx + 1}
+                            </span>
+                            <span className="truncate max-w-[110px]">{prodName}</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
-            );
-          })()}
-        </div>
-      )}
+              );
+            })()}
+          </div>
 
-          {/* MAIN ASSESSMENT SPLIT:
-              LEFT: STOPWATCH AKUMULASI WAKTU, PARAMETER TEKNIS, & SOP STEPS
-              RIGHT: INDIVIDUAL SCORING CARD & KNOWLEDGE QUESTIONS */}
+          {/* MAIN ASSESSMENT COCKPIT: BALANCED 5 : 7 SPLIT */}
           {activeSession && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* LEFT COLUMN: STOPWATCH AKUMULASI, SUHU/GRAMASI, CHECKLIST LANGKAH */}
-              <div className="lg:col-span-7 space-y-6">
-                {/* STOPWATCH CARD WITH AKUMULASI WAKTU TOTAL */}
-                <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#E6E1DA]">
-                    <div>
-                      <h3 className="font-bold text-sm text-[#181411] flex items-center gap-2">
-                        <Clock size={16} className="text-[#96171B]" />
-                        <span>Pengukuran Waktu Praktik (Akumulasi Persiapan s/d Produk Jadi)</span>
-                      </h3>
-                      <p className="text-xs text-[#645D55] mt-0.5">
-                        Target waktu baku {currentProductDef.nama}: <strong>{currentProductDef.stdDetik} detik</strong> ({Math.round(currentProductDef.stdDetik / 60)} menit).
-                        Mencakup persiapan bahan baku & dusting, proses penggorengan/masak, hingga penirisan dan siap saji.
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleOpenSOPTargetEditor}
-                      className="px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer shrink-0"
-                      title="Ubah standar target waktu untuk produk ini"
-                    >
-                      <Clock size={12} className="text-amber-700" />
-                      <span>Edit Target SOP</span>
-                    </button>
-                  </div>
-
-                  {/* Stopwatch Controls */}
-                  <div className="space-y-4 p-4 rounded-xl bg-[#FAF8F5] border border-[#E6E1DA]">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                      <div>
-                        <span className="text-[10px] font-bold text-[#645D55] uppercase tracking-wider block">
-                          Durasi Berjalan (Stopwatch):
-                        </span>
-                        <div className="text-4xl font-black font-mono tracking-tight text-[#181411] mt-0.5 flex items-baseline gap-2">
-                          <span>{formatTime(activeSession.timerSeconds)}</span>
-                          <span className="text-xs font-normal text-[#645D55]">
-                            / target {formatTime(currentProductDef.stdDetik)}
-                          </span>
-                        </div>
-                        
-                        {/* Realtime Time Comparison Indicator */}
-                        <div className="mt-1">
-                          {activeSession.timerSeconds === 0 ? (
-                            <span className="text-[11px] text-[#645D55]">Status: Belum dimulai</span>
-                          ) : activeSession.timerSeconds <= currentProductDef.stdDetik ? (
-                            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
-                              ✓ On-Track / Memenuhi Standar SOS HARA
-                            </span>
-                          ) : activeSession.timerSeconds <= currentProductDef.stdDetik + 30 ? (
-                            <span className="text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
-                              ⚠️ Deviasi Waktu Ringan (+{activeSession.timerSeconds - currentProductDef.stdDetik}s)
-                            </span>
-                          ) : (
-                            <span className="text-[11px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded-md">
-                              ⛔ Bottleneck Waktu (+{activeSession.timerSeconds - currentProductDef.stdDetik}s)
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => updateActiveSession({ isTimerRunning: !activeSession.isTimerRunning })}
-                          className={`px-3.5 py-2 rounded-lg text-xs font-bold text-white shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer ${
-                            activeSession.isTimerRunning
-                              ? 'bg-amber-600 hover:bg-amber-700'
-                              : 'bg-[#96171B] hover:bg-[#7A1216]'
-                          }`}
-                        >
-                          {activeSession.isTimerRunning ? <Pause size={14} /> : <Play size={14} />}
-                          <span>{activeSession.isTimerRunning ? 'Jeda' : 'Mulai'}</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => updateActiveSession({ timerSeconds: currentProductDef.stdDetik, isTimerRunning: false })}
-                          className="px-2.5 py-2 rounded-lg border border-[#E6E1DA] bg-white hover:bg-slate-50 text-[#181411] text-xs font-semibold transition-colors cursor-pointer"
-                          title="Set waktu persis sesuai target akumulasi produk"
-                        >
-                          Set = Target ({currentProductDef.stdDetik}s)
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds + 30) })}
-                          className="px-2 py-2 rounded-lg border border-[#E6E1DA] bg-white hover:bg-slate-50 text-[#181411] text-xs font-mono font-bold transition-colors cursor-pointer"
-                          title="Tambah 30 detik"
-                        >
-                          +30s
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds - 30) })}
-                          className="px-2 py-2 rounded-lg border border-[#E6E1DA] bg-white hover:bg-slate-50 text-[#181411] text-xs font-mono font-bold transition-colors cursor-pointer"
-                          title="Kurang 30 detik"
-                        >
-                          -30s
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => updateActiveSession({ timerSeconds: 0, isTimerRunning: false })}
-                          className="p-2 rounded-lg border border-[#E6E1DA] hover:bg-slate-100 text-[#645D55] hover:text-[#181411] text-xs font-semibold transition-colors cursor-pointer"
-                          title="Reset stopwatch ke 00:00"
-                        >
-                          <RotateCcw size={14} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Live Progress Bar towards Standard Target */}
-                    <div className="space-y-1 pt-1">
-                      <div className="flex justify-between text-[11px] text-[#645D55]">
-                        <span>Progres Waktu terhadap Target Standar ({currentProductDef.stdDetik}s):</span>
-                        <span className="font-mono font-bold">
-                          {Math.round((activeSession.timerSeconds / currentProductDef.stdDetik) * 100)}%
-                        </span>
-                      </div>
-                      <div className="w-full h-2 rounded-full bg-stone-200 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-300 rounded-full ${
-                            activeSession.timerSeconds <= currentProductDef.stdDetik
-                              ? 'bg-emerald-600'
-                              : activeSession.timerSeconds <= currentProductDef.stdDetik + 30
-                              ? 'bg-amber-500'
-                              : 'bg-rose-600'
-                          }`}
-                          style={{
-                            width: `${Math.min(100, Math.round((activeSession.timerSeconds / currentProductDef.stdDetik) * 100))}%`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Realistic Stage Breakdown Cards */}
-                    {currentProductDef.tahapanWaktu && (
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-2 border-t border-[#E6E1DA]">
-                        <div className="p-2.5 rounded-lg bg-white border border-[#E6E1DA] text-left">
-                          <span className="text-[10px] font-bold text-[#645D55] uppercase block">
-                            1. Persiapan & Dusting:
-                          </span>
-                          <span className="font-mono font-extrabold text-xs text-[#181411]">
-                            {currentProductDef.tahapanWaktu.persiapanDetik || 180}s ({Math.round((currentProductDef.tahapanWaktu.persiapanDetik || 180) / 60)} mnt)
-                          </span>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-white border border-[#E6E1DA] text-left">
-                          <span className="text-[10px] font-bold text-[#645D55] uppercase block">
-                            2. Masak / Fryer 160°C:
-                          </span>
-                          <span className="font-mono font-extrabold text-xs text-[#181411]">
-                            {currentProductDef.tahapanWaktu.prosesMasakDetik || 720}s ({Math.round((currentProductDef.tahapanWaktu.prosesMasakDetik || 720) / 60)} mnt)
-                          </span>
-                        </div>
-
-                        <div className="p-2.5 rounded-lg bg-white border border-[#E6E1DA] text-left">
-                          <span className="text-[10px] font-bold text-[#645D55] uppercase block">
-                            3. Tiris & Plating:
-                          </span>
-                          <span className="font-mono font-extrabold text-xs text-[#181411]">
-                            {currentProductDef.tahapanWaktu.finishingPlatingDetik || 120}s ({Math.round((currentProductDef.tahapanWaktu.finishingPlatingDetik || 120) / 60)} mnt)
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Parameter Teknis Kondisional (Suhu Fryer / Gramatur) */}
-                  <div className="space-y-3">
-                    <div className="text-xs font-bold text-[#181411]">
-                      Pemeriksaan Parameter Teknis Baku Produk:
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {currentProductDef.requiresOilTemp ? (
-                        <div className="p-3.5 rounded-lg border border-[#E6E1DA] bg-red-50/20">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-bold text-[#181411] flex items-center gap-1.5">
-                              <Thermometer size={14} className="text-[#96171B]" />
-                              <span>Suhu Minyak Fryer (°C)</span>
-                            </span>
-                            <span className="text-[10px] font-bold font-mono px-1.5 py-0.5 rounded bg-red-100 text-[#96171B]">
-                              Target: {currentProductDef.targetSuhuMinyak}°C
-                            </span>
-                          </div>
-                          <input
-                            type="number"
-                            value={activeSession.suhuMinyakProbe}
-                            onChange={(e) => updateActiveSession({ suhuMinyakProbe: Number(e.target.value) })}
-                            className="w-full p-2 rounded-lg border border-[#E6E1DA] text-sm font-bold font-mono text-[#181411]"
-                            min="100"
-                            max="220"
-                          />
-                          <p className="text-[10px] text-[#645D55] mt-1">
-                            Ukur dengan probe digital saat dropping ayam. Toleransi ±2°C.
-                          </p>
-                        </div>
-                      ) : null}
-
-                    </div>
-                  </div>
-                </div>
-
-                {/* SOP CHECKLIST STEPS */}
-                <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#E6E1DA]">
-                    <div>
-                      <h3 className="font-bold text-sm text-[#181411]">
-                        Langkah Prosedur Baku SOP ({activeSession.stepChecklist.length} Langkah)
-                      </h3>
-                      <p className="text-xs text-[#645D55]">
-                        Centang langkah yang dilaksanakan dengan tepat oleh kru.
-                      </p>
-                    </div>
-                    <span className="text-xs font-bold text-[#96171B] font-mono">
-                      Bobot: 40%
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              {/* LEFT COLUMN: STOPWATCH SOS, KONTROL, PARAMETER TEKNIS & HASIL SKOR */}
+              <div className="lg:col-span-5 space-y-4">
+                {/* DIGITAL SOS STOPWATCH CARD */}
+                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3.5">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <span className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
+                      <Clock size={14} className="text-[#96171B]" />
+                      <span>Pengukuran Waktu Praktik (SOS)</span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-slate-500">
+                      Target: <strong className="text-slate-800">{(currentProductDef.stdDetik / 60).toFixed(1)} menit</strong> ({currentProductDef.stdDetik}s)
                     </span>
                   </div>
 
-                  <div className="space-y-2">
-                    {activeSession.stepChecklist.map((step) => (
-                      <div
-                        key={step.nomor}
-                        onClick={() => handleToggleStep(step.nomor)}
-                        className={`p-3 rounded-lg border transition-all flex items-start gap-3 cursor-pointer ${
-                          step.tercapai
-                            ? 'bg-white border-[#E6E1DA] hover:border-emerald-300'
-                            : 'bg-rose-50/50 border-rose-200'
-                        }`}
-                      >
-                        <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
-                          step.tercapai
-                            ? 'bg-emerald-600 text-white border-emerald-600'
-                            : 'bg-white border-rose-300 text-transparent'
-                        }`}>
-                          <Check size={12} strokeWidth={3} />
-                        </div>
-
-                        <div className="flex-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-[#181411]">Langkah #{step.nomor}</span>
-                            {step.isKritis && (
-                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
-                                TITIK KRITIS
-                              </span>
-                            )}
-                          </div>
-                          <p className={`mt-0.5 leading-relaxed ${
-                            step.tercapai ? 'text-[#181411]' : 'text-rose-800 line-through'
-                          }`}>
-                            {step.langkah}
-                          </p>
+                  {/* Stopwatch Digits & Controls */}
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+                    <div className="flex items-baseline justify-between">
+                      <div>
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
+                          Durasi Berjalan:
+                        </span>
+                        <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-slate-900 mt-0.5">
+                          {formatTime(activeSession.timerSeconds)}
+                          <span className="text-xs font-normal text-slate-500 ml-1.5">
+                            ({(activeSession.timerSeconds / 60).toFixed(1)} menit)
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
 
-              {/* RIGHT COLUMN: INDIVIDUAL SCORE CARD & KNOWLEDGE QUESTIONS */}
-              <div className="lg:col-span-5 space-y-6">
-                {/* SCORE SUMMARY CARD (STICKY) */}
-                <div className="p-6 rounded-xl bg-[#181411] text-white shadow-md space-y-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
-                    <div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                        HASIL PENILAIAN PRAKTIK INDIVIDU
-                      </span>
-                      <h4 className="text-base font-bold text-white mt-0.5">
-                        {activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru}
-                      </h4>
+                      {/* Realtime Status Indicator */}
+                      <div className="text-right">
+                        {activeSession.timerSeconds === 0 ? (
+                          <span className="text-[10.5px] font-semibold text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded">
+                            Belum dimulai
+                          </span>
+                        ) : activeSession.timerSeconds <= currentProductDef.stdDetik ? (
+                          <span className="text-[10.5px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                            ✓ Memenuhi SOS
+                          </span>
+                        ) : activeSession.timerSeconds <= currentProductDef.stdDetik + 30 ? (
+                          <span className="text-[10.5px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                            ⚠️ Deviasi +{activeSession.timerSeconds - currentProductDef.stdDetik}s
+                          </span>
+                        ) : (
+                          <span className="text-[10.5px] font-bold text-rose-800 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">
+                            ⛔ Overtime +{activeSession.timerSeconds - currentProductDef.stdDetik}s
+                          </span>
+                        )}
+                      </div>
                     </div>
 
-                    <div className={`px-2.5 py-1 rounded-md text-xs font-bold border flex items-center gap-1 ${
+                    {/* Progress Bar */}
+                    <div className="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 rounded-full ${
+                          activeSession.timerSeconds <= currentProductDef.stdDetik
+                            ? 'bg-emerald-600'
+                            : activeSession.timerSeconds <= currentProductDef.stdDetik + 30
+                            ? 'bg-amber-500'
+                            : 'bg-rose-600'
+                        }`}
+                        style={{
+                          width: `${Math.min(100, Math.round((activeSession.timerSeconds / currentProductDef.stdDetik) * 100))}%`,
+                        }}
+                      />
+                    </div>
+
+                    {/* Button Group */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => updateActiveSession({ isTimerRunning: !activeSession.isTimerRunning })}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold text-white shadow-2xs transition-all flex items-center gap-1.5 cursor-pointer ${
+                          activeSession.isTimerRunning
+                            ? 'bg-amber-600 hover:bg-amber-700'
+                            : 'bg-[#96171B] hover:bg-[#7A1216]'
+                        }`}
+                      >
+                        {activeSession.isTimerRunning ? <Pause size={13} /> : <Play size={13} />}
+                        <span>{activeSession.isTimerRunning ? 'Jeda' : 'Mulai'}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateActiveSession({ timerSeconds: currentProductDef.stdDetik, isTimerRunning: false })}
+                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold transition-colors cursor-pointer"
+                        title="Set tepat target"
+                      >
+                        Target ({(currentProductDef.stdDetik / 60).toFixed(1)}m)
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds + 30) })}
+                        className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-mono font-bold transition-colors cursor-pointer"
+                      >
+                        +30s
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateActiveSession({ timerSeconds: Math.max(0, activeSession.timerSeconds - 30) })}
+                        className="px-2 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-800 text-xs font-mono font-bold transition-colors cursor-pointer"
+                      >
+                        -30s
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => updateActiveSession({ timerSeconds: 0, isTimerRunning: false })}
+                        className="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-500 hover:text-slate-800 text-xs transition-colors cursor-pointer"
+                        title="Reset stopwatch ke 0"
+                      >
+                        <RotateCcw size={13} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Parameter Teknis Kondisional (Suhu Fryer / Gramatur) */}
+                  {currentProductDef.requiresOilTemp && (
+                    <div className="p-2.5 rounded-lg border border-slate-200 bg-red-50/20 flex items-center justify-between gap-3 text-xs">
+                      <div className="flex items-center gap-1.5 font-bold text-slate-800">
+                        <Thermometer size={14} className="text-[#96171B]" />
+                        <span>Suhu Fryer (°C):</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-red-100 text-[#96171B]">
+                          Target {currentProductDef.targetSuhuMinyak}°C
+                        </span>
+                      </div>
+                      <input
+                        type="number"
+                        value={activeSession.suhuMinyakProbe}
+                        onChange={(e) => updateActiveSession({ suhuMinyakProbe: Number(e.target.value) })}
+                        className="w-20 p-1 rounded-md border border-slate-200 text-xs font-bold font-mono text-center outline-none focus:border-[#96171B]"
+                        min="100"
+                        max="220"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* LIVE COMPOSITE SCORING CARD */}
+                <div className="p-4 rounded-xl bg-slate-900 text-white shadow-md space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+                    <div>
+                      <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">
+                        SKOR KOMPOSIT AKTIF
+                      </span>
+                      <span className="text-xs font-bold text-white">
+                        {activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru}
+                      </span>
+                    </div>
+
+                    <div className={`px-2 py-0.5 rounded text-[11px] font-bold border flex items-center gap-1 ${
                       calculatedScores.isKompetenMandiri
                         ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                         : calculatedScores.isLulusKompeten
@@ -2475,193 +2443,204 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     }`}>
                       {calculatedScores.isKompetenMandiri ? (
                         <>
-                          <CheckCircle2 size={13} />
+                          <CheckCircle2 size={12} />
                           <span>LULUS MAHIR (GRADE A)</span>
                         </>
                       ) : calculatedScores.isLulusKompeten ? (
                         <>
-                          <CheckCircle2 size={13} />
-                          <span>LULUS KOMPETEN (KKM ≥ 70)</span>
+                          <CheckCircle2 size={12} />
+                          <span>LULUS KOMPETEN (≥70)</span>
                         </>
                       ) : (
                         <>
-                          <AlertTriangle size={13} />
-                          <span>WAJIB REMEDIAL (&lt; 70)</span>
+                          <AlertTriangle size={12} />
+                          <span>REMEDIAL (&lt;70)</span>
                         </>
                       )}
                     </div>
                   </div>
 
-                  {/* Final Score */}
-                  <div className="text-center py-2">
-                    <div className="text-5xl font-black font-mono tracking-tight text-white">
-                      {calculatedScores.skorAkhir}
-                      <span className="text-lg font-normal text-gray-400 ml-1">/ 100</span>
+                  <div className="flex items-center justify-between py-1">
+                    <div>
+                      <div className="text-4xl font-black font-mono tracking-tight text-white">
+                        {calculatedScores.skorAkhir}
+                        <span className="text-sm font-normal text-slate-400 ml-1">/ 100</span>
+                      </div>
+                      <span className="text-[10.5px] text-slate-400">KKM Standar: 70 Poin</span>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Standar Kelulusan: <strong className="text-white">KKM ≥ 70 Poin</strong> (Grade A ≥ 85)
-                    </p>
-                  </div>
 
-                  {/* 3-Pillar Breakdown */}
-                  <div className="space-y-1.5 text-xs pt-2 border-t border-neutral-800 font-mono">
-                    <div className="flex justify-between text-gray-300">
-                      <span>1. Langkah Prosedur SOP (40%)</span>
-                      <span className="font-bold text-white">{calculatedScores.skorProsedur} / 100</span>
-                    </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>2. Waktu Akumulasi SOS (40%)</span>
-                      <span className="font-bold text-white">{calculatedScores.skorWaktu} / 100</span>
-                    </div>
-                    <div className="flex justify-between text-gray-300">
-                      <span>3. Knowledge SOP Lisan (20%)</span>
-                      <span className="font-bold text-white">{calculatedScores.skorKnowledge} / 100</span>
+                    {/* 3-Pillar Breakdown */}
+                    <div className="space-y-1 text-[11px] font-mono text-slate-300 text-right">
+                      <div>Prosedur (40%): <strong className="text-white">{calculatedScores.skorProsedur}</strong></div>
+                      <div>Waktu SOS (40%): <strong className="text-white">{calculatedScores.skorWaktu}</strong></div>
+                      <div>Knowledge (20%): <strong className="text-white">{calculatedScores.skorKnowledge}</strong></div>
                     </div>
                   </div>
 
                   {/* Titik Kritis Warning */}
                   {calculatedScores.hasTitikKritisViolation && (
-                    <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-200 text-xs">
-                      <span className="font-bold flex items-center gap-1">
-                        <ShieldAlert size={14} /> Pelanggaran Titik Kritis
-                      </span>
-                      <p className="text-[11px] mt-0.5 text-rose-300">
-                        {calculatedScores.failedCriticalPoints.join(', ')}. Status otomatis Remedial.
-                      </p>
+                    <div className="p-2 rounded-lg bg-rose-950/70 border border-rose-800 text-rose-200 text-xs flex items-center gap-1.5">
+                      <ShieldAlert size={14} className="shrink-0 text-rose-400" />
+                      <span>Pelanggaran Titik Kritis: Status otomatis Remedial.</span>
                     </div>
                   )}
+                </div>
 
-                  {/* Action Buttons: Save & Certificate */}
-                  <div className="pt-2 space-y-2">
-                    <button
-                      type="button"
-                      onClick={handleSaveAndAdvanceProduct}
-                      className="w-full py-3 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <CheckCircle2 size={16} />
-                      <span>
-                        {((activeSession.currentProductIndex || 0) + 1 < (activeSession.productQueue || [activeSession.productNama]).length)
-                          ? 'Simpan & Lanjut ke Menu Berikutnya ➔'
-                          : 'Simpan Menu & Selesaikan Sesi Kru'}
+                {/* SIKAP 5S & KERJASAMA QUICK BUTTONS */}
+                <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 text-xs">
+                  <div className="flex items-center justify-between text-slate-700">
+                    <span className="font-bold flex items-center gap-1">
+                      <Sparkles size={12} className="text-[#96171B]" />
+                      <span>Kebersihan & 5S:</span>
+                    </span>
+                    <span className="font-mono font-bold text-[#96171B]">{activeSession.skorKebersihan ?? 90}</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[75, 80, 85, 90, 95].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => updateActiveSession({ skorKebersihan: val })}
+                        className={`py-1 rounded text-xs font-bold transition-all border cursor-pointer text-center ${
+                          (activeSession.skorKebersihan ?? 90) === val
+                            ? 'bg-[#96171B] text-white border-[#96171B]'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between text-slate-700 pt-1">
+                    <span className="font-bold flex items-center gap-1">
+                      <Users size={12} className="text-emerald-700" />
+                      <span>Kerjasama & Komunikasi:</span>
+                    </span>
+                    <span className="font-mono font-bold text-emerald-800">{activeSession.skorKerjasama ?? 90}</span>
+                  </div>
+                  <div className="grid grid-cols-5 gap-1">
+                    {[75, 80, 85, 90, 95].map(val => (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => updateActiveSession({ skorKerjasama: val })}
+                        className={`py-1 rounded text-xs font-bold transition-all border cursor-pointer text-center ${
+                          (activeSession.skorKerjasama ?? 90) === val
+                            ? 'bg-emerald-700 text-white border-emerald-700'
+                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* RIGHT COLUMN: SOP PROCEDURE CHECKLIST, KNOWLEDGE QUESTIONS & NOTES */}
+              <div className="lg:col-span-7 space-y-4">
+                {/* SOP CHECKLIST STEPS */}
+                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-xs text-slate-800">
+                        Langkah Prosedur SOP ({activeChecklist.length} Langkah)
+                      </h3>
+                      <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-50 text-[#96171B] border border-rose-200">
+                        {currentProductDef.nama}
                       </span>
-                    </button>
+                    </div>
 
-                    <button
-                      type="button"
-                      onClick={handleSaveAssessment}
-                      className="w-full py-2.5 px-4 rounded-lg bg-[#96171B] hover:bg-[#7A1216] text-white font-bold text-xs shadow-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Award size={15} />
-                      <span>Simpan Menu Ini Saja (Tanpa Lanjut)</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const effName = activeSession.isManualName
-                          ? (activeSession.manualNameInput.trim() || 'Peserta Mandiri')
-                          : activeSession.namaKru;
-                        const finalPenilai = isCustomPenilai ? (customPenilai.trim() || 'Haikal') : namaPenilai;
-                        const recordToExport: PenilaianPraktikOnboardingProduk = {
-                          id: `prak-${Date.now()}`,
-                          tanggal: tanggalUji,
-                          batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : '',
-                          nama_batch: selectedBatchId !== 'ALL' ? (batches.find(b => b.id === selectedBatchId)?.nama_batch || '') : '',
-                          kode_outlet: activeSession.outletCode,
-                          kru_id: activeSession.isManualName ? `manual-${Date.now()}` : activeSession.kruId,
-                          nama_kru: effName,
-                          divisi: currentProductDef.divisi,
-                          day: activeSession.day,
-                          batch_name: activeSession.batch,
-                          station: activeSession.station,
-                          station_label: currentProductDef.stationLabel,
-                          produk_nama: activeSession.productNama,
-                          waktu_detik: activeSession.timerSeconds,
-                          target_detik: currentProductDef.stdDetik,
-                          suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : 0,
-                          gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
-                          skor_prosedur: calculatedScores.skorProsedur,
-                          skor_waktu: calculatedScores.skorWaktu,
-                          skor_kebersihan: 90,
-                          skor_kerjasama: 90,
-                          skor_knowledge: calculatedScores.skorKnowledge,
-                          skor_akhir: calculatedScores.skorAkhir,
-                          status: calculatedScores.statusKelulusan,
-                          gagal_titik_kritis: calculatedScores.hasTitikKritisViolation,
-                          titik_kritis_gagal_detail: calculatedScores.failedCriticalPoints,
-                          penilai_nama: finalPenilai,
-                          catatan: activeSession.catatanTrainer || (calculatedScores.isKompetenMandiri ? 'Praktik sangat rapi dan sesuai SOP.' : 'Dibutuhkan pendampingan lanjutan.'),
-                          checklist_langkah: (activeSession.stepChecklist || []).map(s => ({
-                            nomor: s.nomor,
-                            langkah: s.langkah,
-                            tercapai: !!s.tercapai,
-                          })),
-                          created_at: new Date().toISOString(),
-                        };
-                        exportPenilaianPraktikProdukPDF(recordToExport);
-                      }}
-                      className="w-full py-2.5 px-4 rounded-lg bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <Download size={14} className="text-amber-400" />
-                      <span>Unduh Lembar Evaluasi PDF (Resmi)</span>
-                    </button>
-
-                    {calculatedScores.skorAkhir >= 80 && (
+                    <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => {
-                          const effName = activeSession.isManualName
-                            ? (activeSession.manualNameInput.trim() || 'Peserta')
-                            : activeSession.namaKru;
-                          setCertificateData({
-                            kruNama: effName,
-                            kodeOutlet: activeSession.outletCode,
-                            batchName: selectedBatchId !== 'ALL' ? batches.find(b => b.id === selectedBatchId)?.nama_batch || 'Onboarding HARA' : 'Onboarding HARA',
-                            skorAkhir: calculatedScores.skorAkhir,
-                            statusKelulusan: calculatedScores.statusKelulusan,
-                            trainerNama: isCustomPenilai ? (customPenilai || 'Haikal') : namaPenilai,
-                          });
+                          const allChecked = activeChecklist.map(s => ({ ...s, tercapai: true }));
+                          updateActiveSession({ stepChecklist: allChecked });
                         }}
-                        className="w-full py-2.5 px-4 rounded-lg border border-neutral-700 hover:border-white text-gray-300 hover:text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                        className="text-[10.5px] font-bold text-emerald-700 hover:text-emerald-900 cursor-pointer"
                       >
-                        <Award size={14} className="text-amber-400" />
-                        <span>Pratinjau Sertifikat Kelulusan</span>
+                        ✓ Centang Semua
                       </button>
-                    )}
+                      <span className="text-slate-300">|</span>
+                      <span className="text-[10.5px] font-bold text-[#96171B] font-mono">
+                        Bobot: 40%
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Scrollable Step Items Container */}
+                  <div className="max-h-[340px] overflow-y-auto pr-1 space-y-1.5">
+                    {activeChecklist.map((step) => (
+                      <div
+                        key={step.nomor}
+                        onClick={() => handleToggleStep(step.nomor)}
+                        className={`p-2.5 rounded-lg border transition-all flex items-start gap-2.5 cursor-pointer ${
+                          step.tercapai
+                            ? 'bg-white border-slate-200 hover:border-emerald-300'
+                            : 'bg-rose-50/40 border-rose-200'
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
+                          step.tercapai
+                            ? 'bg-emerald-600 text-white border-emerald-600'
+                            : 'bg-white border-rose-300 text-transparent'
+                        }`}>
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+
+                        <div className="flex-1 text-xs">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-slate-900">#{step.nomor}</span>
+                            {step.isKritis && (
+                              <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+                                TITIK KRITIS
+                              </span>
+                            )}
+                          </div>
+                          <p className={`mt-0.5 leading-relaxed text-[11.5px] ${
+                            step.tercapai ? 'text-slate-800' : 'text-rose-800 line-through'
+                          }`}>
+                            {step.langkah}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* AUTO-GENERATED KNOWLEDGE QUESTIONS (30%) */}
-                <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
-                    <div>
-                      <h4 className="font-bold text-sm text-[#181411]">Knowledge SOP Lisan (30%)</h4>
-                      <p className="text-[11px] text-[#645D55]">Uji pemahaman dasar resep & titik kritis</p>
-                    </div>
+                {/* KNOWLEDGE SOP LISAN QUESTIONS (20%) */}
+                <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 text-xs">
+                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
+                    <span className="font-bold text-slate-800">Knowledge SOP Lisan (20%)</span>
                     <span className="text-xs font-mono font-bold text-[#96171B]">
                       {activeSession.skorKnowledge} / 100
                     </span>
                   </div>
 
-                  <div className="space-y-3 pt-1">
+                  <div className="space-y-2 pt-0.5">
                     {currentProductDef.autoQuestions.map((q, qIdx) => {
                       const isPassed = activeSession.knowledgeAnswers[qIdx] ?? true;
                       return (
-                        <div key={qIdx} className="p-3 rounded-lg border border-[#E6E1DA] bg-[#FAF8F5] space-y-2">
-                          <div className="text-xs font-semibold text-[#181411]">
-                            {qIdx + 1}. {q.tanya}
+                        <div key={qIdx} className="p-2 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <span className="font-semibold text-slate-800 text-[11.5px] block truncate">
+                              {qIdx + 1}. {q.tanya}
+                            </span>
+                            <span className="text-[10px] text-slate-500 block truncate">
+                              Kunci: {q.kunci}
+                            </span>
                           </div>
-                          <div className="text-[11px] text-[#645D55] bg-white p-2 rounded border border-[#E6E1DA]">
-                            <span className="font-bold text-[#96171B]">Kunci Jawaban:</span> {q.kunci}
-                          </div>
-                          <div className="flex items-center justify-end gap-2 pt-1">
+
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               type="button"
                               onClick={() => handleToggleKnowledgeQuestion(qIdx, true)}
-                              className={`px-3 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-2 py-0.5 rounded text-[10.5px] font-bold cursor-pointer ${
                                 isPassed
-                                  ? 'bg-emerald-600 text-white shadow-2xs'
-                                  : 'bg-white border border-[#E6E1DA] text-[#645D55] hover:bg-slate-100'
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-white border border-slate-200 text-slate-600'
                               }`}
                             >
                               ✓ Benar
@@ -2669,10 +2648,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                             <button
                               type="button"
                               onClick={() => handleToggleKnowledgeQuestion(qIdx, false)}
-                              className={`px-3 py-1 rounded text-xs font-bold transition-all cursor-pointer ${
+                              className={`px-2 py-0.5 rounded text-[10.5px] font-bold cursor-pointer ${
                                 !isPassed
-                                  ? 'bg-rose-600 text-white shadow-2xs'
-                                  : 'bg-white border border-[#E6E1DA] text-[#645D55] hover:bg-slate-100'
+                                  ? 'bg-rose-600 text-white'
+                                  : 'bg-white border border-slate-200 text-slate-600'
                               }`}
                             >
                               ✕ Salah
@@ -2684,83 +2663,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   </div>
                 </div>
 
-                {/* PENILAIAN SIKAP 5S & KERJASAMA TIM */}
-                <div className="p-5 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-3">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E6E1DA]">
-                    <div>
-                      <h4 className="font-bold text-sm text-[#181411]">Penilaian Sikap 5S & Kerjasama Tim</h4>
-                      <p className="text-[11px] text-[#645D55]">Kebersihan area kerja, kerapian alat, grooming & komunikasi vokal</p>
-                    </div>
-                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200">
-                      Penempatan: {getCandidatePlacement(activeSession.isManualName ? activeSession.manualNameInput : activeSession.namaKru)}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3 pt-1">
-                    {/* Kebersihan & 5S Grooming */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#181411] mb-1.5">
-                        <span className="flex items-center gap-1.5">
-                          <Sparkles size={13} className="text-[#96171B]" />
-                          <span>Kebersihan & Grooming 5S:</span>
-                        </span>
-                        <span className="font-mono font-bold text-[#96171B]">
-                          {activeSession.skorKebersihan ?? 90} Poin
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-1.5">
-                        {[75, 80, 85, 90, 95].map(val => (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => updateActiveSession({ skorKebersihan: val })}
-                            className={`py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer text-center ${
-                              (activeSession.skorKebersihan ?? 90) === val
-                                ? 'bg-[#96171B] text-white border-[#96171B] shadow-2xs'
-                                : 'bg-[#FAF8F5] text-[#645D55] border-[#E6E1DA] hover:bg-stone-100'
-                            }`}
-                          >
-                            {val}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Kerjasama & Komunikasi Regu */}
-                    <div>
-                      <div className="flex items-center justify-between text-xs font-semibold text-[#181411] mb-1.5">
-                        <span className="flex items-center gap-1.5">
-                          <Users size={13} className="text-emerald-700" />
-                          <span>Kerjasama Tim & Komunikasi:</span>
-                        </span>
-                        <span className="font-mono font-bold text-emerald-800">
-                          {activeSession.skorKerjasama ?? 90} Poin
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-5 gap-1.5">
-                        {[75, 80, 85, 90, 95].map(val => (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => updateActiveSession({ skorKerjasama: val })}
-                            className={`py-1.5 rounded-lg text-xs font-bold transition-all border cursor-pointer text-center ${
-                              (activeSession.skorKerjasama ?? 90) === val
-                                ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs'
-                                : 'bg-[#FAF8F5] text-[#645D55] border-[#E6E1DA] hover:bg-stone-100'
-                            }`}
-                          >
-                            {val}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
                 {/* CATATAN ASESOR / TRAINER */}
-                <div className="p-6 rounded-xl bg-white border border-[#E6E1DA] shadow-2xs space-y-2">
-                  <label className="text-[11px] font-bold text-[#645D55] uppercase tracking-wider block">
-                    Catatan Asesor / Evaluasi Lapangan:
+                <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1.5 text-xs">
+                  <label className="font-bold text-slate-700 text-[11px] uppercase tracking-wider block">
+                    Catatan Evaluasi Trainer:
                   </label>
                   <textarea
                     value={activeSession.catatanTrainer || ''}
@@ -2773,14 +2679,116 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         productNotes: pNotes,
                       });
                     }}
-                    placeholder={`Tuliskan catatan perbaikan atau apresiasi terhadap hasil praktik ${currentProductDef.nama}...`}
-                    rows={3}
-                    className="w-full p-2.5 rounded-lg border border-[#E6E1DA] text-xs text-[#181411] placeholder-[#645D55]/60 focus:outline-none focus:border-[#96171B]"
+                    placeholder={`Catatan untuk ${currentProductDef.nama}...`}
+                    rows={2}
+                    className="w-full p-2 rounded-lg border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-[#96171B]"
                   />
                 </div>
               </div>
             </div>
           )}
+
+          {/* DOCKED STICKY BOTTOM ACTION BAR (ERGONOMIC SINGLE-SCREEN SAVE) */}
+          {activeSession && (() => {
+            const queue = activeSession.productQueue && activeSession.productQueue.length > 0
+              ? activeSession.productQueue
+              : [activeSession.productNama];
+            const currentIdx = activeSession.currentProductIndex || 0;
+            const hasNext = (currentIdx + 1) < queue.length;
+            const effName = activeSession.isManualName
+              ? (activeSession.manualNameInput.trim() || 'Peserta')
+              : activeSession.namaKru;
+            const placement = getCandidatePlacement(effName);
+
+            return (
+              <div className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border border-slate-200 py-3 px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3 shadow-lg rounded-xl">
+                {/* Left: Summary of active evaluation */}
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="font-bold text-slate-800">{effName}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="text-slate-600">{placement}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="font-bold text-[#96171B]">{currentProductDef.nama}</span>
+                  <span className="text-slate-400">•</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    Skor: {calculatedScores.skorAkhir} ({calculatedScores.statusKelulusan})
+                  </span>
+                </div>
+
+                {/* Right: Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSaveAssessment}
+                    className="px-3.5 py-2 rounded-lg border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs transition-colors cursor-pointer"
+                    title="Simpan menu ini saja tanpa berpindah"
+                  >
+                    Simpan Menu Saja
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveAndAdvanceProduct}
+                    className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs transition-all flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 size={15} />
+                    <span>
+                      {hasNext ? 'Simpan & Lanjut Menu Berikutnya ➔' : 'Simpan & Selesaikan Sesi Kru'}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const finalPenilai = isCustomPenilai ? (customPenilai.trim() || 'Haikal') : namaPenilai;
+                      const recordToExport: PenilaianPraktikOnboardingProduk = {
+                        id: `prak-${Date.now()}`,
+                        tanggal: tanggalUji,
+                        batch_id: selectedBatchId !== 'ALL' ? selectedBatchId : '',
+                        nama_batch: selectedBatchId !== 'ALL' ? (batches.find(b => b.id === selectedBatchId)?.nama_batch || '') : '',
+                        kode_outlet: activeSession.outletCode,
+                        kru_id: activeSession.isManualName ? `manual-${Date.now()}` : activeSession.kruId,
+                        nama_kru: effName,
+                        divisi: currentProductDef.divisi,
+                        day: activeSession.day,
+                        batch_name: activeSession.batch,
+                        station: activeSession.station,
+                        station_label: currentProductDef.stationLabel,
+                        produk_nama: activeSession.productNama,
+                        waktu_detik: activeSession.timerSeconds,
+                        target_detik: currentProductDef.stdDetik,
+                        suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : 0,
+                        gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
+                        skor_prosedur: calculatedScores.skorProsedur,
+                        skor_waktu: calculatedScores.skorWaktu,
+                        skor_kebersihan: 90,
+                        skor_kerjasama: 90,
+                        skor_knowledge: calculatedScores.skorKnowledge,
+                        skor_akhir: calculatedScores.skorAkhir,
+                        status: calculatedScores.statusKelulusan,
+                        gagal_titik_kritis: calculatedScores.hasTitikKritisViolation,
+                        titik_kritis_gagal_detail: calculatedScores.failedCriticalPoints,
+                        penilai_nama: finalPenilai,
+                        catatan: activeSession.catatanTrainer || (calculatedScores.isKompetenMandiri ? 'Praktik sangat rapi dan sesuai SOP.' : 'Dibutuhkan pendampingan lanjutan.'),
+                        checklist_langkah: (activeChecklist || []).map(s => ({
+                          nomor: s.nomor,
+                          langkah: s.langkah,
+                          tercapai: !!s.tercapai,
+                        })),
+                        created_at: new Date().toISOString(),
+                      };
+                      exportPenilaianPraktikProdukPDF(recordToExport);
+                    }}
+                    className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
+                    title="Unduh PDF Lembar Evaluasi Resmi"
+                  >
+                    <Download size={15} />
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -4531,12 +4539,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               e.stopPropagation();
                               const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
                               const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
-                              const targetProd = allAvailableProducts.find(p => p.nama === updatedQueue[newCurrentIdx]) || allAvailableProducts[0];
-                              updateActiveSession({
-                                productQueue: updatedQueue,
-                                currentProductIndex: newCurrentIdx,
-                                productNama: targetProd.nama,
-                              });
+                              const targetProd = findProductDefinition(updatedQueue[newCurrentIdx]);
+                              switchSessionProduct(targetProd.nama, newCurrentIdx);
                             }}
                             className={`p-0.5 rounded transition-colors ${
                               isCurrent ? 'hover:bg-white/20 text-white/80' : 'hover:bg-rose-50 text-neutral-400 hover:text-rose-600'
@@ -5368,12 +5372,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                                 onClick={() => {
                                   const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
                                   const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
-                                  const targetProd = allAvailableProducts.find(p => p.nama === updatedQueue[newCurrentIdx]) || allAvailableProducts[0];
-                                  updateActiveSession({
-                                    productQueue: updatedQueue,
-                                    currentProductIndex: newCurrentIdx,
-                                    productNama: targetProd.nama,
-                                  });
+                                  const targetProd = findProductDefinition(updatedQueue[newCurrentIdx]);
+                                  switchSessionProduct(targetProd.nama, newCurrentIdx);
                                 }}
                                 className="p-1 rounded text-stone-400 hover:text-rose-600 transition-colors"
                                 title="Hapus menu dari antrean"

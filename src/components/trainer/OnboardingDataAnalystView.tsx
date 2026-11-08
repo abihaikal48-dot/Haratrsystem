@@ -9,7 +9,6 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { db } from '../../lib/storage';
-import { syncAllToFirestore } from '../../lib/firestoreSync';
 import { PenilaianOnboardingTC, Outlet, Division } from '../../types';
 
 interface OnboardingDataAnalystViewProps {
@@ -483,19 +482,16 @@ export const OnboardingDataAnalystView: React.FC<OnboardingDataAnalystViewProps>
           <button
             onClick={async () => {
               try {
-                db.setDirect('kru', db.getKru());
-                db.setDirect('outlets', db.getOutlets());
-                db.setDirect('onboarding_batches', db.getOnboardingBatches());
-                db.setDirect('penilaian_praktik_onboarding_produk', db.getPenilaianPraktikProduk());
-                await syncAllToFirestore();
+                const { pullAllFromSupabase } = await import('../../lib/supabase');
+                await pullAllFromSupabase();
                 loadData();
-                alert('12 Peserta Onboarding 23-24 Oktober berhasil disinkronkan ke Cloud Firestore.');
+                alert('Data Onboarding berhasil disinkronkan ke Supabase.');
               } catch {
                 alert('Sinkronisasi selesai.');
               }
             }}
             className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors shadow-2xs"
-            title="Muat ulang dan sinkronkan data 12 peserta ke Cloud Firestore"
+            title="Muat ulang dan sinkronkan data ke Supabase"
           >
             <RefreshCw size={15} />
             <span>Sinkronkan 12 Peserta (Cloud)</span>

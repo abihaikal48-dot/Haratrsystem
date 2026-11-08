@@ -384,9 +384,10 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
         category="ONBOARDING RESMI"
         title="Pusat Onboarding Terpadu HARA Chicken"
         description="Master Kurikulum Baku 10 Materi (Total 25 Jam), Database Peserta Batch (11–17 Kru), Form Penilaian Praktik Produk SOP, dan Dashboard Analitik Diagnostik Kelulusan."
-        icon={<GraduationCap size={22} />}
+        icon={<GraduationCap size={20} />}
+        compact={activeSubTab === 'penilaian'}
         tabs={[
-          { id: 'silabus', label: 'Silabus Kurikulum (3 Hari)', icon: BookOpen },
+          { id: 'silabus', label: 'Silabus (3 Hari)', icon: BookOpen },
           { id: 'batches', label: 'Batch Kru & Peserta', icon: Users, count: batches.length },
           { id: 'penilaian', label: 'Penilaian Praktik', icon: UtensilsCrossed },
           { id: 'analyst', label: 'Analitik Onboarding', icon: BarChart3 },
@@ -714,45 +715,23 @@ export const KurikulumRoadmapView: React.FC<KurikulumRoadmapViewProps> = ({
           SUB-TAB 3: PENILAIAN PRAKTIK PRODUK SOP
           =================================================================== */}
       {activeSubTab === 'penilaian' && (
-        <div className="space-y-4">
-          {/* Segmented Mode Switcher */}
-          <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-white rounded-2xl border border-[#E6E1DA] shadow-xs">
-            <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#FAF8F5] rounded-xl border border-[#E6E1DA]">
+        <div className="space-y-3">
+          {penilaianMode === 'log' && (
+            <div className="flex items-center justify-between p-2.5 px-4 bg-white rounded-xl border border-slate-200 text-xs">
+              <span className="font-bold text-slate-700 flex items-center gap-1.5">
+                <FileText size={14} className="text-[#96171B]" />
+                <span>Log Aktivitas Penilaian (Audit Trail)</span>
+              </span>
               <button
                 type="button"
                 onClick={() => setPenilaianMode('produk')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  penilaianMode === 'produk'
-                    ? 'bg-[#96171B] text-white shadow-xs'
-                    : 'text-[#645D55] hover:text-[#181411]'
-                }`}
+                className="btn-enterprise-primary text-xs"
               >
-                <UtensilsCrossed size={13} />
-                <span>Form Penilaian Praktik Produk SOP</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPenilaianMode('log')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  penilaianMode === 'log'
-                    ? 'bg-[#96171B] text-white shadow-xs'
-                    : 'text-[#645D55] hover:text-[#181411]'
-                }`}
-              >
-                <FileText size={13} />
-                <span>Log Aktivitas Penilaian (Audit Trail)</span>
+                <ArrowLeft size={13} />
+                <span>Kembali ke Form Penilaian Praktik</span>
               </button>
             </div>
-
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('analyst')}
-              className="text-xs font-bold text-[#96171B] hover:underline flex items-center gap-1 px-3 py-1.5 cursor-pointer"
-            >
-              <span>Buka Analitik Onboarding</span>
-              <ArrowRight size={13} />
-            </button>
-          </div>
+          )}
 
           {penilaianMode === 'produk' ? (
             <OnboardingProductPracticeView

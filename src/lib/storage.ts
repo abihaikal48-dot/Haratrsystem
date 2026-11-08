@@ -2704,13 +2704,6 @@ class StorageDatabase {
       created_at: new Date().toISOString(),
     };
     this.set(STORAGE_KEYS.LOG_AKTIVITAS, [newLog, ...logs.slice(0, 49)]);
-
-    // Async write to Firestore audit logs collection
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'logs', newLog.id), sanitizeForFirestore(newLog), { merge: true }).catch(() => {});
-      });
-    }).catch(() => {});
   }
 
   // Current User & Session
@@ -2797,39 +2790,6 @@ class StorageDatabase {
       pushToServer(tableName, data, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
-    // Online Real-time Sync write to Cloud Firestore
-    if (Array.isArray(data) && data.length > 0) {
-      import('./firebase').then(({ isFirestoreQuotaExceeded, checkAndHandleQuotaError }) => {
-        if (isFirestoreQuotaExceeded()) return;
-        import('./firestoreSync').then(({ setCloudSyncStatus }) => {
-          setCloudSyncStatus('syncing');
-          import('./firebase').then(({ firestore }) => {
-            import('firebase/firestore').then(({ doc, writeBatch }) => {
-              const batch = writeBatch(firestore);
-              let count = 0;
-              data.forEach((item) => {
-                if (item && item.id) {
-                  const docRef = doc(firestore, tableName, String(item.id));
-                  batch.set(docRef, sanitizeForFirestore(item), { merge: true });
-                  count++;
-                }
-              });
-              if (count > 0) {
-                batch.commit()
-                  .then(() => setCloudSyncStatus('online'))
-                  .catch((err) => {
-                    checkAndHandleQuotaError(err);
-                    console.warn(`setDirect firestore batch write error (${tableName}):`, err);
-                    setCloudSyncStatus(typeof navigator !== 'undefined' && !navigator.onLine ? 'offline' : 'online');
-                  });
-              } else {
-                setCloudSyncStatus('online');
-              }
-            });
-          }).catch(() => {});
-        }).catch(() => {});
-      }).catch(() => {});
-    }
   }
 
   public insertRow<T = any>(tableName: string, payload: any): T {
@@ -2878,6 +2838,13 @@ class StorageDatabase {
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer(tableName, newRow, 'UPSERT').catch(() => {});
     }).catch(() => {});
+
+    // Auto-relay evaluation or onboarding records to Google Sheets
+    if (tableName === 'penilaian_praktik_onboarding_produk') {
+      import('./googleSheetSync').then(({ syncPenilaianToGoogleSheets }) => {
+        syncPenilaianToGoogleSheets(newRow).catch(() => {});
+      }).catch(() => {});
+    }
 
     return newRow as unknown as T;
   }
@@ -2986,6 +2953,13 @@ class StorageDatabase {
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer(tableName, updated, 'UPSERT').catch(() => {});
     }).catch(() => {});
+
+    // Auto-relay evaluation or onboarding records to Google Sheets
+    if (tableName === 'penilaian_praktik_onboarding_produk') {
+      import('./googleSheetSync').then(({ syncPenilaianToGoogleSheets }) => {
+        syncPenilaianToGoogleSheets(updated).catch(() => {});
+      }).catch(() => {});
+    }
 
     return true;
   }
@@ -3656,11 +3630,12 @@ class StorageDatabase {
     }
     this.set(STORAGE_KEYS.HASIL_UJIAN_MINGGUAN, list);
     this.addLog('TAMBAH', 'Hasil Ujian Mingguan', `Ujian ${result.minggu} untuk ${result.nama_kru} (${result.divisi}) tersimpan (Skor: ${result.skor_akhir_komposit})`);
-    // Real-time online write to Firestore
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'hasil_ujian_mingguan', result.id), sanitizeForFirestore(result), { merge: true }).catch(() => {});
-      });
+    // Real-time online write to Supabase & Server
+    import('./supabase').then(({ syncRecordToSupabase }) => {
+      syncRecordToSupabase('hasil_ujian_mingguan', result).catch(() => {});
+    }).catch(() => {});
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('hasil_ujian_mingguan', result, 'UPSERT').catch(() => {});
     }).catch(() => {});
   }
 
@@ -3721,11 +3696,18 @@ class StorageDatabase {
       pushToServer('onboarding_batches', batch, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
-    // Async write to Firestore
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'onboarding_batches', batch.id), sanitizeForFirestore(batch), { merge: true }).catch(() => {});
-      });
+    // Google Sheets Auto-Relay via Server Proxy
+    import('./serverSync').then(({ proxyGoogleSheetSync }) => {
+      proxyGoogleSheetSync({
+        action: 'SAVE_ONBOARDING_BATCH',
+        batch_id: batch.id,
+        nomor_batch: batch.nomor_batch,
+        nama_batch: batch.nama_batch,
+        tanggal_mulai: batch.tanggal_mulai,
+        tanggal_selesai: batch.tanggal_selesai,
+        total_peserta: batch.peserta?.length || 0,
+        peserta: batch.peserta,
+      }).catch(() => {});
     }).catch(() => {});
   }
 
@@ -3783,13 +3765,9 @@ class StorageDatabase {
       pushToServer('penilaian_praktik_onboarding_produk', item, 'UPSERT').catch(() => {});
     }).catch(() => {});
 
-    // Dual-layer Firestore sync
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        const cleanPayload = sanitizeForFirestore(item);
-        setDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', item.id), cleanPayload, { merge: true }).catch(() => {});
-        setDoc(doc(firestore, 'penilaian_onboarding_rnd', item.id), cleanPayload, { merge: true }).catch(() => {});
-      });
+    // Google Sheets Auto-Sync
+    import('./googleSheetSync').then(({ syncPenilaianToGoogleSheets }) => {
+      syncPenilaianToGoogleSheets(item).catch(() => {});
     }).catch(() => {});
 
     // Free Google Sheets Webhook Sync (Cadangan Gratis Selamanya)
@@ -3830,13 +3808,6 @@ class StorageDatabase {
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer('penilaian_praktik_onboarding_produk', { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
-
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, deleteDoc }) => {
-        deleteDoc(doc(firestore, 'penilaian_praktik_onboarding_produk', id)).catch(() => {});
-        deleteDoc(doc(firestore, 'penilaian_onboarding_rnd', id)).catch(() => {});
-      });
-    }).catch(() => {});
   }
 
   public deletePenilaianPraktikProdukBulk(ids: string[]): void {
@@ -3848,15 +3819,12 @@ class StorageDatabase {
     this.set(STORAGE_KEYS.PENILAIAN_ONBOARDING_RND, updated);
     this.addLog('HAPUS', 'Penilaian Praktik Produk SOP', `Hapus massal ${ids.length} data evaluasi onboarding`);
 
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, writeBatch }) => {
-        const batch = writeBatch(firestore);
-        ids.forEach(id => {
-          batch.delete(doc(firestore, 'penilaian_praktik_onboarding_produk', id));
-          batch.delete(doc(firestore, 'penilaian_onboarding_rnd', id));
-        });
-        batch.commit().catch(() => {});
-      });
+    import('./supabase').then(({ deleteRecordFromSupabase }) => {
+      ids.forEach(id => deleteRecordFromSupabase('penilaian_praktik_onboarding_produk', id).catch(() => {}));
+    }).catch(() => {});
+
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_praktik_onboarding_produk', ids.map(id => ({ id })), 'DELETE').catch(() => {});
     }).catch(() => {});
   }
 
@@ -3990,11 +3958,9 @@ class StorageDatabase {
       syncRecordToSupabase('penilaian_jobdesk_stasiun', item).catch(() => {});
     }).catch(() => {});
 
-    // Firestore async sync
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'penilaian_jobdesk_stasiun', item.id), sanitizeForFirestore(item), { merge: true }).catch(() => {});
-      });
+    // Server Proxy auto-sync
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_jobdesk_stasiun', item, 'UPSERT').catch(() => {});
     }).catch(() => {});
   }
 
@@ -4009,10 +3975,9 @@ class StorageDatabase {
       deleteRecordFromSupabase('penilaian_jobdesk_stasiun', id).catch(() => {});
     }).catch(() => {});
 
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, deleteDoc }) => {
-        deleteDoc(doc(firestore, 'penilaian_jobdesk_stasiun', id)).catch(() => {});
-      });
+    // Server Proxy auto-delete
+    import('./serverSync').then(({ pushToServer }) => {
+      pushToServer('penilaian_jobdesk_stasiun', { id }, 'DELETE').catch(() => {});
     }).catch(() => {});
   }
 
@@ -4046,13 +4011,6 @@ class StorageDatabase {
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer('penilaian_sikap_kebersihan_kru', item, 'UPSERT').catch(() => {});
     }).catch(() => {});
-
-    // Firestore async sync
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'penilaian_sikap_kebersihan_kru', item.id), sanitizeForFirestore(item), { merge: true }).catch(() => {});
-      });
-    }).catch(() => {});
   }
 
   public deletePenilaianSikapKebersihanKru(id: string): void {
@@ -4069,12 +4027,6 @@ class StorageDatabase {
     // Server Proxy auto-delete
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer('penilaian_sikap_kebersihan_kru', { id }, 'DELETE').catch(() => {});
-    }).catch(() => {});
-
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, deleteDoc }) => {
-        deleteDoc(doc(firestore, 'penilaian_sikap_kebersihan_kru', id)).catch(() => {});
-      });
     }).catch(() => {});
   }
 
@@ -4108,13 +4060,6 @@ class StorageDatabase {
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer('penilaian_tim_stasiun', item, 'UPSERT').catch(() => {});
     }).catch(() => {});
-
-    // Firestore async sync
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, setDoc }) => {
-        setDoc(doc(firestore, 'penilaian_tim_stasiun', item.id), sanitizeForFirestore(item), { merge: true }).catch(() => {});
-      });
-    }).catch(() => {});
   }
 
   public deletePenilaianTimStasiun(id: string): void {
@@ -4131,12 +4076,6 @@ class StorageDatabase {
     // Server Proxy auto-delete
     import('./serverSync').then(({ pushToServer }) => {
       pushToServer('penilaian_tim_stasiun', { id }, 'DELETE').catch(() => {});
-    }).catch(() => {});
-
-    import('./firebase').then(({ firestore }) => {
-      import('firebase/firestore').then(({ doc, deleteDoc }) => {
-        deleteDoc(doc(firestore, 'penilaian_tim_stasiun', id)).catch(() => {});
-      });
     }).catch(() => {});
   }
 

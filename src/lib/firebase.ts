@@ -1,30 +1,25 @@
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import {
-  getFirestore,
-  Firestore
-} from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+/**
+ * HARA CHICKEN - FIREBASE PASSIVE STUB
+ * Seluruh koneksi jaringan ke Firebase/Firestore dinonaktifkan total sesuai instruksi arsitektur.
+ * Aplikasi menggunakan 100% Supabase + Server Proxy + Google Spreadsheets Auto-Sync.
+ */
 
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+export const auth: any = {
+  currentUser: null,
+  onAuthStateChanged: (_cb: any) => () => {},
+  signOut: async () => {},
+};
 
-export const auth = getAuth(app);
-
-const databaseId = (firebaseConfig as any).firestoreDatabaseId;
-
-export const firestore: Firestore = getFirestore(app, databaseId);
-export const db = firestore;
-export default app;
-
-let quotaExceededDetected = true; // Default to local mode per user request
+export const firestore: any = {};
+export const db: any = {};
+export default {};
 
 export function checkAndHandleQuotaError(_error: unknown): boolean {
-  quotaExceededDetected = true;
   return true;
 }
 
 export function isFirestoreQuotaExceeded(): boolean {
-  return true; // Always local storage mode
+  return true;
 }
 
 export enum OperationType {
@@ -40,23 +35,13 @@ export interface FirestoreErrorInfo {
   error: string;
   operationType: OperationType;
   path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
-  };
+  authInfo: Record<string, any>;
 }
 
-export function handleFirestoreError(_error: unknown, operationType: OperationType, path: string | null) {
-  console.warn(`Firestore operation ${operationType} on ${path} skipped (Local mode active).`);
+export function handleFirestoreError(_error: unknown, _operationType: OperationType, _path: string | null) {
+  // Pasif - no-op
 }
 
 export async function testFirestoreConnection(): Promise<boolean> {
-  return false; // Local mode active
+  return false;
 }

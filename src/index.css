@@ -114,51 +114,48 @@ body {
   box-shadow: 0 0 0 3px rgba(150, 23, 27, 0.08);
 }
 
-/* Primary Pill Buttons */
-.btn-primary-enterprise,
-.btn-pill {
+/* Clean Enterprise HARA Design System Utility Classes */
+.btn-enterprise-primary {
   background-color: #96171B;
   color: #FFFFFF !important;
-  font-weight: 700;
-  padding: 0.65rem 1.25rem;
-  border-radius: 9999px; /* Pill */
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem; /* 12px */
   font-size: 0.8125rem;
   letter-spacing: -0.01em;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 0.45rem;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   cursor: pointer;
-  box-shadow: 0 2px 4px rgba(150, 23, 27, 0.15);
+  box-shadow: 0 1px 2px rgba(150, 23, 27, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border: 1px solid #7D1316;
 }
 
-.btn-primary-enterprise:hover:not(:disabled),
-.btn-pill:hover:not(:disabled) {
+.btn-enterprise-primary:hover:not(:disabled) {
   background-color: #7D1316;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(150, 23, 27, 0.25);
+  border-color: #630F11;
+  box-shadow: 0 2px 6px rgba(150, 23, 27, 0.22);
 }
 
-.btn-primary-enterprise:active:not(:disabled),
-.btn-pill:active:not(:disabled) {
-  transform: translateY(0);
+.btn-enterprise-primary:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
-.btn-primary-enterprise:disabled,
-.btn-pill:disabled {
+.btn-enterprise-primary:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.btn-secondary-enterprise {
+.btn-enterprise-secondary {
   background-color: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  color: #0F172A;
+  border: 1px solid #CBD5E1;
+  color: #1E293B;
   font-weight: 600;
-  padding: 0.65rem 1.15rem;
-  border-radius: 9999px;
+  padding: 0.5rem 0.95rem;
+  border-radius: 0.75rem; /* 12px */
   font-size: 0.8125rem;
   display: inline-flex;
   align-items: center;
@@ -168,9 +165,61 @@ body {
   cursor: pointer;
 }
 
-.btn-secondary-enterprise:hover:not(:disabled) {
+.btn-enterprise-secondary:hover:not(:disabled) {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.btn-enterprise-subtle {
   background-color: #F1F5F9;
+  border: 1px solid transparent;
+  color: #475569;
+  font-weight: 600;
+  padding: 0.45rem 0.85rem;
+  border-radius: 0.75rem;
+  font-size: 0.8125rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.15s ease-out;
+  cursor: pointer;
+}
+
+.btn-enterprise-subtle:hover:not(:disabled) {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+/* Zero-Pill Quiet Tag */
+.tag-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #475569;
+}
+
+/* Surface Cards */
+.card-clean {
+  background-color: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 1rem; /* 16px */
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out;
+}
+
+.card-clean-hover:hover {
   border-color: #CBD5E1;
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+}
+
+/* Single-Screen Workspace Layout */
+.workspace-fullscreen-flow {
+  height: calc(100vh - 4rem);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 /* Geometric Ambient Animations */

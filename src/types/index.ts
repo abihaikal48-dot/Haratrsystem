@@ -1278,3 +1278,15 @@ export interface PenilaianTimStasiun {
   created_at: string;
 }
 
+export interface ActiveUserPresence {
+  id: string;
+  userId: string;
+  nama: string;
+  role: string;
+  outlet: string;
+  device: string;
+  path: string;
+  last_seen: string;
+  status: 'online' | 'offline';
+}
+

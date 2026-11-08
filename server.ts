@@ -248,13 +248,42 @@ Buatkan rencana training terstruktur dengan format JSON valid persis seperti ini
 // Seluruh handphone/klien berkomunikasi lewat endpoint ini tanpa membocorkan connection string
 // =========================================================================
 
+const DEFAULT_GOOGLE_SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
+
+async function relayToGoogleSheetsWebhook(table: string, records: any[], targetWebhookUrl: string) {
+  if (!targetWebhookUrl || !targetWebhookUrl.startsWith('http')) return;
+  for (const item of records) {
+    if (!item) continue;
+    try {
+      const payload = {
+        event: 'AUTO_RELAY_SYNC',
+        action: table === 'penilaian_praktik_onboarding_produk' ? 'ADD_PENILAIAN' : `SYNC_${table.toUpperCase()}`,
+        table,
+        timestamp: new Date().toISOString(),
+        payload: item,
+        ...item,
+      };
+      await fetch(targetWebhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(payload),
+      });
+    } catch (relayErr) {
+      console.warn(`[Google Sheets Relay] Failed to send to webhook for ${table}:`, relayErr);
+    }
+  }
+}
+
 // 1. Status Koneksi Backend Cloud
 app.get('/api/db/status', (_req, res) => {
+  const store = readServerStore();
+  const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || DEFAULT_GOOGLE_SHEETS_WEBHOOK;
   return res.json({
     ok: true,
     online: true,
     supabaseConfigured: !!serverSupabase,
     supabaseUrlConfigured: Boolean(supabaseUrl),
+    googleSheetsWebhookUrl: sheetsWebhook,
     timestamp: new Date().toISOString()
   });
 });
@@ -308,11 +337,14 @@ app.get('/api/db/init', async (_req, res) => {
       anonKey: process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_KEY || '',
     };
 
+    const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || DEFAULT_GOOGLE_SHEETS_WEBHOOK;
+
     return res.json({
       success: true,
       data: store,
       supabaseConfig: supabaseConfig.url && supabaseConfig.anonKey ? supabaseConfig : null,
       supabaseConnected: !!serverSupabase || !!(supabaseConfig.url && supabaseConfig.anonKey),
+      googleSheetsWebhookUrl: sheetsWebhook,
       timestamp: new Date().toISOString()
     });
   } catch (err: any) {
@@ -320,14 +352,24 @@ app.get('/api/db/init', async (_req, res) => {
   }
 });
 
-// Endpoint untuk menyimpan kredensial Supabase terpusat dari admin
+// Endpoint untuk menyimpan kredensial Supabase & Webhook Google Sheets terpusat dari admin
 app.post('/api/db/config', (req, res) => {
   try {
-    const { url, anonKey } = req.body;
+    const { url, anonKey, googleSheetsWebhookUrl, webhookUrl } = req.body;
     const store = readServerStore();
-    (store as any)._supabase_config = { url, anonKey };
+    if (url || anonKey) {
+      (store as any)._supabase_config = { url, anonKey };
+    }
+    const targetWebhook = googleSheetsWebhookUrl || webhookUrl;
+    if (targetWebhook) {
+      (store as any)._google_sheet_webhook = targetWebhook.trim();
+    }
     writeServerStore(store);
-    return res.json({ success: true, message: 'Kredensial Supabase berhasil disimpan di server.' });
+    return res.json({
+      success: true,
+      message: 'Konfigurasi Supabase & Webhook Google Sheets berhasil disimpan di server.',
+      googleSheetsWebhookUrl: (store as any)._google_sheet_webhook || DEFAULT_GOOGLE_SHEETS_WEBHOOK,
+    });
   } catch (err: any) {
     return res.status(500).json({ success: false, error: err?.message });
   }
@@ -388,6 +430,14 @@ app.post('/api/db/sync', async (req, res) => {
           }
         }
       }
+      // Auto Relay ke Google Sheets Webhook saat ada penilaian, kru, atau batch baru
+      if (['penilaian_praktik_onboarding_produk', 'kru', 'onboarding_batches'].includes(table)) {
+        const webhookUrl =
+          process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+          (currentStore as any)._google_sheet_webhook ||
+          DEFAULT_GOOGLE_SHEETS_WEBHOOK;
+        relayToGoogleSheetsWebhook(table, incomingRecords, webhookUrl).catch(() => {});
+      }
     }
 
     writeServerStore(currentStore);
@@ -405,7 +455,12 @@ app.post('/api/db/sync', async (req, res) => {
 app.post('/api/sync/spreadsheet', async (req, res) => {
   try {
     const { payload, webhookUrl } = req.body;
-    const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl;
+    const store = readServerStore();
+    const targetUrl =
+      process.env.GOOGLE_SHEETS_WEBHOOK_URL ||
+      webhookUrl ||
+      (store as any)._google_sheet_webhook ||
+      DEFAULT_GOOGLE_SHEETS_WEBHOOK;
 
     if (!targetUrl || !targetUrl.startsWith('https://script.google.com/')) {
       return res.status(400).json({

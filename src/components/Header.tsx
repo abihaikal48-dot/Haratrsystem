@@ -5,7 +5,6 @@ import {
   CheckCheck, Lock, Cloud, RefreshCw, WifiOff, Database
 } from 'lucide-react';
 import { AppUser, Outlet } from '../types';
-import { subscribeCloudSyncStatus, getCloudSyncStatus, CloudSyncStatus } from '../lib/firestoreSync';
 import { getSupabaseStatus, subscribeSupabaseStatus, SupabaseStatus } from '../lib/supabase';
 import { HaraLogo } from './HaraLogo';
 

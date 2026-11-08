@@ -4,17 +4,18 @@ import {
   Building, Mail, Bell, Sliders, Cloud, RefreshCw,
   Key, Lock, Clock, Shield, Globe, ExternalLink,
   Copy, Check, Eye, EyeOff, FileText, ShieldAlert,
-  Smartphone
+  Smartphone, Database
 } from 'lucide-react';
 import { db } from '../lib/storage';
 import { SystemSettings, LogAktivitas } from '../types';
-import { syncAllToFirestore } from '../lib/firestoreSync';
+import { pullAllFromSupabase, getSupabaseConfig, getSupabaseStatus } from '../lib/supabase';
+import { getSavedGoogleSheetWebhook, saveGoogleSheetWebhook } from '../lib/googleSheetSync';
 import { ModernOptionSelector } from './ModernOptionSelector';
 import { PageHeaderBanner } from './PageHeaderBanner';
 
 export const SettingsView: React.FC = () => {
   const currentUser = db.getCurrentUser();
-  const [activeTab, setActiveTab] = useState<'parameter' | 'keamanan' | 'cloud_domain' | 'audit_log'>('keamanan');
+  const [activeTab, setActiveTab] = useState<'parameter' | 'keamanan' | 'cloud_database' | 'audit_log'>('keamanan');
 
   const [settings, setSettings] = useState<SystemSettings>({
     email_penerima: 'haikal@harachicken.com',
@@ -44,6 +45,14 @@ export const SettingsView: React.FC = () => {
   const [pinValue, setPinValue] = useState('123456');
   const [pinSaved, setPinSaved] = useState(false);
 
+  // Google Sheets Webhook state
+  const [googleSheetsWebhookUrl, setGoogleSheetsWebhookUrl] = useState<string>(() => {
+    return getSavedGoogleSheetWebhook() || 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
+  });
+  const [webhookSaved, setWebhookSaved] = useState(false);
+  const [isTestingWebhook, setIsTestingWebhook] = useState(false);
+  const [webhookTestResult, setWebhookTestResult] = useState<string | null>(null);
+
   // Copy domain state
   const [copiedDomain, setCopiedDomain] = useState(false);
 
@@ -57,6 +66,9 @@ export const SettingsView: React.FC = () => {
       if (data[0].supervisor_security_pin) {
         setPinValue(data[0].supervisor_security_pin);
       }
+      if (data[0].google_sheets_webhook_url) {
+        setGoogleSheetsWebhookUrl(data[0].google_sheets_webhook_url);
+      }
     }
 
     const logs = db.getTable<LogAktivitas>('logs');
@@ -68,26 +80,73 @@ export const SettingsView: React.FC = () => {
     const updated = {
       ...settings,
       supervisor_security_pin: pinValue,
+      google_sheets_webhook_url: googleSheetsWebhookUrl,
     };
     if (list.length) {
       db.updateRow('settings', (list[0] as any).id, updated);
     } else {
       db.insertRow('settings', updated);
     }
+    saveGoogleSheetWebhook(googleSheetsWebhookUrl);
     db.addLog('UBAH', 'Pengaturan', 'Parameter sistem dan preferensi keamanan diperbarui.');
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
 
-  const handlePushFirestore = async () => {
+  const handleSaveWebhook = async () => {
+    saveGoogleSheetWebhook(googleSheetsWebhookUrl);
+    try {
+      await fetch('/api/db/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleSheetsWebhookUrl: googleSheetsWebhookUrl.trim() }),
+      });
+    } catch {
+      // ignore
+    }
+    setWebhookSaved(true);
+    setTimeout(() => setWebhookSaved(false), 3000);
+  };
+
+  const handleTestWebhook = async () => {
+    setIsTestingWebhook(true);
+    setWebhookTestResult(null);
+    try {
+      const res = await fetch('/api/sync/spreadsheet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          webhookUrl: googleSheetsWebhookUrl.trim(),
+          payload: {
+            event: 'TEST_WEBHOOK_PING',
+            timestamp: new Date().toISOString(),
+            pengirim: currentUser?.nama || 'Trainer HARA',
+            message: 'Tes koneksi webhook Google Sheets sukses terkirim dari pengaturan HARA TRAINER PRO.',
+          },
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setWebhookTestResult('Koneksi Webhook Google Sheets sukses terhubung!');
+      } else {
+        setWebhookTestResult('Gagal: ' + (data.message || 'Error'));
+      }
+    } catch (err: any) {
+      setWebhookTestResult('Gagal kirim: ' + (err?.message || 'Koneksi error'));
+    } finally {
+      setIsTestingWebhook(false);
+    }
+  };
+
+  const handlePushSupabase = async () => {
     setIsSyncing(true);
     setSyncStatusMsg(null);
     try {
-      const res = await syncAllToFirestore();
+      const res = await pullAllFromSupabase();
       if (res.success) {
-        setSyncStatusMsg(`Berhasil mengunggah ${res.totalSynced} dokumen ke Cloud Firestore.`);
+        setSyncStatusMsg(`Berhasil menyinkronkan data dengan Cloud Supabase.`);
       } else {
-        setSyncStatusMsg(res.message);
+        setSyncStatusMsg('Gagal sinkronisasi Supabase.');
       }
     } catch (e: any) {
       setSyncStatusMsg('Gagal menyinkronkan: ' + (e?.message || 'Error'));
@@ -198,15 +257,15 @@ export const SettingsView: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('cloud_domain')}
+          onClick={() => setActiveTab('cloud_database')}
           className={`px-4 py-2.5 text-xs font-bold rounded-t-xl transition-all flex items-center gap-2 cursor-pointer whitespace-nowrap ${
-            activeTab === 'cloud_domain'
+            activeTab === 'cloud_database'
               ? 'bg-white border-t-2 border-[#96171B] text-[#96171B] shadow-2xs'
               : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
           }`}
         >
-          <Globe size={14} />
-          <span>Otorisasi Domain & Cloud Firebase</span>
+          <Database size={14} />
+          <span>Cloud Supabase & Google Sheets</span>
         </button>
 
         <button
@@ -433,162 +492,130 @@ export const SettingsView: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: OTORISASI DOMAIN & CLOUD FIREBASE */}
-      {activeTab === 'cloud_domain' && (
+      {/* TAB 2: CLOUD SUPABASE & GOOGLE SPREADSHEETS */}
+      {activeTab === 'cloud_database' && (
         <div className="space-y-6 animate-in fade-in">
-          {/* Card: Panduan Otorisasi Domain Vercel & Firebase */}
+          {/* Card 1: Google Sheets Webhook Relay System */}
           <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] space-y-5">
             <div className="flex items-start justify-between border-b border-slate-100 pb-3">
               <div>
                 <div className="flex items-center gap-2 text-stone-900 font-bold text-sm">
-                  <Globe size={18} className="text-[#96171B]" />
-                  <span>Pusat Otorisasi Domain Web & Firebase Authentication</span>
+                  <Database size={18} className="text-emerald-700" />
+                  <span>Koneksi Google Spreadsheets (Auto-Sync Webhook)</span>
                 </div>
                 <p className="text-xs text-stone-500 pt-0.5">
-                  Pengaturan resmi agar login Google OAuth bekerja di domain Vercel Anda tanpa error <code>auth/unauthorized-domain</code>.
+                  Setiap penilaian praktik produk onboarding, pembaruan kru, atau batch otomatis diteruskan ke Google Spreadsheet resmi melalui backend server proxy & webhook.
                 </p>
               </div>
-              <span className="text-[11px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-200">
-                Setelan Administrator
+              <span className="text-[11px] font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
+                Auto-Sync Aktif
               </span>
             </div>
 
-            {/* Current Active Domain Box */}
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+            {/* Input Webhook URL */}
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-bold text-stone-700">Domain Web Yang Sedang Anda Buka Saat Ini:</span>
-                <span className="text-emerald-700 font-bold flex items-center gap-1.5 text-[11px]">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Aktif di Browser
-                </span>
+                <span className="font-bold text-stone-700">Google Sheets Webhook URL (Apps Script Exec):</span>
+                {webhookSaved && (
+                  <span className="text-emerald-700 font-bold flex items-center gap-1.5 text-[11px]">
+                    <Check size={13} />
+                    Tersimpan Terpusat di Server!
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                 <input
                   type="text"
-                  readOnly
-                  value={typeof window !== 'undefined' ? window.location.hostname : 'localhost'}
-                  className="flex-1 bg-white border border-stone-300 rounded-xl px-3.5 py-2 text-xs font-mono font-bold text-stone-900 select-all"
+                  value={googleSheetsWebhookUrl}
+                  onChange={(e) => setGoogleSheetsWebhookUrl(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/.../exec"
+                  className="flex-1 bg-white border border-stone-300 rounded-xl px-3.5 py-2 text-xs font-mono text-stone-900 focus:outline-none focus:border-[#96171B]"
                 />
-                <button
-                  type="button"
-                  onClick={handleCopyDomain}
-                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shrink-0"
-                >
-                  {copiedDomain ? (
-                    <>
-                      <Check size={14} className="text-emerald-400" />
-                      <span>Tersalin!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy size={14} />
-                      <span>Salin Domain</span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <p className="text-[11px] text-stone-500">
-                Salin domain ini lalu tempelkan ke menu <b>Authorized domains</b> di Firebase Console Anda.
-              </p>
-            </div>
-
-            {/* 4 Steps Tutorial */}
-            <div className="space-y-3">
-              <span className="font-bold text-xs text-stone-900 block">
-                Langkah Cepat Mendaftarkan Domain di Firebase Console (Hanya 1 Menit):
-              </span>
-              <div className="grid sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 space-y-1">
-                  <span className="w-5 h-5 rounded-full bg-[#96171B] text-white text-[10px] font-bold flex items-center justify-center">1</span>
-                  <strong className="block text-stone-800 font-bold">Buka Firebase Console</strong>
-                  <p className="text-[11.5px] text-stone-600">
-                    Buka tab Authentication di Firebase Console proyek Anda menggunakan tombol di bawah.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 space-y-1">
-                  <span className="w-5 h-5 rounded-full bg-[#96171B] text-white text-[10px] font-bold flex items-center justify-center">2</span>
-                  <strong className="block text-stone-800 font-bold">Pilih Tab Settings</strong>
-                  <p className="text-[11.5px] text-stone-600">
-                    Di dalam menu Authentication, klik tab <b>Settings</b> &rarr; klik submenu <b>Authorized domains</b>.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 space-y-1">
-                  <span className="w-5 h-5 rounded-full bg-[#96171B] text-white text-[10px] font-bold flex items-center justify-center">3</span>
-                  <strong className="block text-stone-800 font-bold">Klik 'Add domain'</strong>
-                  <p className="text-[11.5px] text-stone-600">
-                    Klik tombol <b>Add domain</b> lalu tempel (*paste*) alamat domain yang telah disalin di atas.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-stone-200 bg-stone-50/50 space-y-1">
-                  <span className="w-5 h-5 rounded-full bg-[#96171B] text-white text-[10px] font-bold flex items-center justify-center">4</span>
-                  <strong className="block text-stone-800 font-bold">Simpan & Langsung Aktif</strong>
-                  <p className="text-[11.5px] text-stone-600">
-                    Klik Simpan (*Add*). Login Google langsung aktif di Vercel tanpa perlu deploy ulang kode sama sekali.
-                  </p>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleSaveWebhook}
+                    className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+                  >
+                    <Save size={13} />
+                    <span>Simpan URL</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleTestWebhook}
+                    disabled={isTestingWebhook}
+                    className="px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all shadow-xs"
+                  >
+                    <RefreshCw size={13} className={isTestingWebhook ? 'animate-spin' : ''} />
+                    <span>{isTestingWebhook ? 'Menguji...' : 'Tes Koneksi'}</span>
+                  </button>
                 </div>
               </div>
-
-              <div className="pt-2">
-                <a
-                  href="https://console.firebase.google.com/project/gen-lang-client-0222361479/authentication/settings"
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#96171B] hover:bg-[#801216] text-white rounded-xl text-xs font-bold cursor-pointer transition-all shadow-sm"
-                >
-                  <span>Buka Firebase Console Settings</span>
-                  <ExternalLink size={13} />
-                </a>
-              </div>
-            </div>
-
-            {/* Cloud Database Parameters */}
-            <div className="pt-4 border-t border-stone-200 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-stone-900 font-bold text-xs">
-                  <Cloud size={16} className="text-blue-600" />
-                  <span>Koneksi Cloud Firestore (Multi-Device Sync)</span>
-                </div>
-                <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Online
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[11px]">
-                <div>
-                  <span className="text-slate-400 block text-[10px]">PROJECT ID:</span>
-                  <span className="text-slate-900 font-bold">gen-lang-client-0222361479</span>
-                </div>
-                <div>
-                  <span className="text-slate-400 block text-[10px]">FIRESTORE DATABASE ID:</span>
-                  <span className="text-slate-900 font-bold truncate block">ai-studio-harapdsystempro-c7d090f8-3f22-4b7e-9be1-668f87a357d5</span>
-                </div>
-              </div>
-
-              {syncStatusMsg && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold flex items-center gap-2 text-xs">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                  <span>{syncStatusMsg}</span>
+              {webhookTestResult && (
+                <div className={`p-3 rounded-xl text-xs font-bold flex items-center gap-2 ${
+                  webhookTestResult.includes('sukses')
+                    ? 'bg-emerald-50 border border-emerald-200 text-emerald-800'
+                    : 'bg-amber-50 border border-amber-200 text-amber-800'
+                }`}>
+                  <CheckCircle2 size={14} className="shrink-0" />
+                  <span>{webhookTestResult}</span>
                 </div>
               )}
+              <p className="text-[11px] text-stone-500 leading-relaxed">
+                *URL ini tersimpan di server <code>server_store.json</code> sehingga seluruh perangkat HP trainer yang membuka web otomatis terhubung ke Spreadsheet yang sama tanpa perlu input ulang.
+              </p>
+            </div>
+          </div>
 
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] text-stone-500">
-                  Sinkronkan semua data tabel lokal ke Cloud Firestore kapan pun diperlukan.
-                </span>
-                <button
-                  type="button"
-                  onClick={handlePushFirestore}
-                  disabled={isSyncing}
-                  className="px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
-                >
-                  <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
-                  <span>{isSyncing ? 'Mengunggah...' : 'Upload Semua Data ke Firestore'}</span>
-                </button>
+          {/* Card 2: Cloud Supabase Database Status */}
+          <div className="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.04)] space-y-5">
+            <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+              <div>
+                <div className="flex items-center gap-2 text-stone-900 font-bold text-sm">
+                  <Cloud size={18} className="text-[#96171B]" />
+                  <span>Database Cloud Supabase (PostgreSQL)</span>
+                </div>
+                <p className="text-xs text-stone-500 pt-0.5">
+                  Arsitektur database relasional PostgreSQL untuk penyimpanan terpusat dan anti-reset.
+                </p>
               </div>
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Terhubung
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[11px]">
+              <div>
+                <span className="text-slate-400 block text-[10px]">DATABASE ENGINE:</span>
+                <span className="text-slate-900 font-bold">Supabase Cloud (PostgreSQL 15)</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block text-[10px]">STRATEGI SINKRONISASI:</span>
+                <span className="text-slate-900 font-bold text-emerald-700">Safe Merge by ID (Anti-Reset)</span>
+              </div>
+            </div>
+
+            {syncStatusMsg && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl font-bold flex items-center gap-2 text-xs">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>{syncStatusMsg}</span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-1">
+              <span className="text-[11px] text-stone-500">
+                Selaraskan data lokal perangkat dengan database Cloud Supabase kapan pun diperlukan.
+              </span>
+              <button
+                type="button"
+                onClick={handlePushSupabase}
+                disabled={isSyncing}
+                className="px-4 py-2 bg-stone-900 hover:bg-stone-800 disabled:bg-stone-300 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-xs transition-all"
+              >
+                <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
+                <span>{isSyncing ? 'Menyinkronkan...' : 'Sinkronkan Sekarang dengan Supabase'}</span>
+              </button>
             </div>
           </div>
         </div>

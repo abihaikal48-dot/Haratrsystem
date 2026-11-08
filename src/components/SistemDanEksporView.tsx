@@ -741,7 +741,7 @@ _Generated via HARA TRAINING & OPERATIONS System_
                   </button>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Biarkan kosong jika hanya ingin menggunakan penyimpanan Cloud Firestore & LocalStorage.
+                  Biarkan kosong jika hanya ingin menggunakan penyimpanan Cloud Supabase & LocalStorage.
                 </p>
               </div>
 

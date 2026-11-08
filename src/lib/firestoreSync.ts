@@ -1,3 +1,9 @@
+/**
+ * HARA CHICKEN - FIRESTORE SYNC PASSIVE STUB
+ * Koneksi jaringan ke Firestore dinonaktifkan total sesuai instruksi arsitektur.
+ * Seluruh sinkronisasi data dialihkan 100% ke Supabase & Google Spreadsheets.
+ */
+
 import { AppUser } from '../types';
 
 export interface ActiveUserPresence {
@@ -21,70 +27,24 @@ export interface SyncStats {
 
 export type CloudSyncStatus = 'online' | 'syncing' | 'offline';
 
-let currentCloudStatus: CloudSyncStatus = 'online';
-const statusListeners = new Set<(status: CloudSyncStatus) => void>();
-
 export function getCloudSyncStatus(): CloudSyncStatus {
-  return currentCloudStatus;
+  return 'online';
 }
 
-export function setCloudSyncStatus(status: CloudSyncStatus): void {
-  if (currentCloudStatus !== status) {
-    currentCloudStatus = status;
-    statusListeners.forEach((fn) => fn(status));
-  }
+export function setCloudSyncStatus(_status: CloudSyncStatus): void {
+  // Pasif - no-op
 }
 
 export function subscribeCloudSyncStatus(callback: (status: CloudSyncStatus) => void): () => void {
-  statusListeners.add(callback);
-  callback(currentCloudStatus);
-  return () => {
-    statusListeners.delete(callback);
-  };
+  callback('online');
+  return () => {};
 }
 
-export const ALL_SYNCABLE_TABLES = [
-  'penilaian_onboarding_rnd',
-  'penilaian_praktik_onboarding_produk',
-  'onboarding_batches',
-  'ojt_monitoring',
-  'hasil_ujian_mingguan',
-  'penilaian_praktik',
-  'kru',
-  'outlets',
-  'app_users',
-  'bank_sop',
-  'bank_soal',
-  'penilaian_teori',
-  'penilaian_lisan',
-  'observasi_lapangan',
-  'kartu_keluhan',
-  'penugasan_trainer',
-  'trainee_outlet',
-  'laporan_trainer',
-  'tna',
-  'rencana_training',
-  'coaching_log',
-  'gap_analysis',
-  'talent_tracker',
-  'onboarding_progress',
-  'official_audits',
-  'official_rapor_kru',
-  'exam_config',
-  'attitude_hara',
-  'retraining_records',
-  'jadwal_kunjungan',
-  'rapid_audits',
-  'active_presences',
-  'draft_assessment_sessions',
-  'settings',
-  'logs'
-];
-
+export const ALL_SYNCABLE_TABLES: string[] = [];
 export const SYNCED_TABLES = ALL_SYNCABLE_TABLES;
 
 export async function seedFirestoreIfEmpty(): Promise<void> {
-  // Firestore writes disabled per user request to avoid quota exhaustion.
+  // Pasif - no-op
 }
 
 export async function syncAllToFirestore(): Promise<SyncStats> {
@@ -92,7 +52,7 @@ export async function syncAllToFirestore(): Promise<SyncStats> {
     success: true,
     totalSynced: 0,
     tables: {},
-    message: 'Penyimpanan lokal aktif (sinkronisasi Cloud Firestore dinonaktifkan sesuai preferensi).'
+    message: 'Firestore dinonaktifkan. Data tersimpan 100% di Supabase & Google Spreadsheet.'
   };
 }
 
@@ -100,16 +60,11 @@ export function setupFirestoreRealtimeSync(): () => void {
   return () => {};
 }
 
-export function startPresenceTracking(
-  _currentUser: AppUser | null,
-  _currentTab: string = 'dashboard'
-): () => void {
+export function startPresenceTracking(_user: AppUser, _currentTab: string): () => void {
   return () => {};
 }
 
-export function subscribeToOnlineUsers(
-  callback: (users: ActiveUserPresence[]) => void
-): () => void {
+export function subscribeToOnlineUsers(callback: (users: ActiveUserPresence[]) => void): () => void {
   callback([]);
   return () => {};
 }

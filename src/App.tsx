@@ -46,15 +46,7 @@ import {
   pullAllFromSupabase,
 } from './lib/supabase';
 import { initClientDataFromServer, startAutoSyncPolling } from './lib/serverSync';
-import {
-  seedFirestoreIfEmpty,
-  setupFirestoreRealtimeSync,
-  startPresenceTracking,
-  subscribeToOnlineUsers,
-  ActiveUserPresence
-} from './lib/firestoreSync';
-import { testFirestoreConnection } from './lib/firebase';
-import { AppUser, Outlet, Kru, BankSOP, Division } from './types';
+import { AppUser, Outlet, Kru, BankSOP, Division, ActiveUserPresence } from './types';
 import {
   Sparkles, Calendar, Store, Users, BookOpen, Search,
   Eye, MessageSquare, BarChart3, AlertTriangle, Award, FileText, CheckCircle2,
@@ -154,14 +146,6 @@ export function App() {
     // Auto-sync berkala server proxy multi-perangkat (HP 1 & HP 2 otomatis sinkron seketika saat disimpan)
     const stopAutoSync = startAutoSyncPolling(3500);
 
-    // Test connection
-    testFirestoreConnection();
-
-    // Subscribe to online users
-    const unsubPresence = subscribeToOnlineUsers((users) => {
-      setOnlineUsers(users);
-    });
-
     const handleHashChange = () => {
       if (window.location.hash === '#ujian') {
         setPublicMode('public_ujian');
@@ -174,19 +158,10 @@ export function App() {
     return () => {
       unsub();
       unsubSupabase();
-      unsubPresence();
       stopAutoSync();
       window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
-
-  // Dedicated effect for presence heartbeat tracking with primitive dependencies
-  useEffect(() => {
-    const cleanup = startPresenceTracking(currentUser, currentTab);
-    return () => {
-      if (cleanup) cleanup();
-    };
-  }, [currentUser?.id, currentUser?.nama, currentUser?.role, currentTab]);
 
   // Role-Based Access Control: Route Guard
   useEffect(() => {

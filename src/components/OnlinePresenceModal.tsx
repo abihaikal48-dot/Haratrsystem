@@ -3,7 +3,7 @@ import {
   Users, Smartphone, Monitor, Shield, Store,
   Clock, CheckCircle2, X, RefreshCw, Radio
 } from 'lucide-react';
-import { ActiveUserPresence } from '../lib/firestoreSync';
+import { ActiveUserPresence } from '../types';
 
 interface OnlinePresenceModalProps {
   isOpen: boolean;

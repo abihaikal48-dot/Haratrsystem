@@ -2,13 +2,16 @@ import { PenilaianPraktikOnboardingProduk } from '../types';
 
 export const GOOGLE_SHEET_WEBHOOK_STORAGE_KEY = 'hara_google_sheet_webhook_url';
 export const GOOGLE_SHEET_DOC_STORAGE_KEY = 'hara_google_sheet_doc_url';
+export const DEFAULT_GOOGLE_SHEET_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
 
 export function getSavedGoogleSheetWebhook(): string {
   try {
-    return localStorage.getItem(GOOGLE_SHEET_WEBHOOK_STORAGE_KEY) || '';
+    const val = localStorage.getItem(GOOGLE_SHEET_WEBHOOK_STORAGE_KEY);
+    if (val && val.trim().startsWith('http')) return val.trim();
   } catch {
-    return '';
+    // fallback
   }
+  return DEFAULT_GOOGLE_SHEET_WEBHOOK;
 }
 
 export function saveGoogleSheetWebhook(url: string): void {

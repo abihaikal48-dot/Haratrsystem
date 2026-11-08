@@ -6,6 +6,7 @@ interface PageHeaderBannerProps {
   description: string;
   icon: React.ReactNode;
   rightElement?: React.ReactNode;
+  compact?: boolean;
   tabs?: {
     id: string;
     label: string;
@@ -23,10 +24,63 @@ export const PageHeaderBanner: React.FC<PageHeaderBannerProps> = ({
   description,
   icon,
   rightElement,
+  compact = false,
   tabs,
   activeTab,
   onSelectTab,
 }) => {
+  if (compact) {
+    return (
+      <div className="bg-white rounded-xl border border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shadow-2xs">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-red-50 text-[#96171B] flex items-center justify-center shrink-0">
+            {icon}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold text-[#96171B] uppercase tracking-wider">{category}</span>
+              <span className="text-slate-300">·</span>
+              <h1 className="text-sm font-black text-slate-900 leading-none">{title}</h1>
+            </div>
+          </div>
+        </div>
+
+        {tabs && tabs.length > 0 && onSelectTab && (
+          <div className="flex items-center gap-1 overflow-x-auto p-0.5 bg-slate-100 rounded-lg">
+            {tabs.map((tab) => {
+              const active = activeTab === tab.id;
+              const Icon = tab.icon;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => onSelectTab(tab.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                    active
+                      ? 'bg-white text-slate-900 font-bold shadow-2xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                  }`}
+                >
+                  {Icon && <Icon size={13} className={active ? 'text-[#96171B]' : 'text-slate-400'} />}
+                  <span>{tab.label}</span>
+                  {tab.count !== undefined && (
+                    <span className={`text-[10px] font-mono ${active ? 'text-[#96171B] font-bold' : 'text-slate-400'}`}>
+                      ({tab.count})
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {rightElement && (
+          <div className="flex items-center gap-2 shrink-0">
+            {rightElement}
+          </div>
+        )}
+      </div>
+    );
+  }
   return (
     <div className="space-y-3.5">
       {/* Top Banner Box - Clean Geometri 8px & Border 1px */}

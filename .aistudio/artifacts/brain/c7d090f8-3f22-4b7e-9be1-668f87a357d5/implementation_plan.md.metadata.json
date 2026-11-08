@@ -1,6 +1,6 @@
 {
-  "summary": "Rencana implementasi penyatuan tombol Pilih & Atur Menu SOP, format nama outlet riil dan satuan desimal menit pada ekspor, serta sinkronisasi otomatis ke Google Sheets setiap kali tombol simpan diklik.",
-  "updatedAt": "2026-11-02T23:12:21.521751226Z",
-  "requestFeedback": true,
-  "userFacing": true
+  "summary":  "Rencana komprehensif perombakan Design System, Layout, dan UI HARA Training System:\n1. Membangun Design System \"Clean Enterprise Merah HARA\" dengan token terpadu (tipografi jernih, zero-pill discipline, kontras tinggi, permukaan card bersih).\n2. Mendesain ulang modul Onboarding & Penilaian Praktik dengan layout kitchen-friendly efisien satu layar tanpa banyak scrolling.\n3. Menyelaraskan seluruh halaman (Header, Sidebar, Dashboard, Kurikulum Roadmap, Operasional, Master Data, dan Laporan).",
+  "updatedAt":  "2026-11-08T03:20:28.164978246Z",
+  "requestFeedback":  true,
+  "userFacing":  true
 }

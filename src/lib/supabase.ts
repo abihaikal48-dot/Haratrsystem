@@ -461,29 +461,49 @@ export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRe
   try {
     let total = 0;
 
-    // Helper untuk merge array data secara cerdas berbasis 'id'
+    // Helper untuk merge array data secara cerdas berbasis 'id' (Safe Merge Anti-Reset)
     const mergeTableData = (tableKey: string, remoteData: any[]) => {
       if (!Array.isArray(remoteData) || remoteData.length === 0) return;
       const localData = db.getTable<any>(tableKey);
+      const localMap = new Map<string, any>();
+      localData.forEach(item => {
+        if (item && item.id) localMap.set(String(item.id), item);
+      });
+
       const seenIds = new Set<string>();
       const mergedList: any[] = [];
 
-      // 1. Prioritaskan dan masukkan data terbaru dari Cloud Supabase
-      remoteData.forEach(item => {
-        if (item && item.id) {
-          mergedList.push(item);
-          seenIds.add(String(item.id));
-        } else if (item) {
-          mergedList.push(item);
+      // 1. Proses data dari Cloud Supabase
+      remoteData.forEach(remoteItem => {
+        if (!remoteItem || !remoteItem.id) {
+          if (remoteItem) mergedList.push(remoteItem);
+          return;
+        }
+        const strId = String(remoteItem.id);
+        seenIds.add(strId);
+        const localItem = localMap.get(strId);
+        if (localItem) {
+          const localTime = new Date(localItem.updated_at || localItem.created_at || 0).getTime();
+          const remoteTime = new Date(remoteItem.updated_at || remoteItem.created_at || 0).getTime();
+          if (localTime > remoteTime && localTime > 0) {
+            // Data lokal lebih baru: pertahankan lokal dan sync balik ke Supabase
+            mergedList.push({ ...remoteItem, ...localItem });
+            syncRecordToSupabase(tableKey, { ...remoteItem, ...localItem }).catch(() => {});
+          } else {
+            // Data cloud sama atau lebih baru
+            mergedList.push({ ...localItem, ...remoteItem });
+          }
+        } else {
+          mergedList.push(remoteItem);
         }
       });
 
-      // 2. Jika ada rekaman lokal yang belum ada di cloud, pertahankan dan sync balik
-      localData.forEach(item => {
-        if (item && item.id && !seenIds.has(String(item.id))) {
-          mergedList.push(item);
-          seenIds.add(String(item.id));
-          syncRecordToSupabase(tableKey, item).catch(() => {});
+      // 2. Data lokal yang baru dibuat dan belum ada di cloud: wajib dipertahankan dan di-push ke Supabase
+      localData.forEach(localItem => {
+        if (localItem && localItem.id && !seenIds.has(String(localItem.id))) {
+          mergedList.push(localItem);
+          seenIds.add(String(localItem.id));
+          syncRecordToSupabase(tableKey, localItem).catch(() => {});
         }
       });
 

@@ -177,13 +177,25 @@ function geminiApiDevPlugin(): Plugin {
 
           res.setHeader('Content-Type', 'application/json');
 
+          const DEFAULT_DEV_SHEETS_WEBHOOK = 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
+
           if (urlPath === '/api/db/config' && req.method === 'POST') {
-            const { url, anonKey } = body;
+            const { url, anonKey, googleSheetsWebhookUrl, webhookUrl } = body;
             const currentStore = readDevStore();
-            (currentStore as any)._supabase_config = { url, anonKey };
+            if (url || anonKey) {
+              (currentStore as any)._supabase_config = { url, anonKey };
+            }
+            const targetWebhook = googleSheetsWebhookUrl || webhookUrl;
+            if (targetWebhook) {
+              (currentStore as any)._google_sheet_webhook = targetWebhook.trim();
+            }
             writeDevStore(currentStore);
             res.statusCode = 200;
-            res.end(JSON.stringify({ success: true, message: 'Kredensial Supabase berhasil disimpan di server pusat.' }));
+            res.end(JSON.stringify({
+              success: true,
+              message: 'Konfigurasi Supabase & Webhook Google Sheets berhasil disimpan di server pusat.',
+              googleSheetsWebhookUrl: (currentStore as any)._google_sheet_webhook || DEFAULT_DEV_SHEETS_WEBHOOK,
+            }));
             return;
           }
 
@@ -202,6 +214,26 @@ function geminiApiDevPlugin(): Plugin {
                 if (idx >= 0) currentStore[table][idx] = { ...currentStore[table][idx], ...inc };
                 else currentStore[table].unshift(inc);
               }
+              // Relay to Google Sheets Webhook
+              if (['penilaian_praktik_onboarding_produk', 'kru', 'onboarding_batches'].includes(table)) {
+                const hookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (currentStore as any)._google_sheet_webhook || DEFAULT_DEV_SHEETS_WEBHOOK;
+                if (hookUrl && hookUrl.startsWith('http')) {
+                  for (const item of incoming) {
+                    fetch(hookUrl, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                      body: JSON.stringify({
+                        event: 'AUTO_RELAY_SYNC',
+                        action: table === 'penilaian_praktik_onboarding_produk' ? 'ADD_PENILAIAN' : `SYNC_${table.toUpperCase()}`,
+                        table,
+                        timestamp: new Date().toISOString(),
+                        payload: item,
+                        ...item,
+                      }),
+                    }).catch(() => {});
+                  }
+                }
+              }
             }
             writeDevStore(currentStore);
             res.statusCode = 200;
@@ -211,7 +243,8 @@ function geminiApiDevPlugin(): Plugin {
 
           if (urlPath === '/api/sync/spreadsheet' && req.method === 'POST') {
             const { payload, webhookUrl } = body;
-            const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl;
+            const currentStore = readDevStore();
+            const targetUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL || webhookUrl || (currentStore as any)._google_sheet_webhook || DEFAULT_DEV_SHEETS_WEBHOOK;
             if (targetUrl) {
               try {
                 const spRes = await fetch(targetUrl, {
