@@ -197,7 +197,73 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       setIsSubmitting(false);
     };
 
-    // 1. Panggil Endpoint Autentikasi Backend Resmi Supabase
+    // 1. Cek langsung ke database Supabase Cloud
+    const supabase = getSupabase();
+    if (supabase) {
+      try {
+        const { data: cloudUsers, error: cloudErr } = await supabase
+          .from('app_users')
+          .select('*');
+
+        if (!cloudErr && Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+          const matchedUser = cloudUsers.find(
+            (u: any) =>
+              String(u.email || '').trim().toLowerCase() === inputEmail ||
+              String(u.username || '').trim().toLowerCase() === inputEmail ||
+              String(u.id || '').trim().toLowerCase() === `usr-${inputEmail}`
+          );
+
+          if (!matchedUser) {
+            recordFailedAttempt('Akun tidak ditemukan di database Supabase.');
+            return;
+          }
+
+          const dbPass = String(matchedUser.password_hash ?? matchedUser.password ?? '').trim();
+          if (inputPass !== dbPass) {
+            recordFailedAttempt('Kata sandi salah! Tidak sesuai dengan password di database Supabase.');
+            return;
+          }
+
+          // Hapus cache password lokal lama agar tidak pernah menimpa Supabase
+          localStorage.removeItem(`hara_user_pass_${matchedUser.id}`);
+
+          const nowIso = new Date().toISOString();
+          supabase
+            .from('app_users')
+            .update({ last_login: nowIso, updated_at: nowIso })
+            .eq('id', matchedUser.id)
+            .then(() => {});
+
+          supabase.from('log_aktivitas').insert({
+            id: 'log-' + Date.now(),
+            user_nama: matchedUser.nama,
+            tipe: 'LOGIN',
+            modul: 'Autentikasi',
+            deskripsi: `Login berhasil oleh ${matchedUser.nama} (${matchedUser.role})`,
+            created_at: nowIso,
+          }).then(() => {});
+
+          const loggedInUser: AppUser = {
+            id: matchedUser.id,
+            nama: matchedUser.nama,
+            email: matchedUser.email,
+            role: matchedUser.role as any,
+            kode_outlet: matchedUser.kode_outlet || 'Kantor Lempongsari',
+            status_aktif: 'Aktif',
+            created_at: matchedUser.created_at || nowIso,
+          };
+
+          db.setCurrentUser(loggedInUser);
+          onLoginSuccess(loggedInUser);
+          setIsSubmitting(false);
+          return;
+        }
+      } catch (err) {
+        console.warn('[Direct Supabase Login Error]:', err);
+      }
+    }
+
+    // 2. Hubungi endpoint backend resmi jika direct Supabase mengalami kendala jaringan
     try {
       const authRes = await fetch('/api/auth/login', {
         method: 'POST',
@@ -236,52 +302,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
         return;
       }
     } catch (apiErr) {
-      console.warn('[Backend Auth] Server API offline/unreachable, fallback to direct Supabase check:', apiErr);
-    }
-
-    // 2. Fallback cek ke database Supabase Cloud langsung jika server API tidak dapat dijangkau
-    const supabase = getSupabase();
-    if (supabase) {
-      try {
-        const { data: cloudUsers, error: userFetchError } = await supabase
-          .from('app_users')
-          .select('*')
-          .or(`email.ilike.${inputEmail},username.ilike.${inputEmail}`);
-
-        if (!userFetchError && cloudUsers && cloudUsers.length > 0) {
-          const cloudUser = cloudUsers[0];
-          const expectedCloudPass = String(cloudUser.password_hash || cloudUser.password || 'hara123').trim();
-
-          if (inputPass !== expectedCloudPass) {
-            recordFailedAttempt('Kata sandi tidak sesuai dengan database Supabase.');
-            return;
-          }
-
-          localStorage.removeItem(`hara_user_pass_${cloudUser.id}`);
-          const userObj: AppUser = {
-            id: cloudUser.id,
-            nama: cloudUser.nama,
-            email: cloudUser.email,
-            role: cloudUser.role as any,
-            kode_outlet: cloudUser.kode_outlet || 'Kantor Lempongsari',
-            status_aktif: 'Aktif',
-            created_at: cloudUser.created_at || new Date().toISOString(),
-          };
-
-          db.insertRow('app_users', userObj);
-          db.setCurrentUser(userObj);
-
-          setFailedAttempts(0);
-          localStorage.removeItem('hara_auth_failed_attempts');
-          localStorage.removeItem('hara_auth_lockout_until');
-          db.addLog('UBAH', 'Autentikasi', `Pengguna ${userObj.nama} (${userObj.role}) berhasil masuk melalui Supabase.`);
-          onLoginSuccess(userObj);
-          setIsSubmitting(false);
-          return;
-        }
-      } catch (cloudErr) {
-        console.warn('[Supabase Direct Login] Fallback error:', cloudErr);
-      }
+      console.warn('[Backend Auth] Server API offline/unreachable:', apiErr);
     }
 
     // 3. Cek akun master terdaftar (Offline / Fallback registry)
@@ -691,29 +712,79 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     return;
                   }
 
-                  // Cari akun resmi
-                  const staffMatch = REGISTERED_STAFF_REGISTRY.find(
-                    (a) => a.email.toLowerCase() === targetIdClean || a.username.toLowerCase() === targetIdClean
-                  );
-                  const dbUser = users.find(
-                    (u) => u.email.toLowerCase() === targetIdClean
-                  );
+                  // 1. Verifikasi dan perbarui langsung ke database Supabase Cloud
+                  const supabase = getSupabase();
+                  if (supabase) {
+                    try {
+                      const { data: cloudUsers, error: fetchErr } = await supabase
+                        .from('app_users')
+                        .select('*');
 
-                  if (!staffMatch && !dbUser) {
-                    setChangePassStatus({ type: 'error', message: 'Akun dengan email/username tersebut tidak ditemukan.' });
-                    return;
+                      if (!fetchErr && Array.isArray(cloudUsers) && cloudUsers.length > 0) {
+                        const matchedUser = cloudUsers.find(
+                          (u: any) =>
+                            String(u.email || '').trim().toLowerCase() === targetIdClean ||
+                            String(u.username || '').trim().toLowerCase() === targetIdClean ||
+                            String(u.id || '').trim().toLowerCase() === `usr-${targetIdClean}`
+                        );
+
+                        if (!matchedUser) {
+                          setChangePassStatus({ type: 'error', message: 'Akun dengan email/username tersebut tidak ditemukan di Supabase.' });
+                          return;
+                        }
+
+                        const currentCloudPass = String(matchedUser.password_hash ?? matchedUser.password ?? 'hara123').trim();
+                        if (oldPass !== currentCloudPass) {
+                          setChangePassStatus({ type: 'error', message: 'Kata sandi lama salah! Tidak sesuai dengan database Supabase.' });
+                          return;
+                        }
+
+                        const nowIso = new Date().toISOString();
+                        const { error: updateErr } = await supabase
+                          .from('app_users')
+                          .update({ password_hash: newPass, updated_at: nowIso })
+                          .eq('id', matchedUser.id);
+
+                        if (updateErr) {
+                          setChangePassStatus({ type: 'error', message: `Gagal memperbarui di Supabase: ${updateErr.message}` });
+                          return;
+                        }
+
+                        localStorage.removeItem(`hara_user_pass_${matchedUser.id}`);
+                        db.addLog('UBAH', 'Keamanan', `Pengguna ${targetIdClean} berhasil memperbarui kata sandi di Supabase.`);
+
+                        // Catat log aktivitas ke Supabase
+                        supabase.from('log_aktivitas').insert({
+                          id: 'log-' + Date.now(),
+                          tipe: 'UBAH',
+                          modul: 'Keamanan',
+                          deskripsi: `Kata sandi akun ${targetIdClean} berhasil diperbarui di Supabase.`,
+                          user_nama: targetIdClean,
+                          created_at: nowIso,
+                        }).then(() => {});
+
+                        // Sinkronkan juga ke backend server
+                        fetch('/api/auth/change-password', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ identifier: targetIdClean, oldPass, newPass }),
+                        }).catch(() => {});
+
+                        setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diperbarui di Supabase! Silakan masuk kembali.' });
+                        setTimeout(() => {
+                          setShowChangePasswordModal(false);
+                          setPassword(newPass);
+                          setChangePassForm({ identifier: '', oldPass: '', newPass: '', confirmPass: '' });
+                          setChangePassStatus({ type: 'idle', message: '' });
+                        }, 1400);
+                        return;
+                      }
+                    } catch (cloudErr) {
+                      console.warn('[Change Pass Supabase Error]:', cloudErr);
+                    }
                   }
 
-                  const targetId = (dbUser && dbUser.id) || (staffMatch && `usr-${staffMatch.username}`);
-                  const currentSavedPass = targetId ? localStorage.getItem(`hara_user_pass_${targetId}`) : null;
-                  const currentExpected = currentSavedPass || (staffMatch ? staffMatch.defaultPass : '');
-
-                  if (oldPass !== currentExpected) {
-                    setChangePassStatus({ type: 'error', message: 'Kata sandi lama yang Anda masukkan tidak sesuai.' });
-                    return;
-                  }
-
-                  // Panggil backend API resmi
+                  // 2. Fallback panggil backend API resmi
                   try {
                     const apiRes = await fetch('/api/auth/change-password', {
                       method: 'POST',
@@ -723,9 +794,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     if (apiRes.ok) {
                       const resData = await apiRes.json();
                       if (resData.success) {
-                        const targetId = (dbUser && dbUser.id) || (staffMatch && `usr-${staffMatch.username}`);
-                        if (targetId) localStorage.setItem(`hara_user_pass_${targetId}`, newPass);
-                        db.addLog('UBAH', 'Keamanan', `Pengguna ${targetIdClean} berhasil memperbarui kata sandi via Supabase.`);
                         setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diperbarui! Silakan masuk kembali.' });
                         setTimeout(() => {
                           setShowChangePasswordModal(false);
@@ -742,37 +810,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                     }
                   } catch (apiErr) {
                     console.warn('[Change Pass API] Offline or unreachable, fallback local:', apiErr);
-                  }
-
-                  if (targetId) {
-                    localStorage.setItem(`hara_user_pass_${targetId}`, newPass);
-                    db.addLog('UBAH', 'Keamanan', `Pengguna ${targetIdClean} berhasil memperbarui kata sandi secara mandiri.`);
-
-                    const supabase = getSupabase();
-                    if (supabase) {
-                      const nowIso = new Date().toISOString();
-                      supabase.from('app_users').update({
-                        password_hash: newPass,
-                        updated_at: nowIso,
-                      }).eq('id', targetId).then(() => {});
-
-                      supabase.from('log_aktivitas').insert({
-                        id: 'log-' + Date.now(),
-                        tipe: 'UBAH',
-                        modul: 'Keamanan',
-                        deskripsi: `Kata sandi akun ${targetIdClean} berhasil diperbarui di Supabase.`,
-                        user_nama: targetIdClean,
-                        created_at: nowIso,
-                      }).then(() => {});
-                    }
-
-                    setChangePassStatus({ type: 'success', message: 'Kata sandi berhasil diperbarui! Silakan masuk kembali.' });
-                    setTimeout(() => {
-                      setShowChangePasswordModal(false);
-                      setPassword(newPass);
-                      setChangePassForm({ identifier: '', oldPass: '', newPass: '', confirmPass: '' });
-                      setChangePassStatus({ type: 'idle', message: '' });
-                    }, 1400);
                   }
                 }}
                 className="space-y-3.5"

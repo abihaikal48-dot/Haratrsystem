@@ -4,30 +4,25 @@ import { Outlet, Kru, BankSOP } from '../types';
 
 export type SupabaseStatus = 'connected' | 'connecting' | 'disconnected' | 'error';
 
+export const DEFAULT_SUPABASE_URL = 'https://bjkbvlpaaeekdqqlxavq.supabase.co';
+export const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_0WCq2C1TbRnvmQAPtfKBOA_AlDQlkYf';
+
 const STORAGE_KEYS = {
   URL: 'hara_supabase_url',
   ANON_KEY: 'hara_supabase_anon_key',
 };
 
-// Default fallback to environment variables if provided
+// Selalu mengembalikan kredensial resmi Supabase HARA
 function getStoredUrl(): string {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(STORAGE_KEYS.URL);
-    if (stored && stored.trim().length > 0) return stored.trim();
-  }
-  return ((import.meta as any).env?.VITE_SUPABASE_URL || '').trim();
+  return DEFAULT_SUPABASE_URL;
 }
 
 function getStoredAnonKey(): string {
-  if (typeof window !== 'undefined') {
-    const stored = localStorage.getItem(STORAGE_KEYS.ANON_KEY);
-    if (stored && stored.trim().length > 0) return stored.trim();
-  }
-  return ((import.meta as any).env?.VITE_SUPABASE_ANON_KEY || '').trim();
+  return DEFAULT_SUPABASE_ANON_KEY;
 }
 
 let activeClient: SupabaseClient | null = null;
-let currentStatus: SupabaseStatus = 'disconnected';
+let currentStatus: SupabaseStatus = 'connected';
 const statusListeners = new Set<(status: SupabaseStatus) => void>();
 
 function setStatus(newStatus: SupabaseStatus) {
@@ -50,26 +45,21 @@ export function getSupabaseStatus(): SupabaseStatus {
 }
 
 export function getSupabaseConfig(): { url: string; anonKey: string; isConfigured: boolean } {
-  const url = getStoredUrl();
-  const anonKey = getStoredAnonKey();
-  const isConfigured = Boolean(url && anonKey && url.startsWith('http') && anonKey.length > 20);
-  return { url, anonKey, isConfigured };
+  return {
+    url: DEFAULT_SUPABASE_URL,
+    anonKey: DEFAULT_SUPABASE_ANON_KEY,
+    isConfigured: true,
+  };
 }
 
 /**
- * Mendapatkan instance Supabase client yang aktif.
+ * Mendapatkan instance Supabase client yang aktif (selalu terhubung ke database resmi HARA).
  */
 export function getSupabase(): SupabaseClient | null {
   if (activeClient) return activeClient;
 
-  const { url, anonKey, isConfigured } = getSupabaseConfig();
-  if (!isConfigured) {
-    setStatus('disconnected');
-    return null;
-  }
-
   try {
-    activeClient = createClient(url, anonKey, {
+    activeClient = createClient(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
@@ -80,6 +70,7 @@ export function getSupabase(): SupabaseClient | null {
         },
       },
     });
+    setStatus('connected');
     return activeClient;
   } catch (err) {
     console.error('Gagal menginisialisasi Supabase client:', err);
@@ -424,12 +415,14 @@ export function sanitizeRecordForTable(table: string, record: any): any {
     return {
       id: cleanId,
       email: (record.email || '').toLowerCase().trim(),
+      username: record.username || (record.email ? record.email.split('@')[0] : cleanId),
       nama: record.nama || 'Pengguna HARA',
+      password_hash: record.password_hash || record.password || 'hara123',
       role: record.role || 'Trainer',
-      outlet_akses: Array.isArray(record.outlet_akses) ? record.outlet_akses : ['ALL'],
-      divisi_akses: Array.isArray(record.divisi_akses) ? record.divisi_akses : ['Kitchen', 'Service'],
+      kode_outlet: record.kode_outlet || 'Kantor Lempongsari',
       status_aktif: record.status_aktif !== false,
       created_at: record.created_at || new Date().toISOString(),
+      updated_at: record.updated_at || new Date().toISOString(),
     };
   }
 
@@ -888,12 +881,16 @@ export async function pullAllFromSupabase(): Promise<{ success: boolean; totalRe
     for (const tbl of tablesToPull) {
       try {
         const { data, error } = await supabase.from(tbl).select('*').limit(1000);
+        const localData = db.getTable<any>(tbl);
         if (!error && Array.isArray(data) && data.length > 0) {
           mergeTableData(tbl, data);
           if (tbl === 'penilaian_praktik_onboarding_produk') {
             mergeTableData('penilaian_onboarding_rnd', data);
             mergeTableData('penilaian_onboarding_tc', data);
           }
+        } else if (!error && Array.isArray(data) && data.length === 0 && localData.length > 0) {
+          // Jika di Supabase masih kosong dan lokal memiliki data awal: OTOMATIS PUSH (seed)
+          syncTableToSupabase(tbl, localData).catch(() => {});
         }
       } catch {
         // Table mungkin belum dibuat via script SQL; app_store bertindak sebagai fallback

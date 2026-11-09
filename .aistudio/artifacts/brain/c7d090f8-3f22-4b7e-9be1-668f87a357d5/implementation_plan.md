@@ -59,9 +59,19 @@ Menerapkan konsistensi design system ke seluruh komponen workspace:
 
 ---
 
-## 4. Rencana Tahapan Eksekusi & Verifikasi
-1. **Pembaruan Design Tokens (`src/index.css`)**: Mengukuhkan token warna, font, tombol, dan card classes.
-2. **Refaktor Layout Penilaian Onboarding (`OnboardingProductPracticeView.tsx`)**: Implementasi single-screen layout, integrasi timer preserved, checklist akurat, dan format menit.
-3. **Penyempurnaan Shell Navigasi (`Sidebar.tsx`, `Header.tsx`, `KurikulumRoadmapView.tsx`)**: Standardisasi layout tab, card batch, dan breadcrumbs.
-4. **Penyelarasan Dashboard & Halaman Lainnya**: Memastikan keseragaman visual di seluruh workspace Onboarding & Operasional.
-5. **Verifikasi Teknis & Build**: Menjalankan `compile_applet` dan `lint_applet` bersamaan untuk memastikan nol error dan tampilan responsif.
+## 5. Arsitektur Database Supabase Realtime & Autentikasi Live Terpusat (Selesai Diterapkan)
+1. **Kredensial Resmi Supabase Terkunci**:
+   - URL: `https://bjkbvlpaaeekdqqlxavq.supabase.co`
+   - Anon Key Publik: `sb_publishable_0WCq2C1TbRnvmQAPtfKBOA_AlDQlkYf`
+   - Service Role / Secret Key Backend: `sb_secret_QuaGsNhbpHtt7tll5GXZTg_Oozs18dW`
+   - Tersedia di backend Vite middleware (`vite.config.ts`) & Node.js server (`server.ts`).
+2. **Autentikasi Live Langsung dari Supabase**:
+   - `LoginPage.tsx` memverifikasi email/username dan kata sandi langsung ke tabel `public.app_users` Supabase.
+   - Kata sandi yang diganti di Supabase Table Editor atau aplikasi langsung berlaku dan **tidak pernah tertimpa kembali** saat startup server (`seedSupabaseMasterDataIfEmpty` memverifikasi pengguna yang sudah ada).
+   - Mode Ubah Sandi memverifikasi sandi lama langsung ke Supabase dan memperbarui kolom `password_hash` di database cloud.
+3. **Sinkronisasi 2 Arah & Realtime**:
+   - Redundansi ganda: setiap baris tersimpan ke `public.app_store` (snapshot JSON anti-error schema) dan tabel relasional PostgreSQL tersanitasi (`sanitizeRecordForTable`).
+   - Supabase Realtime (`postgres_changes`) otomatis merefleksikan perubahan dari dashboard Supabase ke seluruh klien seketika.
+   - Auto-push otomatis mengirim data lokal ke Supabase jika tabel cloud masih kosong saat dibuka.
+4. **Auto-Relay Google Spreadsheets**:
+   - Integrasi otomatis webhook spreadsheet untuk evaluasi produk praktik onboarding, kru baru, dan batch.
