@@ -921,7 +921,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   }, []); // Mounts once: never cancelled on session state updates
 
   // Switch product safely with INDEPENDENT stopwatch timer per product
-  const switchSessionProduct = (targetProdName: string, targetIdx?: number) => {
+  // Switch product safely with INDEPENDENT stopwatch timer per product
+  const switchSessionProduct = (targetProdName: string, targetIdx?: number, explicitQueue?: string[]) => {
     if (!activeSession) return;
     const currentProd = activeSession.productNama;
     const targetProd = findProductDefinition(targetProdName);
@@ -950,9 +951,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     // 2. Retrieve target product state if previously worked on, or initialize fresh
     const targetState = updatedProductStates[targetProd.nama];
 
-    const existingQueue = activeSession.productQueue && activeSession.productQueue.length > 0
+    const existingQueue = explicitQueue || (activeSession.productQueue && activeSession.productQueue.length > 0
       ? [...activeSession.productQueue]
-      : [activeSession.productNama];
+      : [activeSession.productNama]);
     
     let updatedQueue = existingQueue;
     let newIndex = targetIdx !== undefined ? targetIdx : existingQueue.indexOf(targetProd.nama);
@@ -990,6 +991,46 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     });
 
     showToast(`Beralih ke: ${targetProd.nama} ${nextIsTimerRunning ? '(Timer berjalan)' : ''}`);
+  };
+
+  // Hapus menu dari antrean produk secara aman, presisi dan sinkron
+  const handleRemoveProductFromQueue = (idxToRemove: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (!activeSession) return;
+
+    const currentQueue = activeSession.productQueue && activeSession.productQueue.length > 0
+      ? [...activeSession.productQueue]
+      : [activeSession.productNama];
+
+    if (currentQueue.length <= 1) {
+      showToast('Minimal harus ada 1 menu SOP dalam antrean praktik.');
+      return;
+    }
+
+    if (idxToRemove < 0 || idxToRemove >= currentQueue.length) return;
+
+    const removedProductName = currentQueue[idxToRemove];
+    const newQueue = currentQueue.filter((_, qIdx) => qIdx !== idxToRemove);
+    const currentActiveIdx = activeSession.currentProductIndex || 0;
+
+    // Jika yang dihapus adalah produk yang sedang aktif diuji
+    if (idxToRemove === currentActiveIdx || removedProductName === activeSession.productNama) {
+      const nextIdx = Math.min(idxToRemove, newQueue.length - 1);
+      const nextProdName = newQueue[nextIdx];
+      switchSessionProduct(nextProdName, nextIdx, newQueue);
+    } else {
+      // Jika yang dihapus produk lain dalam antrean
+      const newActiveIdx = newQueue.indexOf(activeSession.productNama);
+      updateActiveSession({
+        productQueue: newQueue,
+        currentProductIndex: newActiveIdx >= 0 ? newActiveIdx : 0,
+      });
+    }
+
+    showToast(`Menu "${removedProductName}" berhasil dihapus dari antrean.`);
   };
 
   // Format Time mm:ss
@@ -2318,26 +2359,45 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         const isDone = !!completedRecord;
 
                         return (
-                          <button
+                          <div
                             key={`${prodName}-${pIdx}`}
-                            type="button"
-                            onClick={() => switchSessionProduct(prodName, pIdx)}
-                            className={`shrink-0 px-2 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 border cursor-pointer ${
+                            className={`shrink-0 px-2 py-1 rounded-md text-[11px] font-semibold transition-all flex items-center gap-1 border ${
                               isCurrent
                                 ? 'bg-slate-900 text-white border-slate-900 shadow-2xs'
                                 : isDone
                                 ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
                             }`}
-                            title={`Beralih ke ${prodName}`}
                           >
-                            <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-mono ${
-                              isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
-                            }`}>
-                              {isDone ? '✓' : pIdx + 1}
-                            </span>
-                            <span className="truncate max-w-[110px]">{prodName}</span>
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => switchSessionProduct(prodName, pIdx)}
+                              className="flex items-center gap-1 cursor-pointer text-left"
+                              title={`Beralih ke ${prodName}`}
+                            >
+                              <span className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-mono ${
+                                isCurrent ? 'bg-white/20 text-white' : isDone ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                {isDone ? '✓' : pIdx + 1}
+                              </span>
+                              <span className="truncate max-w-[110px]">{prodName}</span>
+                            </button>
+
+                            {queue.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={(e) => handleRemoveProductFromQueue(pIdx, e)}
+                                className={`ml-0.5 p-0.5 rounded transition-colors cursor-pointer ${
+                                  isCurrent
+                                    ? 'hover:bg-white/20 text-white/70 hover:text-white'
+                                    : 'hover:bg-rose-100 text-slate-400 hover:text-rose-600'
+                                }`}
+                                title={`Hapus "${prodName}" dari antrean`}
+                              >
+                                <X size={11} />
+                              </button>
+                            )}
+                          </div>
                         );
                       })}
                     </div>
@@ -4701,19 +4761,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         {queue.length > 1 && (
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
-                              const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
-                              const targetProd = findProductDefinition(updatedQueue[newCurrentIdx]);
-                              switchSessionProduct(targetProd.nama, newCurrentIdx);
-                            }}
-                            className={`p-0.5 rounded transition-colors ${
-                              isCurrent ? 'hover:bg-white/20 text-white/80' : 'hover:bg-rose-50 text-neutral-400 hover:text-rose-600'
+                            onClick={(e) => handleRemoveProductFromQueue(idx, e)}
+                            className={`p-1 rounded-md transition-all cursor-pointer ${
+                              isCurrent
+                                ? 'hover:bg-white/20 text-white/90'
+                                : 'hover:bg-rose-50 text-neutral-400 hover:text-rose-600'
                             }`}
-                            title="Hapus menu dari antrean"
+                            title={`Hapus "${item}" dari antrean`}
                           >
-                            <Trash2 size={12} />
+                            <Trash2 size={13} />
                           </button>
                         )}
                       </div>
@@ -5535,14 +5591,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                             {queue.length > 1 && (
                               <button
                                 type="button"
-                                onClick={() => {
-                                  const updatedQueue = queue.filter((_, qIdx) => qIdx !== idx);
-                                  const newCurrentIdx = Math.min(activeSession.currentProductIndex || 0, updatedQueue.length - 1);
-                                  const targetProd = findProductDefinition(updatedQueue[newCurrentIdx]);
-                                  switchSessionProduct(targetProd.nama, newCurrentIdx);
-                                }}
-                                className="p-1 rounded text-stone-400 hover:text-rose-600 transition-colors"
-                                title="Hapus menu dari antrean"
+                                onClick={(e) => handleRemoveProductFromQueue(idx, e)}
+                                className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                                title={`Hapus "${item}" dari antrean`}
                               >
                                 <Trash2 size={13} />
                               </button>
