@@ -217,8 +217,8 @@ export const FieldToolkitVisitView: React.FC<FieldToolkitVisitViewProps> = ({
               }}
               className="input-enterprise !py-1.5 text-xs font-bold bg-white"
             >
-              {outlets.map((o) => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.nama_outlet} ({o.kode_outlet})
                 </option>
               ))}

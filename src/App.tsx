@@ -180,8 +180,8 @@ export function App() {
     window.location.hash = isAuthenticated ? '' : '#login';
   };
 
-  const outletOptions = ['ALL', ...outlets.map((o) => o.kode_outlet)];
-  const outletCodeOnly = outlets.map((o) => o.kode_outlet);
+  const outletCodeOnly: string[] = Array.from(new Set(outlets.map((o) => o.kode_outlet).filter((c): c is string => Boolean(c))));
+  const outletOptions: string[] = ['ALL', ...outletCodeOnly];
 
   const handleOpenAIAction = (type: AIActionType, row: any, title: string) => {
     setAiActionData({

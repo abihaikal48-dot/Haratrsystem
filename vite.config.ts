@@ -366,6 +366,16 @@ function haraSupabaseBackendPlugin(): Plugin {
               }
             } catch {}
           }
+          if (Array.isArray(store.outlets)) {
+            const seenCodes = new Set<string>();
+            store.outlets = store.outlets.filter((item: any) => {
+              if (!item) return false;
+              const code = String(item.kode_outlet || item.id || '').trim().toUpperCase();
+              if (!code || seenCodes.has(code)) return false;
+              seenCodes.add(code);
+              return true;
+            });
+          }
           const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || 'https://script.google.com/macros/s/AKfycbyOdNACeBvN7gDxGPV0THoUDyYxTbr9CYm7aI8BtRAd4dV_Dz0gFmV4fjoEJDjkWWfPFg/exec';
 
           res.statusCode = 200;

@@ -343,8 +343,8 @@ export const CrewTrainingMonitoringView: React.FC<CrewTrainingMonitoringViewProp
             className="px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 focus:outline-none focus:ring-1 focus:ring-slate-400 font-medium"
           >
             <option value="ALL">Semua Outlet ({monitoringList.length})</option>
-            {outlets.map(out => (
-              <option key={out.kode_outlet} value={out.kode_outlet}>
+            {outlets.map((out, idx) => (
+              <option key={`${out.kode_outlet}-${out.id || idx}`} value={out.kode_outlet}>
                 {out.kode_outlet} — {out.nama_outlet}
               </option>
             ))}

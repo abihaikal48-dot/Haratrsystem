@@ -154,8 +154,8 @@ export const TrainingVsOperasionalView: React.FC<TrainingVsOperasionalViewProps>
               className="p-1.5 rounded-lg border border-[#E6E1DA] bg-white font-semibold text-[#181411] text-xs"
             >
               <option value="ALL">Semua Cabang Outlet HARA</option>
-              {outlets.map(o => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.kode_outlet} - {o.nama_outlet}
                 </option>
               ))}

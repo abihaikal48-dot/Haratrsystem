@@ -620,8 +620,8 @@ export const AnalitikRadarView: React.FC<AnalitikRadarViewProps> = ({
                 className="bg-transparent text-xs font-bold text-stone-900 focus:outline-hidden cursor-pointer"
               >
                 <option value="ALL">Semua Cabang ({radarList.length} Kru)</option>
-                {outlets.map((o) => (
-                  <option key={o.kode_outlet} value={o.kode_outlet}>
+                {outlets.map((o, idx) => (
+                  <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                     {o.nama_outlet} ({o.kode_outlet})
                   </option>
                 ))}

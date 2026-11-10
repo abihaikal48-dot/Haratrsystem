@@ -181,8 +181,8 @@ export const TouchAuditModal: React.FC<TouchAuditModalProps> = ({
                 }}
                 className="w-full bg-white border border-stone-300 rounded-xl px-3 py-2 text-xs font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#96171B]/20"
               >
-                {outlets.map((o) => (
-                  <option key={o.kode_outlet} value={o.kode_outlet}>
+                {outlets.map((o, idx) => (
+                  <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                     {o.kode_outlet} - {o.nama_outlet}
                   </option>
                 ))}

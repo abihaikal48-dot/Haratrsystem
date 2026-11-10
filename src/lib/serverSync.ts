@@ -47,9 +47,10 @@ export async function checkServerStatus(): Promise<ServerDbStatus> {
 /**
  * Helper merge rekaman berdasarkan id dengan menjaga keutuhan data terbaru
  */
-function mergeRecords<T extends { id?: string; created_at?: string; updated_at?: string }>(
+function mergeRecords<T extends { id?: string; created_at?: string; updated_at?: string; kode_outlet?: string }>(
   localList: T[],
-  remoteList: T[]
+  remoteList: T[],
+  tableName?: string
 ): { merged: T[]; changed: boolean } {
   if (!Array.isArray(localList)) localList = [];
   if (!Array.isArray(remoteList)) remoteList = [];
@@ -57,10 +58,17 @@ function mergeRecords<T extends { id?: string; created_at?: string; updated_at?:
   const map = new Map<string, T>();
   let changed = false;
 
+  const getKey = (item: any): string => {
+    if (tableName === 'outlets' && item.kode_outlet) {
+      return `outlet-${String(item.kode_outlet).trim().toUpperCase()}`;
+    }
+    return String(item.id || '');
+  };
+
   // 1. Masukkan semua data lokal ke map
   localList.forEach((item) => {
-    if (item && item.id) {
-      map.set(String(item.id), item);
+    if (item && (item.id || (item as any).kode_outlet)) {
+      map.set(getKey(item), item);
     }
   });
 
@@ -68,12 +76,12 @@ function mergeRecords<T extends { id?: string; created_at?: string; updated_at?:
 
   // 2. Gabungkan data remote (cloud/server)
   remoteList.forEach((remoteItem) => {
-    if (!remoteItem || !remoteItem.id) return;
-    const idStr = String(remoteItem.id);
-    const existing = map.get(idStr);
+    if (!remoteItem || (!remoteItem.id && !(remoteItem as any).kode_outlet)) return;
+    const itemKey = getKey(remoteItem);
+    const existing = map.get(itemKey);
 
     if (!existing) {
-      map.set(idStr, remoteItem);
+      map.set(itemKey, remoteItem);
       changed = true;
     } else {
       // Bandingkan timestamp jika ada
@@ -81,7 +89,7 @@ function mergeRecords<T extends { id?: string; created_at?: string; updated_at?:
       const localTime = (existing as any).updated_at || (existing as any).created_at || '';
       if (remoteTime && (!localTime || remoteTime >= localTime)) {
         if (JSON.stringify(existing) !== JSON.stringify(remoteItem)) {
-          map.set(idStr, { ...existing, ...remoteItem });
+          map.set(itemKey, { ...existing, ...remoteItem });
           changed = true;
         }
       }
@@ -169,7 +177,7 @@ export async function initClientDataFromServer(): Promise<boolean> {
           }
 
           const localTable = db.getTable<any>(tableKey);
-          const { merged, changed } = mergeRecords(localTable, remoteTable);
+          const { merged, changed } = mergeRecords(localTable, remoteTable, tableKey);
           if (changed) {
             db.setDirectLocalOnly(tableKey, merged);
             if (tableKey === 'penilaian_praktik_onboarding_produk') {
@@ -186,7 +194,7 @@ export async function initClientDataFromServer(): Promise<boolean> {
       for (const [key, val] of Object.entries(data)) {
         if (!key.startsWith('_') && !tablesToSync.includes(key) && Array.isArray(val) && val.length > 0) {
           const localTable = db.getTable<any>(key);
-          const { merged, changed } = mergeRecords(localTable, val);
+          const { merged, changed } = mergeRecords(localTable, val, key);
           if (changed) {
             db.setDirectLocalOnly(key, merged);
             db.notify(key);

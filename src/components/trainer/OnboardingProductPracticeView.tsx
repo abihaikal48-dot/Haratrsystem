@@ -76,6 +76,29 @@ export const DAFTAR_PENILAI_DEFAULT = [
  * Pemetaan Resmi 12 Peserta Kru Baru TC Lempongsari ke Outlet Penempatan Riil
  */
 export const CANDIDATE_PLACEMENT_MAP: Record<string, string> = {
+  // Batch 10-11 November (TC Kantor Lempongsari)
+  'dhimas panji saputro': 'Blok O',
+  'dhimas panji': 'Blok O',
+  'septian dwi nugroho': 'Condongcatur',
+  'septian dwi': 'Condongcatur',
+  'galih muhammad': 'Sedayu',
+  'shereen putri': 'Cebongan',
+  'muhammad iman nugroho': 'Bantul Niten',
+  'muhammad iman': 'Bantul Niten',
+  'alifia putriana dewi az-zahra': 'Pleret',
+  'alifia putriana': 'Pleret',
+  'alifia': 'Pleret',
+  'yasykur kurnia': 'Office',
+  'yasykur': 'Office',
+  'muhammad alif alfarizki': 'Damai',
+  'muhammad alif': 'Damai',
+  'rahmad puji yanto': 'Kalakijo',
+  'rahmad puji': 'Kalakijo',
+  'banar hibatullah mukti': 'Playen',
+  'banar hibatullah': 'Playen',
+  'noval adittya': 'Monjali',
+  'noval': 'Monjali',
+  'muhammad faisal': 'Support Mobile Outlet',
   // Batch 3-4 November (TC Kantor Lempongsari)
   'achmad luthfi khakim': 'Kertek',
   'achmad luthfi': 'Kertek',
@@ -206,7 +229,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       const saved = localStorage.getItem('hara_onboarding_selected_batch_id');
       if (saved) return saved;
     } catch {}
-    return 'batch-ob-2026-11-03';
+    return 'batch-ob-2026-11-10';
   });
 
   useEffect(() => {
@@ -1859,21 +1882,21 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       {/* ===================================================================
           SUB-TAB NAVIGATION BAR: PRAKTIK PRODUK, PENILAIAN TIM, DETAIL SIKAP, RIWAYAT & PESERTA
           =================================================================== */}
-      <div className="p-1 bg-slate-100/80 rounded-xl border border-slate-200">
+      <div className="p-1.5 bg-[#FAF8F5] rounded-2xl border border-[#E6E1DA] shadow-xs">
         <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth w-full">
           <button
             type="button"
             onClick={() => setActiveSubTab('produk')}
-            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'produk'
                 ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+                : 'text-[#645D55] hover:text-[#181411] hover:bg-white/80'
             }`}
           >
             <UtensilsCrossed size={14} />
-            <span>Praktik Produk & Sikap</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              activeSubTab === 'produk' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+            <span>Praktik Produk (SOP & Timer)</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'produk' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
             }`}>
               Individu
             </span>
@@ -1881,17 +1904,35 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
+            onClick={() => setActiveSubTab('jobdesk')}
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+              activeSubTab === 'jobdesk'
+                ? 'bg-[#96171B] text-white shadow-xs'
+                : 'text-[#645D55] hover:text-[#181411] hover:bg-white/80'
+            }`}
+          >
+            <ClipboardCheck size={14} />
+            <span>Kebersihan & Sikap Kru</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
+            }`}>
+              5S & Higiene
+            </span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => setActiveSubTab('tim')}
-            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'tim'
                 ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+                : 'text-[#645D55] hover:text-[#181411] hover:bg-white/80'
             }`}
           >
             <Users size={14} />
-            <span>Penilaian Tim (Station 1 & 2)</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              activeSubTab === 'tim' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+            <span>Kerjasama Tim (Station 1 & 2)</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'tim' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
             }`}>
               {timList.length}
             </span>
@@ -1899,35 +1940,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           <button
             type="button"
-            onClick={() => setActiveSubTab('jobdesk')}
-            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
-              activeSubTab === 'jobdesk'
-                ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
-            }`}
-          >
-            <ClipboardCheck size={14} />
-            <span>Detail Sikap & Higiene</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              activeSubTab === 'jobdesk' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
-            }`}>
-              5S & SK
-            </span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveSubTab('riwayat')}
-            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'riwayat'
                 ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+                : 'text-[#645D55] hover:text-[#181411] hover:bg-white/80'
             }`}
           >
             <FileText size={14} />
-            <span>Riwayat & Rekap</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
-              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+            <span>Rekapitulasi Nilai Terpadu</span>
+            <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
+              activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
             }`}>
               {historyList.length}
             </span>
@@ -1936,18 +1959,18 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           <button
             type="button"
             onClick={() => setActiveSubTab('analitik_outlet')}
-            className={`shrink-0 px-3.5 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
+            className={`shrink-0 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer ${
               activeSubTab === 'analitik_outlet'
                 ? 'bg-[#96171B] text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-900 hover:bg-white/60'
+                : 'text-[#645D55] hover:text-[#181411] hover:bg-white/80'
             }`}
           >
             <Store size={14} />
             <span>Analitik Outlet Penempatan</span>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+            <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
               activeSubTab === 'analitik_outlet' ? 'bg-white/20 text-white' : 'bg-red-50 text-[#96171B] font-bold'
             }`}>
-              {candidateKrus.length > 0 ? candidateKrus.length : 14} Kru
+              {candidateKrus.length > 0 ? candidateKrus.length : 12} Kru
             </span>
           </button>
         </div>
@@ -2108,9 +2131,9 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 1: PRAKTIK PRODUK (INDIVIDU)
           =================================================================== */}
       {activeSubTab === 'produk' && (
-        <div className="space-y-4">
+        <div className="w-full space-y-5">
           {/* CONCURRENT MULTI-KRU TABS & CANDIDATE SELECTOR RIBBON */}
-          <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2.5">
+          <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
             {/* Multi-Session Tabs Bar */}
             <div className="flex items-center justify-between gap-3 overflow-x-auto pb-0.5">
               <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
@@ -2326,11 +2349,11 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
           {/* MAIN ASSESSMENT COCKPIT: BALANCED 5 : 7 SPLIT */}
           {activeSession && (
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
               {/* LEFT COLUMN: STOPWATCH SOS, KONTROL, PARAMETER TEKNIS & HASIL SKOR */}
-              <div className="lg:col-span-5 space-y-4">
+              <div className="lg:col-span-5 space-y-5">
                 {/* DIGITAL SOS STOPWATCH CARD */}
-                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3.5">
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <span className="font-bold text-xs text-slate-800 flex items-center gap-1.5">
                       <Clock size={14} className="text-[#96171B]" />
@@ -2583,7 +2606,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 </div>
 
                 {/* LIVE COMPOSITE SCORING CARD */}
-                <div className="p-4 rounded-xl bg-slate-900 text-white shadow-md space-y-3">
+                <div className="p-5 sm:p-6 rounded-2xl bg-[#181411] text-white shadow-md space-y-4 border border-neutral-800">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-800">
                     <div>
                       <span className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -2646,62 +2669,45 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   )}
                 </div>
 
-                {/* SIKAP 5S & KERJASAMA QUICK BUTTONS */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-slate-700">
-                    <span className="font-bold flex items-center gap-1">
-                      <Sparkles size={12} className="text-[#96171B]" />
-                      <span>Kebersihan & 5S:</span>
+                {/* INFO PEMISAHAN PENILAIAN KEBERSIHAN & KERJASAMA */}
+                <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs space-y-2">
+                  <div className="flex items-center justify-between text-amber-950 font-bold">
+                    <span className="flex items-center gap-1.5">
+                      <Sparkles size={13} className="text-[#96171B]" />
+                      <span>Penilaian Kebersihan & Kerjasama Tim</span>
                     </span>
-                    <span className="font-mono font-bold text-[#96171B]">{activeSession.skorKebersihan ?? 90}</span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-200/80 text-amber-900 font-bold uppercase tracking-wider">
+                      Terpisah
+                    </span>
                   </div>
-                  <div className="grid grid-cols-5 gap-1">
-                    {[75, 80, 85, 90, 95].map(val => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => updateActiveSession({ skorKebersihan: val })}
-                        className={`py-1 rounded text-xs font-bold transition-all border cursor-pointer text-center ${
-                          (activeSession.skorKebersihan ?? 90) === val
-                            ? 'bg-[#96171B] text-white border-[#96171B]'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center justify-between text-slate-700 pt-1">
-                    <span className="font-bold flex items-center gap-1">
+                  <p className="text-[11.5px] text-amber-900/90 leading-relaxed">
+                    Sesuai instruksi operasional, evaluasi <strong>Kebersihan & Higiene 5S</strong> serta <strong>Kerjasama Tim</strong> dinilai terpisah melalui tab di atas, kemudian otomatis direkap menjadi <strong>1 Nilai Terpadu (100%)</strong> pada tab <strong>Rekapitulasi Nilai</strong>.
+                  </p>
+                  <div className="flex items-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setActiveSubTab('jobdesk')}
+                      className="px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-950 text-[11px] font-bold hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
+                    >
+                      <ClipboardCheck size={12} className="text-[#96171B]" />
+                      <span>Buka Form Kebersihan 5S ↗</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveSubTab('tim')}
+                      className="px-2.5 py-1.5 rounded-lg bg-white border border-amber-300 text-amber-950 text-[11px] font-bold hover:bg-amber-100 transition-colors flex items-center gap-1 cursor-pointer shadow-2xs"
+                    >
                       <Users size={12} className="text-emerald-700" />
-                      <span>Kerjasama & Komunikasi:</span>
-                    </span>
-                    <span className="font-mono font-bold text-emerald-800">{activeSession.skorKerjasama ?? 90}</span>
-                  </div>
-                  <div className="grid grid-cols-5 gap-1">
-                    {[75, 80, 85, 90, 95].map(val => (
-                      <button
-                        key={val}
-                        type="button"
-                        onClick={() => updateActiveSession({ skorKerjasama: val })}
-                        className={`py-1 rounded text-xs font-bold transition-all border cursor-pointer text-center ${
-                          (activeSession.skorKerjasama ?? 90) === val
-                            ? 'bg-emerald-700 text-white border-emerald-700'
-                            : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
-                        }`}
-                      >
-                        {val}
-                      </button>
-                    ))}
+                      <span>Buka Form Kerjasama Tim ↗</span>
+                    </button>
                   </div>
                 </div>
               </div>
 
               {/* RIGHT COLUMN: SOP PROCEDURE CHECKLIST, KNOWLEDGE QUESTIONS & NOTES */}
-              <div className="lg:col-span-7 space-y-4">
+              <div className="lg:col-span-7 space-y-5">
                 {/* SOP CHECKLIST STEPS */}
-                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-3">
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
                   <div className="flex items-center justify-between pb-2 border-b border-slate-100">
                     <div className="flex items-center gap-2">
                       <h3 className="font-bold text-xs text-slate-800">
@@ -2771,10 +2777,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 </div>
 
                 {/* KNOWLEDGE SOP LISAN QUESTIONS (20%) */}
-                <div className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-2 text-xs">
-                  <div className="flex items-center justify-between pb-1.5 border-b border-slate-100">
-                    <span className="font-bold text-slate-800">Knowledge SOP Lisan (20%)</span>
-                    <span className="text-xs font-mono font-bold text-[#96171B]">
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                    <span className="font-bold text-slate-800 text-sm">Knowledge SOP Lisan (Bobot: 20%)</span>
+                    <span className="text-sm font-mono font-bold text-[#96171B]">
                       {activeSession.skorKnowledge} / 100
                     </span>
                   </div>
@@ -2783,7 +2789,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                     {currentProductDef.autoQuestions.map((q, qIdx) => {
                       const isPassed = activeSession.knowledgeAnswers[qIdx] ?? true;
                       return (
-                        <div key={qIdx} className="p-2 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+                        <div key={qIdx} className="p-2.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
                           <div className="flex-1 min-w-0">
                             <span className="font-semibold text-slate-800 text-[11.5px] block truncate">
                               {qIdx + 1}. {q.tanya}
@@ -2797,10 +2803,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                             <button
                               type="button"
                               onClick={() => handleToggleKnowledgeQuestion(qIdx, true)}
-                              className={`px-2 py-0.5 rounded text-[10.5px] font-bold cursor-pointer ${
+                              className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold cursor-pointer transition-all ${
                                 isPassed
-                                  ? 'bg-emerald-600 text-white'
-                                  : 'bg-white border border-slate-200 text-slate-600'
+                                  ? 'bg-emerald-600 text-white shadow-2xs'
+                                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                               }`}
                             >
                               ✓ Benar
@@ -2808,10 +2814,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                             <button
                               type="button"
                               onClick={() => handleToggleKnowledgeQuestion(qIdx, false)}
-                              className={`px-2 py-0.5 rounded text-[10.5px] font-bold cursor-pointer ${
+                              className={`px-2.5 py-1 rounded-lg text-[10.5px] font-bold cursor-pointer transition-all ${
                                 !isPassed
-                                  ? 'bg-rose-600 text-white'
-                                  : 'bg-white border border-slate-200 text-slate-600'
+                                  ? 'bg-rose-600 text-white shadow-2xs'
+                                  : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                               }`}
                             >
                               ✕ Salah
@@ -2824,7 +2830,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                 </div>
 
                 {/* CATATAN ASESOR / TRAINER */}
-                <div className="p-3 rounded-xl bg-white border border-slate-200 shadow-2xs space-y-1.5 text-xs">
+                <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-2 text-xs">
                   <label className="font-bold text-slate-700 text-[11px] uppercase tracking-wider block">
                     Catatan Evaluasi Trainer:
                   </label>
@@ -2861,7 +2867,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             const placement = getCandidatePlacement(effName);
 
             return (
-              <div className="sticky bottom-0 z-30 bg-white/95 backdrop-blur-md border border-slate-200 py-3 px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3 shadow-lg rounded-xl">
+              <div className="sticky bottom-2 z-30 bg-white/95 backdrop-blur-md border border-[#E6E1DA] py-3.5 px-5 sm:px-6 flex flex-wrap items-center justify-between gap-3 shadow-md rounded-2xl">
                 {/* Left: Summary of active evaluation */}
                 <div className="flex items-center gap-2 text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -2956,7 +2962,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB 2: RIWAYAT & RAPOR EVALUASI ONBOARDING TERPADU (2 PILAR)
           =================================================================== */}
       {activeSubTab === 'riwayat' && (
-        <div className="space-y-6">
+        <div className="w-full space-y-5">
           {/* Header Card */}
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">
@@ -3220,7 +3226,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       )}
 
       {activeSubTab === 'jobdesk' && (
-        <div className="space-y-6">
+        <div className="w-full space-y-5">
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-4">
               <div>
@@ -3649,7 +3655,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           SUB-TAB: PENILAIAN TIM STASIUN (STATION KERJA 1 & STATION KERJA 2)
           =================================================================== */}
       {activeSubTab === 'tim' && (
-        <div className="space-y-6">
+        <div className="w-full space-y-5">
           {/* Header Card Evaluasi Tim */}
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">
@@ -4356,7 +4362,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         };
 
         return (
-          <div className="space-y-6">
+          <div className="w-full space-y-5">
             {/* Header Card */}
             <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#E6E1DA] pb-4">

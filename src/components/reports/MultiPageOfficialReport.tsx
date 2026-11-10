@@ -287,8 +287,8 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                 onChange={(e) => setCurrentOutletCode(e.target.value)}
                 className="bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 font-bold text-stone-800 text-xs focus:outline-hidden focus:ring-2 focus:ring-[#8B1418]"
               >
-                {outlets.map((o) => (
-                  <option key={o.kode_outlet} value={o.kode_outlet}>
+                {outlets.map((o, idx) => (
+                  <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                     {o.kode_outlet} - {o.nama_outlet}
                   </option>
                 ))}
@@ -1501,8 +1501,8 @@ export const MultiPageOfficialReport: React.FC<MultiPageOfficialReportProps> = (
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-stone-200 text-stone-700">
-                      {outlets.map((o) => (
-                        <tr key={o.kode_outlet}>
+                      {outlets.map((o, idx) => (
+                        <tr key={`${o.kode_outlet}-${o.id || idx}`}>
                           <td className="p-2.5 font-mono font-bold">{o.kode_outlet}</td>
                           <td className="p-2.5">{o.nama_outlet}</td>
                           <td className="p-2.5">{o.area_supervisor}</td>

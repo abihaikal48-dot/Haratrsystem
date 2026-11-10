@@ -148,8 +148,8 @@ export const OfficialHaraMonitoringMatrix: React.FC<OfficialHaraMonitoringMatrix
             className="px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 text-xs font-semibold"
           >
             <option value="ALL">Semua Outlet</option>
-            {outlets.map(o => (
-              <option key={o.kode_outlet} value={o.kode_outlet}>{o.kode_outlet} — {o.nama_outlet}</option>
+            {outlets.map((o, idx) => (
+              <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>{o.kode_outlet} — {o.nama_outlet}</option>
             ))}
           </select>
 
@@ -505,8 +505,8 @@ export const OfficialHaraMonitoringMatrix: React.FC<OfficialHaraMonitoringMatrix
                     onChange={e => setNewCrewData({ ...newCrewData, kode_outlet: e.target.value })}
                     className="w-full p-2.5 border border-slate-200 rounded-xl text-xs bg-slate-50"
                   >
-                    {outlets.map(o => (
-                      <option key={o.kode_outlet} value={o.kode_outlet}>{o.kode_outlet}</option>
+                    {outlets.map((o, idx) => (
+                      <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>{o.kode_outlet}</option>
                     ))}
                   </select>
                 </div>

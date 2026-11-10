@@ -194,8 +194,8 @@ export const AuditKinerjaOutletFormModal: React.FC<AuditKinerjaOutletFormModalPr
               }}
               className="px-3 py-1 bg-white border border-stone-200 rounded-xl text-xs font-bold text-stone-800 focus:outline-hidden"
             >
-              {outlets.map((o) => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.nama_outlet} ({o.kode_outlet})
                 </option>
               ))}

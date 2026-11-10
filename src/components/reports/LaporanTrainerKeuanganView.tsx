@@ -131,8 +131,8 @@ export const LaporanTrainerKeuanganView: React.FC<LaporanTrainerKeuanganViewProp
             onChange={(e) => setCurrentOutletCode(e.target.value)}
             className="px-3 py-1.5 bg-white border border-stone-200 rounded-xl text-xs font-semibold text-stone-800 focus:outline-hidden focus:border-[#8B1418] shadow-2xs"
           >
-            {outlets.map((o) => (
-              <option key={o.kode_outlet} value={o.kode_outlet}>
+            {outlets.map((o, idx) => (
+              <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                 {o.nama_outlet} ({o.kode_outlet})
               </option>
             ))}

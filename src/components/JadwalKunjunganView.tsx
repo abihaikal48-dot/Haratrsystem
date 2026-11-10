@@ -98,8 +98,8 @@ export const JadwalKunjunganView: React.FC<JadwalKunjunganViewProps> = ({
               className="bg-stone-50 border border-stone-300 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-900 focus:outline-none focus:ring-1 focus:ring-[#96171B]"
             >
               <option value="ALL">Semua Outlet ({outlets.length})</option>
-              {outlets.map((o) => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.kode_outlet} - {o.nama_outlet}
                 </option>
               ))}
@@ -259,8 +259,8 @@ export const JadwalKunjunganView: React.FC<JadwalKunjunganViewProps> = ({
                     onChange={(e) => setFormData({ ...formData, kode_outlet: e.target.value })}
                     className="w-full bg-[#FAF8F5] border border-stone-300 rounded-xl px-3 py-2 text-stone-900 font-bold"
                   >
-                    {outlets.map((o) => (
-                      <option key={o.kode_outlet} value={o.kode_outlet}>
+                    {outlets.map((o, idx) => (
+                      <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                         {o.kode_outlet} - {o.nama_outlet}
                       </option>
                     ))}

@@ -44,13 +44,24 @@ export const ModernOptionSelector: React.FC<ModernOptionSelectorProps> = ({
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Normalize options to objects
-  const normalizedOptions: OptionItem[] = options.map((opt) => {
+  // Normalize options to objects & deduplicate by value
+  const rawNormalized: OptionItem[] = (options || []).map((opt) => {
     if (typeof opt === 'string') {
       return { value: opt, label: opt };
     }
     return opt;
   });
+
+  const normalizedOptions: OptionItem[] = [];
+  const seenValues = new Set<string>();
+  for (const opt of rawNormalized) {
+    if (!opt || opt.value === undefined || opt.value === null) continue;
+    const vStr = String(opt.value);
+    if (!seenValues.has(vStr)) {
+      seenValues.add(vStr);
+      normalizedOptions.push(opt);
+    }
+  }
 
   // Decide if we should render inline chips (default true if <= 5 options and not explicitly set to false)
   const shouldRenderChips = inlineChips !== undefined ? inlineChips : normalizedOptions.length <= 5;
@@ -99,11 +110,11 @@ export const ModernOptionSelector: React.FC<ModernOptionSelectorProps> = ({
           </label>
         )}
         <div className="flex flex-wrap gap-1.5">
-          {normalizedOptions.map((opt) => {
+          {normalizedOptions.map((opt, idx) => {
             const isSelected = opt.value === value;
             return (
               <button
-                key={opt.value}
+                key={`chip-${opt.value}-${idx}`}
                 type="button"
                 disabled={disabled}
                 onClick={() => onChange(opt.value)}
@@ -221,11 +232,11 @@ export const ModernOptionSelector: React.FC<ModernOptionSelectorProps> = ({
                 Tidak ada opsi yang cocok
               </div>
             ) : (
-              filteredOptions.map((opt) => {
+              filteredOptions.map((opt, idx) => {
                 const isSelected = opt.value === value;
                 return (
                   <button
-                    key={opt.value}
+                    key={`opt-${opt.value}-${idx}`}
                     type="button"
                     onClick={() => {
                       onChange(opt.value);

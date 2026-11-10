@@ -848,6 +848,163 @@ const INITIAL_KRU: Kru[] = [
     catatan: 'Peserta 14 - Batch 3-4 Nov 2026 - Penempatan: Mobile Outlet',
     created_at: '2026-11-02T16:00:00.000Z',
   },
+  // BATCH ONBOARDING TC 10 - 11 NOVEMBER 2026 (12 PESERTA)
+  {
+    id: 'kru-ob-1110-01',
+    nama_kru: 'Dhimas Panji Saputro',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Blok O',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Blok O',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 1 - Batch 10-11 Nov 2026 - Penempatan: Blok O',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-02',
+    nama_kru: 'Septian Dwi Nugroho',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Condongcatur',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Condongcatur',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 2 - Batch 10-11 Nov 2026 - Penempatan: Condongcatur',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-03',
+    nama_kru: 'Galih Muhammad',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Sedayu',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Sedayu',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 3 - Batch 10-11 Nov 2026 - Penempatan: Sedayu',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-04',
+    nama_kru: 'Shereen Putri',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Cebongan',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Cebongan',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 4 - Batch 10-11 Nov 2026 - Penempatan: Cebongan',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-05',
+    nama_kru: 'Muhammad Iman Nugroho',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Bantul Niten',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Bantul Niten',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 5 - Batch 10-11 Nov 2026 - Penempatan: Bantul Niten',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-06',
+    nama_kru: 'Alifia Putriana Dewi Az-zahra',
+    jabatan: 'Kru Kasir (Onboarding TC)',
+    divisi: 'Kasir',
+    kode_outlet: 'Pleret',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Pleret',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 6 - Batch 10-11 Nov 2026 - Penempatan: Pleret',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-07',
+    nama_kru: 'Yasykur Kurnia',
+    jabatan: 'Kru Support (Onboarding TC)',
+    divisi: 'Helper',
+    kode_outlet: 'Office',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Office',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 7 - Batch 10-11 Nov 2026 - Penempatan: Office',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-08',
+    nama_kru: 'Muhammad Alif Alfarizki',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Damai',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Damai',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 8 - Batch 10-11 Nov 2026 - Penempatan: Damai',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-09',
+    nama_kru: 'Rahmad Puji Yanto',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Kalakijo',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Kalakijo',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 9 - Batch 10-11 Nov 2026 - Penempatan: Kalakijo',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-10',
+    nama_kru: 'Banar Hibatullah Mukti',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Playen',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Playen',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 10 - Batch 10-11 Nov 2026 - Penempatan: Playen',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-11',
+    nama_kru: 'Noval Adittya',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Monjali',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Monjali',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 11 - Batch 10-11 Nov 2026 - Penempatan: Monjali',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
+  {
+    id: 'kru-ob-1110-12',
+    nama_kru: 'Muhammad Faisal',
+    jabatan: 'Kru Kitchen (Onboarding TC)',
+    divisi: 'Kitchen',
+    kode_outlet: 'Support Mobile Outlet',
+    lokasi_tc: 'Kantor Lempongsari',
+    outlet_penempatan: 'Support Mobile Outlet',
+    tanggal_masuk: '2026-11-10',
+    status_aktif: 'Aktif',
+    catatan: 'Peserta 12 - Batch 10-11 Nov 2026 - Penempatan: Support Mobile Outlet',
+    created_at: '2026-11-09T08:00:00.000Z',
+  },
 ];
 
 const INITIAL_PENILAIAN_SIKAP_KEBERSIHAN: PenilaianSikapKebersihanKru[] = [
@@ -2734,13 +2891,21 @@ class StorageDatabase {
   public getTable<T>(tableName: string): T[] {
     const key = this.mapKey(tableName);
     const data = this.get<T[]>(key, []);
-    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null && 'id' in data[0]) {
-      const seen = new Set<string>();
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+      const seenId = new Set<string>();
+      const seenOutletCode = new Set<string>();
       return data.filter((item: any) => {
-        if (!item || !item.id) return true;
-        const idStr = String(item.id);
-        if (seen.has(idStr)) return false;
-        seen.add(idStr);
+        if (!item) return false;
+        if (tableName === 'outlets' && item.kode_outlet) {
+          const code = String(item.kode_outlet).trim().toUpperCase();
+          if (seenOutletCode.has(code)) return false;
+          seenOutletCode.add(code);
+        }
+        if (item.id) {
+          const idStr = String(item.id);
+          if (seenId.has(idStr)) return false;
+          seenId.add(idStr);
+        }
         return true;
       });
     }
@@ -2750,13 +2915,21 @@ class StorageDatabase {
   public setDirectLocalOnly(tableName: string, data: any[]): void {
     const key = this.mapKey(tableName);
     let sanitizedData = data;
-    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null && 'id' in data[0]) {
-      const seen = new Set<string>();
+    if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object' && data[0] !== null) {
+      const seenId = new Set<string>();
+      const seenOutletCode = new Set<string>();
       sanitizedData = data.filter((item: any) => {
-        if (!item || !item.id) return true;
-        const idStr = String(item.id);
-        if (seen.has(idStr)) return false;
-        seen.add(idStr);
+        if (!item) return false;
+        if (tableName === 'outlets' && item.kode_outlet) {
+          const code = String(item.kode_outlet).trim().toUpperCase();
+          if (seenOutletCode.has(code)) return false;
+          seenOutletCode.add(code);
+        }
+        if (item.id) {
+          const idStr = String(item.id);
+          if (seenId.has(idStr)) return false;
+          seenId.add(idStr);
+        }
         return true;
       });
     }

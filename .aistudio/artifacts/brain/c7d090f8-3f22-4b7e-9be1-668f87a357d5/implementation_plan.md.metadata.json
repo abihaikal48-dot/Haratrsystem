@@ -1,6 +1,6 @@
 {
-  "summary":  "Rencana komprehensif perombakan Design System, Layout, dan UI HARA Training System:\n1. Membangun Design System \"Clean Enterprise Merah HARA\" dengan token terpadu (tipografi jernih, zero-pill discipline, kontras tinggi, permukaan card bersih).\n2. Mendesain ulang modul Onboarding & Penilaian Praktik dengan layout kitchen-friendly efisien satu layar tanpa banyak scrolling.\n3. Menyelaraskan seluruh halaman (Header, Sidebar, Dashboard, Kurikulum Roadmap, Operasional, Master Data, dan Laporan).",
-  "updatedAt":  "2026-11-08T03:20:28.164978246Z",
+  "summary":  "Rencana implementasi standardisasi durasi 29 produk dalam satuan menit, pemisahan penilaian kebersihan & kerjasama ke sub-tab tersendiri dengan rekapitulasi nilai terpadu, pendaftaran 12 peserta Onboarding Batch 10-11 November ke Kru Master & Supabase, serta perataan konsistensi visual dan layout UI lintas sub-tab tanpa lonjakan ukuran.",
+  "updatedAt":  "2026-11-10T00:05:34.914677343Z",
   "requestFeedback":  true,
   "userFacing":  true
 }

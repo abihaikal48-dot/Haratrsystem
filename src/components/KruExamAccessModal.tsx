@@ -495,8 +495,8 @@ export const KruExamAccessModal: React.FC<KruExamAccessModalProps> = ({
                   onChange={(e) => setQrOutlet(e.target.value)}
                   className="text-xs bg-stone-50 border border-stone-200 rounded-xl px-3 py-1.5 font-bold text-stone-800 focus:outline-none focus:border-[#96171B]"
                 >
-                  {outlets.map((o) => (
-                    <option key={o.kode_outlet} value={o.kode_outlet}>
+                  {outlets.map((o, idx) => (
+                    <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                       {o.nama_outlet}
                     </option>
                   ))}

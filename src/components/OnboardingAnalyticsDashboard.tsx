@@ -642,8 +642,8 @@ export const OnboardingAnalyticsDashboard: React.FC<OnboardingAnalyticsDashboard
               className="w-full p-2 rounded-xl border border-[#E6E1DA] text-xs font-semibold bg-[#FAF8F5] text-[#181411] focus:outline-none focus:border-[#96171B]"
             >
               <option value="ALL">Semua Outlet ({outlets.length} Outlet)</option>
-              {outlets.map((o) => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.nama_outlet} ({o.kode_outlet})
                 </option>
               ))}

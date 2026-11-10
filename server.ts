@@ -814,6 +814,17 @@ app.get('/api/db/init', async (_req, res) => {
       }
     }
 
+    if (Array.isArray(store.outlets)) {
+      const seenCodes = new Set<string>();
+      store.outlets = store.outlets.filter((item: any) => {
+        if (!item) return false;
+        const code = String(item.kode_outlet || item.id || '').trim().toUpperCase();
+        if (!code || seenCodes.has(code)) return false;
+        seenCodes.add(code);
+        return true;
+      });
+    }
+
     const sheetsWebhook = process.env.GOOGLE_SHEETS_WEBHOOK_URL || (store as any)._google_sheet_webhook || DEFAULT_GOOGLE_SHEETS_WEBHOOK;
 
     // AMAN: Jangan pernah kirimkan service_role / sb_secret key ke browser klien

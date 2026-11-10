@@ -323,8 +323,8 @@ export const OnboardingActivityLogView: React.FC<OnboardingActivityLogViewProps>
               className="w-full p-2 rounded-xl border border-[#E6E1DA] text-xs bg-white text-[#181411] font-medium"
             >
               <option value="ALL">Semua Outlet</option>
-              {outlets.map((o) => (
-                <option key={o.kode_outlet} value={o.kode_outlet}>
+              {outlets.map((o, idx) => (
+                <option key={`${o.kode_outlet}-${o.id || idx}`} value={o.kode_outlet}>
                   {o.kode_outlet} - {o.nama_outlet}
                 </option>
               ))}
