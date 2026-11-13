@@ -15,7 +15,10 @@ import {
   getSupabaseStatus,
   subscribeSupabaseStatus,
   SupabaseStatus,
-  SUPABASE_SQL_SCHEMA_SCRIPT
+  SUPABASE_SQL_SCHEMA_SCRIPT,
+  getSupabaseTableStats,
+  SupabaseDiagnosticResult,
+  QUICK_SUPABASE_RLS_FIX_SQL
 } from '../lib/supabase';
 import {
   getGoogleSheetWebhookUrl,
@@ -70,6 +73,30 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
   const [sheetTesting, setSheetTesting] = useState(false);
   const [sheetTestResult, setSheetTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
+  // Live Supabase Diagnostics & Table Stats
+  const [tableStats, setTableStats] = useState<SupabaseDiagnosticResult | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [copiedQuickSql, setCopiedQuickSql] = useState(false);
+  const [pushResult, setPushResult] = useState<{
+    success: boolean;
+    message: string;
+    totalPushed: number;
+    details: Record<string, number>;
+    structuredBlocked?: boolean;
+  } | null>(null);
+
+  const refreshStats = async () => {
+    setLoadingStats(true);
+    try {
+      const stats = await getSupabaseTableStats();
+      setTableStats(stats);
+    } catch (e) {
+      console.warn('Failed to load table stats', e);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
   useEffect(() => {
     if (isOpen) {
       const cfg = getSupabaseConfig();
@@ -78,6 +105,7 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
       setSheetWebhookUrl(getGoogleSheetWebhookUrl());
       setSheetDocUrl(getSavedGoogleSheetDocUrl());
       checkServerStatus().then(setServerStatus);
+      refreshStats();
     }
     return subscribeSupabaseStatus(setStatus);
   }, [isOpen]);
@@ -115,11 +143,37 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
         }
       }
       checkServerStatus().then(setServerStatus);
+      await refreshStats();
     } catch (err: any) {
       setSyncStatusMsg(`Gagal sinkronisasi: ${err?.message || 'Koneksi terputus'}`);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePushAllData = async () => {
+    setLoading(true);
+    setSyncStatusMsg('Mengunggah seluruh data master, kru, batch, dan penilaian ke Supabase Cloud...');
+    try {
+      const res = await pushAllLocalDataToSupabase();
+      setPushResult(res);
+      if (res.success) {
+        setSyncStatusMsg(`✅ Sukses! ${res.totalPushed} rekaman data sistem berhasil diunggah ke Supabase Cloud.`);
+      } else {
+        setSyncStatusMsg(`⚠️ Perhatian: ${res.message}`);
+      }
+      await refreshStats();
+    } catch (err: any) {
+      setSyncStatusMsg(`Gagal mengunggah data: ${err?.message || 'Koneksi terputus'}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyQuickSql = () => {
+    navigator.clipboard.writeText(QUICK_SUPABASE_RLS_FIX_SQL);
+    setCopiedQuickSql(true);
+    setTimeout(() => setCopiedQuickSql(false), 2500);
   };
 
   const copySqlSchema = () => {
@@ -269,73 +323,205 @@ export const SupabaseConnectionModal: React.FC<SupabaseConnectionModalProps> = (
 
         {/* Modal Body */}
         <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
-          {/* TAB 1: STATUS SISTEM & SINKRONISASI OTOMATIS (DEFAULT SAFE VIEW) */}
+          {/* TAB 1: STATUS SISTEM & SINKRONISASI OTOMATIS */}
           {activeTab === 'status' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3">
-                <CheckCircle2 size={20} className="text-emerald-700 shrink-0 mt-0.5" />
-                <div className="text-xs space-y-1">
-                  <h4 className="font-bold text-emerald-950 text-sm">Sistem Siap Digunakan Secara Online</h4>
-                  <p className="text-emerald-800 leading-relaxed">
-                    Setiap handphone, tablet, atau laptop yang membuka tautan aplikasi ini akan <strong>otomatis terhubung langsung ke database cloud</strong>. Anda tidak perlu mengatur URL atau key di setiap HP.
-                  </p>
+              {/* Live Connection Banner */}
+              <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 via-teal-50/50 to-white border border-emerald-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-300 flex items-center justify-center shrink-0 mt-0.5">
+                    <Database size={18} className="text-emerald-700" />
+                  </div>
+                  <div className="text-xs space-y-0.5">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-emerald-950 text-sm">Supabase Database Cloud Online</h4>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1 border border-emerald-300/60">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Tersambung {tableStats?.pingMs ? `(${tableStats.pingMs} ms)` : ''}
+                      </span>
+                    </div>
+                    <p className="text-emerald-800 text-[11.5px] font-mono break-all">
+                      https://bjkbvlpaaeekdqqlxavq.supabase.co
+                    </p>
+                  </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={refreshStats}
+                  disabled={loadingStats}
+                  className="px-3 py-1.5 rounded-lg border border-emerald-300 bg-white hover:bg-emerald-50 text-emerald-900 text-xs font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer self-start sm:self-auto"
+                  title="Cek ulang latensi dan data cloud"
+                >
+                  <RefreshCw size={13} className={loadingStats ? 'animate-spin' : ''} />
+                  <span>{loadingStats ? 'Mengecek...' : 'Ping Database'}</span>
+                </button>
               </div>
 
-              {/* Status Checklist Cards */}
+              {/* Status Action Buttons: Push & Pull */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="p-3.5 rounded-xl border border-[#E6E1DA] bg-[#FAF8F5] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#181411]">Server Backend Proxy</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Aktif Online
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#645D55]">
-                    Menangani lalu lintas data terenkripsi tanpa membocorkan koneksi database ke browser peramban.
-                  </p>
-                </div>
-
-                <div className="p-3.5 rounded-xl border border-[#E6E1DA] bg-[#FAF8F5] space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#181411]">Database Cloud Supabase</span>
-                    <span className="px-2 py-0.5 rounded-full text-[10.5px] font-bold bg-emerald-100 text-emerald-800 flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      Tersambung
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-[#645D55]">
-                    Tabel batch, penilaian produk, dan evaluasi sikap tersimpan terpusat dan dapat dibuka bersamaan.
-                  </p>
-                </div>
-              </div>
-
-              {/* Action Banner: Tarik Data Terbaru */}
-              <div className="p-4 rounded-xl border border-[#E6E1DA] bg-white space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                {/* 1. Push Seluruh Data Sistem */}
+                <div className="p-4 rounded-xl border border-red-200 bg-red-50/50 flex flex-col justify-between gap-3">
                   <div>
-                    <h5 className="font-bold text-xs text-[#181411]">Sinkronisasi Manual / Refresh Data Cloud</h5>
-                    <p className="text-[11px] text-[#645D55]">
-                      Tekan tombol ini jika Anda ingin memastikan data di HP ini adalah data paling mutakhir dari rekan trainer lainnya.
+                    <div className="flex items-center gap-1.5 font-bold text-[#96171B] text-sm mb-1">
+                      <UploadCloud size={16} />
+                      <span>Unggah Seluruh Data Sistem</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Kirim seluruh master kru (termasuk 12 kru batch 10-11 Nov), outlet cabang, SOP 29 produk, batch onboarding, dan penilaian ke Supabase Cloud.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePushAllData}
+                    disabled={loading}
+                    className="w-full py-2.5 px-3 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-all active:scale-[0.98]"
+                  >
+                    <UploadCloud size={14} className={loading ? 'animate-bounce' : ''} />
+                    <span>{loading ? 'Mengunggah ke Cloud...' : 'Sinkronkan & Unggah Data Sekarang'}</span>
+                  </button>
+                </div>
+
+                {/* 2. Tarik Data Terbaru */}
+                <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-800 text-sm mb-1">
+                      <DownloadCloud size={16} className="text-blue-600" />
+                      <span>Tarik Data Terbaru dari Cloud</span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 leading-relaxed">
+                      Unduh pembaruan nilai atau peserta terbaru yang baru saja diinput oleh rekan trainer lain ke browser ini.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={handlePullLatestData}
                     disabled={loading}
-                    className="px-4 py-2 rounded-xl bg-[#96171B] hover:bg-[#7D1216] text-white text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-xs shrink-0 transition-all"
+                    className="w-full py-2.5 px-3 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-bold flex items-center justify-center gap-2 cursor-pointer shadow-2xs transition-all active:scale-[0.98]"
                   >
                     <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                    <span>{loading ? 'Menyinkronkan...' : 'Tarik Data Terbaru'}</span>
+                    <span>{loading ? 'Menyinkronkan...' : 'Tarik Data Terbaru (Pull)'}</span>
                   </button>
                 </div>
+              </div>
 
-                {syncStatusMsg && (
-                  <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-xs text-[#181411] font-medium animate-in fade-in">
-                    {syncStatusMsg}
+              {/* Status Message Notification */}
+              {syncStatusMsg && (
+                <div className="p-3 rounded-xl bg-slate-900 text-white text-xs font-medium flex items-center gap-2 shadow-sm animate-in fade-in">
+                  <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                  <span className="leading-snug">{syncStatusMsg}</span>
+                </div>
+              )}
+
+              {/* Live Data Breakdown Cloud vs Local */}
+              <div className="p-4 rounded-xl border border-[#E6E1DA] bg-white space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-bold text-xs text-[#181411] flex items-center gap-1.5">
+                    <Database size={14} className="text-[#96171B]" />
+                    <span>Data Sistem Terkini (Lokal vs Cloud Supabase)</span>
+                  </h5>
+                  <span className="text-[10.5px] text-[#645D55]">
+                    Pembaruan: {tableStats?.lastChecked || 'Baru saja'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Master Kru</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('kru').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['kru'] ?? db.getTable('kru').length} cloud)
+                      </span>
+                    </div>
                   </div>
-                )}
+
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Outlet Cabang</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('outlets').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['outlets'] ?? db.getTable('outlets').length} cloud)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Batch Onboarding</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('onboarding_batches').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['onboarding_batches'] ?? db.getTable('onboarding_batches').length} cloud)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Bank SOP (29 Produk)</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('bank_sop').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['bank_sop'] ?? db.getTable('bank_sop').length} cloud)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Penilaian SOP</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('penilaian_praktik_onboarding_produk').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['penilaian_praktik_onboarding_produk'] ?? db.getTable('penilaian_praktik_onboarding_produk').length} cloud)
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 rounded-lg bg-[#FAF8F5] border border-[#E6E1DA]/80">
+                    <span className="text-[10px] uppercase font-bold text-[#645D55] block">Akun Pengguna</span>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="text-base font-bold text-[#181411]">{db.getTable('app_users').length}</span>
+                      <span className="text-[10px] text-emerald-700 font-semibold">
+                        ({tableStats?.appStoreStats['app_users'] ?? db.getTable('app_users').length} cloud)
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 1-Klik SQL Fix untuk Table Editor Supabase */}
+              <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h5 className="font-bold text-xs text-amber-950 flex items-center gap-1.5">
+                      <Zap size={14} className="text-amber-600" />
+                      <span>Ingin Melihat Data di Menu "Table Editor" Supabase?</span>
+                    </h5>
+                    <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">
+                      Data Anda sudah <strong>100% tersimpan aman & online di Supabase</strong> (pada tabel <code>app_store</code>). Jika Anda membuka Dashboard Supabase & ingin baris data muncul juga di tabel individual (kru, outlets, dll), cukup jalankan skrip 1-Klik ini di <strong>SQL Editor</strong> Supabase untuk membuka izin Row Level Security (RLS).
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={copyQuickSql}
+                    className="px-3.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors cursor-pointer"
+                  >
+                    {copiedQuickSql ? <Check size={13} /> : <Copy size={13} />}
+                    <span>{copiedQuickSql ? 'Skrip SQL Tersalin!' : 'Salin Skrip SQL 1-Klik'}</span>
+                  </button>
+
+                  <a
+                    href="https://supabase.com/dashboard/project/bjkbvlpaaeekdqqlxavq/sql/new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-3.5 py-2 rounded-lg border border-amber-300 bg-white hover:bg-amber-50 text-amber-950 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    <ExternalLink size={13} />
+                    <span>Buka SQL Editor Supabase</span>
+                  </a>
+                </div>
               </div>
 
               {/* Security Shield Callout */}

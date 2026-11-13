@@ -5,7 +5,7 @@ import {
   CheckCheck, Lock, Cloud, RefreshCw, WifiOff, Database
 } from 'lucide-react';
 import { AppUser, Outlet } from '../types';
-import { getSupabaseStatus, subscribeSupabaseStatus, SupabaseStatus } from '../lib/supabase';
+import { getSupabaseStatus, subscribeSupabaseStatus, SupabaseStatus, testSupabaseConnection } from '../lib/supabase';
 import { HaraLogo } from './HaraLogo';
 
 interface HeaderProps {
@@ -40,9 +40,36 @@ export const Header: React.FC<HeaderProps> = ({
   const [showOutletDropdown, setShowOutletDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [supabaseStatus, setSupabaseStatus] = useState<SupabaseStatus>(() => getSupabaseStatus());
+  const [pingMs, setPingMs] = useState<number | null>(null);
 
   useEffect(() => {
-    return subscribeSupabaseStatus(setSupabaseStatus);
+    const unsub = subscribeSupabaseStatus(setSupabaseStatus);
+
+    let isMounted = true;
+    const checkPing = async () => {
+      const start = performance.now();
+      try {
+        const res = await testSupabaseConnection();
+        if (isMounted) {
+          if (res.success) {
+            setPingMs(Math.round(performance.now() - start));
+          } else {
+            setPingMs(null);
+          }
+        }
+      } catch {
+        if (isMounted) setPingMs(null);
+      }
+    };
+
+    checkPing();
+    const interval = setInterval(checkPing, 45000);
+
+    return () => {
+      isMounted = false;
+      unsub();
+      clearInterval(interval);
+    };
   }, []);
 
   // Notifications State
@@ -187,14 +214,38 @@ export const Header: React.FC<HeaderProps> = ({
           </kbd>
         </button>
 
-        {/* Status Sistem Online Pasif (Unclickable) */}
-        <div
-          className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200/80 shadow-2xs select-none"
-          title="Sistem Terhubung & Tersinkronisasi Otomatis"
+        {/* Status Sistem Online Aktif & Interaktif */}
+        <button
+          type="button"
+          onClick={onOpenSupabaseModal}
+          className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-2xs hover:shadow-xs select-none ${
+            supabaseStatus === 'connected'
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200/80 hover:bg-emerald-100/70'
+              : supabaseStatus === 'connecting'
+              ? 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100/70'
+              : 'bg-rose-50 text-rose-800 border-rose-200 hover:bg-rose-100/70'
+          }`}
+          title="Klik untuk melihat diagnostik Supabase & sinkronisasi data cloud"
         >
-          <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-300 animate-pulse" />
-          <span className="font-bold">Online</span>
-        </div>
+          <span
+            className={`w-2 h-2 rounded-full ${
+              supabaseStatus === 'connected'
+                ? 'bg-emerald-500 ring-2 ring-emerald-300 animate-pulse'
+                : supabaseStatus === 'connecting'
+                ? 'bg-amber-500 ring-2 ring-amber-300 animate-ping'
+                : 'bg-rose-500 ring-2 ring-rose-300'
+            }`}
+          />
+          <span className="font-bold flex items-center gap-1">
+            <span>Online</span>
+            {pingMs !== null && supabaseStatus === 'connected' && (
+              <span className="text-[10.5px] font-medium text-emerald-600 hidden sm:inline">
+                ({pingMs}ms)
+              </span>
+            )}
+          </span>
+          <Database size={12} className="text-emerald-700/70 ml-0.5 hidden xs:inline" />
+        </button>
 
         {/* Notification Bell */}
         <div className="relative">

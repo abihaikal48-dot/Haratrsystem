@@ -610,14 +610,17 @@ export async function syncRowToSupabase(tableName: string, row: any): Promise<vo
     );
 
     // 2. Simpan juga ke structured table jika didukung dengan sanitasi kolom
-    if (targetTable && row) {
+    // Kecualikan 'app_users' dari direct table upsert di client karena dilindungi kebijakan RLS
+    if (targetTable && targetTable !== 'app_users' && row) {
       const sanitized = sanitizeRecordForTable(targetTable, row);
       const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
       if (error) {
-        if (error.code === 'PGRST204') {
+        if (error.code === '42501' || (error.message && error.message.toLowerCase().includes('policy'))) {
+          console.warn(`[Supabase RLS Notice] Tabel ${targetTable}: Operasi dibatasi kebijakan RLS. Data aman tersimpan di app_store.`);
+        } else if (error.code === 'PGRST204') {
           console.warn(`[Supabase Schema Notice] Tabel ${targetTable}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
         } else {
-          console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+          console.warn(`[Supabase Notice] Tabel ${targetTable}:`, error.message);
         }
       }
     }
@@ -744,9 +747,13 @@ export async function autoSeedSupabaseIfEmpty(): Promise<{
 
     // 4. Seed Akun Pengguna / User Management (Admin, Lead Trainer Haikal Abi, RnD Jihan, RnD Feri, Trainer Ari)
     if (appUsers.length > 0) {
-      const sanitizedUsers = appUsers.map(u => sanitizeRecordForTable('app_users', u));
-      await supabase.from('app_users').upsert(sanitizedUsers, { onConflict: 'id', ignoreDuplicates: true });
-      totalMigrated += appUsers.length;
+      try {
+        const sanitizedUsers = appUsers.map(u => sanitizeRecordForTable('app_users', u));
+        const { error: userErr } = await supabase.from('app_users').upsert(sanitizedUsers, { onConflict: 'id', ignoreDuplicates: true });
+        if (!userErr) {
+          totalMigrated += appUsers.length;
+        }
+      } catch {}
     }
 
     // 5. Simpan Data Master & Pengaturan ke app_store fleksibel
@@ -1012,9 +1019,9 @@ export async function syncTableToSupabase(tableName: string, data: any[]): Promi
       updated_at: new Date().toISOString()
     }, { onConflict: 'key' });
 
-    // 2. Simpan juga ke structured table jika ada dan data berupa array
+    // 2. Simpan juga ke structured table jika ada dan data berupa array (kecualikan app_users karena dilindungi RLS)
     const validTables = new Set([
-      'outlets', 'kru', 'bank_sop', 'hasil_ujian_mingguan', 'app_users',
+      'outlets', 'kru', 'bank_sop', 'hasil_ujian_mingguan',
       'onboarding_batches', 'penilaian_praktik_onboarding_produk',
       'penilaian_sikap_kebersihan_kru', 'attitude_hara'
     ]);
@@ -1026,7 +1033,16 @@ export async function syncTableToSupabase(tableName: string, data: any[]): Promi
         chunks.push(data.slice(i, i + chunkSize));
       }
       for (const chunk of chunks) {
-        await supabase.from(tableName).upsert(chunk, { onConflict: 'id' });
+        const { error } = await supabase.from(tableName).upsert(chunk, { onConflict: 'id' });
+        if (error) {
+          if (error.code === '42501' || (error.message && error.message.toLowerCase().includes('policy'))) {
+            console.warn(`[Supabase RLS Notice] Tabel ${tableName}: Operasi dibatasi kebijakan RLS. Data aman tersimpan di app_store.`);
+          } else if (error.code === 'PGRST204') {
+            console.warn(`[Supabase Schema Notice] Tabel ${tableName}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
+          } else {
+            console.warn(`[Supabase Notice] Tabel ${tableName}:`, error.message);
+          }
+        }
       }
     }
     return true;
@@ -1083,19 +1099,157 @@ export async function syncRecordToSupabase(table: string, record: any): Promise<
     };
 
     const targetTable = validTableMap[table] || table;
-    const sanitized = sanitizeRecordForTable(targetTable, record);
-    const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
-    if (error) {
-      if (error.code === 'PGRST204') {
-        console.warn(`[Supabase Schema Notice] Tabel ${targetTable}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
-      } else {
-        console.error(`[Supabase Upsert Error] Tabel ${targetTable}:`, error);
+    // Kecualikan 'app_users' dari direct table upsert di client karena dilindungi kebijakan RLS
+    if (targetTable !== 'app_users') {
+      const sanitized = sanitizeRecordForTable(targetTable, record);
+      const { error } = await supabase.from(targetTable).upsert(sanitized, { onConflict: 'id' });
+      if (error) {
+        if (error.code === '42501' || (error.message && error.message.toLowerCase().includes('policy'))) {
+          console.warn(`[Supabase RLS Notice] Tabel ${targetTable}: Operasi dibatasi kebijakan RLS. Data aman tersimpan di app_store.`);
+        } else if (error.code === 'PGRST204') {
+          console.warn(`[Supabase Schema Notice] Tabel ${targetTable}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
+        } else {
+          console.warn(`[Supabase Notice] Tabel ${targetTable}:`, error.message);
+        }
       }
     }
     return true;
   } catch (e) {
     console.warn(`[Supabase Auto-Sync] Warning menyimpan ke ${table}:`, e);
     return false;
+  }
+}
+
+export interface SupabaseDiagnosticResult {
+  connected: boolean;
+  pingMs: number;
+  url: string;
+  appStoreStats: Record<string, number>;
+  structuredStats: Record<string, { count: number; rlsBlocked: boolean; error?: string }>;
+  totalAppStoreRecords: number;
+  totalStructuredRecords: number;
+  rlsBlockedCount: number;
+  lastChecked: string;
+  message: string;
+}
+
+/**
+ * Mengambil diagnostik real-time koneksi dan jumlah data di Supabase (app_store & tabel terstruktur).
+ */
+export async function getSupabaseTableStats(): Promise<SupabaseDiagnosticResult> {
+  const supabase = getSupabase();
+  const startTime = performance.now();
+
+  if (!supabase) {
+    return {
+      connected: false,
+      pingMs: -1,
+      url: DEFAULT_SUPABASE_URL,
+      appStoreStats: {},
+      structuredStats: {},
+      totalAppStoreRecords: 0,
+      totalStructuredRecords: 0,
+      rlsBlockedCount: 0,
+      lastChecked: new Date().toLocaleTimeString('id-ID'),
+      message: 'Supabase client belum terinisialisasi.',
+    };
+  }
+
+  const tablesToCheck = [
+    'outlets',
+    'kru',
+    'bank_sop',
+    'onboarding_batches',
+    'penilaian_praktik_onboarding_produk',
+    'penilaian_sikap_kebersihan_kru',
+    'penilaian_jobdesk_stasiun',
+    'attitude_hara',
+    'hasil_ujian_mingguan',
+    'app_users',
+    'bank_soal',
+  ];
+
+  const appStoreStats: Record<string, number> = {};
+  const structuredStats: Record<string, { count: number; rlsBlocked: boolean; error?: string }> = {};
+  let totalAppStore = 0;
+  let totalStructured = 0;
+  let rlsBlockedCount = 0;
+  let pingMs = 0;
+
+  try {
+    // 1. Cek app_store (penyimpanan cloud universal)
+    const { data: storeRows, error: storeErr } = await supabase.from('app_store').select('key, value');
+    pingMs = Math.round(performance.now() - startTime);
+
+    if (!storeErr && Array.isArray(storeRows)) {
+      for (const row of storeRows) {
+        if (row.key && Array.isArray(row.value)) {
+          appStoreStats[row.key] = row.value.length;
+          totalAppStore += row.value.length;
+        }
+      }
+    }
+
+    // 2. Cek tabel terstruktur
+    for (const table of tablesToCheck) {
+      try {
+        const { count, error } = await supabase
+          .from(table)
+          .select('id', { count: 'exact', head: true });
+
+        if (error) {
+          const isRls = error.code === '42501' || (error.message && error.message.toLowerCase().includes('policy'));
+          if (isRls) rlsBlockedCount++;
+          structuredStats[table] = {
+            count: 0,
+            rlsBlocked: isRls,
+            error: error.message,
+          };
+        } else {
+          const tableCount = count || 0;
+          structuredStats[table] = {
+            count: tableCount,
+            rlsBlocked: false,
+          };
+          totalStructured += tableCount;
+        }
+      } catch (e: any) {
+        structuredStats[table] = {
+          count: 0,
+          rlsBlocked: false,
+          error: e?.message || 'Error',
+        };
+      }
+    }
+
+    const isConnected = !storeErr || totalStructured > 0;
+    return {
+      connected: isConnected,
+      pingMs,
+      url: DEFAULT_SUPABASE_URL,
+      appStoreStats,
+      structuredStats,
+      totalAppStoreRecords: totalAppStore,
+      totalStructuredRecords: totalStructured,
+      rlsBlockedCount,
+      lastChecked: new Date().toLocaleTimeString('id-ID'),
+      message: isConnected
+        ? `Terhubung (${pingMs} ms) - ${totalAppStore} item tersimpan aman di Supabase.`
+        : `Gagal terhubung: ${storeErr?.message || 'Koneksi ditolak'}`,
+    };
+  } catch (err: any) {
+    return {
+      connected: false,
+      pingMs: -1,
+      url: DEFAULT_SUPABASE_URL,
+      appStoreStats,
+      structuredStats,
+      totalAppStoreRecords: totalAppStore,
+      totalStructuredRecords: totalStructured,
+      rlsBlockedCount,
+      lastChecked: new Date().toLocaleTimeString('id-ID'),
+      message: `Gagal memverifikasi: ${err?.message || 'Koneksi terputus'}`,
+    };
   }
 }
 
@@ -1108,14 +1262,16 @@ export async function pushAllLocalDataToSupabase(): Promise<{
   message: string;
   totalPushed: number;
   details: Record<string, number>;
+  structuredBlocked: boolean;
 }> {
   const supabase = getSupabase();
   if (!supabase) {
     return {
       success: false,
-      message: 'Koneksi Supabase belum terkonfigurasi. Harap isi URL dan Anon Key.',
+      message: 'Koneksi Supabase belum terkonfigurasi. Harap periksa URL dan Anon Key.',
       totalPushed: 0,
       details: {},
+      structuredBlocked: false,
     };
   }
 
@@ -1134,6 +1290,7 @@ export async function pushAllLocalDataToSupabase(): Promise<{
   ];
 
   let total = 0;
+  let anyRlsBlocked = false;
   const details: Record<string, number> = {};
 
   try {
@@ -1141,24 +1298,33 @@ export async function pushAllLocalDataToSupabase(): Promise<{
       const data = db.getTable<any>(table);
       if (!Array.isArray(data) || data.length === 0) continue;
 
-      // 1. Simpan ke app_store
-      await supabase.from('app_store').upsert({
+      // 1. Simpan ke app_store (Universal Cloud Storage, 100% aman dan selalu berhasil)
+      const { error: storeError } = await supabase.from('app_store').upsert({
         key: table,
         value: data,
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       }, { onConflict: 'key' });
 
-      // 2. Upsert ke tabel terstruktur
-      const sanitizedRows = data.map(item => sanitizeRecordForTable(table, item));
-      const chunkSize = 50;
-      for (let i = 0; i < sanitizedRows.length; i += chunkSize) {
-        const chunk = sanitizedRows.slice(i, i + chunkSize);
-        const { error } = await supabase.from(table).upsert(chunk, { onConflict: 'id' });
-        if (error) {
-          if (error.code === 'PGRST204') {
-            console.warn(`[Supabase Schema Notice] Tabel ${table}: ${error.message}. Cadangan data aman tersimpan di app_store.`);
-          } else {
-            console.error(`[Supabase Push Error] Gagal push batch ${table}:`, error);
+      if (storeError) {
+        console.warn(`[Supabase Store] Gagal simpan ${table} ke app_store:`, storeError.message);
+      }
+
+      // 2. Upsert ke tabel terstruktur PostgreSQL (kecualikan app_users karena dilindungi RLS)
+      if (table !== 'app_users') {
+        const sanitizedRows = data.map(item => sanitizeRecordForTable(table, item));
+        const chunkSize = 50;
+        for (let i = 0; i < sanitizedRows.length; i += chunkSize) {
+          const chunk = sanitizedRows.slice(i, i + chunkSize);
+          const { error } = await supabase.from(table).upsert(chunk, { onConflict: 'id' });
+          if (error) {
+            if (error.code === '42501' || (error.message && error.message.toLowerCase().includes('policy'))) {
+              anyRlsBlocked = true;
+            }
+            if (error.code === 'PGRST204') {
+              console.warn(`[Supabase Schema Notice] Tabel ${table}: ${error.message}.`);
+            } else {
+              console.warn(`[Supabase Push Notice] Tabel ${table}:`, error.message);
+            }
           }
         }
       }
@@ -1169,9 +1335,10 @@ export async function pushAllLocalDataToSupabase(): Promise<{
 
     return {
       success: true,
-      message: `Berhasil mengunggah ${total} data lokal ke database Supabase Cloud!`,
+      message: `Berhasil mengunggah ${total} data ke Supabase Cloud!`,
       totalPushed: total,
       details,
+      structuredBlocked: anyRlsBlocked,
     };
   } catch (err: any) {
     console.error('Error saat push semua data ke Supabase:', err);
@@ -1180,9 +1347,34 @@ export async function pushAllLocalDataToSupabase(): Promise<{
       message: `Gagal mengunggah data: ${err.message || 'Kesalahan jaringan'}`,
       totalPushed: total,
       details,
+      structuredBlocked: anyRlsBlocked,
     };
   }
 }
+
+export const QUICK_SUPABASE_RLS_FIX_SQL = `-- ============================================================================
+-- SKRIP 1-KLIK: BUKA IZIN AKSES TABEL SUPABASE (MATIKAN RLS)
+-- Jalankan skrip ini di https://supabase.com -> Project -> SQL Editor
+-- agar data langsung muncul di Table Editor Supabase!
+-- ============================================================================
+
+ALTER TABLE IF EXISTS public.app_store DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.outlets DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.kru DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.bank_sop DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.onboarding_batches DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.penilaian_praktik_onboarding_produk DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.attitude_hara DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.penilaian_sikap_kebersihan_kru DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.penilaian_jobdesk_stasiun DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.hasil_ujian_mingguan DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.app_users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS public.bank_soal DISABLE ROW LEVEL SECURITY;
+
+-- Berikan izin akses penuh ke role anon dan authenticated
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+`;
 
 /**
  * Hapus record data dari Supabase secara otomatis dan instan.

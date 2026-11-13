@@ -19,7 +19,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // Server-Side Secure Supabase Client (Kredensial tersimpan di backend server - tidak terekspos ke HP)
 const DEFAULT_SUPABASE_URL = 'https://bjkbvlpaaeekdqqlxavq.supabase.co';
-const DEFAULT_SUPABASE_KEY = 'sb_secret_QuaGsNhbpHtt7tll5GXZTg_Oozs18dW';
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_0WCq2C1TbRnvmQAPtfKBOA_AlDQlkYf';
 
 const supabaseUrl = (process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL).trim();
 const supabaseKey = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || process.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_KEY).trim();

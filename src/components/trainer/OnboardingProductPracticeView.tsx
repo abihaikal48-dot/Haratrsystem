@@ -76,6 +76,21 @@ export const DAFTAR_PENILAI_DEFAULT = [
  * Pemetaan Resmi 12 Peserta Kru Baru TC Lempongsari ke Outlet Penempatan Riil
  */
 export const CANDIDATE_PLACEMENT_MAP: Record<string, string> = {
+  // Batch 13-14 November (TC Kantor Lempongsari)
+  'lina verda widuri': 'Bantul Niten',
+  'lina verda': 'Bantul Niten',
+  'talita iftinah salsabila': 'Pleret',
+  'talita iftinah': 'Pleret',
+  'oktavia dewi rosita': 'Patangpuluhan',
+  'oktavia dewi': 'Patangpuluhan',
+  'oktalivia nurandriyani': 'Mantrijeron',
+  'oktalivia': 'Mantrijeron',
+  'ghina houdotul jannah': 'Kertek',
+  'ghina houdotul': 'Kertek',
+  "saiful mu'id": 'Palagan',
+  'saiful muid': 'Palagan',
+  'muhammad akhtarrayza': 'Palagan',
+  'akhtarrayza': 'Palagan',
   // Batch 10-11 November (TC Kantor Lempongsari)
   'dhimas panji saputro': 'Blok O',
   'dhimas panji': 'Blok O',
@@ -229,7 +244,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       const saved = localStorage.getItem('hara_onboarding_selected_batch_id');
       if (saved) return saved;
     } catch {}
-    return 'batch-ob-2026-11-10';
+    return 'batch-ob-2026-11-13';
   });
 
   useEffect(() => {

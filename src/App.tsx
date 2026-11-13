@@ -44,6 +44,7 @@ import {
   autoSeedSupabaseIfEmpty,
   testSupabaseConnection,
   pullAllFromSupabase,
+  pushAllLocalDataToSupabase,
 } from './lib/supabase';
 import { initClientDataFromServer, startAutoSyncPolling } from './lib/serverSync';
 import { AppUser, Outlet, Kru, BankSOP, Division, ActiveUserPresence } from './types';
@@ -134,6 +135,7 @@ export function App() {
         if (res.success) {
           pullAllFromSupabase().then(() => {
             refreshAppData();
+            pushAllLocalDataToSupabase().catch(() => {});
           });
         }
       });

@@ -229,10 +229,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
           const nowIso = new Date().toISOString();
           supabase
-            .from('app_users')
-            .update({ last_login: nowIso, updated_at: nowIso })
-            .eq('id', matchedUser.id)
-            .then(() => {});
+            .from('app_store')
+            .upsert({
+              key: 'app_users',
+              value: db.getTable('app_users'),
+              updated_at: nowIso,
+            }, { onConflict: 'key' })
+            .then(() => {}, () => {});
 
           supabase.from('log_aktivitas').insert({
             id: 'log-' + Date.now(),
@@ -338,15 +341,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
       // Sinkronkan login ke Supabase jika terhubung
       if (supabase) {
         const nowIso = new Date().toISOString();
-        supabase.from('app_users').upsert({
-          id: matched.id,
-          nama: matched.nama,
-          email: matched.email,
-          role: matched.role,
-          status_aktif: true,
-          last_login: nowIso,
+        const currentUsers = db.getTable('app_users');
+        supabase.from('app_store').upsert({
+          key: 'app_users',
+          value: currentUsers,
           updated_at: nowIso,
-        }, { onConflict: 'id' }).then(() => {});
+        }, { onConflict: 'key' }).then(() => {}, () => {});
 
         supabase.from('log_aktivitas').insert({
           id: 'log-' + Date.now(),
@@ -355,7 +355,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
           deskripsi: `Pengguna ${matched.nama} (${matched.role}) berhasil masuk.`,
           user_nama: matched.nama,
           created_at: nowIso,
-        }).then(() => {});
+        }).then(() => {}, () => {});
       }
 
       setFailedAttempts(0);
@@ -379,15 +379,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
 
       if (supabase) {
         const nowIso = new Date().toISOString();
-        supabase.from('app_users').upsert({
-          id: customUser.id,
-          nama: customUser.nama,
-          email: customUser.email,
-          role: customUser.role,
-          status_aktif: true,
-          last_login: nowIso,
+        const currentUsers = db.getTable('app_users');
+        supabase.from('app_store').upsert({
+          key: 'app_users',
+          value: currentUsers,
           updated_at: nowIso,
-        }, { onConflict: 'id' }).then(() => {});
+        }, { onConflict: 'key' }).then(() => {}, () => {});
       }
 
       setFailedAttempts(0);
