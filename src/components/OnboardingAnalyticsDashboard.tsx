@@ -17,6 +17,7 @@ import { db } from '../lib/storage';
 import { PenilaianPraktikOnboardingProduk, PenilaianJobdeskStasiun, Outlet, Kru, OnboardingBatch } from '../types';
 import { HARA_ONBOARDING_PRODUCTS_MASTER } from '../data/haraOnboardingProducts';
 import { generateOnboardingBatchPDF } from '../lib/pdfGenerator';
+import { matchesSelectedBatch } from '../lib/batchFilter';
 import { MiniCertificateModal } from './trainer/MiniCertificateModal';
 import { CrewOnboardingReportModal } from './trainer/CrewOnboardingReportModal';
 
@@ -80,7 +81,7 @@ export const OnboardingAnalyticsDashboard: React.FC<OnboardingAnalyticsDashboard
 
       const itemDate = new Date(item.tanggal || item.created_at || '2026-01-01');
       if (periodMode === 'batch') {
-        if (selectedBatchId !== 'ALL' && item.batch_id !== selectedBatchId) return false;
+        if (!matchesSelectedBatch(item, selectedBatchId, batches)) return false;
       } else if (periodMode === 'week') {
         const dayOfMonth = itemDate.getDate();
         const weekNum = Math.min(4, Math.ceil(dayOfMonth / 7));
@@ -95,7 +96,7 @@ export const OnboardingAnalyticsDashboard: React.FC<OnboardingAnalyticsDashboard
 
       return true;
     });
-  }, [allAssessments, selectedOutlet, selectedDayFilter, selectedKruFilter, selectedProductFilter, periodMode, selectedBatchId, selectedWeek, selectedMonth, customStartDate, customEndDate]);
+  }, [allAssessments, batches, selectedOutlet, selectedDayFilter, selectedKruFilter, selectedProductFilter, periodMode, selectedBatchId, selectedWeek, selectedMonth, customStartDate, customEndDate]);
 
   // Overall Headline Metrics
   const totalEvaluasi = filteredAssessments.length;

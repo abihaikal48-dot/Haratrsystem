@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
   UtensilsCrossed, Clock, CheckCircle2, AlertTriangle, Play,
-  Pause, RotateCcw, Award, FileText, Search,
+  Pause, Square, RotateCcw, Award, FileText, Search,
   Filter, Check, X, ShieldAlert,
   Info, ShieldCheck, User, Users, Store, Zap, RefreshCw,
   Thermometer, Scale, BookOpen, Plus, Sparkles,
@@ -11,6 +11,14 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { db } from '../../lib/storage';
+import { matchesSelectedBatch } from '../../lib/batchFilter';
+import {
+  resolveLiveElapsedSeconds,
+  buildStartTimerFields,
+  buildStopTimerFields,
+  buildAdjustTimerFields,
+  tickTimerFields
+} from '../../lib/timerPersistence';
 import {
   Kru, Outlet, Division, OnboardingBatch,
   PenilaianPraktikOnboardingProduk, PenilaianJobdeskStasiun,
@@ -173,6 +181,8 @@ export interface CompletedProductRecord {
 
 export interface ProductPracticeState {
   timerSeconds: number;
+  timerBaseSeconds?: number;
+  timerStartedAt?: number | null;
   isTimerRunning: boolean;
   stepChecklist: { nomor: number; langkah: string; tercapai: boolean; isKritis?: boolean }[];
   knowledgeAnswers: Record<number, boolean>;
@@ -200,6 +210,8 @@ export interface AssessmentSessionTab {
   currentProductIndex?: number;
   completedProducts?: CompletedProductRecord[];
   timerSeconds: number;
+  timerBaseSeconds?: number;
+  timerStartedAt?: number | null;
   isTimerRunning: boolean;
   suhuMinyakProbe: number;
   gramaturAktual: number;
@@ -341,6 +353,82 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   const [isCustomPenilai, setIsCustomPenilai] = useState<boolean>(false);
   const [tanggalUji, setTanggalUji] = useState<string>(new Date().toISOString().split('T')[0]);
 
+  const hydrateTimersInSessions = (list: AssessmentSessionTab[], nowMs: number = Date.now()): { next: AssessmentSessionTab[]; changed: boolean } => {
+    let anyChanged = false;
+    const next = list.map((s) => {
+      let sessChanged = false;
+      const updatedProdStates: Record<string, ProductPracticeState> = { ...(s.productStates || {}) };
+
+      for (const [prodKey, prodStateRaw] of Object.entries(updatedProdStates)) {
+        const prodState = prodStateRaw as ProductPracticeState;
+        if (prodState?.isTimerRunning) {
+          const ticked = tickTimerFields(prodState, nowMs);
+          if (ticked.changed) {
+            updatedProdStates[prodKey] = ticked.next;
+            sessChanged = true;
+          }
+        }
+      }
+
+      const currProdKey = s.productNama;
+      if (s.isTimerRunning) {
+        const tickedSession = tickTimerFields(s, nowMs);
+        const currSnapshot = updatedProdStates[currProdKey];
+        const nextSec = tickedSession.next.timerSeconds;
+        if (
+          tickedSession.changed ||
+          !currSnapshot ||
+          !currSnapshot.isTimerRunning ||
+          currSnapshot.timerSeconds !== nextSec ||
+          currSnapshot.timerStartedAt !== tickedSession.next.timerStartedAt
+        ) {
+          updatedProdStates[currProdKey] = {
+            ...(currSnapshot || {
+              stepChecklist: s.stepChecklist,
+              knowledgeAnswers: s.knowledgeAnswers,
+              skorKnowledge: s.skorKnowledge,
+              suhuMinyakProbe: s.suhuMinyakProbe,
+              gramaturAktual: s.gramaturAktual,
+              catatanTrainer: s.catatanTrainer,
+            }),
+            timerSeconds: nextSec,
+            timerBaseSeconds: tickedSession.next.timerBaseSeconds,
+            timerStartedAt: tickedSession.next.timerStartedAt,
+            isTimerRunning: true,
+          };
+          anyChanged = true;
+          return {
+            ...tickedSession.next,
+            productStates: updatedProdStates,
+          };
+        }
+      } else if (updatedProdStates[currProdKey]?.isTimerRunning) {
+        const currProd = updatedProdStates[currProdKey];
+        anyChanged = true;
+        return {
+          ...s,
+          timerSeconds: currProd.timerSeconds,
+          timerBaseSeconds: currProd.timerBaseSeconds,
+          timerStartedAt: currProd.timerStartedAt,
+          isTimerRunning: true,
+          productStates: updatedProdStates,
+        };
+      }
+
+      if (sessChanged) {
+        anyChanged = true;
+        return {
+          ...s,
+          productStates: updatedProdStates,
+        };
+      }
+
+      return s;
+    });
+
+    return { next, changed: anyChanged };
+  };
+
   // Concurrent Multi-Candidate Sessions (Individual Product) - With Resilient Auto-Save Protection
   const [sessions, setSessions] = useState<AssessmentSessionTab[]>(() => {
     try {
@@ -348,7 +436,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed;
+          return hydrateTimersInSessions(parsed, Date.now()).next;
         }
       }
     } catch {
@@ -369,6 +457,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       station: prodDef.station,
       productNama: prodDef.nama,
       timerSeconds: 0,
+      timerBaseSeconds: 0,
+      timerStartedAt: null,
       isTimerRunning: false,
       suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
       gramaturAktual: prodDef.targetGramatur || 0,
@@ -543,14 +633,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   const [formCatatanSikap, setFormCatatanSikap] = useState<string>('');
 
-  // Riwayat Penilaian & Filter
+  // Riwayat Penilaian & Filter (sinkron otomatis dengan pilihan Batch utama di atas halaman)
   const [historyList, setHistoryList] = useState<PenilaianPraktikOnboardingProduk[]>(() => db.getPenilaianPraktikProduk());
   const [historySearchQuery, setHistorySearchQuery] = useState('');
-  const [historyBatchFilter, setHistoryBatchFilter] = useState('ALL');
+  const [historyBatchFilter, setHistoryBatchFilter] = useState<string>(() => selectedBatchId || 'ALL');
   const [historyStatusFilter, setHistoryStatusFilter] = useState('ALL');
   const [isSyncingAllSheets, setIsSyncingAllSheets] = useState(false);
   const [outletSearchQuery, setOutletSearchQuery] = useState('');
   const [outletFilterStatus, setOutletFilterStatus] = useState<'ALL' | 'OK' | 'NEED_SUPERVISION'>('ALL');
+
+  // Sinkronisasi otomatis filter batch Rekapitulasi saat pilihan Batch utama berubah
+  useEffect(() => {
+    setHistoryBatchFilter(selectedBatchId);
+  }, [selectedBatchId]);
 
   // Universal In-App Confirmation Modal State
   const [confirmModalConfig, setConfirmModalConfig] = useState<{
@@ -714,6 +809,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       currentProductIndex: 0,
       completedProducts: [],
       timerSeconds: 0,
+      timerBaseSeconds: 0,
+      timerStartedAt: null,
       isTimerRunning: false,
       suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
       gramaturAktual: prodDef.targetGramatur || 0,
@@ -766,7 +863,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         if (saved) {
           const parsed: AssessmentSessionTab[] = JSON.parse(saved);
           if (Array.isArray(parsed) && parsed.length > 0) {
-            return parsed.map(s => {
+            const hydrated = hydrateTimersInSessions(parsed, Date.now()).next;
+            return hydrated.map(s => {
               if (!s.namaKru || s.namaKru.toLowerCase().includes('ridha') || s.namaKru === 'Iqbal Muzzaki') {
                 return {
                   ...s,
@@ -853,102 +951,95 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }
   }, [activeSession?.id, activeSession?.productNama, currentProductDef]);
 
-  // Auto-Update Active Session Helper
-  const updateActiveSession = (patch: Partial<AssessmentSessionTab>) => {
-    setSessions(prev => prev.map(s => {
-      if (s.id === (activeSession?.id || activeTabId)) {
-        return { ...s, ...patch };
-      }
-      return s;
-    }));
+  const persistSessionsNow = (nextSessions: AssessmentSessionTab[]) => {
+    try {
+      localStorage.setItem('hara_active_assessment_sessions', JSON.stringify(nextSessions));
+    } catch {
+      // ignore storage quota errors
+    }
   };
 
-  // Background Multi-Session Stopwatch Interval - Keeps all running timers ticking continuously without resetting
+  // Auto-Update Active Session Helper (disertai flush sinkron agar timerStartedAt aman sebelum layar mati/tab ditutup)
+  const updateActiveSession = (patch: Partial<AssessmentSessionTab>) => {
+    setSessions(prev => {
+      const next = prev.map(s => {
+        if (s.id === (activeSession?.id || activeTabId)) {
+          return { ...s, ...patch };
+        }
+        return s;
+      });
+      persistSessionsNow(next);
+      return next;
+    });
+  };
+
+  // Background Multi-Session Timestamp Stopwatch Engine
+  // Menggunakan wall-clock epoch timestamp sehingga tetap berjalan akurat walaupun layar HP mati, pindah aplikasi, atau tab browser ditutup lalu dibuka ulang.
   useEffect(() => {
-    const interval = setInterval(() => {
+    const syncRunningTimersFromClock = () => {
+      const nowMs = Date.now();
       setSessions(prev => {
-        const hasRunning = prev.some(s => s.isTimerRunning || Object.values(s.productStates || {}).some((ps: any) => ps?.isTimerRunning));
+        const hasRunning = prev.some(
+          s => s.isTimerRunning || Object.values(s.productStates || {}).some((ps: any) => ps?.isTimerRunning)
+        );
         if (!hasRunning) return prev;
 
-        return prev.map(s => {
-          const updatedProdStates: Record<string, ProductPracticeState> = { ...(s.productStates || {}) };
-          let stateChanged = false;
-
-          // Update timer untuk semua produk di background yang sedang berjalan
-          for (const [prodKey, prodStateRaw] of Object.entries(updatedProdStates)) {
-            const prodState = prodStateRaw as ProductPracticeState;
-            if (prodState && prodState.isTimerRunning) {
-              updatedProdStates[prodKey] = {
-                ...prodState,
-                timerSeconds: (prodState.timerSeconds || 0) + 1,
-              };
-              stateChanged = true;
-            }
-          }
-
-          // Sinkronkan produk aktif yang sedang tampil
-          const currProdKey = s.productNama;
-          if (s.isTimerRunning) {
-            const nextSec = (s.timerSeconds || 0) + 1;
-            const existingCurr = updatedProdStates[currProdKey];
-            updatedProdStates[currProdKey] = {
-              ...(existingCurr || {
-                stepChecklist: s.stepChecklist,
-                knowledgeAnswers: s.knowledgeAnswers,
-                skorKnowledge: s.skorKnowledge,
-                suhuMinyakProbe: s.suhuMinyakProbe,
-                gramaturAktual: s.gramaturAktual,
-                catatanTrainer: s.catatanTrainer,
-              }),
-              timerSeconds: nextSec,
-              isTimerRunning: true,
-            };
-            return {
-              ...s,
-              timerSeconds: nextSec,
-              productStates: updatedProdStates,
-            };
-          }
-
-          // Jika produk aktif tidak jalan tetapi di productStates jalan
-          if (updatedProdStates[currProdKey]?.isTimerRunning) {
-            return {
-              ...s,
-              timerSeconds: updatedProdStates[currProdKey].timerSeconds,
-              isTimerRunning: true,
-              productStates: updatedProdStates,
-            };
-          }
-
-          if (stateChanged) {
-            return {
-              ...s,
-              productStates: updatedProdStates,
-            };
-          }
-
-          return s;
-        });
+        const { next, changed } = hydrateTimersInSessions(prev, nowMs);
+        return changed ? next : prev;
       });
-    }, 1000);
+    };
 
-    return () => clearInterval(interval);
-  }, []); // Mounts once: never cancelled on session state updates
+    syncRunningTimersFromClock();
+    const interval = setInterval(syncRunningTimersFromClock, 500);
 
-  // Switch product safely with INDEPENDENT stopwatch timer per product
-  // Switch product safely with INDEPENDENT stopwatch timer per product
+    const handleResumeSync = () => {
+      if (document.visibilityState === 'visible' || document.visibilityState === undefined) {
+        syncRunningTimersFromClock();
+      }
+    };
+
+    const handlePageHidePersist = () => {
+      setSessions(prev => {
+        const { next } = hydrateTimersInSessions(prev, Date.now());
+        persistSessionsNow(next);
+        return prev;
+      });
+    };
+
+    document.addEventListener('visibilitychange', handleResumeSync);
+    window.addEventListener('focus', handleResumeSync);
+    window.addEventListener('pageshow', handleResumeSync);
+    window.addEventListener('pagehide', handlePageHidePersist);
+    window.addEventListener('beforeunload', handlePageHidePersist);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleResumeSync);
+      window.removeEventListener('focus', handleResumeSync);
+      window.removeEventListener('pageshow', handleResumeSync);
+      window.removeEventListener('pagehide', handlePageHidePersist);
+      window.removeEventListener('beforeunload', handlePageHidePersist);
+    };
+  }, []); // Mounts once: timestamp calculation never drifts or stops
+
+  // Switch product safely with INDEPENDENT timestamp stopwatch timer per product
   const switchSessionProduct = (targetProdName: string, targetIdx?: number, explicitQueue?: string[]) => {
     if (!activeSession) return;
+    const nowMs = Date.now();
     const currentProd = activeSession.productNama;
     const targetProd = findProductDefinition(targetProdName);
     if (!targetProd) return;
 
-    // Check whether stopwatch is actively running for the current product
     const wasTimerRunning = !!activeSession.isTimerRunning;
+    const currentElapsed = resolveLiveElapsedSeconds(activeSession, nowMs);
 
-    // 1. Snapshot current active product state with its individual timerSeconds and isTimerRunning
+    // 1. Snapshot current active product state with its individual timestamp timer fields
     const currentSnapshot: ProductPracticeState = {
-      timerSeconds: activeSession.timerSeconds,
+      timerSeconds: currentElapsed,
+      timerBaseSeconds: wasTimerRunning
+        ? (typeof activeSession.timerBaseSeconds === 'number' ? activeSession.timerBaseSeconds : currentElapsed)
+        : currentElapsed,
+      timerStartedAt: wasTimerRunning ? (activeSession.timerStartedAt || nowMs) : null,
       isTimerRunning: wasTimerRunning,
       stepChecklist: activeChecklist,
       knowledgeAnswers: activeSession.knowledgeAnswers,
@@ -969,7 +1060,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     const existingQueue = explicitQueue || (activeSession.productQueue && activeSession.productQueue.length > 0
       ? [...activeSession.productQueue]
       : [activeSession.productNama]);
-    
+
     let updatedQueue = existingQueue;
     let newIndex = targetIdx !== undefined ? targetIdx : existingQueue.indexOf(targetProd.nama);
     if (newIndex === -1) {
@@ -977,14 +1068,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       newIndex = updatedQueue.length - 1;
     }
 
-    // Resolves steps directly from targetProd SOP steps to guarantee exact procedure match
     const nextSteps = resolveStepsForProduct(targetProd, targetState?.stepChecklist);
 
-    // KETIKA GANTI PRODUK DI ORANG YANG SAMA: Tiap produk punya timer mandiri!
-    // Produk lama tetap jalan di background via updatedProductStates[currentProd].
-    // Produk target memuat timer miliknya sendiri (misal 0 jika baru dibuka).
-    const nextTimerSeconds = targetState ? targetState.timerSeconds : 0;
+    const nextTimerSeconds = targetState ? resolveLiveElapsedSeconds(targetState, nowMs) : 0;
     const nextIsTimerRunning = targetState ? !!targetState.isTimerRunning : false;
+    const nextTimerBaseSeconds = targetState
+      ? (typeof targetState.timerBaseSeconds === 'number' ? targetState.timerBaseSeconds : nextTimerSeconds)
+      : 0;
+    const nextTimerStartedAt = nextIsTimerRunning ? (targetState?.timerStartedAt || nowMs) : null;
 
     updateActiveSession({
       productQueue: updatedQueue,
@@ -994,6 +1085,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       batch: targetProd.batch,
       station: targetProd.station,
       timerSeconds: nextTimerSeconds,
+      timerBaseSeconds: nextTimerBaseSeconds,
+      timerStartedAt: nextTimerStartedAt,
       isTimerRunning: nextIsTimerRunning,
       stepChecklist: nextSteps,
       knowledgeAnswers: targetState ? targetState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
@@ -1466,9 +1559,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     };
   }, [activeSession, currentProductDef, activeChecklist]);
 
-  // Handle Save / Submit Individual Assessment
+  // Handle Save / Submit Individual Assessment (Otomatis menyelesaikan/menghentikan timer produk yang dinilai)
   const handleSaveAssessment = () => {
     if (!activeSession) return;
+    const nowMs = Date.now();
+    const actualTimerSeconds = resolveLiveElapsedSeconds(activeSession, nowMs);
+    const stoppedFields = buildStopTimerFields(activeSession, nowMs);
 
     const finalPenilai = isCustomPenilai ? (customPenilai.trim() || 'Haikal') : namaPenilai;
     const effectiveKruNama = activeSession.isManualName
@@ -1495,7 +1591,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       station: activeSession.station,
       station_label: currentProductDef.stationLabel,
       produk_nama: activeSession.productNama,
-      waktu_detik: activeSession.timerSeconds,
+      waktu_detik: actualTimerSeconds,
       target_detik: currentProductDef.stdDetik,
       suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : 0,
       gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
@@ -1523,10 +1619,31 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       created_at: new Date().toISOString(),
     };
 
+    const currProd = activeSession.productNama;
+    const currState = activeSession.productStates?.[currProd];
+    const stoppedProdSnapshot: ProductPracticeState = {
+      ...(currState || {
+        stepChecklist: activeChecklist,
+        knowledgeAnswers: activeSession.knowledgeAnswers,
+        skorKnowledge: activeSession.skorKnowledge,
+        suhuMinyakProbe: activeSession.suhuMinyakProbe,
+        gramaturAktual: activeSession.gramaturAktual,
+        catatanTrainer: activeSession.catatanTrainer,
+      }),
+      ...stoppedFields,
+    };
+
     // 1. Simpan ke Local Storage & Supabase Database
     db.savePenilaianPraktikProduk(newRecord);
     setHistoryList(db.getPenilaianPraktikProduk());
-    updateActiveSession({ isSaved: true });
+    updateActiveSession({
+      ...stoppedFields,
+      isSaved: true,
+      productStates: {
+        ...(activeSession.productStates || {}),
+        [currProd]: stoppedProdSnapshot,
+      },
+    });
 
     // 2. Kirim otomatis ke Google Spreadsheet Webhook
     syncPenilaianToGoogleSheets(newRecord).then((sheetRes) => {
@@ -1549,6 +1666,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
   // Handle Save and Advance to next product in queue
   const handleSaveAndAdvanceProduct = () => {
     if (!activeSession) return;
+    const nowMs = Date.now();
+    const actualSeconds = resolveLiveElapsedSeconds(activeSession, nowMs);
     handleSaveAssessment();
 
     const queue = activeSession.productQueue && activeSession.productQueue.length > 0
@@ -1562,17 +1681,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       {
         productNama: activeSession.productNama,
         skorAkhir: calculatedScores.skorAkhir,
-        durasiDetik: activeSession.timerSeconds,
+        durasiDetik: actualSeconds,
         timestamp: new Date().toISOString(),
         lulus: calculatedScores.isKompetenMandiri,
       }
     ];
 
-    const wasTimerRunning = !!activeSession.isTimerRunning;
-
+    const stoppedCurrent = buildStopTimerFields(activeSession, nowMs);
     const currentCompletedState: ProductPracticeState = {
-      timerSeconds: activeSession.timerSeconds,
-      isTimerRunning: wasTimerRunning,
+      ...stoppedCurrent,
       stepChecklist: activeChecklist,
       knowledgeAnswers: activeSession.knowledgeAnswers,
       skorKnowledge: activeSession.skorKnowledge,
@@ -1591,8 +1708,12 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       const nextProdDef = findProductDefinition(nextProdName);
       const nextSavedState = updatedProductStates[nextProdDef.nama];
 
-      const nextTimerSeconds = nextSavedState ? nextSavedState.timerSeconds : 0;
+      const nextTimerSeconds = nextSavedState ? resolveLiveElapsedSeconds(nextSavedState, nowMs) : 0;
       const nextIsTimerRunning = nextSavedState ? !!nextSavedState.isTimerRunning : false;
+      const nextTimerBaseSeconds = nextSavedState
+        ? (typeof nextSavedState.timerBaseSeconds === 'number' ? nextSavedState.timerBaseSeconds : nextTimerSeconds)
+        : 0;
+      const nextTimerStartedAt = nextIsTimerRunning ? (nextSavedState?.timerStartedAt || nowMs) : null;
 
       updateActiveSession({
         currentProductIndex: nextIndex,
@@ -1606,6 +1727,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         knowledgeAnswers: nextSavedState ? nextSavedState.knowledgeAnswers : { 0: true, 1: true, 2: true, 3: true, 4: true },
         skorKnowledge: nextSavedState ? nextSavedState.skorKnowledge : 100,
         timerSeconds: nextTimerSeconds,
+        timerBaseSeconds: nextTimerBaseSeconds,
+        timerStartedAt: nextTimerStartedAt,
         isTimerRunning: nextIsTimerRunning,
         catatanTrainer: nextSavedState ? (nextSavedState.catatanTrainer || '') : (activeSession.productNotes?.[nextProdDef.nama] || ''),
         isSaved: false,
@@ -1616,6 +1739,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       showToast(`Nilai ${activeSession.productNama} tersimpan! Beralih ke menu #${nextIndex + 1}: ${nextProdDef.nama}`);
     } else {
       updateActiveSession({
+        ...stoppedCurrent,
         completedProducts: newCompleted,
         productStates: updatedProductStates,
         isSaved: true,
@@ -1624,10 +1748,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
     }
   };
 
-  // Helper filter riwayat penilaian praktik
+  // Helper filter riwayat penilaian praktik (cocokkan ID/nama batch, rentang tanggal, & daftar peserta batch)
   const filteredHistoryList = useMemo(() => {
     return historyList.filter(item => {
-      if (historyBatchFilter !== 'ALL' && item.batch_id !== historyBatchFilter && item.nama_batch !== historyBatchFilter) {
+      if (!matchesSelectedBatch(item, historyBatchFilter, batches)) {
         return false;
       }
       if (historyStatusFilter !== 'ALL') {
@@ -1645,7 +1769,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
       }
       return true;
     });
-  }, [historyList, historyBatchFilter, historyStatusFilter, historySearchQuery]);
+  }, [historyList, historyBatchFilter, historyStatusFilter, historySearchQuery, batches]);
 
   const handleOpenDeleteHistoryModal = (item: PenilaianPraktikOnboardingProduk) => {
     setConfirmModalConfig({
@@ -1791,10 +1915,15 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
   const filteredSikapList = useMemo(() => {
     return sikapList.filter(item => {
+      if (!matchesSelectedBatch(item, selectedBatchId, batches)) return false;
       if (sikapFilterKru !== 'ALL' && item.kru_id !== sikapFilterKru) return false;
       return true;
     });
-  }, [sikapList, sikapFilterKru]);
+  }, [sikapList, sikapFilterKru, selectedBatchId, batches]);
+
+  const filteredTimList = useMemo(() => {
+    return timList.filter(item => matchesSelectedBatch(item, selectedBatchId, batches));
+  }, [timList, selectedBatchId, batches]);
 
   // =========================================================================
   // PERHITUNGAN SKOR & LOGIKA PENILAIAN KERJA SAMA TIM (STATION KERJA 1 & 2)
@@ -1891,6 +2020,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           station: prodDef.station,
           productNama: prodDef.nama,
           timerSeconds: 0,
+          timerBaseSeconds: 0,
+          timerStartedAt: null,
           isTimerRunning: false,
           suhuMinyakProbe: prodDef.targetSuhuMinyak || 160,
           gramaturAktual: prodDef.targetGramatur || 0,
@@ -1990,7 +2121,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
               activeSubTab === 'tim' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
             }`}>
-              {timList.length}
+              {filteredTimList.length}
             </span>
           </button>
 
@@ -2008,7 +2139,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             <span className={`text-[10px] px-2 py-0.5 rounded-md font-mono ${
               activeSubTab === 'riwayat' ? 'bg-white/20 text-white' : 'bg-stone-200 text-[#645D55]'
             }`}>
-              {historyList.length}
+              {filteredHistoryList.length}
             </span>
           </button>
 
@@ -2441,12 +2572,17 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
 
                   {/* Stopwatch Digits & Controls */}
                   <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-                    <div className="flex items-baseline justify-between">
+                    <div className="flex items-baseline justify-between gap-2">
                       <div>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
-                          Durasi Berjalan:
+                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                          <span>Durasi Berjalan</span>
+                          {activeSession.isTimerRunning && (
+                            <span className="text-[9.5px] font-semibold text-emerald-700 normal-case tracking-normal">
+                              • Aktif di latar belakang
+                            </span>
+                          )}
                         </span>
-                        <div className="text-3xl sm:text-4xl font-black font-mono tracking-tight text-slate-900 mt-0.5">
+                        <div className="text-3xl sm:text-4xl font-black font-mono tabular-nums tracking-tight text-slate-900 mt-0.5">
                           {formatTime(activeSession.timerSeconds)}
                           <span className="text-xs font-normal text-slate-500 ml-1.5">
                             ({(activeSession.timerSeconds / 60).toFixed(1)} menit)
@@ -2497,9 +2633,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <button
                         type="button"
                         onClick={() => {
-                          const nextRunning = !activeSession.isTimerRunning;
+                          const nowMs = Date.now();
                           const currProd = activeSession.productNama;
                           const currState = activeSession.productStates?.[currProd];
+                          const nextRunning = !activeSession.isTimerRunning;
+                          const timerFields = nextRunning
+                            ? buildStartTimerFields(resolveLiveElapsedSeconds(activeSession, nowMs), nowMs)
+                            : buildStopTimerFields(activeSession, nowMs);
+
                           const updatedSnapshot: ProductPracticeState = {
                             ...(currState || {
                               stepChecklist: activeChecklist,
@@ -2509,11 +2650,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               gramaturAktual: activeSession.gramaturAktual,
                               catatanTrainer: activeSession.catatanTrainer,
                             }),
-                            timerSeconds: activeSession.timerSeconds,
-                            isTimerRunning: nextRunning,
+                            ...timerFields,
                           };
                           updateActiveSession({
-                            isTimerRunning: nextRunning,
+                            ...timerFields,
                             productStates: {
                               ...(activeSession.productStates || {}),
                               [currProd]: updatedSnapshot,
@@ -2527,14 +2667,24 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         }`}
                       >
                         {activeSession.isTimerRunning ? <Pause size={13} /> : <Play size={13} />}
-                        <span>{activeSession.isTimerRunning ? 'Jeda' : 'Mulai'}</span>
+                        <span>
+                          {activeSession.isTimerRunning
+                            ? 'Jeda'
+                            : activeSession.timerSeconds > 0
+                            ? 'Lanjut'
+                            : 'Mulai'}
+                        </span>
                       </button>
 
                       <button
                         type="button"
+                        disabled={!activeSession.isTimerRunning && activeSession.timerSeconds === 0}
                         onClick={() => {
+                          const nowMs = Date.now();
                           const currProd = activeSession.productNama;
                           const currState = activeSession.productStates?.[currProd];
+                          const stoppedFields = buildStopTimerFields(activeSession, nowMs);
+
                           const updatedSnapshot: ProductPracticeState = {
                             ...(currState || {
                               stepChecklist: activeChecklist,
@@ -2544,12 +2694,44 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               gramaturAktual: activeSession.gramaturAktual,
                               catatanTrainer: activeSession.catatanTrainer,
                             }),
-                            timerSeconds: currentProductDef.stdDetik,
-                            isTimerRunning: false,
+                            ...stoppedFields,
                           };
                           updateActiveSession({
-                            timerSeconds: currentProductDef.stdDetik,
-                            isTimerRunning: false,
+                            ...stoppedFields,
+                            productStates: {
+                              ...(activeSession.productStates || {}),
+                              [currProd]: updatedSnapshot,
+                            },
+                          });
+                          showToast(`Timer "${currProd}" selesai pada ${formatTime(stoppedFields.timerSeconds)}.`);
+                        }}
+                        className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
+                        title="Hentikan timer dan kunci durasi selesai"
+                      >
+                        <Square size={11} className="fill-current" />
+                        <span>Selesai</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nowMs = Date.now();
+                          const currProd = activeSession.productNama;
+                          const currState = activeSession.productStates?.[currProd];
+                          const adjusted = buildAdjustTimerFields(currentProductDef.stdDetik, false, nowMs);
+                          const updatedSnapshot: ProductPracticeState = {
+                            ...(currState || {
+                              stepChecklist: activeChecklist,
+                              knowledgeAnswers: activeSession.knowledgeAnswers,
+                              skorKnowledge: activeSession.skorKnowledge,
+                              suhuMinyakProbe: activeSession.suhuMinyakProbe,
+                              gramaturAktual: activeSession.gramaturAktual,
+                              catatanTrainer: activeSession.catatanTrainer,
+                            }),
+                            ...adjusted,
+                          };
+                          updateActiveSession({
+                            ...adjusted,
                             productStates: {
                               ...(activeSession.productStates || {}),
                               [currProd]: updatedSnapshot,
@@ -2565,7 +2747,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <button
                         type="button"
                         onClick={() => {
-                          const newSec = Math.max(0, activeSession.timerSeconds + 30);
+                          const nowMs = Date.now();
+                          const liveSec = resolveLiveElapsedSeconds(activeSession, nowMs);
+                          const newSec = Math.max(0, liveSec + 30);
+                          const adjusted = buildAdjustTimerFields(newSec, !!activeSession.isTimerRunning, nowMs);
                           const currProd = activeSession.productNama;
                           const currState = activeSession.productStates?.[currProd];
                           const updatedSnapshot: ProductPracticeState = {
@@ -2577,11 +2762,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               gramaturAktual: activeSession.gramaturAktual,
                               catatanTrainer: activeSession.catatanTrainer,
                             }),
-                            timerSeconds: newSec,
-                            isTimerRunning: activeSession.isTimerRunning,
+                            ...adjusted,
                           };
                           updateActiveSession({
-                            timerSeconds: newSec,
+                            ...adjusted,
                             productStates: {
                               ...(activeSession.productStates || {}),
                               [currProd]: updatedSnapshot,
@@ -2596,7 +2780,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <button
                         type="button"
                         onClick={() => {
-                          const newSec = Math.max(0, activeSession.timerSeconds - 30);
+                          const nowMs = Date.now();
+                          const liveSec = resolveLiveElapsedSeconds(activeSession, nowMs);
+                          const newSec = Math.max(0, liveSec - 30);
+                          const adjusted = buildAdjustTimerFields(newSec, !!activeSession.isTimerRunning, nowMs);
                           const currProd = activeSession.productNama;
                           const currState = activeSession.productStates?.[currProd];
                           const updatedSnapshot: ProductPracticeState = {
@@ -2608,11 +2795,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               gramaturAktual: activeSession.gramaturAktual,
                               catatanTrainer: activeSession.catatanTrainer,
                             }),
-                            timerSeconds: newSec,
-                            isTimerRunning: activeSession.isTimerRunning,
+                            ...adjusted,
                           };
                           updateActiveSession({
-                            timerSeconds: newSec,
+                            ...adjusted,
                             productStates: {
                               ...(activeSession.productStates || {}),
                               [currProd]: updatedSnapshot,
@@ -2627,6 +2813,8 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                       <button
                         type="button"
                         onClick={() => {
+                          const nowMs = Date.now();
+                          const adjusted = buildAdjustTimerFields(0, false, nowMs);
                           const currProd = activeSession.productNama;
                           const currState = activeSession.productStates?.[currProd];
                           const updatedSnapshot: ProductPracticeState = {
@@ -2638,12 +2826,10 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                               gramaturAktual: activeSession.gramaturAktual,
                               catatanTrainer: activeSession.catatanTrainer,
                             }),
-                            timerSeconds: 0,
-                            isTimerRunning: false,
+                            ...adjusted,
                           };
                           updateActiveSession({
-                            timerSeconds: 0,
-                            isTimerRunning: false,
+                            ...adjusted,
                             productStates: {
                               ...(activeSession.productStates || {}),
                               [currProd]: updatedSnapshot,
@@ -2997,7 +3183,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                         station: activeSession.station,
                         station_label: currentProductDef.stationLabel,
                         produk_nama: activeSession.productNama,
-                        waktu_detik: activeSession.timerSeconds,
+                        waktu_detik: resolveLiveElapsedSeconds(activeSession),
                         target_detik: currentProductDef.stdDetik,
                         suhu_minyak_aktual: currentProductDef.requiresOilTemp ? activeSession.suhuMinyakProbe : 0,
                         gramatur_aktual: currentProductDef.requiresGramatur ? activeSession.gramaturAktual : 0,
@@ -3148,11 +3334,16 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
           {/* Table Card with Filter & Search */}
           <div className="p-6 rounded-2xl bg-white border border-[#E6E1DA] shadow-xs space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E6E1DA] pb-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <FileText size={18} className="text-[#96171B]" />
                 <h4 className="font-bold text-sm text-[#181411]">
                   Data Observasi ({filteredHistoryList.length} Catatan)
                 </h4>
+                {historyBatchFilter !== 'ALL' && (
+                  <span className="text-[11px] font-semibold text-[#96171B]">
+                    • {batches.find(b => b.id === historyBatchFilter)?.nama_batch || historyBatchFilter}
+                  </span>
+                )}
               </div>
 
               <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -3168,15 +3359,19 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   <Search size={13} className="absolute left-2.5 top-3 text-neutral-400" />
                 </div>
 
-                {/* Filter Batch */}
+                {/* Filter Batch (Tersinkronisasi dengan pilihan Batch di atas halaman) */}
                 <select
                   value={historyBatchFilter}
-                  onChange={(e) => setHistoryBatchFilter(e.target.value)}
+                  onChange={(e) => {
+                    const nextVal = e.target.value;
+                    setHistoryBatchFilter(nextVal);
+                    setSelectedBatchId(nextVal);
+                  }}
                   className="p-2 rounded-lg border border-[#E6E1DA] text-xs font-semibold bg-white focus:border-[#96171B]"
                 >
                   <option value="ALL">Semua Batch</option>
                   {batches.map(b => (
-                    <option key={b.id} value={b.id}>{b.nama_batch}</option>
+                    <option key={b.id} value={b.id}>{b.nomor_batch} - {b.nama_batch}</option>
                   ))}
                 </select>
 
@@ -4172,7 +4367,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
               <div>
                 <h4 className="font-bold text-sm text-[#181411] flex items-center gap-2">
                   <Users size={16} className="text-[#96171B]" />
-                  <span>Riwayat Penilaian Tim Stasiun ({timList.length} Catatan)</span>
+                  <span>Riwayat Penilaian Tim Stasiun ({filteredTimList.length} Catatan)</span>
                 </h4>
                 <p className="text-xs text-[#645D55]">Rekam jejak evaluasi kolaborasi tim Station 1 & Station 2 di Kantor Lempongsari</p>
               </div>
@@ -4195,14 +4390,14 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E6E1DA]">
-                  {timList.length === 0 ? (
+                  {filteredTimList.length === 0 ? (
                     <tr>
                       <td colSpan={10} className="p-4 text-center text-gray-500 italic">
-                        Belum ada data evaluasi kerja sama tim stasiun yang tersimpan.
+                        Belum ada data evaluasi kerja sama tim stasiun yang tersimpan untuk filter batch ini.
                       </td>
                     </tr>
                   ) : (
-                    timList.map((item) => (
+                    filteredTimList.map((item) => (
                       <tr key={item.id} className="hover:bg-[#FAF8F5] transition-colors">
                         <td className="p-3">
                           <span className="font-bold text-[#181411] block">{item.tanggal}</span>
@@ -4306,6 +4501,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
         const outletRows = candidatesToAnalyze.map(c => {
           const cNameLower = c.nama.toLowerCase();
           const matched = historyList.filter(h => {
+            if (!matchesSelectedBatch(h, selectedBatchId, batches)) return false;
             const hName = (h.nama_kru || '').toLowerCase();
             return h.kru_id === c.id || hName.includes(cNameLower) || cNameLower.includes(hName);
           });
@@ -4324,7 +4520,7 @@ export const OnboardingProductPracticeView: React.FC<OnboardingProductPracticeVi
             : c.defaultTim;
 
           const sosPass = totalUji > 0
-            ? matched.filter(m => m.durasi_detik <= m.target_sos_detik).length
+            ? matched.filter(m => (m.waktu_detik ?? m.durasi_detik ?? 0) <= (m.target_detik ?? m.standar_durasi_detik ?? 9999)).length
             : 1;
           const sosPct = totalUji > 0 ? Math.round((sosPass / totalUji) * 100) : 88;
 
